@@ -51,8 +51,8 @@ class AIMatchingServer:
                 bnb_4bit_compute_dtype=torch.float16
             )
         else:
-            # CPU - modelo pequeño
-            self.model_name = "microsoft/DialoGPT-small"
+            # CPU - modelo pequeño y rápido
+            self.model_name = "distilgpt2"
             quantization = None
         
         logger.info(f"Cargando modelo: {self.model_name}")

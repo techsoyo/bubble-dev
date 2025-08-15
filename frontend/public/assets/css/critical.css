@@ -1,0 +1,35 @@
+/* Estilos críticos para la primera renderización */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Estilos para mejorar CLS (Cumulative Layout Shift) */
+.header-placeholder,
+.image-placeholder {
+  height: 0;
+  min-height: 1px;
+  contain: layout style;
+}
+
+/* Skeleton loading styles */
+.skeleton {
+  background: linear-gradient(110deg, #eff1f5 8%, #f5f7fa 18%, #eff1f5 33%);
+  background-size: 200% 100%;
+  animation: 1.5s shine linear infinite;
+}
+
+@keyframes shine {
+  to {
+    background-position-x: -200%;
+  }
+}

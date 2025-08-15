@@ -1,0 +1,81 @@
+{
+    "compilerOptions": {
+        "target": "ES2020",
+        "lib": [
+            "ES2020",
+            "DOM",
+            "DOM.Iterable",
+            "webworker"
+        ],
+        "allowJs": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "strict": false,
+        "noImplicitAny": false,
+        "exactOptionalPropertyTypes": false,
+        "forceConsistentCasingInFileNames": true,
+        "noFallthroughCasesInSwitch": true,
+        "module": "ESNext",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "jsx": "react-jsx",
+        "jsxImportSource": "react",
+        "types": [
+            "vite/client",
+            "node"
+        ],
+        // Additional strict checks for production
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "noUncheckedIndexedAccess": false,
+        "noImplicitOverride": true,
+        // Path mapping for clean imports
+        "baseUrl": ".",
+        "paths": {
+            "@/*": [
+                "./src/*"
+            ],
+            "@/components/*": [
+                "./src/components/*"
+            ],
+            "@/pages/*": [
+                "./src/pages/*"
+            ],
+            "@/lib/*": [
+                "./src/lib/*"
+            ],
+            "@/utils/*": [
+                "./src/utils/*"
+            ],
+            "@/types/*": [
+                "./src/types/*"
+            ],
+            "@/hooks/*": [
+                "./src/hooks/*"
+            ],
+            "@/assets/*": [
+                "./src/assets/*"
+            ]
+        }
+    },
+    "include": [
+        "src/**/*",
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.d.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "build",
+        "dist",
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.spec.tsx"
+    ]
+}

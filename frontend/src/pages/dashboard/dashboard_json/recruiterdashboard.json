@@ -1,0 +1,47 @@
+{
+    "candidato": {
+        "id": "string",
+        "nombre": "string",
+        "email": "string",
+        "telefono": "string",
+        "ubicacion": "string",
+        "skills": [
+            "string"
+        ],
+        "estado": "string",
+        "puesto": "string",
+        "categoria_asignada": "string",
+        "reclutador": "string",
+        "email_reclutador": "string",
+        "departamento": "string"
+    },
+    "aplicaciones": [
+        {
+            "id": "string",
+            "candidatoId": "string",
+            "puestoId": "string",
+            "candidato": {},
+            "puesto": {},
+            "fecha_postulacion": "string",
+            "estado": "string",
+            "score": "number"
+        }
+    ],
+    "entrevistas": [
+        {
+            "id": "string",
+            "candidatoId": "string",
+            "reclutadorId": "string",
+            "nombre_reclutador": "string",
+            "email_reclutador": "string",
+            "fecha": "string",
+            "hora": "string",
+            "duracion": "number",
+            "ubicacion": "string",
+            "tipo": "string",
+            "estado": "string",
+            "notas": "string",
+            "enlace_reunion": "string"
+        }
+    ]
+}

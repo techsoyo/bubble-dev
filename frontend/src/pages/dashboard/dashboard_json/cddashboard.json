@@ -1,0 +1,35 @@
+{
+    "perfil": {
+        "email": "string",
+        "skills": [
+            "string"
+        ],
+        "nombre": "string",
+        "apellido": "string"
+    },
+    "solicitudes": [
+        {
+            "id": "string",
+            "titulo_puesto": "string",
+            "estado": "string",
+            "fecha_postulacion": "string",
+            "score": "number",
+            "ubicacion": "string",
+            "tipo": "string",
+            "categoria": "string",
+            "descripcion": "string",
+            "skills_requeridas": [
+                "string"
+            ],
+            "skills_candidato": [
+                "string"
+            ]
+        }
+    ],
+    "notificaciones": [
+        {
+            "mensaje": "string",
+            "fecha": "string"
+        }
+    ]
+}

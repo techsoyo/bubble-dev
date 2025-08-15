@@ -1,0 +1,44 @@
+{
+    "aplicaciones": [
+        {
+            "id": "string",
+            "candidato": {
+                "id": "string",
+                "nombre": "string",
+                "email": "string",
+                "ubicacion": "string",
+                "skills": [
+                    "string"
+                ]
+            },
+            "puesto": {
+                "id": "string",
+                "titulo": "string",
+                "ubicacion": "string",
+                "skills": [
+                    "string"
+                ]
+            },
+            "fecha_postulacion": "string",
+            "estado": "string",
+            "score": "number",
+            "insights": {}
+        }
+    ],
+    "candidato_seleccionado": {
+        "id": "string",
+        "nombre": "string",
+        "email": "string",
+        "ubicacion": "string",
+        "skills": [
+            "string"
+        ]
+    },
+    "reclutadores": [
+        {
+            "id": "string",
+            "nombre": "string",
+            "email": "string"
+        }
+    ]
+}

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Bubblegum.agency - Job Portal</title>
+  <meta name="description" content="Find your next professional opportunity at Bubblegum.agency" />
+  <meta name="author" content="Bubblegum.agency" />
+
+  <meta property="og:title" content="Bubblegum.agency - Job Portal" />
+  <meta property="og:description" content="Find your next professional opportunity at Bubblegum.agency" />
+  <meta property="og:type" content="website" />
+
+  <!-- Preconnect para APIs y servicios de terceros -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://api.bubblegum.agency">
+
+  <!-- DNS-Prefetch para acelerar carga de recursos -->
+  <link rel="dns-prefetch" href="https://api.bubblegum.agency">
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+
+  <!-- Preload de recursos críticos -->
+  <link rel="preload" href="/assets/css/critical.css?v=1.0.0" as="style">
+  <link rel="stylesheet" href="/assets/css/critical.css?v=1.0.0">
+
+  <!-- Optimización de carga de fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"
+    media="print" onload="this.media='all'">
+
+  <!-- Estrategia font-display para mejorar LCP -->
+  <style>
+    /* Estilos críticos inline para First Paint */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    /* Evitar Flash of Unstyled Content */
+    .js-loading {
+      visibility: hidden;
+    }
+
+    /* Estilos para detectar estado de conexión */
+    html[data-connection="offline"] .offline-only {
+      display: block !important;
+    }
+
+    html[data-connection="online"] .online-only {
+      display: block !important;
+    }
+
+    .offline-only {
+      display: none;
+    }
+
+    .online-only {
+      display: none;
+    }
+  </style>
+
+  <!-- Favicon con security considerations -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=1.0.0" />
+  <link rel="alternate icon" href="/favicon.ico?v=1.0.0" />
+
+  <!-- Script para prevenir FOUC -->
+  <script>
+    document.documentElement.classList.add('js-loading');
+    window.addEventListener('DOMContentLoaded', () => {
+      document.documentElement.classList.remove('js-loading');
+    });
+
+    // Verificar el estado de conexión
+    if (navigator.onLine) {
+      document.documentElement.setAttribute('data-connection', 'online');
+    } else {
+      document.documentElement.setAttribute('data-connection', 'offline');
+    }
+  </script>
+
+  <!-- Meta tag para PWA -->
+  <meta name="theme-color" content="#3b82f6">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="/assets/icons/icon-192x192.svg">
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <!-- Script simplificado para imagen de fondo -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Ocultar overlay
+      const overlay = document.querySelector('.video-overlay');
+      if (overlay) {
+        overlay.style.display = 'none';
+      }
+
+      console.log('Usando imagen de fondo: Rectangle-9386.png');
+
+      // Intersection Observer para elementos que aparecen al hacer scroll
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, observerOptions);
+
+      // Observar elementos con la clase fade-in-scroll
+      document.querySelectorAll('.fade-in-scroll').forEach(el => {
+        observer.observe(el);
+      });
+    });
+  </script>
+
+  <script type="module" src="/src/main.tsx"></script>
+
+  <!-- Mensaje offline (visible solo cuando no hay conexión) -->
+  <div class="offline-only"
+    style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 10px 20px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 9999;">
+    Modo sin conexión activo. Algunas funciones pueden no estar disponibles.
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,5 @@
+# Protege el directorio de archivos subidos para evitar acceso directo.
+# Se deniega cualquier petición HTTP a estos archivos.  Los archivos deben
+# servirse a través de endpoints controlados que verifiquen permisos.
+
+Require all denied

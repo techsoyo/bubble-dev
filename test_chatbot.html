@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Chatbot - Bubble of Talents</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+
+    .test-container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .test-result {
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+      font-family: monospace;
+    }
+
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .info {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    button {
+      background-color: #FF4785;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+
+    button:hover {
+      background-color: #e63673;
+    }
+
+    .loading {
+      color: #6c757d;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="test-container">
+    <h1>🤖 Test de Funcionalidad del Chatbot</h1>
+    <p>Esta página verifica que el chatbot de Bubble of Talents esté funcionando correctamente.</p>
+
+    <div id="results"></div>
+
+    <button onclick="testChatbotEndpoint()">🔧 Probar Endpoint de Datos</button>
+    <button onclick="testAnalyticsEndpoint()">📊 Probar Endpoint de Analytics</button>
+    <button onclick="testFrontendConnection()">⚛️ Probar Conexión Frontend</button>
+    <button onclick="clearResults()">🧹 Limpiar Resultados</button>
+  </div>
+
+  <script>
+    const resultsDiv = document.getElementById('results');
+
+    function addResult(message, type = 'info') {
+      const div = document.createElement('div');
+      div.className = `test-result ${type}`;
+      div.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+      resultsDiv.appendChild(div);
+      resultsDiv.scrollTop = resultsDiv.scrollHeight;
+    }
+
+    function clearResults() {
+      resultsDiv.innerHTML = '';
+    }
+
+    async function testChatbotEndpoint() {
+      addResult('🔄 Probando endpoint de datos del chatbot...', 'loading');
+
+      try {
+        const response = await fetch('http://localhost:8000/api/endpoints/chatbot_decision_tree.php');
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        if (data.nodes && data.options) {
+          addResult(`✅ Endpoint funcionando correctamente: ${data.nodes.length} nodos, ${data.options.length} opciones`, 'success');
+
+          // Mostrar algunos ejemplos
+          if (data.nodes.length > 0) {
+            addResult(`📄 Ejemplo de nodo: ${data.nodes[0].id} - "${data.nodes[0].content}"`, 'info');
+          }
+          if (data.options.length > 0) {
+            addResult(`🔗 Ejemplo de opción: "${data.options[0].text}" -> ${data.options[0].next_node_id}`, 'info');
+          }
+        } else {
+          addResult('⚠️ Endpoint devuelve datos pero estructura incorrecta', 'error');
+        }
+
+      } catch (error) {
+        addResult(`❌ Error al conectar con el endpoint: ${error.message}`, 'error');
+      }
+    }
+
+    async function testAnalyticsEndpoint() {
+      addResult('🔄 Probando endpoint de analytics...', 'loading');
+
+      try {
+        const response = await fetch('http://localhost:8000/api/endpoints/chatbot_analytics.php');
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+          addResult(`✅ Endpoint de analytics funcionando: ${data.length} registros encontrados`, 'success');
+        } else {
+          addResult('⚠️ Endpoint de analytics devuelve datos pero formato inesperado', 'error');
+        }
+
+      } catch (error) {
+        addResult(`❌ Error en endpoint de analytics: ${error.message}`, 'error');
+      }
+    }
+
+    async function testFrontendConnection() {
+      addResult('🔄 Verificando que el frontend puede acceder a los endpoints...', 'loading');
+
+      // Simular lo que hace el componente React
+      try {
+        const apiBaseUrl = 'http://localhost:8000'; // Misma configuración que en env.ts
+        const response = await fetch(`${apiBaseUrl}/api/endpoints/chatbot_decision_tree.php`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        addResult('✅ Frontend puede conectarse correctamente con el backend', 'success');
+
+        // Verificar estructura de datos como lo haría React
+        if (data.nodes && data.options) {
+          addResult('✅ Estructura de datos compatible con ChatbotDecisionTree.tsx', 'success');
+
+          // Buscar el nodo welcome que es el inicial
+          const welcomeNode = data.nodes.find(node => node.id === 'welcome');
+          if (welcomeNode) {
+            addResult(`✅ Nodo inicial 'welcome' encontrado: "${welcomeNode.content}"`, 'success');
+          } else {
+            addResult('⚠️ No se encontró el nodo inicial "welcome"', 'error');
+          }
+
+          // Verificar que hay opciones para el nodo welcome
+          const welcomeOptions = data.options.filter(opt => opt.node_id === 'welcome');
+          if (welcomeOptions.length > 0) {
+            addResult(`✅ ${welcomeOptions.length} opciones disponibles para el nodo welcome`, 'success');
+          } else {
+            addResult('⚠️ No hay opciones para el nodo welcome', 'error');
+          }
+        } else {
+          addResult('❌ Estructura de datos incompatible', 'error');
+        }
+
+      } catch (error) {
+        addResult(`❌ Error en conexión frontend-backend: ${error.message}`, 'error');
+      }
+    }
+
+    // Ejecutar prueba inicial automáticamente
+    window.addEventListener('load', () => {
+      addResult('🚀 Iniciando verificación del chatbot...', 'info');
+      setTimeout(testChatbotEndpoint, 1000);
+    });
+  </script>
+</body>
+
+</html>

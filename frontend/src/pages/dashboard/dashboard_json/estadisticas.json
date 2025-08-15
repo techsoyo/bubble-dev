@@ -1,0 +1,28 @@
+{
+    "kpis": {
+        "total_aplicaciones": "number",
+        "total_contratados": "number",
+        "total_rechazados": "number",
+        "total_entrevista": "number",
+        "tiempo_promedio_contratacion": "string"
+    },
+    "aplicaciones_por_puesto": [
+        {
+            "puesto": "string",
+            "total": "number",
+            "contratados": "number"
+        }
+    ],
+    "estado_aplicaciones": [
+        {
+            "estado": "string",
+            "cantidad": "number"
+        }
+    ],
+    "distribucion_nivel_educativo": [
+        {
+            "nivel": "string",
+            "cantidad": "number"
+        }
+    ]
+}

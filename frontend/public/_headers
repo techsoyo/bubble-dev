@@ -1,0 +1,36 @@
+# Configuración de cache para optimizar el rendimiento
+# Archivo: _headers
+
+# Todos los archivos en la carpeta assets con versionado
+/assets/*.*:
+  Cache-Control: public, max-age=31536000, immutable
+
+# Archivos estáticos comunes
+/*.ico:
+  Cache-Control: public, max-age=86400
+/*.svg:
+  Cache-Control: public, max-age=86400
+/*.png:
+  Cache-Control: public, max-age=86400
+/*.jpg:
+  Cache-Control: public, max-age=86400
+/*.jpeg:
+  Cache-Control: public, max-age=86400
+/*.gif:
+  Cache-Control: public, max-age=86400
+/*.webp:
+  Cache-Control: public, max-age=86400
+
+# Fuentes web
+/assets/fonts/*:
+  Cache-Control: public, max-age=31536000, immutable
+
+# JavaScript y CSS
+/*.js:
+  Cache-Control: public, max-age=604800
+/*.css:
+  Cache-Control: public, max-age=604800
+
+# HTML
+/*:
+  Cache-Control: public, max-age=0, must-revalidate

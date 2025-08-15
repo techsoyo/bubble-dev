@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sin conexión - Bubble of Talents</title>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .header {
+      padding: 1.5rem;
+      background-color: #0f172a;
+      color: white;
+      text-align: center;
+    }
+
+    .container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .content {
+      max-width: 550px;
+      padding: 2rem;
+      text-align: center;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #0f172a;
+    }
+
+    p {
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+      color: #475569;
+    }
+
+    .icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: #ef4444;
+    }
+
+    .button {
+      display: inline-block;
+      background-color: #3b82f6;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.375rem;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+
+    .button:hover {
+      background-color: #2563eb;
+    }
+
+    .features {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .feature {
+      flex: 1;
+      min-width: 180px;
+      max-width: 250px;
+      padding: 1.25rem;
+      background-color: #f1f5f9;
+      border-radius: 0.5rem;
+      text-align: left;
+    }
+
+    .feature h3 {
+      font-size: 1.1rem;
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+      color: #0f172a;
+    }
+
+    .feature p {
+      font-size: 0.9rem;
+      margin-bottom: 0;
+    }
+
+    .footer {
+      padding: 1.5rem;
+      background-color: #0f172a;
+      color: #94a3b8;
+      text-align: center;
+      font-size: 0.875rem;
+    }
+
+    .animated {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.7;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <h2>Bubble of Talents</h2>
+  </div>
+
+  <div class="container">
+    <div class="content">
+      <div class="icon">📶</div>
+      <h1>Sin conexión a Internet</h1>
+      <p>No se puede cargar la página solicitada porque no hay conexión a Internet. La aplicación Bubble of Talents
+        seguirá funcionando con capacidades limitadas hasta que se restablezca la conexión.</p>
+
+      <a href="/" class="button animated">Intentar de nuevo</a>
+
+      <div class="features">
+        <div class="feature">
+          <h3>Contenido en caché</h3>
+          <p>Aún puedes acceder a los datos previamente cargados y visualizados.</p>
+        </div>
+        <div class="feature">
+          <h3>Sincronización automática</h3>
+          <p>Los cambios realizados se sincronizarán cuando vuelvas a estar online.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    &copy; 2023 Bubble of Talents - Todos los derechos reservados
+  </div>
+
+  <script>
+    // Verificar conexión periódicamente
+    function checkConnectivity() {
+      if (navigator.onLine) {
+        document.querySelector('.button').classList.add('animated');
+        document.querySelector('.button').addEventListener('click', function (e) {
+          e.preventDefault();
+          window.location.reload();
+        });
+      } else {
+        document.querySelector('.button').classList.remove('animated');
+      }
+    }
+
+    // Comprobar estado de conexión cada 5 segundos
+    setInterval(checkConnectivity, 5000);
+
+    // Comprobar también al cambiar el estado de conexión
+    window.addEventListener('online', checkConnectivity);
+    window.addEventListener('offline', checkConnectivity);
+
+    // Verificar al cargar
+    checkConnectivity();
+
+    // Intentar reconectar al hacer clic en el botón
+    document.querySelector('.button').addEventListener('click', function (e) {
+      if (!navigator.onLine) {
+        e.preventDefault();
+        alert('Todavía estás sin conexión. Por favor, verifica tu conexión a Internet e intenta nuevamente.');
+      }
+    });
+  </script>
+</body>
+
+</html>

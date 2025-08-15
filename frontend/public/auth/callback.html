@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autenticación - Bubble of Talents</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #2f2f2f 0%, #1a1a1a 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 400px;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .logo {
+      width: 60px;
+      height: 60px;
+      background: #FF4785;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 71, 133, 0.3);
+      border-left: 4px solid #FF4785;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 1rem auto;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .message {
+      margin: 1rem 0;
+      font-size: 16px;
+    }
+
+    .error {
+      color: #ff6b6b;
+      background: rgba(255, 107, 107, 0.1);
+      border: 1px solid rgba(255, 107, 107, 0.3);
+      padding: 1rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+    }
+
+    .success {
+      color: #51cf66;
+      background: rgba(81, 207, 102, 0.1);
+      border: 1px solid rgba(81, 207, 102, 0.3);
+      padding: 1rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+    }
+
+    .btn {
+      background: #FF4785;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 1rem;
+      transition: background 0.3s;
+    }
+
+    .btn:hover {
+      background: #FF3575;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="logo">BT</div>
+    <h2>Autenticación Social</h2>
+
+    <div id="loading" style="display: block;">
+      <div class="spinner"></div>
+      <div class="message">Procesando autenticación...</div>
+    </div>
+
+    <div id="success" style="display: none;">
+      <div class="success">
+        <h3>¡Autenticación exitosa! 🎉</h3>
+        <p>Redirigiendo a tu dashboard...</p>
+      </div>
+    </div>
+
+    <div id="error" style="display: none;">
+      <div class="error">
+        <h3>Error de autenticación</h3>
+        <p id="error-message">Ha ocurrido un error durante la autenticación.</p>
+      </div>
+      <a href="/auth/candidate" class="btn">Intentar nuevamente</a>
+    </div>
+  </div>
+
+  <script>
+    // Procesar callback de autenticación
+    async function processAuthCallback() {
+      try {
+        // Obtener parámetros de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        const error = urlParams.get('error');
+
+        // Verificar si hay errores
+        if (error) {
+          showError('El usuario canceló la autenticación o hubo un error.');
+          return;
+        }
+
+        if (!code) {
+          showError('No se recibió el código de autorización.');
+          return;
+        }
+
+        // Enviar código al backend para procesamiento
+        const response = await fetch('/api/auth/social-callback.php?' + urlParams.toString(), {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showSuccess();
+
+          // Redirigir después de un breve delay
+          setTimeout(() => {
+            if (data.redirect_url) {
+              window.location.href = data.redirect_url;
+            } else {
+              window.location.href = '/dashboard/cddashboard';
+            }
+          }, 1500);
+        } else {
+          showError(data.message || 'Error durante la autenticación.');
+        }
+
+      } catch (error) {
+        console.error('Error procesando callback:', error);
+        showError('Error de conexión. Verifica tu conexión a internet e inténtalo nuevamente.');
+      }
+    }
+
+    function showSuccess() {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'none';
+      document.getElementById('success').style.display = 'block';
+    }
+
+    function showError(message) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('success').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+      document.getElementById('error-message').textContent = message;
+    }
+
+    // Ejecutar cuando la página carga
+    document.addEventListener('DOMContentLoaded', function () {
+      // Solo procesar si hay parámetros OAuth en la URL
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('code') || urlParams.has('error')) {
+        processAuthCallback();
+      } else {
+        showError('Solicitud de autenticación no válida.');
+      }
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,68 @@
+{
+  "name": "Bubble of Talents - IA Testing Environment",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "hostRequirements": {
+    "gpu": "optional",
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/nvidia-cuda:1": {
+      "installCudnn": true,
+      "installToolkit": true
+    },
+    "ghcr.io/devcontainers/features/php:1": {
+      "version": "8.2",
+      "installComposer": true
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "18"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-toolsai.jupyter",
+        "bmewburn.vscode-intelephense-client",
+        "ms-vscode.vscode-json"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.terminal.activateEnvironment": true
+      }
+    }
+  },
+  "onCreateCommand": "bash .devcontainer/setup.sh",
+  "postCreateCommand": [
+    "pip install --upgrade pip",
+    "pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118",
+    "pip install transformers accelerate bitsandbytes flask requests huggingface_hub",
+    "cd backend && composer install"
+  ],
+  "forwardPorts": [
+    5000,
+    8000,
+    3002
+  ],
+  "portsAttributes": {
+    "5000": {
+      "label": "AI Testing Server",
+      "onAutoForward": "notify"
+    },
+    "8000": {
+      "label": "Backend PHP",
+      "onAutoForward": "notify"
+    },
+    "3002": {
+      "label": "Frontend",
+      "onAutoForward": "notify"
+    }
+  },
+  "remoteUser": "vscode",
+  "workspaceFolder": "/workspaces/bubble_of_talents_1.0",
+  "mounts": [
+    "source=${localWorkspaceFolder}/backend/uploads,target=/workspaces/bubble_of_talents_1.0/backend/uploads,type=bind,consistency=cached"
+  ]
+}

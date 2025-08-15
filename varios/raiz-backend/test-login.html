@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Test Staff Login</title>
+</head>
+
+<body>
+  <h2>Test Staff Login</h2>
+  <button onclick="testLogin()">Test Login</button>
+  <div id="result"></div>
+
+  <script>
+    async function testLogin() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = 'Enviando...';
+
+      try {
+        const response = await fetch('http://localhost:8000/auth/staff-login-simple.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'staff_login',
+            email: 'ana.torres@bubblegum.agency',
+            password: 'bubbleHR2025!'
+          })
+        });
+
+        const data = await response.text();
+        resultDiv.innerHTML = `<h3>Response (status ${response.status}):</h3><pre>${data}</pre>`;
+      } catch (error) {
+        resultDiv.innerHTML = `<h3>Error:</h3><pre>${error.message}</pre>`;
+      }
+    }
+  </script>
+</body>
+
+</html>

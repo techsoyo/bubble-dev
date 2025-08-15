@@ -1,0 +1,49 @@
+# Node
+node_modules/
+dist/
+build/
+*.log
+
+# Frontend bundlers
+frontend/.next/
+frontend/.nuxt/
+frontend/.cache/
+frontend/.vite/
+frontend/coverage/
+
+# Backend PHP
+backend/vendor/
+backend/storage/*
+!backend/storage/.gitkeep
+backend/public/uploads/*
+!backend/public/uploads/.gitkeep
+backend/.php-cs-fixer.cache
+
+# Tests y reportes
+test-results/
+playwright-report/
+coverage/
+varios/tests/playwright-report/
+varios/data/tree.*
+varios/data/lint-report.json
+
+# Entornos
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Archivos temporales
+*.tmp
+*.temp
+varios/data/*.zip
+varios/data/*.csv
+
+# OS/IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Artefactos
+*.zip
+*.tar.gz

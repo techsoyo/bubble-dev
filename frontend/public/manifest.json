@@ -1,0 +1,100 @@
+{
+  "name": "Bubble of Talents",
+  "short_name": "BubbleTalents",
+  "description": "Plataforma de reclutamiento y gestión de talento",
+  "start_url": "/?source=pwa",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "es",
+  "shortcuts": [
+    {
+      "name": "Ofertas de trabajo",
+      "short_name": "Ofertas",
+      "description": "Ver ofertas de trabajo disponibles",
+      "url": "/jobs?source=pwa",
+      "icons": [
+        {
+          "src": "/assets/icons/jobs.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Mi perfil",
+      "short_name": "Perfil",
+      "description": "Ver mi perfil profesional",
+      "url": "/profile?source=pwa",
+      "icons": [
+        {
+          "src": "/assets/icons/profile.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/screenshots/home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Pantalla principal de Bubble of Talents"
+    },
+    {
+      "src": "/assets/screenshots/mobile.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Bubble of Talents en dispositivos móviles"
+    }
+  ],
+  "categories": [
+    "business",
+    "productivity",
+    "utilities"
+  ],
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "iarc_rating_id": "",
+  "share_target": {
+    "action": "/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "resume",
+          "accept": [
+            "application/pdf",
+            ".pdf",
+            "application/msword",
+            ".doc",
+            ".docx"
+          ]
+        }
+      ]
+    }
+  },
+  "offline_enabled": true
+}

@@ -1,0 +1,1052 @@
+1 | P a g e 
+ 
+ 
+     
+CURRICULUM VITAE 
+ 
+ 
+Name Dimosthenis KARATZAS 
+ 
+Email dimos@cvc.uab.es 
+Telephone +34 935813841 
+Web www.cvc.uab.es 
+Address Computer Vision Centre 
+Universitat Autònoma de Barcelona 
+Edifici O, 08193, Bellaterra, 
+Barcelona, Spain 
+ 
+Table of Contents 
+1 Biographical Note .................................................................................................................. 2 
+2 Academic Degrees ................................................................................................................. 3 
+3 Career History ....................................................................................................................... 4 
+4 Accreditations ....................................................................................................................... 4 
+5 Languages .............................................................................................................................. 4 
+6 Selected Research Projects ................................................................................................... 5 
+7 Selected Technology Transfer / Contracted Research Projects ............................................ 5 
+8 Scholarships and Grants ........................................................................................................ 6 
+9 Awards ................................................................................................................................... 6 
+10 Invited Talks / Lectures ......................................................................................................... 7 
+11 Participation in International Committees ............................................................................ 8 
+12 Organization of Scientific activities ....................................................................................... 8 
+13 Theses Supervision ................................................................................................................ 9 
+14 Courses Taught .................................................................................................................... 10 
+15 Publications ......................................................................................................................... 10 
+16 Publicity ............................................................................................................................... 15
+
+2 | P a g e 
+ 
+1 Biographical Note 
+A physicist by education, I received my PhD in Computer Science from the University of 
+Liverpool, UK in 2003. From 2002 to 2007 I worked as a Research Fellow at the top ranked 
+Universities of Liverpool and Southampton, UK. Since 2007 I work at the Universitat Autònoma 
+de Barcelona, Spain, first as a “Beatriu de Pinós” fellow, then as a “Ramon y Cajal” senior 
+fellow, and since March 2018 as contracted professor. 
+I develop my research at the Computer Vision Centre, where I lead the Vision and Language 
+research group. I am associate director of the Centre since 2014. 
+My main research interests are computer vision and machine learning, and in particular robust 
+reading systems, document image analysis, human-document interaction, and human 
+perception modelling. I have produced >100 peer reviewed publications, including 22 in 
+indexed journals and 8 book chapters that have received more than 2600 citations
+1
+. 
+In 2013 I received the IAPR/ICDAR Young Investigator Award for “innovative research in 
+human perception-based document analysis” as well as “outstanding service to the ICDAR 
+community in a variety of roles”. This recognition is awarded by the International Association 
+of Pattern Recognition, after an international nomination and evaluation process to one 
+individual every two years. 
+In 2016, I received a Google Research Award, in the line of Machine Perception, for pursuing 
+research in the line of modelling the interplay between visual and textual information in 
+images. 
+I have been the principal investigator of various research projects, including a continuous 
+stride of national research projects since I joined the Univ. Autònoma de Barcelona in Spain. 
+My research activity is accredited by AQU, the Catalan Agency for the Quality of the University 
+System at the maximum level (“Acreditació de Recerca” U1445/11534680-113, “Acreditació de 
+Recerca Avançada”: CT5JVYP7J) while I have also been positively evaluated by the I3 program 
+in Spain. 
+I count with extensive technology transfer experience. In 2007 I set up with fellow-researchers 
+the spin-off company TruColour Ltd, UK, specializing in perception-based colour calibration 
+solutions. In 2019 I set up with colleagues the spin-off company AllRead
+2
+, Spain, backed by the 
+Mobile World Capital, specializing in the recognition of structured text in the wild. I have 
+secured numerous research and technology transfer contracts. Technologies I have 
+transferred are used daily in sectors such as banking (administrative documents classification 
+for CaixaBank: thousands of images processed automatically per day) and utilities (automatic 
+reading of consumption from gas meters for Naturgy: >10k images analysed per week, >2M 
+images over the past two years). 
+A key driver in my professional activity is ensuring that research output creates real-life 
+impact. In this line, I conceived and led the creation of the “Library Living Lab” (L3)
+3
+, 
+converting a public library in Sant Cugat del Vallés, Barcelona, into an open, participatory 
+innovation space. The project, aligned with European and regional innovation policies, is a 
+collaboration between the public administration, research institutions, industry partners and 
+citizens’ associations. L3 is an authentic implementation of the quadruple helix innovation 
+model and a framework for social innovation in a real-world context. Under my leadership L3 
+became a member of the European Network of Living Labs in 2015 and was nominated for 
+the city awards of Sant Cugat del Vallés in 2016. 
+                                                           
+1
+ Google Scholar: http://scholar.google.com/citations?user=xASEtrUAAAAJ&hl=en  
+2
+ https://www.allread.ai/ 
+3
+ http://librarylivinglab.cvc.uab.cat/
+
+3 | P a g e 
+ 
+I am the chair of the Technical Committee 11 (Reading Systems) of the International 
+Association of Pattern Recognition (IAPR). TC11 coordinates the activities of the >1,200 
+members strong international research community in this area. 
+I am also a member of the IAPR Education Committee, the IEEE, while I have served in the 
+IAPR Industry Liaison Committee and I have been a founding member and a member of the 
+executive committee of the UK Chapter of the SPIE. 
+In 2018 I was invited by the Secretary of Telecommunications, Cybersecurity and Digital 
+Society of the Generalitat de Catalunya to participate in a high-level work group to define the 
+Catalan Strategy on Artificial Intelligence, under the name “Catalonia.AI”
+4
+. 
+I have served the international research community in several roles. I have been involved in 
+the organisation of the main international events in my research field in various capacities. I 
+serve on the editorial board of IPSJ Transactions on Computer Vision and Applications. In 2015 
+and 2019 I edited special issues on Robust Reading of the Int. Journal on Document Analysis 
+Recognition (Springer) and of Pattern Recognition (Elsevier). I am an evaluator of research 
+projects of various calls.  
+I have launched and run biannually since 2011 the Robust Reading Competition series
+5
+, that 
+has been established as the de-facto international benchmark in my research domain, serving 
+more than 12,000 registered researchers from 128 countries and having received and 
+evaluated more than 47,000 results submissions to date (at the rate of 30 per day). The 
+Robust Reading Competition has built bridges between the document image analysis area and 
+the wider computer vision research field and has created significant impact in the international 
+research community. 
+I have 20 years’ worth of teaching experience at different undergraduate and postgraduate 
+levels. My teaching activity is accredited by AQU (“Professor Lector” U1443/8155058-76). 
+Apart from day-to-day teaching activities, I have led the organization of the Winter School on 
+Eye-Tracking Methodologies (2007), I actively participated in the launch of the Doctoral 
+Consortium of the Int. Conf. on Document Analysis and Recognition in 2011 and the IAPR 
+TC10/11 Summer School series in 2016 and I am overlooking their continuous organization as 
+the chair of IAPR TC11. 
+I have developed a considerable part of my career abroad through numerous contracts and 
+research stays in foreign institutions. My experience abroad includes contracts in venues of 
+high-esteem, such as the School of Electronics and Computer Science of the Univ. of 
+Southampton, UK, a Marie Curie visiting researcher stay at ITESOFT, France and numerous 
+other research stays. 
+2 Academic Degrees 
+Title University 	Date 
+PhD – Computer 
+Science 
+Department of Computer Science, Faculty of Science 
+The University of Liverpool (UK) 
+Jan. 2003 
+BSc – Physics 
+Department of Physics, Faculty of Sciences 
+Aristotle University of Thessaloniki (Greece) 
+Sept. 1998 
+ 
+ 
+ 
+ 
+                                                           
+4
+ https://catalonia.ai/  
+5
+ http://rrc.cvc.uab.es/
+
+4 | P a g e 
+ 
+3 Career History 
+Post 	Institution 	Period 
+Profesor Agregado Universitat Autónoma de Barcelona, Spain 16/4/2018 present 
+Associate Director Computer Vision Centre 	1/4/2014 present  
+Interim professor Universitat Autónoma de Barcelona, Spain 1/10/2016 15/4/2018  
+“Ramon y Cajal” 
+Research Fellow (*) 
+Computer Vision Centre / 
+Universitat Autónoma de Barcelona, Spain 
+1/12/2009 30/9/2016 
+Contracted Researcher Computer Vision Centre, Spain 	1/9/2009 30/11/2009 
+“Beatriu de Pinós” 
+Research Fellow 
+Computer Vision Centre, 
+Universitat Autónoma de Barcelona, Spain 
+7/9/2007 31/8/2009 
+Director TruColour, UK 	1/2/2007 4/11/2018 
+Research Fellow 
+School of Electronics and Computer Science,  
+University of Southampton, UK 
+1/4/2005 6/9/2007 
+Research Fellow 
+School of Psychology (Cognitive Science), 
+University of Liverpool, UK 
+1/10/2004 31/3/2005 
+Research Associate 
+Department of Computer Science,  
+University of Liverpool, UK 
+1/2/2002 30/9/2004 
+Student Demonstrator Connect, University of Liverpool, UK 21/9/2000 8/12/2000 
+Student Demonstrator Connect, University of Liverpool, UK 9/9/1999 17/12/1999 
+Research Assistant 
+Department of Physics,  
+Aristotle University of Thessaloniki, Greece 
+1997 1998 
+(*) Including a secondment as a Marie Curie Visiting Fellow at the company ITESOFT, France, between 
+1/4/2012 and 31/5/2012 
+4 Accreditations 
+Accreditation 	Agency 	Date 
+Acreditació de Recerca Avançada 
+(CT5JVYP7J) 
+Agència per a la Qualitat del Sistema 
+Universitari de Catalunya 
+2018 
+Certificación Programa I3 Ministerio de Ciencia, Innovación y 
+Universidades 
+2013 
+Acreditació de Recerca 
+(U1445/11534680-113) 
+Agència per a la Qualitat del Sistema 
+Universitari de Catalunya 
+2011 
+Professor Lector 
+ (U1443/8155058-76) 
+Agència per a la Qualitat del Sistema 
+Universitari de Catalunya 
+2008 
+5 Languages 
+Language Speaking Proficiency Reading Proficiency Writing Proficiency 
+Greek 	Mother Tongue Mother Tongue Mother Tongue 
+English 	Fluent 	Fluent 	Fluent 
+Spanish Fluent 	Fluent 	Fluent 
+Catalan Basic 	Very Good Basic
+
+5 | P a g e 
+ 
+6 Selected Research Projects 
+Project Title 	Funding Entity Principal 
+Investigator 
+Funding Period 
+READS –Reading the Scene: Integrating 
+reading systems in holistic scene 
+interpretation models 
+(TIN2017-89779-P) 
+Ministerio de 
+Economía, 
+Industria y 
+Competitividad 
+D. Karatzas, 
+E. Valveny 
+€ 81,554 2018-20 
+Semantic search of images and text in 
+digital newspaper archives 
+Fundación BBVA M. Rossinyol € 74,526 2017-19 
+Reading in the Wild: Exploiting Text-
+User-Scene mutual context for reading 
+and scene understanding 
+(TIN2014-52072-P) 
+Ministerio de 
+Economía, 
+Industria y 
+Competitividad 
+D. Karatzas, A. 
+Bagdanov 
+€ 109,021 2015 - 17 
+“Text and the City” – Human Centred 
+Scene Text Understanding  
+(TIN2011-24631) 
+Ministerio de 
+Ciencia e 
+Innovación 
+D. Karatzas € 78,045 2012 - 14 
+Accurate color measurements from 
+hand-held devices (TIN2013-50550-
+EXP) 
+Ministerio de 
+Ciencia e 
+Innovación 
+J. Van de 
+Weijer 
+€ 36,300 2014 - 15 
+“HuPerText” – Managing Textual 
+Content in Digital Images based on 
+Human Perception Inspired 
+Technologies (TIN 2008-04998) 
+Ministerio de 
+Ciencia e 
+Innovación 
+D. Karatzas € 49,610 2009 - 11 
+ADAO: Administrative Document 
+Automate Optimization  
+(FP7-PEOPLE-IAPP-2008 230653) 
+European Union 
+(FP7) 
+V. Poulain 
+d’Andecy 
+€ 363,182 2009 - 13 
+ScanPLAN: Un nuevo módulo funcional 
+para reconocimiento de planos 
+arquitecturales (Eureka E!-4462) 
+Ministerio de 
+Ciencia e 
+Innovación, Spain 
+J. Lladós € 605,175 2008 - 11 
+DocuRead: Componentes avanzadas de 
+reconocimiento de contenidos 
+documentales heterogéneos. 
+(Avanza I+D, TSI-020400-2008-188) 
+Ministerio de 
+Industria Turismo 
+y Comercio, Spain 
+J. Lladós € 322,640 2008 - 10 
+MIPRCV – Multimodal Interaction in 
+Pattern Recognition and Computer 
+Vision (CONSOLIDER INGENIO 2010 
+CSD 2007-00018) 
+Ministerio de 
+Educación y 
+Ciencia, Spain 
+E. Vidal € 532,802 2007 - 11 
+Adaptive Energy Aware Sensor 
+Networks  
+(DIF DTC AEASN:2006) 
+Data Information 
+Fusion Defense 
+Technology 
+Centre, UK 
+N. White, 
+N. Jennings,  
+A. Rogers 
+£ 508,947 2006 - 07 
+Optimal Signal Extraction from 
+Intelligent Sensors  
+(DIF DTC 8.5:2004) 
+Data Information 
+Fusion Defense 
+Technology 
+Centre, UK 
+N. White,  
+C. Harris 
+£ 274,399 2005 - 06 
+MEMORIAL: A Digital Workbench for 
+Preservation of Personal Records in 
+Virtual Memorials (IST-2001-33441) 
+European Union 
+(FP5) 
+A. Geschke €1,500,000 2002 - 04 
+7 Selected Technology Transfer / Contracted Research Projects 
+Project Title 	Funding Entity Principal 
+Investigator 
+Funding Period 
+Improving multi-modal embedding for 
+vision and language tasks 
+Naver Labs 
+Europe 
+D. Karatzas € 10,000 2019 - 20
+
+6 | P a g e 
+ 
+Unconstrained meter reader & 
+Integration CNN 
+Naturgy D. Karatzas € 20,204 2019 
+Semantic segmentation-based 
+approach for text detection and 
+recognition in natural images 
+Naver Labs 
+Europe 
+D. Karatzas € 10,000 2018 - 19 
+Mobile-based reading system for Gas 
+meters 
+Naturgy 
+D. Karatzas, 
+E. Valveny 
+€ 64,445 2017 - 18 
+Research and development on new 
+computer vision systems for social 
+media images 
+Eurecat, Spain D. Karatzas € 42,294 2016 
+Development of reading technologies 
+for Gas meters in-situ 
+Gas Natural 
+Fenosa 
+D. Karatzas, 
+E. Valveny 
+€ 57,354 2016 - 17 
+Yo Leo Gas 
+Gas Natural 
+Fenosa 
+D. Karatzas, 
+E. Valveny 
+€ 72,978 2014 - 15 
+Documents On Demand – Next 
+Generation Interfaces 
+ITESOFT, France D. Karatzas € 142,000 2014 - 15 
+OCR for Gas Meters 
+Gas Natural 
+Fenosa 
+D. Karatzas, 
+E. Valveny 
+€ 211,824 2013 - 14 
+Perceptual Colour Calibration AkzoNobel, UK 
+S. Wuerger,  
+D. Karatzas 
+£ 66,104 2011 - 12 
+Digital Mail Room 	CaixaBank, Spain 
+D. Karatzas,  
+J. Lladós 
+€ 84,514 2010 - 11 
+Display Calibration based on Human 
+Perceptual Judgements (NW07/0041) 
+North-West 
+Development 
+Agency, UK 
+D. Karatzas, 
+S. Wuerger 
+£ 75,000 2007 - 09 
+8 Scholarships and Grants 
+8.1 Scholarships 
+Scholarship 	Funding Funding Entity 	Period 
+“Ramon y Cajal” Research Fellowship  
+(RYC-2009-05031) 
+€ 251,850 Ministerio de Ciencia e Innovación 2009-14 
+“Beatriu de Pinos” Research Fellowship  
+(2006 BP-B1 00046) 
+€ 63,800 
+Agència de Gestió d’Ajuts 
+Universitaris I de Recerca (AGAUR) 
+2007-09 
+8.2 Other Grants 
+Grant 	Funding Funding Entity 	Period 
+Short Knowledge Transfer Partnership  
+(1000316) 
+£ 14,820 Technology Strategy Board, UK 2010 
+Organization of the “AERFAI Winter 
+School on Eye-Tracking Methodology”  
+(2009 ARCS1 00164) 
+€ 6,000 
+Agència de Gestió d’Ajuts 
+Universitaris I de Recerca (AGAUR) 
+2009 
+9 Awards 
+IAPR/ICDAR Young Investigator Award (2013) 
+For “innovative research in human perception-based document analysis” as well as 
+“outstanding service to the ICDAR community in a variety of roles.” 
+The IAPR / ICDAR Young Investigator Award is given by the International Association of Pattern 
+Recognition, following an international nomination and evaluation process to one individual 
+every two years.
+
+7 | P a g e 
+ 
+Google Research Award (2016) 
+Received an unrestricted gift award of $37,245 USD, jointly with Dr A.B. Bagdanov (University 
+of Florence), in the line of Machine Perception, for pursuing research in the line of modelling 
+the interplay between visual and textual information in images. 
+The Google Faculty Research Awards Program “aims to recognize and support world-class, 
+permanent faculty pursuing cutting-edge research in areas of mutual interest”.  
+10 Invited Talks / Lectures 
+Title 	Event / Location 	Date 
+Modelling the interplay between visual 
+and textual information 
+Naver Labs Europe, Grenoble, France Apr 2019 
+Vision and Language 
+3
+rd
+ Int. Workshop on Robust Reading, 
+Perth, Australia 
+Dec 2018 
+Vision and Language 
+Artificial Intelligence International 
+Conference, Barcelona, Spain 
+Nov 2018 
+Heritage Interpretation and New 
+Technologies 
+Interdisciplinary Workshop on 
+Heritage Interpretation in the Iberian 
+Peninsula, Barcelona, Spain 
+Sep 2018 
+Scene Text Understanding 
+2
+nd
+ IAPR TC10/TC11 Summer School 
+on Document Analysis and 
+Recognition, La Rochelle, France 
+Jul 2018 
+Computer Vision as a driver for 
+innovation 
+ESADE Business School, Barcelona, 
+Spain 
+May 2018 
+Imatges de Futur 	Fiesta de la Ciència 	Jun 2016 
+Library Living Lab – An open, 
+participatory, innovation space in a 
+public library 
+Fiesta de la Ciència 	Jun 2016 
+Teaching machines to read EYE Catalunya, Barcelona, Spain Jul 2015 
+The Library Living Lab - Creating a 
+Quadruple Helix Open Innovation Space 
+‘Smart cities’: espais, empresa, 
+ciutadania i territori, Barcelona, Spain 
+Jul 2015 
+Robust Reading 
+3
+rd
+ Int. Document Image Processing 
+Summer School, Greece 
+Jun 2015 
+Next Generation Interfaces - Linking the 
+Digital and the Physical 
+ITESOFT Innovation Days, Aimargues, 
+France 
+May 2014 
+Human Perception Inspired Computer 
+Vision – Applications to Text Detection in 
+Real Scenes 
+Osaka Prefecture University, Japan Nov 2012 
+Computer Vision 
+Jornadas Tècnicas de Formació 
+Professional, Institut Anna Gironella 
+de Mundet 
+Apr 2012 
+Introduction to Eye-Tracking 
+Winter School on Eye Tracking 
+Methodologies, Barcelona, Spain 
+Nov 2009 
+Finding Text in Complex Colour Images University of Salerno, Italy Mar 2009 
+The Use of Colour in Document Image 
+Analysis 
+University of Salford, UK 2006 
+Text Extraction from Web Images – 
+Making the Web More Accessible 
+University of Birmingham, UK 2005
+
+8 | P a g e 
+ 
+11 Participation in International Committees  
+Role Committee 	Professional Body Period 
+Member 
+Work group on the Catalan 
+Strategy for Artificial Intelligence 
+Generalitat de Catalunya 2018 – present 
+Chair 
+Technical Committee 11 – 
+Reading Systems 
+International Association of 
+Pattern Recognition (IAPR) 
+2017 – present 
+Member Education Committee 
+International Association of 
+Pattern Recognition (IAPR) 
+2016 – present 
+Member 
+Institute of Document Analysis 
+and Knowledge Science (IDAKS) 
+Osaka Prefecture University, 
+Japan 
+2011 – present 
+Member Industrial Liaison Committee 
+International Association of 
+Pattern Recognition (IAPR) 
+2010 – 2015  
+Vice Chair 
+Technical Committee 11 – 
+Reading Systems 
+International Association of 
+Pattern Recognition (IAPR) 
+2012 – 2016 
+Dataset Curator 
+Technical Committee 11 – 
+Reading Systems 
+International Association of 
+Pattern Recognition (IAPR) 
+2009 – 2012  
+Executive 
+Committee 
+Member 
+SPIE UK Chapter 
+The International Society for 
+Optical Engineering (SPIE) 
+2005 – 2006 
+12 Organization of Scientific activities 
+Role Event 	Date 
+Program Chair 14
+th
+ IAPR Int. W. on Document Analysis Systems (DAS) 	2020 
+Competitions Chair 17
+th
+ Int. Conf. on Frontiers in Handwriting Recognition (ICFHR) 2020 
+General Chair 2
+nd
+ Future ICDAR workshop 	2019 
+General Chair 2
+nd
+ Int. Workshop on Human-Document Interaction (HDI) 2019 
+General Chair 3
+rd
+ Int. Workshop on Robust Reading (IWRR) 	2018 
+Contests Chair 24
+th
+ IAPR International Conference on Pattern Recognition (ICPR) 2018 
+General Chair 1
+st
+ Int. Workshop on Human-Document Interaction (HDI) 2017 
+General Chair 
+7
+th
+ IAPR Int. Workshop on Camera Based Document Image Analysis 
+(CBDAR) 
+2017 
+Program Chair 14
+th
+ IAPR Int. Conf. on Document Analysis and Recognition (ICDAR) 2017 
+General Chair 2
+nd
+ Int. Workshop on Robust Reading (IWRR) 	2016 
+Tutorials Chair 12
+th
+ IAPR Int. Workshop on Document Analysis Systems (DAS) 2016 
+General Chair 
+6
+th
+ IAPR Int. Workshop on Camera Based Document Image Analysis 
+(CBDAR) 
+2015 
+General Chair 1
+st
+ Int. Workshop on Robust Reading (IWRR) 	2014 
+Publicity Chair 2
+nd
+ IAPR Asian Conf. on Pattern Recognition (ACPR) 	2013 
+General Chair AERFAI Winter School on Eye-Tracking Methodologies 	2011 
+Publications Chair 10
+th
+ IAPR Int. Conf. on Document Analysis and Recognition (ICDAR) 2009
+
+9 | P a g e 
+ 
+13 Theses Supervision 
+13.1 Supervision of PhD Theses 
+Thesis Title 	Student Name Defence Date 
+Multi-modal fine-grained object classification Andres Mafla 
+Expected:  
+May 2022 
+Computer vision models for image interpretation Ali Furkan Biten  
+Expected: 
+September 2021 
+Exploiting the Interplay between Visual and Textual 
+Image Content for Scene Interpretation 
+Raúl Álamo Gómez 
+Bruballa 
+Expected: February 
+2020 
+Advanced reading systems for scene text 
+understanding 
+Anguelos Nicolaou 
+Expected: 
+December 2019 
+Robust Reading Systems for Scene Interpretation Dena Bazazian 
+29/11/2018 
+(Cum Laude) 
+Exploiting Similarity Hierarchies for Multi-script Scene 
+Text Understanding 
+Lluis Gomez i Bigorda 
+8/4/2016  
+(Cum Laude) 
+Focused Structural Document Image Retrieval in Digital 
+Mailroom Applications 
+Hongxing Gao 
+16/1/2015  
+(Cum Laude) 
+Segmentation and indexation of complex objects in 
+comic book images 
+Christophe Rigaud 
+11/12/2014  
+(Cum Laude) 
+A computational model of eye guidance, searching for 
+text in real scene images 
+Antonio Clavelli 
+13/10/2014 (Cum 
+Laude) 
+13.2 Supervision of MSc Theses 
+Thesis Title 	Student Name Defence Date 
+Interfaces for visualisation and interaction of 
+multimodal data embeddings 
+Jacopo Bianchini 
+Expected:  
+Dec. 2019 
+Gamification techniques for scene text collection Gianmarco Biscini 
+Expected:  
+Dec. 2019 
+Using Mixture Density Networks to Embed Images 
+in Text Topic Spaces 
+Sergi Garcia Bordils 18/9/2019 
+Synthetic Visual Data for In-Context Scene Text 
+Understanding 
+Elias Kasma Piovani 12/9/2019 
+Creation of a supermarket grocery dataset for 
+Computer Vision 
+Diego E. Apéstegui 
+Quesada 
+12/9/2019 
+Application of image captioning DNNs to archival 
+images 
+Ali Furkan Biten  9/3/2018 
+A Deep Neural Network architecture for joint text 
+localisation and recognition 
+Andres Patricio Mafla 
+Delgado 
+9/3/2018 
+LetterGO – A game for crowdsourcing large-scale 
+scene-text sample acquisition 
+David Garcia 15/3/2017 
+Efficient discovery of text in the wild using Fully 
+Convolutional Networks 
+Raúl Álamo Gómez 
+Bruballa 
+16/9/2017 
+Learning by observing: the use of eye-tracking as a 
+means to automate information extraction processes in 
+digital mailroom pipelines 
+Helena Muñoz 
+Escudero 
+22/2/2016 
+Perceptual Organization for Text Extraction in Natural 
+Scenes 
+Lluis Gomez i Bigorda 25/9/2012 
+Colour logo recognition 	Farshad Nourbakhsh 09/2009
+
+10 | P a g e 
+ 
+14 Courses Taught 
+Course 	Programme Institution Academic Year 
+Machine Learning 
+techniques for CV 
+MSc Computer Vision (in 
+English) 
+UAB, UOC, UPF, UPC 
+2017-18 
+2018-19 
+Pattern Análisis and 
+Recognition 
+MSc Software Engineering 
+(in English) 
+Universitat Autònoma 
+de Barcelona 
+2014-15, 2015-16 
+2016-17, 2017-18 
+Tecniques de digitalitzacio 
+de documents historics 
+Postgrau de gestió I 
+tractament digital de 
+documentacio historica 
+Universitat Autònoma 
+de Barcelona 
+2013-14 
+Data Science 
+BSc Gestion de Ciudades 
+Ingeligentes y Sostenibles 
+Universitat Autònoma 
+de Barcelona 
+2018-19 
+2019-20 
+Urban Open Innovation 
+BSc Gestion de Ciudades 
+Ingeligentes y Sostenibles 
+Universitat Autònoma 
+de Barcelona 
+2018-19 
+Artificial Intelligence BSc Enginyeria Informàtica 
+Universitat Autònoma 
+de Barcelona 
+2016-17, 2017-18 
+2018-19, 2019-20 
+Prácticas externas BSc Enginyeria Informàtica 
+Universitat Autònoma 
+de Barcelona 
+2016-17, 2017-18 
+2018-19 
+Computer Vision BSc Enginyeria Informàtica 
+Universitat Autònoma 
+de Barcelona 
+2013-14 
+Comparative Programming 
+Languages 
+BSc Computer Science 
+University of Liverpool, 
+UK 
+2003-04 
+2004-05 
+Pattern Recognition and 
+Image Analysis 
+BSc Computer Science 
+University of Liverpool, 
+UK 
+2001-02, 2002-03 
+2003-04 
+Unix OS 	Software Technology University of Liverpool 
+1999-2000 
+2000-01 
+Java Programming Software Technology University of Liverpool 
+1999-2000 
+2000-01 
+C Programming Software Technology University of Liverpool 
+1999-2000 
+2000-01 
+C++ Programming Software Technology University of Liverpool 
+1999-2000 
+2000-01 
+Internet Programming Software Technology University of Liverpool 
+1999-2000 
+2000-01 
+Oracle and SQL Software Technology University of Liverpool 
+1999-2000 
+2000-01 
+15 Publications 
+15.1 Research Output Indicators 
+H-index (Google Scholar):  	26 
+Index i10 	51 
+Total number of citations 	2683 
+Number of Publications 	124 
+ Indexed Journal articles 	22 
+ Book Chapters 	8 
+ Special Issues Edited 	2 
+ Peer-reviewed Conference Publications 83 
+ Other Publications 	11
+
+11 | P a g e 
+ 
+15.2 Indexed Journals 
+1. D. Bazazian, R. Gómez, A. Nicolaou, L. Gómez, D. Karatzas, A.D. Bagdanov, “FAST: 
+Facilitated and Accurate Scene Text Proposals through FCN Guided Pruning”, Pattern 
+Recognition Letters, Elsevier, DOI: 10.1016/j.patrec.2017.08.030, Sept 2017 
+2. L. Gomez, D. Karatzas, “TextProposals: a Text-specific Selective Search Algorithm for 
+Word Spotting in the Wild”, Pattern Recognition, Elsevier, Vol. 70, pp. 60-74, 2017 
+3. L. Gomez, A. Nicolaou, D. Karatzas, “Improving patch-based scene text script 
+identification with ensembles of conjoined networks” Pattern Recognition, Volume 67, 
+July 2017, Pages 85-96 
+4. L. Gomez, D. Karatzas, “A fast hierarchical method for multi-script and arbitrary oriented 
+scene text extraction”, Int. J. on Document Analysis and Recognition, Springer, 19(4), 335–
+349, 2016 
+5. C. Rigaud, C. Guérin, D. Karatzas, J.-C. Burie, J.-M. Ogier, "Knowledge-driven 
+understanding of images in comic books", Int. J. on Document Analysis and Recognition, 
+Springer, DOI: 10.1007/s10032-015-0243-1, April 2015  
+6. M. Rusiñol, V. Frinken, D. Karatzas, A. Bagdanov, and J. Llados. "Multimodal page 
+classification in administrative document image streams", Int. J. on Document Analysis 
+and Recognition, Springer, 17(4), 331–341, 2014  
+7. C.A. Parraga, J. Roca, D. Karatzas, and S. Wuerger, "Limitations of visual gamma 
+corrections in LCD displays", Displays, Elsevier, 35(5), 227–239, 2014  
+8. T. Chauhan, E. Perales, K. Xiao, E. Hird, D. Karatzas and S. Wuerger, “The achromatic 
+locus: Effect of navigation direction in color space”, Journal of Vision, Vol. 14(1), 
+doi:10.1167/14.1.25, January 2014  
+9. A. Clavelli, D. Karatzas, J. Llados, M. Ferraro, G. Boccignone, “Modelling task-dependent 
+eye guidance to objects in pictures”, Cognitive Computation, 6(3), 558–584, 2014 
+10. K. Xiao, C. Fu, D. Mylonas, D. Karatzas and S. Wuerger, “Unique Hue Data for Colour 
+Appearance Models. Part II: Chromatic Adaptation Transform”, Color Research & 
+Application, Wiley, DOI: 10.1002/col.20725, Vol. 38(1), pp. 22-29, February 2013  
+11. S. Wuerger, K. Xiao, D. Mylonas, Q. Huang, D. Karatzas and G. Paramei, “Blue–green color 
+categorization in Mandarin–English speakers”, Journal of the Optical Society of America - 
+A, Vol. 29(2), pp. A102-A107, February 2012  
+12. M. Ferrer, D. Karatzas, E. Valveny, I. Bardaji, H. Bunke, “A Generic Framework for Median 
+Graph Computation based on a Recursive Embedding Approach” Computer Vision and 
+Image Understanding, Elsevier, Vol. 115 (7), pp. 919-928, 2011 
+13. K. Xiao, S. Wuerger, C. Fu and D. Karatzas, “Unique Hue Data for Colour Appearance 
+Models. Part I: Loci of Unique Hues and Hue Uniformity”, Color Research & Application, 
+Wiley, Vol. 36 (3), 2011  
+14. C. Fu, K. Xiao, D. Karatzas and S. Wuerger, “Investigation of Unique Hue Setting Changes 
+with Ageing”, Chinese Optics Letters, Vol. 9, Num. 5, pp. 053301-1-5, May 2011  
+15. K. Xiao, C. Fu, D. Karatzas and S. Wuerger, “Visual Gamma Correction for LCD Displays”, 
+Displays, Elsevier, Vol. 32 (1), pp. 17-23, DOI: 10.1016/j.displa.2010.09.003, 2011  
+16. S. Wuerger, K. Xiao, C. Fu and D. Karatzas, “Colour-opponent mechanisms are not 
+affected by age-related chromatic sensitivity changes”, Ophthalmic and Physiological 
+Optics, Wiley-Blackwell, Vol. 30, Num. 5, pp 635-659, 2010  
+17. A. Fornes, J. Llados, G. Sanchez and D. Karatzas, “Rotation Invariant Hand-drawn Symbol 
+Recognition based on a Dynamic Time Warping Model”, International Journal on 
+Document Analysis and Recognition, Springer, Vol. 13 (3), pp. 229-241, 2010  
+18. M. Delalandre, E. Valveny, T. Pridmore and D. Karatzas, “Generation of Synthetic 
+Documents for Performance Evaluation of Symbol Recognition & Spotting Systems”,
+
+12 | P a g e 
+ 
+International Journal on Document Analysis and Recognition, Springer, Vol. 13 (3), pp. 
+187-207, 2010 
+19. J. Lladós, D. Karatzas, J. Mas and G. Sanchez, “A Generic Architecture for the Conversion 
+of Document Collections into Semantically Annotated Digital Archives”, Journal of 
+Universal Computer Science, Vol. 14, Num. 18, pp. 2912-2935, 2008  
+20. D. Karatzas and A. Antonacopoulos, “Colour Text Segmentation in Web Images Based on 
+Human Perception”, Image and Vision Computing, Elsevier, Vol. 25 (5), pp. 564-577, 2007  
+21. D. Karatzas, A. Chorti, N.M. White and C.J. Harris, “Teaching Old Sensors New Tricks: 
+Archetypes of Intelligence”, IEEE Sensors Journal, Vol. 7 (5), IEEE Press, pp. 868-881, 2007  
+22. A. Chorti, D. Karatzas, N.M.White and C.J.Harris, “Use of the Extended Kalman Filter for 
+State Dependent Drift Estimation in Weakly Nonlinear Sensors”, Sensor Letters, Vol. 4, No. 
+4, American Scientific Publishers, December 2006, pp. 377-379  
+15.3 Book Chapters 
+1. R. Gomez, L. Gomez, J. Gibert, D. Karatzas, “Self-Supervised Learning from Web Data for 
+Multimodal Retrieval”, in the book “Multimodal Scene Understanding: Algorithms, 
+Applications and Deep Learning”, M. Yang, B. Rosenhahn, V. Murino (Eds.), Elsevier, to 
+appear in May 2019 
+2. L. Gómez, A. Nicolaou, M. Rusiñol, D. Karatzas, “12 years of ICDAR Robust Reading 
+Competitions: The evolution of reading systems for unconstrained text understanding”, in 
+the book: “Visual Text Interpretation - Algorithms and Applications in Scene 
+Understanding and Document Analysis”, K. Alahari, C.V. Jawahar (Eds.), Springer, Series on 
+Advances in Computer Vision and Pattern Recognition, to appear in April 2019 
+3. L. Gómez, D. Bazazian, D. Karatzas, “Historical review of scene text detection research”, in 
+the book: “Visual Text Interpretation - Algorithms and Applications in Scene 
+Understanding and Document Analysis”, K. Alahari, C.V. Jawahar (Eds.), Springer, Series on 
+Advances in Computer Vision and Pattern Recognition, to appear in April 2019 
+4. J. Almazán, L. Gómez, S. Ghosh, E. Valveny, D. Karatzas, “WATTS: A common 
+representation of word images and strings using embedded attributes for text recognition 
+and retrieval”, in the book: “Visual Text Interpretation - Algorithms and Applications in 
+Scene Understanding and Document Analysis”, K. Alahari, C.V. Jawahar (Eds.), Springer, 
+Series on Advances in Computer Vision and Pattern Recognition, to appear in April 2019 
+5. A. Kesidis and D. Karatzas, “Logo and Trademark Recognition”, in the book: “Handbook of 
+Document Image Processing and Recognition”, D. Doermann and K. Tombre (Eds.), ISBN 
+978-0-85729-860-7, pp. 591-646, Springer, 2014 
+6. M. Ferrer, I. Bardají, E. Valveny, D. Karatzas, H. Bunke, “Median Graph Computation by 
+Means of Graph Embedding into Vector Spaces”, in the book: “Graph Embedding for 
+Pattern Analysis”, Yun Fu, Yunqian Ma (Eds.), DOI 10.1007/978-1-4614-4457-2 3, Springer, 
+2013, pp. 45-72, 2013 
+7. A. Antonacopoulos, D. Karatzas, “A Fuzzy Approach to Text Segmentation in Web Images 
+Based on Human Colour Perception”, in the book: “Web Document Analysis: Challenges 
+and Opportunities”, A. Antonacopoulos and J. Hu (Eds.), Series in Machine Perception and 
+Artificial Intelligence, World Scientific Publishing Company, pp. 203-221, 2003 
+8. D. Karatzas, A. Antonacopoulos, “Visual Representation of Text in Web Documents and Its 
+Interpretation”, in the book: Multidisciplinary Approaches to Visual Representations and 
+Interpretations, G.R. Malcolm (Ed.), Series: Studies in Multidisciplinarity, Vol.2, Elsevier, 
+pp. 181-196, 2004
+
+13 | P a g e 
+ 
+15.4 Peer Reviewed Conference Proceedings (selected, past 5 years) 
+1. A. Furkan Biten, R. Tito, A. Mafla, L. Gomez, M. Rusiñol, E. Valveny, C.V. Jawahar, 
+D. Karatzas, “Scene Text Visual Question Answering”, Proceedings of Int. Conf. on 
+Computer Vision (ICCV), 2019 
+2. R. Gomez, A. Furkan Biten, L. Gomez, J. Gibert, D. Karatzas, M. Rusiñol, “Selective Style 
+Transfer for Text”, Proceedings 15
+th
+ Int. Cong. On Document Analysis and Recognition, 
+IEEE CPS, pp. 805 – 812, 2019 
+3. A. Furkan Biten, A. Mafla, L. Gomez, M. Rusiñol, M. Mathew, C.V. Jawahar, E. Valveny, 
+D. Karatzas, “ICDAR 2019 Competition on Scene Text Visual Question Answering”, 
+Proceedings 15th Int. Cong. On Document Analysis and Recognition, IEEE CPS, pp. 1563 – 
+1570, 2019 
+4. N. Nayef, Y. Patel, M. Busta, P. Nath Chowdhury, D. Karatzas, W. Khlif, J. Matas, U. Pal, J.-
+C. Burie, C.L. Liu, J.M. Ogier, “ICDAR2019 Robust Reading Challenge on Multi-lingual Scene 
+Text Detection and Recognition — RRC-MLT-2019”, Proceedings 15th Int. Cong. On 
+Document Analysis and Recognition, IEEE CPS, pp. 1582 – 1587, 2019 
+5. A. Furkan Biten, L. Gomez, M. Rusiñol, D. Karatzas. “Good News, Everyone! Context 
+driven entity-aware captioning for news images.” In 2019 IEEE Conference on Computer 
+Vision and Pattern Recognition (CVPR), 2019 
+6. R. Gomez, L. Gomez, J. Gibert, D. Karatzas. "Learning to Learn from Web Data Through 
+Deep Semantic Embeddings." In European Conference on Computer Vision, pp. 514-529. 
+Springer, Cham, 2018.  
+7. R. Gomez, L. Gomez, J. Gibert, D. Karatzas. "Learning from# Barcelona Instagram data 
+what Locals and Tourists post about its Neighbourhoods." In European Conference on 
+Computer Vision, pp. 530-544. Springer, Cham, 2018.  
+8. L. Gómez, M. Rusiñol, D. Karatzas. "Cutting Sayre's Knot: Reading Scene Text without 
+Segmentation. Application to Utility Meters." In 2018 13th IAPR International Workshop 
+on Document Analysis Systems (DAS), pp. 97-102. IEEE, 2018.  
+9. D. Karatzas, L. Gómez, A. Nicolaou, M. Rusiñol. "The Robust Reading Competition 
+Annotation and Evaluation Platform." In 2018 13th IAPR International Workshop on 
+Document Analysis Systems (DAS), pp. 61-66. IEEE, 2018.  
+10. L. Gomez, A. Mafla, M. Rusiñol, D. Karatzas, “Single Shot Scene Text Retrieval”, The 
+European Conference on Computer Vision (ECCV), 2018, pp. 700-715  
+11. D. Bazazian, D. Karatzas, A.D. Bagdanov, “Word Spotting in Scene Images Based on 
+Character Recognition”, The IEEE Conference on Computer Vision and Pattern Recognition 
+(CVPR) Workshops, 2018, pp. 1872-1874 
+12. R. Gomez, B. Shi, L. Gomez, L. Neumann, A. Veit, J. Matas, S. Belongie, D. Karatzas, 
+“ICDAR2017 robust reading challenge on COCO-Text”. In 2017 14th IAPR International 
+Conference on Document Analysis and Recognition (ICDAR) (pp. 1435-1443). IEEE, 
+November 2017 
+13. N. Nayef, F. Yin, I. Bizid, H. Choi, Y. Feng, D. Karatzas, Z. Luo, U. Pal, C. Rigaud, J. Chazalon, 
+W. Khlif, “ICDAR2017 Robust Reading Challenge on Multi-Lingual Scene Text Detection 
+and Script Identification-RRC-MLT”. In Document Analysis and Recognition (ICDAR), 2017 
+14th IAPR International Conference on (Vol. 1, pp. 1454-1459). IEEE. November 2017 
+14. L. Gomez, M. Rusiñol and D. Karatzas, “LSDE: Levenshtein Space Deep Embedding for 
+Query-by-string Word Spotting”, In Proceedings of the 14th International Conference on 
+Document Analysis and Recognition, pp. 499-504, IEEE CPS, 2017 
+15. L. Galteri, D. Bazazian, L. Seidenari, M. Bertini, A. Bagdanov, A. Nicolaou, D. Karatzas, A. 
+Del Bimbo, “Reading Text in the Wild from Compressed Images”, In Proceedings of ICCV 
+2017 Workshops, IEEE CPS, 2017
+
+14 | P a g e 
+ 
+16. L. Gomez, Y. Patel, M. Rusiñol, C.V. Jawahar, D. Karatzas, “Self-supervised learning of 
+visual features through embedding images into text topic spaces”, In 2017 IEEE 
+Conference on Computer Vision and Pattern Recognition (CVPR), 2017 
+17. D. Karatzas, V. Poulain d'Andecy, M. Rusiñol, “Human-Document Interaction – a new 
+frontier for document image analysis”, In 12th IAPR Workshop on Document Analysis 
+Systems (pp. 369–374), 2016 
+18. L. Gomez, D. Karatzas, “A fine-grained approach to scene text script identification In 
+Document Analysis Systems (DAS), 12th IAPR Workshop on, pp. 192-197. IEEE, 2016 
+19. Y. Patel, L. Gomez, M. Rusiñol, D. Karatzas, “Dynamic Lexicon Generation for Natural 
+Scene Images”, In 2nd International Workshop on Robust Reading at ECCV (pp. 395–410), 
+2016 
+20. A. Nicolaou, A.D. Bagdanov, L. Gómez, and D. Karatzas, “Visual Script and Language 
+Identification”. In Document Analysis Systems (DAS), 2016 12th IAPR Workshop on (pp. 
+393-398). IEEE, 2016 
+21. D. Karatzas, L. Gomez-Bigorda, A. Nicolaou, S. Ghosh, A. Bagdanov, M. Iwamura, J. Matas, 
+L. Neumann, V. Ramaseshan Chandrasekhar, S. Lu, F. Shafait, S. Uchida and E. Valveny, 
+“ICDAR 2015 Competition on Robust Reading”, Proceedings of 13th IAPR International 
+Conference on Document Analysis and Recognition (ICDAR’2015), IEEE, pp. 1156-1160, 
+2015 
+22. L. Gomez, D. Karatzas, “Object Proposals for Text Extraction in the Wild”, Proceedings of 
+13th IAPR International Conference on Document Analysis and Recognition (ICDAR’2015), 
+IEEE, pp. 206-210, 2015 (arXiv:1509.02317) 
+23. H. Gao, M. Rusiñol, D. Karatzas, J. Llados, R. Jain and D. Doermann, “Novel Line 
+Verification for Multiple Instance Focused Retrieval in Document Collections”, 
+Proceedings of 13th IAPR International Conference on Document Analysis and 
+Recognition (ICDAR’2015), IEEE, pp. 481-485, 2015 
+24. A. Nicolaou, A.D. Bagdanov, M. Liwicki, D. Karatzas, “Sparse Radial Sampling LBP for 
+Writer Identification”, Proceedings of 13th IAPR International Conference on Document 
+Analysis and Recognition (ICDAR’2015), IEEE, pp. 716-720, 2015 (arXiv:1504.06133) 
+25. L. Gomez and D. Karatzas, "MSER-based Real-Time Text Detection and Tracking", In 22nd 
+IAPR International Conference on Pattern Recognition, IEEE, pp. 3110–3115, 2014 
+26. H. Gao, M. Rusiñol, D. Karatzas and J. Lladós, "Embedding Document Structure to Bag-of-
+Words through Pair-wise Stable Key-Regions", In 22nd International Conference on 
+Pattern Recognition (ICPR), IEEE, pp. 2903-2908, 2014 
+27. L. Gomez and D. Karatzas, "Scene Text Recognition: No Country for Old Men?", In 1st 
+International Workshop on Robust Reading, In Computer Vision-ACCV 2014 Workshops, 
+Springer International Publishing, pp. 157-168,2014 
+28. D. Karatzas, S. Robles Mestre and Ll. Gómez, “An on-line platform for ground truthing and 
+performance evaluation of text extraction systems”, 10th IAPR Int. Workshop on 
+Document Analysis Systems, Tours, France, 2014 
+29. V. Frinken, D. Karatzas and A. Fischer, “A Cache Language Model for Whole Document 
+Handwriting Recognition”, 10th IAPR Int. Workshop on Document Analysis Systems, 
+Tours, France, 2014 
+30. H. Gao, M. Rusiñol, D. Karatzas and J. Lladós, “Fast structural matching for document 
+image retrieval through spatial database”, 21st International Conference on Document 
+Recognition and Retrieval, DRR14 2014
+
+15 | P a g e 
+ 
+16 Publicity 
+Titulo 	Medio Fecha 
+Entrevista - Library Living Lab 
+Valles Visio  
+(“Ambit B30”) 
+19 / 11 / 2018 
+Entrevista – proyecto ciudadano de escaneo 3D de los 
+capiteles del claustre del monasterio de St Cugat 
+TV Sant Cugat 1 / 10 / 2018 
+Biblioteques: ja no només per anar a llegir 	El Pais 27 / 7 / 2017 
+Els llibres no són sempre els reis de les biblioteques Diari Ara 27 / 7 / 2017 
+La Diputación de Barcelona lanza ‘BiblioLab’, el nuevo 
+modelo para las bibliotecas públicas 
+La Vanguardia 12 / 5 / 2017 
+Entrevista - El barri de Volpelleres 	TV Sant Cugat 26 / 4 / 2017 
+Un Laboratori a la biblioteca 	Som el que fem, TV3 13 / 1 / 2017 
+@Volpelleres, Premi Ciutat de Sant Cugat 2015? TOT Sant Cugat 3 / 11 / 2015 
+Un laboratorio de libro 	La Vanguardia 28 / 5 / 2015 
+Sant Cugat abrirá la primera biblioteca con tecnología 
+innovadora de Catalunya 
+El Periodico 24 / 4 / 2015 
+Sant Cugat pone el 'smart city' al servicio de la innovación 
+social 
+La Vanguardia 19 / 11 / 2014 
+Primer Library Living Lab 	El Mundo 8 / 7 / 2014 
+Els veins de Volpelleres aposten per la creació d’una 
+biblioteca virtual I interactiva 
+Cugat Diari 13 / 7 / 2012 
+Tate Exhibition features 'colour' collaboration 	Precinct Summer 2009 
+Un projecte del CVC, exposat a la Galeria Tate de Liverpool Parc de Recerca UAB 5 / 10 / 2009 
+La ciència del color aplicada a la tecnologia 	Divulga 10 / 2009 
+Opening up a world of hidden documents 	Research Intelligence 5 / 2004 
+Tackling the World Wide Web's image problem Research Intelligence 6 / 2000

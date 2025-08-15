@@ -1,0 +1,3 @@
+# .htaccess (raíz backend) - Deshabilitar rewrite completamente
+RewriteEngine Off
+Options -MultiViews

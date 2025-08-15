@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🎯 Bubble of Talents 1.0
 
 Plataforma de reclutamiento con IA - Sistema completo de gestión de candidatos y procesos de selección.
@@ -388,3 +389,6 @@ curl -X DELETE \
 - Para auditoría adicional se pueden almacenar hashes de PDF (no implementado por defecto).
 
 ---
+=======
+# bubble-of-talents-ai
+>>>>>>> 3bb4e215817ee88010a1fcbe8401151e40995c5a

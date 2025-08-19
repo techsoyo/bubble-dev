@@ -1,0 +1,573 @@
+Listado de rutas de carpetas
+El número de serie del volumen es D46C-EC13
+C:.
+¦   $null
+¦   .env
+¦   .env.example
+¦   .env.oauth.example
+¦   .gitignore
+¦   .htaccess
+¦   add_department_category_column.php
+¦   add_department_id_to_jobs.php
+¦   assign_department_values.php
+¦   autoload.php
+¦   b_backend.zip
+¦   composer.json
+¦   composer.lock
+¦   create_test_applications.php
+¦   hr_dashboard_summary.php
+¦   inspect_routing.php
+¦   inspect_routing_simple.php
+¦   reassign_departments_intelligent.php
+¦   router.php
+¦   test_route_data.json
+¦   tree.txt
+¦   update_jobs_departments.php
+¦   update_remaining_jobs.php
+¦   
++---bin
+¦       cleanup.php
+¦       
++---config
+¦   ¦   auth-rate-limiter.php
+¦   ¦   bootstrap.php
+¦   ¦   config.php
+¦   ¦   database.php
+¦   ¦   error_handler.php
+¦   ¦   input-sanitizer.php
+¦   ¦   password-policy.php
+¦   ¦   security-headers.php
+¦   ¦   test_conection_db.php
+¦   ¦   
+¦   +---routes
+¦           ai_routes.php
+¦           language_routes.php
+¦           pdf_routes.php
+¦           
++---database
+¦   +---migrations
+¦           add_social_auth_columns.php
+¦           bt_candidates.sql
+¦           bt_candidates_secure.sql
+¦           bt_chatbot_analytics.sql
+¦           bt_chatbot_nodes.sql
+¦           bt_chatbot_options.sql
+¦           bubble_talents_DB (5).sql
+¦           create_chatbot_system.sql
+¦           
++---docs
+¦       CORS_ARCHITECTURE.md
+¦       
++---logs
+¦       .htaccess
+¦       
++---public
+¦   ¦   auth-simple.php
+¦   ¦   auth.php
+¦   ¦   hello.txt
+¦   ¦   index.php
+¦   ¦   test_chatbot_crud.php
+¦   ¦   
+¦   +---api
+¦   ¦   ¦   ai_assignment.php
+¦   ¦   ¦   analyze_cv copy.php
+¦   ¦   ¦   analyze_cv.php
+¦   ¦   ¦   applications.php
+¦   ¦   ¦   application_notes.php
+¦   ¦   ¦   auth.php
+¦   ¦   ¦   auth_interceptor.php
+¦   ¦   ¦   bootstrap.php
+¦   ¦   ¦   calculate_matching.php
+¦   ¦   ¦   candidate-applications.php
+¦   ¦   ¦   candidate-experiences.php
+¦   ¦   ¦   candidate-notifications.php
+¦   ¦   ¦   candidates.php
+¦   ¦   ¦   candidate_certifications.php
+¦   ¦   ¦   candidate_education.php
+¦   ¦   ¦   candidate_languages.php
+¦   ¦   ¦   candidate_references.php
+¦   ¦   ¦   candidate_routing.php
+¦   ¦   ¦   candidate_skills.php
+¦   ¦   ¦   change-password.php
+¦   ¦   ¦   chatbot.php
+¦   ¦   ¦   chatbot_analytics.php
+¦   ¦   ¦   chatbot_decision_tree.php
+¦   ¦   ¦   chatbot_nodes.php
+¦   ¦   ¦   chatbot_options.php
+¦   ¦   ¦   culture.php
+¦   ¦   ¦   cv-schema-test.php
+¦   ¦   ¦   debug-password.php
+¦   ¦   ¦   departments.php
+¦   ¦   ¦   extract_skills.php
+¦   ¦   ¦   get-notification-preferences.php
+¦   ¦   ¦   health-ai.php
+¦   ¦   ¦   health-check.php
+¦   ¦   ¦   health-ocr.php
+¦   ¦   ¦   health.php
+¦   ¦   ¦   index.php
+¦   ¦   ¦   interviews.php
+¦   ¦   ¦   jobs.php
+¦   ¦   ¦   job_benefits.php
+¦   ¦   ¦   job_requirements.php
+¦   ¦   ¦   job_skills.php
+¦   ¦   ¦   language.php
+¦   ¦   ¦   match.php
+¦   ¦   ¦   news.php
+¦   ¦   ¦   notification.php
+¦   ¦   ¦   notifications.php
+¦   ¦   ¦   recruiters.php
+¦   ¦   ¦   reporting.php
+¦   ¦   ¦   request_info.php
+¦   ¦   ¦   route.php
+¦   ¦   ¦   save-candidate.php
+¦   ¦   ¦   save-notification-preferences.php
+¦   ¦   ¦   social_logins.php
+¦   ¦   ¦   statistics.php
+¦   ¦   ¦   test_jobs_connection.php
+¦   ¦   ¦   
+¦   ¦   +---ai
+¦   ¦   ¦       analyze-cv.php
+¦   ¦   ¦       calculate-matching.php
+¦   ¦   ¦       candidate-matching.php
+¦   ¦   ¦       communication.php
+¦   ¦   ¦       content-generation.php
+¦   ¦   ¦       debug_prompt.php
+¦   ¦   ¦       diagnose_speed.php
+¦   ¦   ¦       extract-cv-stage1.php
+¦   ¦   ¦       extract-cv-stage2.php
+¦   ¦   ¦       extract-skills.php
+¦   ¦   ¦       health.php
+¦   ¦   ¦       parse-cv-file.php
+¦   ¦   ¦       parse-cv-openai.php
+¦   ¦   ¦       pre-screening.php
+¦   ¦   ¦       process-cv-complete.php
+¦   ¦   ¦       recruitment-insights.php
+¦   ¦   ¦       resume-cv.php
+¦   ¦   ¦       test_complete_system.php
+¦   ¦   ¦       test_final.php
+¦   ¦   ¦       test_full_cv.php
+¦   ¦   ¦       test_mistral_extended.php
+¦   ¦   ¦       test_mistral_simple.php
+¦   ¦   ¦       test_paso2.php
+¦   ¦   ¦       test_real_ollama.php
+¦   ¦   ¦       test_resume.php
+¦   ¦   ¦       
+¦   ¦   +---auth
+¦   ¦   ¦   ¦   candidate-login.php
+¦   ¦   ¦   ¦   csrf-token.php
+¦   ¦   ¦   ¦   logout.php
+¦   ¦   ¦   ¦   OAuthHandler.php
+¦   ¦   ¦   ¦   ping.php
+¦   ¦   ¦   ¦   secure-login.php
+¦   ¦   ¦   ¦   social-callback.php
+¦   ¦   ¦   ¦   staff-login-simple.php
+¦   ¦   ¦   ¦   staff-login.php
+¦   ¦   ¦   ¦   user-info.php
+¦   ¦   ¦   ¦   validate-csrf.php
+¦   ¦   ¦   ¦   verify-session.php
+¦   ¦   ¦   ¦   
+¦   ¦   ¦   +---google
+¦   ¦   ¦   ¦       callback.php
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---linkedin
+¦   ¦   ¦   ¦       callback.php
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---oauth
+¦   ¦   ¦   ¦       start.php
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---sso
+¦   ¦   ¦           callback.php
+¦   ¦   ¦           start.php
+¦   ¦   ¦           
+¦   ¦   +---cv
+¦   ¦   ¦       confirm.php
+¦   ¦   ¦       delete.php
+¦   ¦   ¦       export.php
+¦   ¦   ¦       ingest.php
+¦   ¦   ¦       parse.php
+¦   ¦   ¦       schema.php
+¦   ¦   ¦       
+¦   ¦   +---hr
+¦   ¦   ¦       dashboard-stats.php
+¦   ¦   ¦       
+¦   ¦   +---translate
+¦   ¦           jobs.php
+¦   ¦           
+¦   +---uploads
++---scripts
+¦       add-gdpr-consent-columns.php
+¦       auto_change_password.php
+¦       change_candidate_password.php
+¦       change_password_simple.php
+¦       check_applications.php
+¦       check_experiences.php
+¦       check_experience_structure.php
+¦       check_notifications.php
+¦       check_remote_database.php
+¦       check_tables.php
+¦       check_table_structure.php
+¦       debug_database_connection.php
+¦       debug_diego_login.php
+¦       debug_staff_login.php
+¦       diagnose_password_security.php
+¦       find_all_bt_candidates.php
+¦       find_auth_endpoint.php
+¦       fix_all_passwords_universal.php
+¦       generate_password_hashes.php
+¦       get_candidate_info.php
+¦       hash_existing_passwords.php
+¦       hash_localhost_passwords.php
+¦       setup-candidate-tables.php
+¦       test_all_credentials.php
+¦       test_authentication.php
+¦       test_auth_endpoint.php
+¦       test_backend_basic.php
+¦       test_change_password.php
+¦       test_connection.php
+¦       test_notification_preferences.php
+¦       test_staff_login.php
+¦       update_staff_passwords.php
+¦       verify-table-structure.php
+¦       verify_candidate_password.php
+¦       verify_database_passwords.php
+¦       verify_database_structure.php
+¦       verify_password_change.php
+¦       
++---src
+¦   +---Controllers
+¦   ¦       AIController.php
+¦   ¦       AuthController.php
+¦   ¦       BaseController.php
+¦   ¦       CandidateController.php
+¦   ¦       ChatbotController.php
+¦   ¦       HealthController.php
+¦   ¦       JobController.php
+¦   ¦       LanguageController.php
+¦   ¦       PDFController.php
+¦   ¦       
+¦   +---Domain
+¦   ¦       CvSchema.php
+¦   ¦       
+¦   +---Middleware
+¦   ¦       AuthMiddleware.php
+¦   ¦       CorsMiddleware.php
+¦   ¦       LanguageMiddleware.php
+¦   ¦       SecurityMiddleware.php
+¦   ¦       ValidationMiddleware.php
+¦   ¦       
+¦   +---Models
+¦   ¦       ApplicationNote.php
+¦   ¦       BaseModel.php
+¦   ¦       Candidate.php
+¦   ¦       CandidateCertification.php
+¦   ¦       CandidateEducation.php
+¦   ¦       CandidateExperience.php
+¦   ¦       CandidateLanguage.php
+¦   ¦       CandidateReference.php
+¦   ¦       CandidateRouting.php
+¦   ¦       CandidateSkill.php
+¦   ¦       ChatbotAnalytics.php
+¦   ¦       ChatbotNode.php
+¦   ¦       ChatbotOption.php
+¦   ¦       Culture.php
+¦   ¦       Department.php
+¦   ¦       DepartmentCategory.php
+¦   ¦       Interview.php
+¦   ¦       Job.php
+¦   ¦       JobBenefit.php
+¦   ¦       JobRequirement.php
+¦   ¦       JobSkill.php
+¦   ¦       News.php
+¦   ¦       Notification.php
+¦   ¦       Recruiter.php
+¦   ¦       SocialLogin.php
+¦   ¦       User.php
+¦   ¦       
+¦   +---Parsers
+¦   ¦       CVTextParser.php
+¦   ¦       
+¦   +---Services
+¦   ¦   ¦   AIIntegrationService.php
+¦   ¦   ¦   AuthService.php
+¦   ¦   ¦   ChatbotService.php
+¦   ¦   ¦   CodespacesService.php
+¦   ¦   ¦   CommunicationService.php
+¦   ¦   ¦   ContentGenerationService.php
+¦   ¦   ¦   CVParsingService.php
+¦   ¦   ¦   FileService.php
+¦   ¦   ¦   JobMatchingService.php
+¦   ¦   ¦   MatchingService.php
+¦   ¦   ¦   MistralService.php
+¦   ¦   ¦   NotificationService.php
+¦   ¦   ¦   OllamaService.php
+¦   ¦   ¦   OllamaService_old.php
+¦   ¦   ¦   OpenAIService.php
+¦   ¦   ¦   OpenAIService_new.php
+¦   ¦   ¦   PDFExtractorService.php
+¦   ¦   ¦   PdfTextService.php
+¦   ¦   ¦   PreScreeningService.php
+¦   ¦   ¦   RecruitmentInsightsService.php
+¦   ¦   ¦   ResumeService.php
+¦   ¦   ¦   StatisticsService.php
+¦   ¦   ¦   
+¦   ¦   +---CV
+¦   ¦   ¦       AdvancedCVParser.php
+¦   ¦   ¦       
+¦   ¦   +---Exceptions
+¦   ¦   ¦       AiUnavailableException.php
+¦   ¦   ¦       
+¦   ¦   +---Matching
+¦   ¦           JobMatchingService.php
+¦   ¦           
+¦   +---Utils
+¦           Auth.php
+¦           Cache.php
+¦           Cors.php
+¦           Database.php
+¦           InputValidator.php
+¦           JWT.php
+¦           Log.php
+¦           Logger.php
+¦           PerformanceMonitor.php
+¦           RateLimiter.php
+¦           Request.php
+¦           RequestId.php
+¦           ResponseHandler.php
+¦           ResponseHelper.php
+¦           Router.php
+¦           TranslationService.php
+¦           Validator.php
+¦           
++---tests
+¦   ¦   InputValidatorTest.php
+¦   ¦   run-cors-tests.ps1
+¦   ¦   
+¦   +---config
+¦   ¦   ¦   auth-rate-limiter.php
+¦   ¦   ¦   bootstrap.php
+¦   ¦   ¦   config.php
+¦   ¦   ¦   database.php
+¦   ¦   ¦   error_handler.php
+¦   ¦   ¦   input-sanitizer.php
+¦   ¦   ¦   password-policy.php
+¦   ¦   ¦   security-headers.php
+¦   ¦   ¦   test_conection_db.php
+¦   ¦   ¦   
+¦   ¦   +---routes
+¦   ¦           ai_routes.php
+¦   ¦           language_routes.php
+¦   ¦           pdf_routes.php
+¦   ¦           
+¦   +---database
+¦   ¦   +---migrations
+¦   ¦           add_social_auth_columns.php
+¦   ¦           bt_candidates.sql
+¦   ¦           bt_candidates_secure.sql
+¦   ¦           bt_chatbot_analytics.sql
+¦   ¦           bt_chatbot_nodes.sql
+¦   ¦           bt_chatbot_options.sql
+¦   ¦           bubble_talents_DB (5).sql
+¦   ¦           create_chatbot_system.sql
+¦   ¦           
+¦   +---public
+¦   ¦   ¦   auth-simple.php
+¦   ¦   ¦   auth.php
+¦   ¦   ¦   hello.txt
+¦   ¦   ¦   index.php
+¦   ¦   ¦   test_chatbot_crud.php
+¦   ¦   ¦   
+¦   ¦   +---api
+¦   ¦   ¦   ¦   bootstrap.php
+¦   ¦   ¦   ¦   health-ai.php
+¦   ¦   ¦   ¦   health-check.php
+¦   ¦   ¦   ¦   health-ocr.php
+¦   ¦   ¦   ¦   
+¦   ¦   ¦   +---cv
+¦   ¦   ¦           confirm.php
+¦   ¦   ¦           delete.php
+¦   ¦   ¦           export.php
+¦   ¦   ¦           parse.php
+¦   ¦   ¦           schema.php
+¦   ¦   ¦           
+¦   ¦   +---endpoints
+¦   ¦           jobs.php
+¦   ¦           
+¦   +---scripts
+¦   ¦       add-gdpr-consent-columns.php
+¦   ¦       check_remote_database.php
+¦   ¦       debug_database_connection.php
+¦   ¦       debug_diego_login.php
+¦   ¦       diagnose_password_security.php
+¦   ¦       find_all_bt_candidates.php
+¦   ¦       find_auth_endpoint.php
+¦   ¦       fix_all_passwords_universal.php
+¦   ¦       generate_password_hashes.php
+¦   ¦       hash_existing_passwords.php
+¦   ¦       hash_localhost_passwords.php
+¦   ¦       setup-candidate-tables.php
+¦   ¦       test_authentication.php
+¦   ¦       test_auth_endpoint.php
+¦   ¦       verify-table-structure.php
+¦   ¦       verify_database_passwords.php
+¦   ¦       
+¦   +---src
+¦   ¦   +---Controllers
+¦   ¦   ¦       AIController.php
+¦   ¦   ¦       AuthController.php
+¦   ¦   ¦       BaseController.php
+¦   ¦   ¦       CandidateController.php
+¦   ¦   ¦       ChatbotController.php
+¦   ¦   ¦       HealthController.php
+¦   ¦   ¦       JobController.php
+¦   ¦   ¦       LanguageController.php
+¦   ¦   ¦       PDFController.php
+¦   ¦   ¦       
+¦   ¦   +---Domain
+¦   ¦   ¦       CvSchema.php
+¦   ¦   ¦       
+¦   ¦   +---Middleware
+¦   ¦   ¦       AuthMiddleware.php
+¦   ¦   ¦       CorsMiddleware.php
+¦   ¦   ¦       LanguageMiddleware.php
+¦   ¦   ¦       SecurityMiddleware.php
+¦   ¦   ¦       ValidationMiddleware.php
+¦   ¦   ¦       
+¦   ¦   +---Models
+¦   ¦   ¦       ApplicationNote.php
+¦   ¦   ¦       BaseModel.php
+¦   ¦   ¦       Candidate.php
+¦   ¦   ¦       CandidateCertification.php
+¦   ¦   ¦       CandidateEducation.php
+¦   ¦   ¦       CandidateExperience.php
+¦   ¦   ¦       CandidateLanguage.php
+¦   ¦   ¦       CandidateReference.php
+¦   ¦   ¦       CandidateRouting.php
+¦   ¦   ¦       CandidateSkill.php
+¦   ¦   ¦       ChatbotAnalytics.php
+¦   ¦   ¦       ChatbotNode.php
+¦   ¦   ¦       ChatbotOption.php
+¦   ¦   ¦       Culture.php
+¦   ¦   ¦       Department.php
+¦   ¦   ¦       DepartmentCategory.php
+¦   ¦   ¦       Interview.php
+¦   ¦   ¦       Job.php
+¦   ¦   ¦       JobBenefit.php
+¦   ¦   ¦       JobRequirement.php
+¦   ¦   ¦       JobSkill.php
+¦   ¦   ¦       News.php
+¦   ¦   ¦       Notification.php
+¦   ¦   ¦       Recruiter.php
+¦   ¦   ¦       SocialLogin.php
+¦   ¦   ¦       User.php
+¦   ¦   ¦       
+¦   ¦   +---Parsers
+¦   ¦   ¦       CVTextParser.php
+¦   ¦   ¦       
+¦   ¦   +---Services
+¦   ¦   ¦   ¦   AIIntegrationService.php
+¦   ¦   ¦   ¦   AuthService.php
+¦   ¦   ¦   ¦   ChatbotService.php
+¦   ¦   ¦   ¦   CommunicationService.php
+¦   ¦   ¦   ¦   ContentGenerationService.php
+¦   ¦   ¦   ¦   CVParsingService.php
+¦   ¦   ¦   ¦   FileService.php
+¦   ¦   ¦   ¦   JobMatchingService.php
+¦   ¦   ¦   ¦   MatchingService.php
+¦   ¦   ¦   ¦   NotificationService.php
+¦   ¦   ¦   ¦   OllamaService.php
+¦   ¦   ¦   ¦   OpenAIService.php
+¦   ¦   ¦   ¦   OpenAIService_new.php
+¦   ¦   ¦   ¦   PDFExtractorService.php
+¦   ¦   ¦   ¦   PdfTextService.php
+¦   ¦   ¦   ¦   PreScreeningService.php
+¦   ¦   ¦   ¦   RecruitmentInsightsService.php
+¦   ¦   ¦   ¦   ResumeService.php
+¦   ¦   ¦   ¦   StatisticsService.php
+¦   ¦   ¦   ¦   
+¦   ¦   ¦   +---CV
+¦   ¦   ¦   ¦       AdvancedCVParser.php
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---Exceptions
+¦   ¦   ¦   ¦       AiUnavailableException.php
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---Matching
+¦   ¦   ¦           JobMatchingService.php
+¦   ¦   ¦           
+¦   ¦   +---Utils
+¦   ¦           Auth.php
+¦   ¦           Cache.php
+¦   ¦           Cors.php
+¦   ¦           Database.php
+¦   ¦           InputValidator.php
+¦   ¦           JWT.php
+¦   ¦           Log.php
+¦   ¦           Logger.php
+¦   ¦           PerformanceMonitor.php
+¦   ¦           RateLimiter.php
+¦   ¦           Request.php
+¦   ¦           RequestId.php
+¦   ¦           ResponseHandler.php
+¦   ¦           ResponseHelper.php
+¦   ¦           Router.php
+¦   ¦           TranslationService.php
+¦   ¦           Validator.php
+¦   ¦           
+¦   +---storage
+¦   ¦   +---private
+¦   ¦   ¦   +---cv
+¦   ¦   ¦           cv_legible.pdf
+¦   ¦   ¦           cv_malo.pdf
+¦   ¦   ¦           
+¦   ¦   +---ratelimit
+¦   ¦           2924900_4b84b15bff6ee5796152495a230e45e3d7e947d9.json
+¦   ¦           2924902_4b84b15bff6ee5796152495a230e45e3d7e947d9.json
+¦   ¦           2924903_4b84b15bff6ee5796152495a230e45e3d7e947d9.json
+¦   ¦           2924904_4b84b15bff6ee5796152495a230e45e3d7e947d9.json
+¦   ¦           
+¦   +---tests
+¦   ¦       InputValidatorTest.php
+¦   ¦       
+¦   +---uploads
+¦           .htaccess
+¦           
++---uploads
+¦   ¦   .htaccess
+¦   ¦   
+¦   +---cvs
+¦   ¦       cv_debug2_example_com_2025-08-15_14-30-15.pdf
+¦   ¦       cv_debug_example_com_2025-08-15_14-29-44.pdf
+¦   ¦       cv_test_example_com_2025-08-15_14-11-51.pdf
+¦   ¦       cv_test_example_com_2025-08-15_14-25-47.pdf
+¦   ¦       cv_test_improved_example_com_2025-08-15_14-29-06.pdf
+¦   ¦       cv_tuononno_gmail_com_2025-08-15_14-24-07.pdf
+¦   ¦       cv_unknown_2025-08-15_14-15-25.pdf
+¦   ¦       cv__2025-08-15_14-11-08.pdf
+¦   ¦       cv__2025-08-15_14-20-49.pdf
+¦   ¦       cv__2025-08-15_14-23-45.pdf
+¦   ¦       
+¦   +---json
+¦   ¦       cv_debug2_example_com_2025-08-15_14-30-15.json
+¦   ¦       cv_debug_example_com_2025-08-15_14-29-44.json
+¦   ¦       cv_test_example_com_2025-08-15_14-25-47.json
+¦   ¦       cv_test_improved_example_com_2025-08-15_14-29-06.json
+¦   ¦       cv_tuononno_gmail_com_2025-08-15_14-24-07.json
+¦   ¦       cv_unknown_2025-08-15_14-15-25.json
+¦   ¦       cv__2025-08-15_14-20-49.json
+¦   ¦       cv__2025-08-15_14-23-45.json
+¦   ¦       
+¦   +---textos
+¦           cv_debug2_example_com_2025-08-15_14-30-15.txt
+¦           cv_debug_example_com_2025-08-15_14-29-44.txt
+¦           cv_test_example_com_2025-08-15_14-25-47.txt
+¦           cv_test_improved_example_com_2025-08-15_14-29-06.txt
+¦           cv_tuononno_gmail_com_2025-08-15_14-24-07.txt
+¦           cv_unknown_2025-08-15_14-15-25.txt
+¦           cv__2025-08-15_14-20-49.txt
+¦           cv__2025-08-15_14-23-45.txt
+¦           
++---var
+¦   +---reports
++---vendor
+    ¦   autoload.php
+    ¦   
+                     

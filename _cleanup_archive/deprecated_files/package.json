@@ -1,0 +1,8 @@
+{
+	"devDependencies": {
+		"cssnano": "^7.1.0"
+	},
+	"dependencies": {
+		"@playwright/test": "^1.54.2"
+	}
+}

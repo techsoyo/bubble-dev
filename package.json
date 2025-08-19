@@ -1,5 +1,13 @@
 {
+	"name": "bubble-dev",
+	"private": true,
+	"scripts": {
+		"dev": "concurrently -n \"FE,BE\" -c \"bgBlue.bold,bgGreen.bold\" \"pnpm dev:fe\" \"pnpm dev:be\"",
+		"dev:fe": "cd frontend && pnpm dev",
+		"dev:be": "php -S localhost:8000 -t backend/public"
+	},
 	"devDependencies": {
+		"concurrently": "^9.2.0",
 		"cssnano": "^7.1.0"
 	},
 	"dependencies": {

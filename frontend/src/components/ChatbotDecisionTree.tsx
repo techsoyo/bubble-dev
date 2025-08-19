@@ -62,7 +62,7 @@ const ChatbotDecisionTree: React.FC = () => {
 
   // Cargar nodos y opciones desde el endpoint PHP
   useEffect(() => {
-    fetch(`${env.API_BASE_URL}/api/endpoints/chatbot_decision_tree.php`)
+    fetch(`${env.API_BASE_URL}/chatbot_decision_tree.php`)
       .then(res => res.json())
       .then(data => {
         setChatbotData({
@@ -291,7 +291,7 @@ const ChatbotDecisionTree: React.FC = () => {
   // Track de eventos de analytics
   const trackAnalyticsEvent = async (eventName: string, eventData: Record<string, any>) => {
     try {
-      await fetch(`${env.API_BASE_URL}/api/endpoints/chatbot_analytics.php`, {
+      await fetch(`${env.API_BASE_URL}/chatbot_analytics.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -24,10 +24,51 @@ if (!is_file($__autoload)) {
 require_once $__autoload;
 // Cargar la configuración
 require_once BASE_PATH . '/config/config.php';
-require_once BASE_PATH . '/cors.php'; // se aplicará solo 1 vez por request
+// CORS integrado directamente - no archivo externo
 require_once BASE_PATH . '/config/security-headers.php'; // headers de seguridad centralizados
 
 require_once BASE_PATH . '/config/database.php';
+
+// === CONFIGURACIÓN CORS INTEGRADA ===
+// Solo se ejecuta para peticiones HTTP (no CLI)
+if (PHP_SAPI !== 'cli' && !defined('CORS_APPLIED')) {
+  define('CORS_APPLIED', true);
+
+  // Obtener configuración CORS desde variables de entorno
+  $corsOrigins = getenv('CORS_ALLOWED_ORIGINS') ?: 'http://localhost:3002';
+  $corsCredentials = getenv('CORS_ALLOW_CREDENTIALS') === 'true';
+  $corsMethods = getenv('CORS_ALLOWED_METHODS') ?: 'GET,POST,PUT,PATCH,DELETE,OPTIONS';
+  $corsHeaders = getenv('CORS_ALLOWED_HEADERS') ?: 'Content-Type,Authorization,X-Requested-With';
+  $corsMaxAge = (int)(getenv('CORS_MAX_AGE') ?: '86400');
+
+  // Convertir orígenes a array
+  $allowedOrigins = array_map('trim', explode(',', $corsOrigins));
+
+  // Obtener origen de la petición
+  $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+  // Verificar si el origen está permitido
+  $isAllowedOrigin = in_array($origin, $allowedOrigins, true);
+
+  // Aplicar headers CORS
+  if ($isAllowedOrigin && $origin) {
+    header('Access-Control-Allow-Origin: ' . $origin);
+  }
+
+  if ($corsCredentials) {
+    header('Access-Control-Allow-Credentials: true');
+  }
+
+  header('Access-Control-Allow-Methods: ' . $corsMethods);
+  header('Access-Control-Allow-Headers: ' . $corsHeaders);
+  header('Access-Control-Max-Age: ' . $corsMaxAge);
+
+  // Manejar preflight OPTIONS
+  if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+  }
+}
 
 // Autoloader manual para clases (en un proyecto real sería mejor usar Composer)
 spl_autoload_register(function ($class) {

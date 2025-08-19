@@ -1,0 +1,35 @@
+{
+  "timestamp": "2025-08-19T13:47:51.019Z",
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4
+  },
+  "frontend": {
+    "🔎 Frontend: Uso de localStorage": {
+      "status": "✅",
+      "detail": "No se encontró acceso real a localStorage"
+    }
+  },
+  "backend": {
+    "✅ Backend: Estructura detectada": {
+      "status": "✅",
+      "detail": "backend"
+    },
+    "✅ Backend: Endpoints críticos": {
+      "status": "❌",
+      "detail": "0/5 encontrados",
+      "missing": [
+        "/user/drafts/cv",
+        "/user/bookmarks",
+        "/user/bookmarks",
+        "/user/saved-searches",
+        "/user/ai-interactions"
+      ]
+    },
+    "🔍 Backend: Acciones detectadas": {
+      "status": "🟡",
+      "detail": "No se encontraron acciones clave"
+    }
+  }
+}

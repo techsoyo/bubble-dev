@@ -5,7 +5,7 @@
   "description": "Frontend para la plataforma de reclutamiento Bubble of Talents",
   "packageManager": "pnpm@8.10.0",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite  --host 0.0.0.0 --port 3002",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "build": "pnpm typecheck && vite build",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",

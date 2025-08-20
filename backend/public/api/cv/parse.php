@@ -270,10 +270,10 @@ try {
     // 🏗️ PASO 8: INSTANCIACIÓN DE SERVICIOS
     try {
         // 🤖 Servicio principal: Ollama para procesamiento IA
-        file_put_contents(__DIR__ . '/../../../logs/cv_debug.log', "[" . date('Y-m-d H:i:s') . "] Creando OllamaService...\n", FILE_APPEND);
+        file_put_contents(__DIR__ . '/../../../logs/cv_debug.log', "[" . date('Y-m-d H:i:s') . "] Creando OllamaService (MIGRADO)...\n", FILE_APPEND);
         $ollama = new OllamaService();
-        error_log("[CV_DEBUG] OllamaService creado exitosamente");
-        file_put_contents(__DIR__ . '/../../../logs/cv_debug.log', "[" . date('Y-m-d H:i:s') . "] OllamaService OK\n", FILE_APPEND);
+        error_log("[CV_DEBUG] OllamaService (MIGRADO) creado exitosamente");
+        file_put_contents(__DIR__ . '/../../../logs/cv_debug.log', "[" . date('Y-m-d H:i:s') . "] OllamaService (MIGRADO) OK\n", FILE_APPEND);
 
         // 📄 Servicio PDF: Para validación y procesamiento
         $pdfTextService = new PdfTextService();

@@ -1,0 +1,100 @@
+{
+    "nombre": "Javier Rodríguez Martínez",
+    "email": "javier.rodriguez@email.com",
+    "telefono": "+34 633 445 566",
+    "ubicacion_actual": "Madrid, España",
+    "fecha_nacimiento": "",
+    "portfolio": "",
+    "linkedin": "linkedin.com\/in\/javierrodriguezmartinez",
+    "otras_redes": [],
+    "resumen_profesional": "Profesional del marketing con experiencia en branding, comunicación y estrategias de fidelización.",
+    "soft_skills": [
+        "Gestión de proyectos y equipos",
+        "Liderazgo",
+        "Trabajo en equipo"
+    ],
+    "hard_skills": [
+        "Canva",
+        "Adobe Suite"
+    ],
+    "idiomas": [
+        {
+            "idioma": "Español",
+            "nivel": "Nativo"
+        },
+        {
+            "idioma": "Inglés",
+            "nivel": "Avanzado"
+        }
+    ],
+    "intereses": [],
+    "referencias": [],
+    "disponibilidad": "Inmediata",
+    "cv_original_file": "",
+    "cv_text_file": "",
+    "cv_json_file": "",
+    "data_source": "manual_entry",
+    "puestos_anteriores": [
+        {
+            "puesto": "Jefe de Producto",
+            "empresa": "Consumer Brands S.L.",
+            "fecha_inicio": "2019-05-01",
+            "fecha_fin": "",
+            "descripcion": "Desarrollo de estrategias de lanzamiento de productos.",
+            "responsabilidades": [
+                "Gestión de equipos de marketing y agencias externas",
+                "Análisis de mercado y competencia",
+                "Planificación de campañas 360°"
+            ],
+            "ubicacion": "",
+            "actual": false
+        },
+        {
+            "puesto": "Coordinador de Marketing",
+            "empresa": "Retail Solutions",
+            "fecha_inicio": "2016-11-01",
+            "fecha_fin": "2019-04-01",
+            "descripcion": "Creación de material promocional y publicitario.",
+            "responsabilidades": [
+                "Organización de ferias y eventos",
+                "Seguimiento de presupuestos y ROI"
+            ],
+            "ubicacion": "",
+            "actual": false
+        }
+    ],
+    "educacion": [
+        {
+            "titulo": "Máster en Dirección de Marketing",
+            "campo_estudio": "",
+            "institucion": "ESIC Business &amp; Marketing School",
+            "fecha_inicio": "2018-01-01",
+            "fecha_fin": "2019-01-01",
+            "nivel_educativo": "",
+            "descripcion": ""
+        },
+        {
+            "titulo": "Grado en Publicidad y Relaciones Públicas",
+            "campo_estudio": "",
+            "institucion": "Universidad Rey Juan Carlos",
+            "fecha_inicio": "2012-01-01",
+            "fecha_fin": "2016-01-01",
+            "nivel_educativo": "",
+            "descripcion": ""
+        }
+    ],
+    "certificaciones": [],
+    "certificaciones_detalle": [],
+    "idiomas_detalle": [],
+    "proyectos": [],
+    "referencias_detalle": [],
+    "habilidades_adicionales": [],
+    "routing": {
+        "categoria_departamento_id": null,
+        "departamento_id": null,
+        "reclutador_id": null,
+        "fuente": "manual",
+        "razon": "",
+        "fecha_asignacion": ""
+    }
+}

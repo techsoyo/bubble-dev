@@ -243,190 +243,205 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-md" style={{ background: '#f8f9fa', borderRadius: '1rem', border: '1px solid #e9ecef' }}>
-      <CardForm className="shadow-md">
-        <CardHeader className="text-center border-b pb-6">
-          <CardTitle className="text-2xl text-white">Registro de Candidato</CardTitle>
-          <CardDescription className="text-gray-300">
-            Completa los campos y sube tu CV para unirte a nuestra comunidad
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-6 pb-4">
-          {hasError('general') && (
-            <Alert variant="destructive" className="mb-6">
-              <AlertDescription>{errors.general}</AlertDescription>
-            </Alert>
-          )}
-          {success ? (
-            <div className="text-center py-8">
-              <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-6">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-semibold mb-2 text-[#FF4785]">¡Registro completado!</h3>
-              <p className="text-gray-600 mb-6">Tu perfil ha sido registrado exitosamente. Pronto recibirás un correo de confirmación.</p>
-              <Button
-                onClick={() => window.location.href = '/auth/login'}
-                className="bg-[#FF4785] hover:bg-[#FF3575]"
-              >
-                Ir al Login
-              </Button>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-              <div>
-                <Label htmlFor="auth-register-email" className="text-gray-700">Correo electrónico *</Label>
-                <Input
-                  id="auth-register-email"
-                  name="email"
-                  type="email"
-                  value={form.email}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('email', e.target.value)}
-                  placeholder="tu@email.com"
-                  required
-                  aria-required="true"
-                  aria-invalid={hasError('email')}
-                  aria-describedby={hasError('email') ? 'email-error' : undefined}
-                  autoComplete="email"
-                  className="mt-1 text-black"
-                />
-                {hasError('email') && (
-                  <p id="email-error" className="text-sm text-red-600 mt-1" role="alert">
-                    {errors.email}
-                  </p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="username" className="text-gray-700">Nombre de usuario</Label>
-                <p className="text-xs text-gray-500 mb-1">Opcional - se usará para mostrar tu perfil público</p>
-                <Input
-                  id="username"
-                  name="username"
-                  value={form.username}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('username', e.target.value)}
-                  placeholder="Nombre de usuario"
-                  autoComplete="username"
-                  className="mt-1 text-black"
-                />
-              </div>
-              <div>
-                <Label htmlFor="auth-register-password" className="text-gray-700">Contraseña *</Label>
-                <Input
-                  id="auth-register-password"
-                  name="password"
-                  type="password"
-                  value={form.password}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('password', e.target.value)}
-                  required
-                  aria-required="true"
-                  aria-invalid={hasError('password')}
-                  aria-describedby={hasError('password') ? 'password-error password-help' : 'password-help'}
-                  placeholder="Mínimo 8 caracteres"
-                  autoComplete="new-password"
-                  className="mt-1 text-black"
-                />
-                <p id="password-help" className="text-xs text-gray-500 mt-1">
-                  Debe tener al menos 8 caracteres
-                </p>
-                {hasError('password') && (
-                  <p id="password-error" className="text-sm text-red-600 mt-1" role="alert">
-                    {errors.password}
-                  </p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="confirmPassword" className="text-gray-700">Confirmar contraseña *</Label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  value={form.confirmPassword}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('confirmPassword', e.target.value)}
-                  required
-                  aria-required="true"
-                  aria-invalid={hasError('confirmPassword')}
-                  aria-describedby={hasError('confirmPassword') ? 'confirm-password-error' : undefined}
-                  placeholder="Repite tu contraseña"
-                  autoComplete="new-password"
-                  className="mt-1 text-black"
-                />
-                {hasError('confirmPassword') && (
-                  <p id="confirm-password-error" className="text-sm text-red-600 mt-1" role="alert">
-                    {errors.confirmPassword}
-                  </p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="cv" className="text-gray-700">Curriculum Vitae (PDF) *</Label>
-                <Input
-                  id="cv"
-                  name="cv"
-                  type="file"
-                  accept="application/pdf"
-                  onChange={handleFile}
-                  required
-                  aria-required="true"
-                  aria-invalid={hasError('cv')}
-                  aria-describedby={hasError('cv') ? 'cv-error cv-help' : 'cv-help'}
-                  className="mt-1 text-black"
-                />
-                <p id="cv-help" className="text-xs text-gray-500 mt-1">
-                  {t('dashboard.onlyPdfFilesRegister')}
-                </p>
-                {hasError('cv') && (
-                  <p id="cv-error" className="text-sm text-red-600 mt-1" role="alert">
-                    {errors.cv}
-                  </p>
-                )}
-              </div>
-              <div className="flex gap-2">
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000
+      }}
+    >
+      <div style={{ width: '100%', maxWidth: '28rem', padding: '1rem' }}>
+        <CardForm style={{ background: 'white', borderRadius: '12px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+          <CardHeader className="text-center border-b pb-6 bg-gradient-to-r from-[#FF4785] to-[#FF3575] text-white">
+            <CardTitle className="text-2xl font-bold">Registro de Candidato</CardTitle>
+            <CardDescription className="text-white/90">
+              Completa los campos y sube tu CV para unirte a nuestra comunidad
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6 pb-4 px-6">
+            {hasError('general') && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertDescription>{errors.general}</AlertDescription>
+              </Alert>
+            )}
+            {success ? (
+              <div className="text-center py-8">
+                <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-semibold mb-2 text-[#FF4785]">¡Registro completado!</h3>
+                <p className="text-gray-600 mb-6">Tu perfil ha sido registrado exitosamente. Pronto recibirás un correo de confirmación.</p>
                 <Button
-                  type="button"
-                  onClick={handleProcessCV}
-                  disabled={isProcessing || !form.cv}
-                  className="bg-blue-500 hover:bg-blue-600 text-white"
-                  aria-describedby={isProcessing ? 'processing-message' : undefined}
+                  onClick={() => window.location.href = '/auth/login'}
+                  className="bg-[#FF4785] hover:bg-[#FF3575]"
                 >
-                  {isProcessing ? (
-                    <>
-                      <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-                      Procesando CV...
-                    </>
-                  ) : (
-                    'Procesar CV'
-                  )}
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isRegistering}
-                  className="bg-[#FF4785] hover:bg-[#FF3575] text-white flex-1"
-                  aria-describedby={isRegistering ? 'registering-message' : undefined}
-                >
-                  {isRegistering ? (
-                    <>
-                      <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-                      Registrando...
-                    </>
-                  ) : (
-                    'Registrar'
-                  )}
+                  Ir al Login
                 </Button>
               </div>
-              {isProcessing && (
-                <p id="processing-message" className="sr-only" aria-live="polite">
-                  Procesando archivo CV, por favor espera
-                </p>
-              )}
-              {isRegistering && (
-                <p id="registering-message" className="sr-only" aria-live="polite">
-                  Creando tu cuenta, por favor espera
-                </p>
-              )}
-            </form>
-          )}
-        </CardContent>
-      </CardForm>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+                <div>
+                  <Label htmlFor="auth-register-email" className="text-gray-700">Correo electrónico *</Label>
+                  <Input
+                    id="auth-register-email"
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('email', e.target.value)}
+                    placeholder="tu@email.com"
+                    required
+                    aria-required="true"
+                    aria-invalid={hasError('email')}
+                    aria-describedby={hasError('email') ? 'email-error' : undefined}
+                    autoComplete="email"
+                    className="mt-1 text-black"
+                  />
+                  {hasError('email') && (
+                    <p id="email-error" className="text-sm text-red-600 mt-1" role="alert">
+                      {errors.email}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="username" className="text-gray-700">Nombre de usuario</Label>
+                  <p className="text-xs text-gray-500 mb-1">Opcional - se usará para mostrar tu perfil público</p>
+                  <Input
+                    id="username"
+                    name="username"
+                    value={form.username}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('username', e.target.value)}
+                    placeholder="Nombre de usuario"
+                    autoComplete="username"
+                    className="mt-1 text-black"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="auth-register-password" className="text-gray-700">Contraseña *</Label>
+                  <Input
+                    id="auth-register-password"
+                    name="password"
+                    type="password"
+                    value={form.password}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('password', e.target.value)}
+                    required
+                    aria-required="true"
+                    aria-invalid={hasError('password')}
+                    aria-describedby={hasError('password') ? 'password-error password-help' : 'password-help'}
+                    placeholder="Mínimo 8 caracteres"
+                    autoComplete="new-password"
+                    className="mt-1 text-black"
+                  />
+                  <p id="password-help" className="text-xs text-gray-500 mt-1">
+                    Debe tener al menos 8 caracteres
+                  </p>
+                  {hasError('password') && (
+                    <p id="password-error" className="text-sm text-red-600 mt-1" role="alert">
+                      {errors.password}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="confirmPassword" className="text-gray-700">Confirmar contraseña *</Label>
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    value={form.confirmPassword}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('confirmPassword', e.target.value)}
+                    required
+                    aria-required="true"
+                    aria-invalid={hasError('confirmPassword')}
+                    aria-describedby={hasError('confirmPassword') ? 'confirm-password-error' : undefined}
+                    placeholder="Repite tu contraseña"
+                    autoComplete="new-password"
+                    className="mt-1 text-black"
+                  />
+                  {hasError('confirmPassword') && (
+                    <p id="confirm-password-error" className="text-sm text-red-600 mt-1" role="alert">
+                      {errors.confirmPassword}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="cv" className="text-gray-700">Curriculum Vitae (PDF) *</Label>
+                  <Input
+                    id="cv"
+                    name="cv"
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handleFile}
+                    required
+                    aria-required="true"
+                    aria-invalid={hasError('cv')}
+                    aria-describedby={hasError('cv') ? 'cv-error cv-help' : 'cv-help'}
+                    className="mt-1 text-black"
+                  />
+                  <p id="cv-help" className="text-xs text-gray-500 mt-1">
+                    {t('dashboard.onlyPdfFilesRegister')}
+                  </p>
+                  {hasError('cv') && (
+                    <p id="cv-error" className="text-sm text-red-600 mt-1" role="alert">
+                      {errors.cv}
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    onClick={handleProcessCV}
+                    disabled={isProcessing || !form.cv}
+                    className="bg-blue-500 hover:bg-blue-600 text-white"
+                    aria-describedby={isProcessing ? 'processing-message' : undefined}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
+                        Procesando CV...
+                      </>
+                    ) : (
+                      'Procesar CV'
+                    )}
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isRegistering}
+                    className="bg-[#FF4785] hover:bg-[#FF3575] text-white flex-1"
+                    aria-describedby={isRegistering ? 'registering-message' : undefined}
+                  >
+                    {isRegistering ? (
+                      <>
+                        <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
+                        Registrando...
+                      </>
+                    ) : (
+                      'Registrar'
+                    )}
+                  </Button>
+                </div>
+                {isProcessing && (
+                  <p id="processing-message" className="sr-only" aria-live="polite">
+                    Procesando archivo CV, por favor espera
+                  </p>
+                )}
+                {isRegistering && (
+                  <p id="registering-message" className="sr-only" aria-live="polite">
+                    Creando tu cuenta, por favor espera
+                  </p>
+                )}
+              </form>
+            )}
+          </CardContent>
+        </CardForm>
+      </div>
     </div>
   );
 }

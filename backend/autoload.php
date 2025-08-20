@@ -1,4 +1,9 @@
 <?php
+// Cargar autoloader de Composer PRIMERO para dependencias externas
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    require_once __DIR__ . '/vendor/autoload.php';
+}
+
 // Normaliza APP_ENV desde entorno y define la constante si no existe
 $__env = $_ENV['APP_ENV'] ?? getenv('APP_ENV') ?? 'development';
 if (!defined('APP_ENV')) {

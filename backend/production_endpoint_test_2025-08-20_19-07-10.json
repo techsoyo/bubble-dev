@@ -1,0 +1,139 @@
+{
+    "success": true,
+    "message": "CV analizado correctamente con GroqAPI",
+    "data": {
+        "structured_data": {
+            "nombre": "Javier Rodríguez Martínez",
+            "email": "javier.rodriguez@email.com",
+            "telefono": "+34 633 445 566",
+            "ubicacion_actual": "Madrid, España",
+            "fecha_nacimiento": "",
+            "portfolio": "",
+            "linkedin": "linkedin.com\/in\/javierrodriguezmartinez",
+            "otras_redes": [],
+            "resumen_profesional": "Profesional del marketing con experiencia en branding, comunicación y estrategias de fidelización.",
+            "soft_skills": [
+                "Gestión de proyectos",
+                "Liderazgo",
+                "Trabajo en equipo"
+            ],
+            "hard_skills": [
+                "Canva",
+                "Adobe Suite"
+            ],
+            "idiomas": [
+                {
+                    "idioma": "Español",
+                    "nivel": "Nativo"
+                },
+                {
+                    "idioma": "Inglés",
+                    "nivel": "Avanzado"
+                }
+            ],
+            "intereses": [],
+            "referencias": "",
+            "disponibilidad": "",
+            "cv_original_file": "",
+            "cv_text_file": "",
+            "cv_json_file": "",
+            "data_source": "ai_processing",
+            "puestos_anteriores": [
+                {
+                    "puesto": "Jefe de Producto",
+                    "empresa": "Consumer Brands S.L.",
+                    "fecha_inicio": "2019-05-01",
+                    "fecha_fin": "",
+                    "descripcion": "Desarrollo de estrategias de lanzamiento de productos, gestión de equipos de marketing y agencias externas, análisis de mercado y competencia.",
+                    "responsabilidades": [],
+                    "ubicacion": "",
+                    "actual": true
+                },
+                {
+                    "puesto": "Coordinador de Marketing",
+                    "empresa": "Retail Solutions",
+                    "fecha_inicio": "2016-11-01",
+                    "fecha_fin": "2019-04-01",
+                    "descripcion": "Creación de material promocional y publicitario, organización de ferias y eventos, seguimiento de presupuestos y ROI.",
+                    "responsabilidades": [],
+                    "ubicacion": "",
+                    "actual": false
+                }
+            ],
+            "educacion": [
+                {
+                    "titulo": "Máster en Dirección de Marketing",
+                    "campo_estudio": "Marketing",
+                    "institucion": "ESIC Business &amp; Marketing School",
+                    "fecha_inicio": "2018-01-01",
+                    "fecha_fin": "2019-01-01",
+                    "nivel_educativo": "",
+                    "descripcion": ""
+                },
+                {
+                    "titulo": "Grado en Publicidad y Relaciones Públicas",
+                    "campo_estudio": "Publicidad y Relaciones Públicas",
+                    "institucion": "Universidad Rey Juan Carlos",
+                    "fecha_inicio": "2012-01-01",
+                    "fecha_fin": "2016-01-01",
+                    "nivel_educativo": "",
+                    "descripcion": ""
+                }
+            ],
+            "certificaciones": [],
+            "certificaciones_detalle": [],
+            "idiomas_detalle": [],
+            "proyectos": [],
+            "referencias_detalle": [],
+            "habilidades_adicionales": [],
+            "routing": {
+                "categoria_departamento_id": null,
+                "departamento_id": null,
+                "reclutador_id": "",
+                "fuente": "ai",
+                "razon": "Procesado automáticamente por Groq\/Llama3",
+                "fecha_asignacion": "2025-08-20 21:07:09"
+            }
+        },
+        "processing_info": {
+            "method": "groq-api",
+            "service": "Groq API (Llama3)",
+            "text_length": 1088,
+            "processing_time": 1.21,
+            "extracted_fields": [
+                "nombre",
+                "email",
+                "telefono",
+                "ubicacion_actual",
+                "fecha_nacimiento",
+                "portfolio",
+                "linkedin",
+                "otras_redes",
+                "resumen_profesional",
+                "soft_skills",
+                "hard_skills",
+                "idiomas",
+                "intereses",
+                "referencias",
+                "disponibilidad",
+                "cv_original_file",
+                "cv_text_file",
+                "cv_json_file",
+                "data_source",
+                "puestos_anteriores",
+                "educacion",
+                "certificaciones",
+                "certificaciones_detalle",
+                "idiomas_detalle",
+                "proyectos",
+                "referencias_detalle",
+                "habilidades_adicionales",
+                "routing"
+            ],
+            "total_fields": 28,
+            "free_service": true,
+            "ultra_fast": true
+        },
+        "success": true
+    }
+}

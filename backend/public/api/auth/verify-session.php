@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-$ROOT = dirname(__DIR__);
+$ROOT = dirname(dirname(dirname(__DIR__))); // auth -> api -> public -> backend  
 $BOOT = $ROOT . '/config/bootstrap.php';
 if (!is_file($BOOT)) {
   http_response_code(500);

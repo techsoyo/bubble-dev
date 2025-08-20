@@ -1,12 +1,19 @@
 <?php
 
 require_once __DIR__ . '/../bootstrap.php';
+header('Content-Type: application/json; charset=UTF-8');
 
 try {
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
-        jsonResponse(405, ['ok' => false, 'message' => 'Método no permitido', 'data' => null]);
+        http_response_code(405);
+        echo json_encode(['ok' => false, 'message' => 'Método no permitido', 'data' => null]);
+        exit;
     }
-    $db = pdo();
+
+    // Usar Database singleton para consistencia
+    require_once __DIR__ . '/../../src/Utils/Database.php';
+    $database = \Utils\Database::getInstance();
+    $db = $database->getConnection();
     $jobId = $_GET['jobId'] ?? null;
     $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
     $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 20;

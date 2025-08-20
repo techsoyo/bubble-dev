@@ -4,6 +4,7 @@ namespace Services;
 
 use Domain\CvSchema;
 use Services\Exceptions\AiUnavailableException;
+use Services\PdfTextService;
 
 /**
  * Servicio de IA Ollama Local para Análisis de CV
@@ -38,7 +39,42 @@ class OllamaService
   }
 
   /**
-   * Analiza texto de CV y devuelve JSON estructurado
+   * Analiza PDF de CV directamente con Llama3.2 sin extracción previa de texto
+   *
+   * @param string $pdfPath Ruta al archivo PDF del CV
+   * @return array Datos estructurados del CV según CvFormData del frontend
+   * @throws AiUnavailableException Si Ollama no está disponible o devuelve JSON inválido
+   */
+  public function analyzeCvFromPdf(string $pdfPath): array
+  {
+    if (!file_exists($pdfPath)) {
+      throw new AiUnavailableException('PDF_NOT_FOUND');
+    }
+
+    $startTime = microtime(true);
+
+    // NUEVO: Validar PDF y obtener path sin extracción de texto
+    $pdfTextService = new PdfTextService();
+    $validatedPdfPath = $pdfTextService->validateAndReturnPath($pdfPath);
+
+    // NUEVO: Convertir PDF a base64 para envío directo a Llama
+    $pdfBase64 = base64_encode(file_get_contents($validatedPdfPath));
+
+    if (!$pdfBase64) {
+      throw new AiUnavailableException('PDF_ENCODING_FAILED');
+    }
+
+    // Procesar PDF directamente con Ollama
+    $cvData = $this->analyzePdfDirectly($pdfBase64);
+
+    $duration = round((microtime(true) - $startTime) * 1000);
+    error_log("[OllamaService] CV PDF análisis directo completado en {$duration}ms");
+
+    return $cvData;
+  }
+
+  /**
+   * LEGACY: Analiza texto de CV y devuelve JSON estructurado (método mantenido para compatibilidad)
    *
    * @param string $rawText Texto extraído del CV
    * @return array Datos estructurados del CV
@@ -52,8 +88,8 @@ class OllamaService
 
     $startTime = microtime(true);
 
-    // Construir prompt optimizado para análisis de CV
-    $prompt = $this->buildCvAnalysisPrompt($rawText);
+    // Construir prompt legacy para análisis de texto
+    $prompt = $this->buildLegacyTextAnalysisPrompt($rawText);
 
     // Hacer llamada a Ollama con reintentos
     $response = $this->callOllamaWithRetries($prompt);
@@ -70,9 +106,35 @@ class OllamaService
     }
 
     $duration = round((microtime(true) - $startTime) * 1000);
-    error_log("[OllamaService] CV análisis completado en {$duration}ms");
+    error_log("[OllamaService] CV análisis de texto completado en {$duration}ms");
 
     return $cvData;
+  }
+
+  /**
+   * LEGACY: Prompt para análisis de texto extraído (mantenido para compatibilidad)
+   */
+  private function buildLegacyTextAnalysisPrompt(string $rawText): string
+  {
+    return "Analiza este texto de CV y extrae la información en formato JSON con la estructura exacta requerida por el frontend:
+
+{
+  \"nombre\": \"\",
+  \"email\": \"\", 
+  \"telefono\": \"\",
+  \"ubicacion_actual\": \"\",
+  \"resumen_profesional\": \"\",
+  \"hard_skills\": [],
+  \"soft_skills\": [],
+  \"puestos_anteriores\": [],
+  \"educacion\": [],
+  \"data_source\": \"ai_processing\"
+}
+
+TEXTO DEL CV:
+" . trim($rawText) . "
+
+JSON:";
   }
 
   /**
@@ -84,75 +146,144 @@ class OllamaService
   }
 
   /**
-   * Construye el prompt optimizado para análisis de CV
+   * NUEVO: Analiza PDF directamente enviando datos binarios a Llama3.2
+   *
+   * @param string $pdfBase64 PDF codificado en base64
+   * @return array Datos estructurados del CV según CvFormData
+   * @throws AiUnavailableException Si Ollama no puede procesar el PDF
    */
-  private function buildCvAnalysisPrompt(string $rawText): string
+  private function analyzePdfDirectly(string $pdfBase64): array
   {
-    return "Analiza este CV y extrae la información en formato JSON exacto con la siguiente estructura:
+    if (empty($pdfBase64)) {
+      throw new AiUnavailableException('EMPTY_PDF_DATA');
+    }
+
+    $startTime = microtime(true);
+
+    // Construir prompt específico para procesamiento directo de PDF
+    $prompt = $this->buildDirectPdfAnalysisPrompt($pdfBase64);
+
+    // Hacer llamada a Ollama con reintentos
+    $response = $this->callOllamaWithRetries($prompt);
+
+    if (!$response) {
+      throw new AiUnavailableException('AI_UNAVAILABLE');
+    }
+
+    // Parsear respuesta JSON
+    $cvData = $this->parseJsonResponse($response);
+
+    if (!$cvData) {
+      throw new AiUnavailableException('INVALID_JSON_RESPONSE');
+    }
+
+    $duration = round((microtime(true) - $startTime) * 1000);
+    error_log("[OllamaService] CV PDF análisis directo completado en {$duration}ms");
+
+    return $cvData;
+  }
+
+  /**
+   * Construye el prompt específico para análisis directo de PDF según campos CvFormData
+   */
+  private function buildDirectPdfAnalysisPrompt(string $pdfBase64): string
+  {
+    return "Analiza este CV en formato PDF y extrae ÚNICAMENTE los datos que coincidan con los siguientes campos del formulario. Responde SOLO con JSON válido:
 
 {
-  \"personal_info\": {
-    \"full_name\": \"\",
-    \"email\": \"\",
-    \"phone\": \"\",
-    \"location\": \"\",
-    \"linkedin\": \"\",
-    \"github\": \"\"
-  },
-  \"professional_summary\": \"\",
-  \"work_experience\": [
+  \"nombre\": \"\",
+  \"email\": \"\",
+  \"telefono\": \"\",
+  \"ubicacion_actual\": \"\",
+  \"fecha_nacimiento\": \"\",
+  \"portfolio\": \"\",
+  \"linkedin\": \"\",
+  \"otras_redes\": [],
+  \"resumen_profesional\": \"\",
+  \"soft_skills\": [],
+  \"hard_skills\": [],
+  \"idiomas\": [
+    {\"idioma\": \"\", \"nivel\": \"\"}
+  ],
+  \"intereses\": [],
+  \"referencias\": \"\",
+  \"disponibilidad\": \"\",
+  \"data_source\": \"ai_processing\",
+  \"puestos_anteriores\": [
     {
-      \"company\": \"\",
-      \"position\": \"\",
-      \"duration\": \"\",
-      \"location\": \"\",
-      \"description\": \"\",
-      \"technologies\": []
+      \"puesto\": \"\",
+      \"empresa\": \"\",
+      \"fecha_inicio\": \"\",
+      \"fecha_fin\": \"\",
+      \"descripcion\": \"\",
+      \"responsabilidades\": [],
+      \"ubicacion\": \"\",
+      \"actual\": false
     }
   ],
-  \"education\": [
+  \"educacion\": [
     {
-      \"institution\": \"\",
-      \"degree\": \"\",
-      \"field\": \"\",
-      \"year\": \"\",
-      \"gpa\": \"\"
+      \"titulo\": \"\",
+      \"campo_estudio\": \"\",
+      \"institucion\": \"\",
+      \"fecha_inicio\": \"\",
+      \"fecha_fin\": \"\",
+      \"nivel_educativo\": \"\",
+      \"descripcion\": \"\"
     }
   ],
-  \"skills\": {
-    \"technical\": [],
-    \"languages\": [],
-    \"frameworks\": [],
-    \"tools\": [],
-    \"soft_skills\": []
-  },
-  \"certifications\": [],
-  \"projects\": [
+  \"certificaciones\": [],
+  \"certificaciones_detalle\": [
     {
-      \"name\": \"\",
-      \"description\": \"\",
-      \"technologies\": [],
+      \"nombre_certificacion\": \"\",
+      \"emisor\": \"\",
+      \"fecha_emision\": \"\",
+      \"fecha_expiracion\": \"\"
+    }
+  ],
+  \"idiomas_detalle\": [
+    {
+      \"idioma\": \"\",
+      \"nivel_competencia\": \"\"
+    }
+  ],
+  \"proyectos\": [
+    {
+      \"nombre\": \"\",
+      \"descripcion\": \"\",
+      \"tecnologias\": [],
+      \"fecha_inicio\": \"\",
+      \"fecha_fin\": \"\",
       \"url\": \"\"
     }
   ],
-  \"languages\": [
+  \"referencias_detalle\": [
     {
-      \"language\": \"\",
-      \"level\": \"\"
+      \"nombre_referencia\": \"\",
+      \"empresa_referencia\": \"\",
+      \"email_referencia\": \"\",
+      \"telefono_referencia\": \"\",
+      \"notas\": \"\"
     }
-  ]
+  ],
+  \"habilidades_adicionales\": [],
+  \"routing\": {
+    \"fuente\": \"ai\",
+    \"razon\": \"Procesado automáticamente por Llama3.2\",
+    \"fecha_asignacion\": \"" . date('Y-m-d H:i:s') . "\"
+  }
 }
 
-INSTRUCCIONES:
-1. Responde SOLO con el JSON, sin texto adicional
-2. Si no encuentras información para un campo, usa cadena vacía \"\" o array vacío []
-3. Extrae toda la información relevante del CV
-4. Normaliza los datos (nombres propios en mayúsculas, fechas consistentes)
+INSTRUCCIONES CRÍTICAS:
+1. Procesa el PDF directamente sin necesidad de extracción de texto previa
+2. Extrae SOLO los campos listados arriba
+3. Si no encuentras información para un campo, usa cadena vacía \"\" o array vacío []
+4. Fechas en formato YYYY-MM-DD
+5. Responde ÚNICAMENTE con JSON válido, sin texto adicional
+6. Asegúrate de que todos los campos del formulario estén presentes
 
-CV A ANALIZAR:
-" . trim($rawText) . "
-
-JSON:";
+PDF DATA (base64):
+" . $pdfBase64;
   }
 
   /**

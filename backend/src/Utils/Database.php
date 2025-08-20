@@ -28,13 +28,22 @@ class Database
             $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
         }
         $user = getenv('DB_USER') ?: 'root';
-        $pass = getenv('DB_PASS') ?: '';
+        $pass = getenv('DB_PASSWORD') ?: '';
+
+        // Validación de credenciales críticas
+        if (empty($user)) {
+            throw new \Exception('DB connection failed: DB_USER is not configured');
+        }
+
         try {
             $this->pdo = new PDO($dsn, $user, $pass, [
-              PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-              PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_TIMEOUT => 5,
+                PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8mb4'
             ]);
         } catch (PDOException $e) {
+            error_log('Database connection error: ' . $e->getMessage());
             throw new \Exception('DB connection failed: ' . $e->getMessage());
         }
     }
@@ -56,7 +65,7 @@ class Database
     public function insert(string $table, array $data): bool
     {
         $fields = array_keys($data);
-        $placeholders = array_map(fn ($f) => ':' . $f, $fields);
+        $placeholders = array_map(fn($f) => ':' . $f, $fields);
         $sql = "INSERT INTO `$table` (" . implode(',', $fields) . ') VALUES (' . implode(',', $placeholders) . ')';
         $stmt = $this->pdo->prepare($sql);
         foreach ($data as $k => $v) {

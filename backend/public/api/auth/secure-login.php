@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-$ROOT = dirname(__DIR__);             // auth -> backend/
+$ROOT = dirname(dirname(dirname(dirname(__DIR__)))); // Corregido: auth -> api -> public -> backend -> raiz
 $BOOT = $ROOT . '/config/bootstrap.php';
 if (!is_file($BOOT)) {
   http_response_code(500);
@@ -41,3 +41,4 @@ $_SESSION['user_id'] = 123;
 
 http_response_code(200);
 echo json_encode(['ok' => true, 'message' => 'Login correcto']);
+

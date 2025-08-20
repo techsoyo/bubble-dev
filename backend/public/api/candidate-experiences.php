@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-$ROOT = dirname(__DIR__);
+$ROOT = dirname(dirname(dirname(__DIR__))); // Corregido: api -> public -> backend -> raiz
 $BOOT = $ROOT . '/config/bootstrap.php';
 if (!is_file($BOOT)) {
   http_response_code(500);
@@ -87,3 +87,4 @@ try {
   http_response_code(500);
   echo json_encode(['success' => false, 'message' => 'Error interno del servidor']);
 }
+

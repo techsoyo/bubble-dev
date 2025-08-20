@@ -36,18 +36,49 @@ class PdfTextService
     {
         $this->maxBytes     = (int)($this->env('CV_MAX_UPLOAD_BYTES', '5242880')); // 5MB por defecto
         $this->ocrEnabled   = $this->env('CV_ENABLE_OCR', 'true') === 'true';
-        $this->binPdftotext = $this->resolveBinary($this->env('PDFTOTEXT_BIN', 'pdftotext'));
-        $this->binPdftoppm  = $this->resolveBinary($this->env('PDFTOPPM_BIN', 'pdftoppm'));
-        $this->binTesseract = $this->resolveBinary($this->env('TESSERACT_BIN', 'tesseract'));
+        // COMENTADO: Eliminamos dependencia de pdftotext - Llama procesará PDF directamente
+        // $this->binPdftotext = $this->resolveBinary($this->env('PDFTOTEXT_BIN', 'pdftotext'));
+        // $this->binPdftoppm  = $this->resolveBinary($this->env('PDFTOPPM_BIN', 'pdftoppm'));
+        // $this->binTesseract = $this->resolveBinary($this->env('TESSERACT_BIN', 'tesseract'));
+        $this->binPdftotext = null;
+        $this->binPdftoppm  = null;
+        $this->binTesseract = null;
         $this->clamScanCmd  = $this->env('CLAMAV_CMD', '');
     }
 
     /**
-     * Extrae texto usando heurísticas y OCR fallback.
+     * NUEVO: Método simplificado que retorna el path del PDF para procesamiento directo por Llama
+     * @throws PdfSecurityException|InfectedFileException
+     */
+    public function validateAndReturnPath(string $pdfPath): string
+    {
+        $t0 = microtime(true);
+        $this->guardFile($pdfPath);
+        $this->scanIfEnabled($pdfPath);
+        $mime = $this->detectMime($pdfPath);
+        if ($mime !== 'application/pdf') {
+            throw new PdfSecurityException('E_PDF_BAD_MIME');
+        }
+
+        $this->logStep('pdf_validated', [
+            'duration_ms' => $this->ms($t0),
+            'path_valid' => true,
+            'ready_for_llama' => true
+        ]);
+
+        return $pdfPath;
+    }
+
+    /**
+     * DEPRECATED: Extrae texto usando heurísticas y OCR fallback.
      * @throws PdfSecurityException|PdfTextEmptyException|InfectedFileException
      */
     public function extract(string $pdfPath): string
     {
+        // COMENTADO: Método legacy - ahora Llama procesa PDF directamente
+        throw new \RuntimeException('extract() method deprecated - use validateAndReturnPath() for direct Llama processing');
+
+        /*
         $t0 = microtime(true);
         $this->guardFile($pdfPath);
         $this->scanIfEnabled($pdfPath);
@@ -63,11 +94,11 @@ class PdfTextService
             if ($native !== null) {
                 $score = $this->scoreTextQuality($native);
                 $this->logStep('native_attempt', [
-                  'duration_ms'    => $this->ms($t0),
-                  'chars'          => $score['length_total'],
-                  'useful_ratio'   => $score['ratio_useful'],
-                  'blank_ratio'    => $score['ratio_blank_lines'],
-                  'pass'           => $score['pass']
+                    'duration_ms'    => $this->ms($t0),
+                    'chars'          => $score['length_total'],
+                    'useful_ratio'   => $score['ratio_useful'],
+                    'blank_ratio'    => $score['ratio_blank_lines'],
+                    'pass'           => $score['pass']
                 ]);
                 if ($score['pass']) {
                     return $this->normalizeUtfBlocks($native);
@@ -83,11 +114,11 @@ class PdfTextService
             if ($ocrText !== null) {
                 $scoreOcr = $this->scoreTextQuality($ocrText);
                 $this->logStep('ocr_quality', [
-                  'duration_ms'    => $this->ms($t0),
-                  'chars'          => $scoreOcr['length_total'],
-                  'useful_ratio'   => $scoreOcr['ratio_useful'],
-                  'blank_ratio'    => $scoreOcr['ratio_blank_lines'],
-                  'pass'           => $scoreOcr['pass']
+                    'duration_ms'    => $this->ms($t0),
+                    'chars'          => $scoreOcr['length_total'],
+                    'useful_ratio'   => $scoreOcr['ratio_useful'],
+                    'blank_ratio'    => $scoreOcr['ratio_blank_lines'],
+                    'pass'           => $scoreOcr['pass']
                 ]);
                 if ($scoreOcr['pass']) {
                     return $this->normalizeUtfBlocks($ocrText);
@@ -103,10 +134,12 @@ class PdfTextService
 
         // Ninguna estrategia útil
         throw new PdfTextEmptyException('E_PDF_TEXT_EMPTY');
+        */
     }
 
-    /* =================== Estrategias =================== */
-
+    /* =================== Estrategias COMENTADAS =================== */
+    // COMENTADO: Métodos legacy que dependían de pdftotext
+    /*
     private function extractNative(string $pdfPath): ?string
     {
         $tmpTxt = $this->tempFile('native_', '.txt');
@@ -123,10 +156,18 @@ class PdfTextService
         }
         $data = @file_get_contents($tmpTxt) ?: '';
         @unlink($tmpTxt);
+
+        // Verificar que tenemos datos válidos
+        if (!$data || trim($data) === '') {
+            return null;
+        }
+
         $clean = $this->lightSanitize($data);
         return trim($clean) === '' ? null : $clean;
     }
+    */
 
+    /* 
     private function extractViaOcr(string $pdfPath, float $t0): ?string
     {
         $langs = $this->env('CV_OCR_LANGS', '') ?: 'eng';
@@ -173,8 +214,8 @@ class PdfTextService
             $pageCount++;
         }
         $this->logStep('ocr_pages_done', [
-          'pages_ocr'   => $pageCount,
-          'duration_ms' => $this->ms($t0)
+            'pages_ocr'   => $pageCount,
+            'duration_ms' => $this->ms($t0)
         ]);
         $this->cleanupDir($workspace);
         if (!$all) {
@@ -190,11 +231,11 @@ class PdfTextService
         $total = mb_strlen($txt, 'UTF-8');
         if ($total === 0) {
             return [
-              'length_total'       => 0,
-              'length_useful'      => 0,
-              'ratio_useful'       => 0.0,
-              'ratio_blank_lines'  => 1.0,
-              'pass'               => false
+                'length_total'       => 0,
+                'length_useful'      => 0,
+                'ratio_useful'       => 0.0,
+                'ratio_blank_lines'  => 1.0,
+                'pass'               => false
             ];
         }
         // Caracteres útiles: letras (incluye acentos) y dígitos
@@ -211,11 +252,11 @@ class PdfTextService
         $ratioBlank = (count($lines) > 0) ? $blank / count($lines) : 1;
         $pass = $lenUseful >= 60 && $ratioUseful >= 0.25 && $ratioBlank < 0.6;
         return [
-          'length_total'       => $total,
-          'length_useful'      => $lenUseful,
-          'ratio_useful'       => $ratioUseful,
-          'ratio_blank_lines'  => $ratioBlank,
-          'pass'               => $pass
+            'length_total'       => $total,
+            'length_useful'      => $lenUseful,
+            'ratio_useful'       => $ratioUseful,
+            'ratio_blank_lines'  => $ratioBlank,
+            'pass'               => $pass
         ];
     }
 
@@ -228,7 +269,7 @@ class PdfTextService
         // 3. Colapsar espacios
         $txt = preg_replace('/[ \t]+/u', ' ', $txt);
         // 4. Trim por línea
-        $lines = array_map(static fn ($l) => trim($l), explode("\n", $txt));
+        $lines = array_map(static fn($l) => trim($l), explode("\n", $txt));
         // 5. Limitar bloques de líneas vacías consecutivas a 2
         $out = [];
         $emptySeq = 0;
@@ -250,7 +291,7 @@ class PdfTextService
     {
         // Remover bytes no imprimibles excepto saltos
         $txt = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/u', ' ', $txt);
-        return $txt;
+        return $txt ?? '';
     }
 
     /* =================== Seguridad & utilidades =================== */
@@ -296,8 +337,8 @@ class PdfTextService
         }
         $isWin = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
         $probe = $isWin
-          ? sprintf('where %s 2>NUL', escapeshellarg($bin))
-          : sprintf('command -v %s 2>/dev/null', escapeshellarg($bin));
+            ? sprintf('where %s 2>NUL', escapeshellarg($bin))
+            : sprintf('command -v %s 2>/dev/null', escapeshellarg($bin));
         $out = [];
         @exec($probe, $out, $code);
         if ($code === 0 && !empty($out[0])) {
@@ -381,18 +422,13 @@ class PdfTextService
 
     private function env(string $k, string $default): string
     {
-        return $_ENV[$k] ?? getenv($k) ?? $default;
+        $value = $_ENV[$k] ?? getenv($k);
+        return ($value !== false && $value !== null) ? (string)$value : $default;
     }
 }
 
 /* =================== Excepciones específicas =================== */
 
-class PdfTextEmptyException extends RuntimeException
-{
-}
-class PdfSecurityException extends RuntimeException
-{
-}
-class InfectedFileException extends RuntimeException
-{
-}
+class PdfTextEmptyException extends RuntimeException {}
+class PdfSecurityException extends RuntimeException {}
+class InfectedFileException extends RuntimeException {}

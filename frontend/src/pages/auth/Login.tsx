@@ -143,9 +143,9 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate style={{ color: 'black' }}>
             <div className="space-y-2">
-              <Label htmlFor="email">Correo electrónico</Label>
+              <Label htmlFor="auth-login-email">Correo electrónico</Label>
               <Input
-                id="email"
+                id="auth-login-email"
                 name="email"
                 type="email"
                 placeholder="tu@email.com"
@@ -180,7 +180,7 @@ export default function LoginPage() {
                 </Link>
               </div>
               <Input
-                id="password"
+                id="auth-login-password"
                 name="password"
                 type="password"
                 placeholder="••••••••"

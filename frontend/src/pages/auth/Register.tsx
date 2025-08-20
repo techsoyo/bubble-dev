@@ -276,9 +276,9 @@ export default function RegisterPage() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6" noValidate>
               <div>
-                <Label htmlFor="email" className="text-gray-700">Correo electrónico *</Label>
+                <Label htmlFor="auth-register-email" className="text-gray-700">Correo electrónico *</Label>
                 <Input
-                  id="email"
+                  id="auth-register-email"
                   name="email"
                   type="email"
                   value={form.email}
@@ -311,9 +311,9 @@ export default function RegisterPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="password" className="text-gray-700">Contraseña *</Label>
+                <Label htmlFor="auth-register-password" className="text-gray-700">Contraseña *</Label>
                 <Input
-                  id="password"
+                  id="auth-register-password"
                   name="password"
                   type="password"
                   value={form.password}

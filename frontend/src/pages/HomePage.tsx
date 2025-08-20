@@ -120,14 +120,14 @@ export default function HomePage() {
   // Mapeo de imágenes para las tarjetas de noticias (usando índices)
   const newsImagesByIndex = [
     '/images/job-interview.jpg',        // Índice 0 - Consejos para tu entrevista técnica
-    '/images/netwi¡orking.jpg',         // Índice 1 - Evento de Networking en Madrid  
+    '/images/networking.jpg',         // Índice 1 - Evento de Networking en Madrid  
     '/images/web-launch.jpg'            // Índice 2 - Lanzamiento de nuestra nueva plataforma
   ];
 
   // Mapeo de imágenes para las tarjetas de noticias (usando IDs)
   const newsImages = {
     1: '/images/job-interview.jpg',        // Consejos para tu entrevista técnica
-    2: '/images/netwi¡orking.jpg',         // Evento de Networking en Madrid  
+    2: '/images/networking.jpg',         // Evento de Networking en Madrid  
     3: '/images/web-launch.jpg'            // Lanzamiento de nuestra nueva plataforma
   };
 

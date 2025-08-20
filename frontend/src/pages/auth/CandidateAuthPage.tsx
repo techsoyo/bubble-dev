@@ -22,7 +22,7 @@ const API_CONFIG = {
   ENDPOINTS: {
     login: '/auth/login.php',
     register: '/api/save-candidate.php',
-    PDF_PARSE: '/api/ai/parse-cv-openai.php'
+    PDF_PARSE: '/api/cv/parse.php'
   }
 };
 
@@ -183,7 +183,7 @@ export default function CandidateAuthPage() {
 
     try {
       const formData = new FormData();
-      formData.append('cv_file', registerForm.cv);
+      formData.append('file', registerForm.cv);
       formData.append('user_email', registerForm.email);
 
       toast({
@@ -300,9 +300,9 @@ export default function CandidateAuthPage() {
 
               <form onSubmit={handleLoginSubmit} className="space-y-6">
                 <div>
-                  <Label htmlFor="email" className="text-white">{t('auth.email')}</Label>
+                  <Label htmlFor="login-email" className="text-white">{t('auth.email')}</Label>
                   <Input
-                    id="email"
+                    id="login-email"
                     type="email"
                     value={loginForm.email}
                     onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
@@ -316,9 +316,9 @@ export default function CandidateAuthPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="password" className="text-white">{t('auth.password')}</Label>
+                  <Label htmlFor="login-password" className="text-white">{t('auth.password')}</Label>
                   <Input
-                    id="password"
+                    id="login-password"
                     type="password"
                     value={loginForm.password}
                     onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
@@ -432,9 +432,9 @@ export default function CandidateAuthPage() {
               ) : (
                 <form onSubmit={handleRegisterSubmit} className="space-y-6">
                   <div>
-                    <Label htmlFor="email" className="text-white">{t('register.email')}</Label>
+                    <Label htmlFor="register-email" className="text-white">{t('register.email')}</Label>
                     <Input
-                      id="email"
+                      id="register-email"
                       type="email"
                       value={registerForm.email}
                       onChange={(e) => handleRegisterChange('email', e.target.value)}
@@ -448,10 +448,10 @@ export default function CandidateAuthPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="username" className="text-white">{t('register.username')}</Label>
+                    <Label htmlFor="register-username" className="text-white">{t('register.username')}</Label>
                     <p className="text-xs text-gray-400 mb-1">{t('register.usernameOptional')}</p>
                     <Input
-                      id="username"
+                      id="register-username"
                       value={registerForm.username}
                       onChange={(e) => handleRegisterChange('username', e.target.value)}
                       placeholder={t('register.usernamePlaceholder')}
@@ -460,9 +460,9 @@ export default function CandidateAuthPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="password" className="text-white">{t('register.password')}</Label>
+                    <Label htmlFor="register-password" className="text-white">{t('register.password')}</Label>
                     <Input
-                      id="password"
+                      id="register-password"
                       type="password"
                       value={registerForm.password}
                       onChange={(e) => handleRegisterChange('password', e.target.value)}

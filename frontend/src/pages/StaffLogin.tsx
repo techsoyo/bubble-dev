@@ -84,9 +84,9 @@ export default function StaffLogin() {
 
             <form onSubmit={handleSubmit} className="space-y-4" noValidate style={{ color: 'black' }}>
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-white">Email corporativo</Label>
+                <Label htmlFor="staff-login-email" className="text-white">Email corporativo</Label>
                 <Input
-                  id="email"
+                  id="staff-login-email"
                   type="email"
                   placeholder="tu.email@bubblegum.agency"
                   value={email}
@@ -96,9 +96,9 @@ export default function StaffLogin() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-white">Contraseña</Label>
+                <Label htmlFor="staff-login-password" className="text-white">Contraseña</Label>
                 <Input
-                  id="password"
+                  id="staff-login-password"
                   type="password"
                   placeholder="••••••••"
                   value={password}

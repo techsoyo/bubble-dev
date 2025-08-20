@@ -62,20 +62,69 @@ const ChatbotDecisionTree: React.FC = () => {
 
   // Cargar nodos y opciones desde el endpoint PHP
   useEffect(() => {
-    fetch(`${env.API_BASE_URL}/chatbot_decision_tree.php`)
-      .then(res => res.json())
-      .then(data => {
-        setChatbotData({
-          nodes: data.nodes || [],
-          options: data.options || []
-        });
-      })
-      .catch(error => {
-        console.error('Error loading chatbot data:', error);
-      });
-  }, []);
+    const requestUrl = `${env.API_BASE_URL}/chatbot_decision_tree.php`;
 
-  // Estado de carga de datos
+    const abortController = new AbortController();
+
+    const fetchChatbotData = async () => {
+      try {
+        const timeoutId = setTimeout(() => abortController.abort(), 5000);
+
+        const res = await fetch(requestUrl, {
+          signal: abortController.signal,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("Fetch response NOT OK. Status:", res.status, "Status Text:", res.statusText);
+          console.error("Error response body:", errorText);
+          throw new Error(`HTTP error! Status: ${res.status}, Response: ${errorText}`);
+        }
+
+        const rawText = await res.text();
+
+        if (!rawText) {
+          throw new Error("Received empty response body from server.");
+        }
+
+        const jsonData = JSON.parse(rawText);
+
+        if (jsonData && Array.isArray(jsonData.nodes) && Array.isArray(jsonData.options)) {
+          setChatbotData({
+            nodes: jsonData.nodes,
+            options: jsonData.options
+          });
+        } else {
+          console.error('Loaded data does not have the expected structure:', jsonData);
+          throw new Error('Invalid data structure received from server');
+        }
+
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          console.log('Chatbot data fetch was cancelled');
+          return;
+        }
+
+        console.error('Error in fetch or data processing:', error);
+        // Set fallback empty state instead of leaving undefined
+        setChatbotData({ nodes: [], options: [] });
+      }
+    };
+
+    fetchChatbotData();
+
+    return () => {
+      abortController.abort();
+    };
+  }, []);
+  // Dependencias del efecto
+
   //
 
   // Referencias

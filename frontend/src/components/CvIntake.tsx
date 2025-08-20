@@ -122,6 +122,24 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
       console.log('[CvIntake] Respuesta parse', { status, payload });
 
       if (status === 200 && payload?.success) {
+        // Verificar si el backend indica modo manual
+        if (payload?.meta?.mode === 'manual') {
+          switchToManual();
+          const reason = payload?.meta?.reason;
+          let message = 'El PDF no fue legible. Completa la información manualmente.';
+
+          if (reason === 'NO_TEXT_EXTRACTED') {
+            message = 'No se pudo extraer texto del PDF. Completa la información manualmente.';
+          } else if (reason === 'IA_UNAVAILABLE') {
+            message = 'El servicio de IA no está disponible. Completa la información manualmente.';
+          }
+
+          setAlertMsg(message);
+          setModalOpen(true);
+          return;
+        }
+
+        // Modo IA exitoso
         prefillFromAI(payload.data || {});
         setModalOpen(true);
         return;

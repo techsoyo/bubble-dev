@@ -33,7 +33,7 @@ export const CultureCard: React.FC<CultureCardProps> = ({ iconName, title, desc 
 
   return (
     <div
-      className="text-center p-6 rounded-lg shadow-sm transition-shadow border border-gray-100 relative overflow-visible cursor-pointer"
+      className="text-center p-6 rounded-lg shadow-sm transition-shadow border border-gray-100 relative overflow-visible cursor-pointer h-48 flex flex-col justify-center"
       style={{
         background: 'rgba(255,71,133,0.65)',
         boxShadow: isHover

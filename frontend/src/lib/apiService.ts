@@ -437,13 +437,13 @@ export async function uploadCV(file: File, candidate_id: string) {
 // -----------------------------------------------------------------------------
 // NUEVOS ENDPOINTS PARA TABLAS ADICIONALES
 // Estas funciones consumen los nuevos endpoints del backend (ubicados en
-// `api/endpoints/*.php`) para obtener datos de cultura, noticias, departamentos,
+// `api/*.php`) para obtener datos de cultura, noticias, departamentos,
 // experiencias, habilidades, notas, notificaciones, social logins, entrevistas
 // y otros recursos asociados.
 
 export async function getDepartments() {
     try {
-        const url = `${API_BASE_URL}/api/endpoints/departments.php`;
+        const url = `${API_BASE_URL}/departments.php`;
         const response = await fetch(url, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -464,7 +464,7 @@ export async function getDepartments() {
 
 export async function getCandidateExperiences(candidateId: string) {
     try {
-        const url = `${API_BASE_URL}/api/endpoints/candidate_experiences.php?candidateId=${candidateId}`;
+        const url = `${API_BASE_URL}/candidate_experiences.php?candidateId=${candidateId}`;
         const response = await fetch(url, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -479,7 +479,7 @@ export async function getCandidateExperiences(candidateId: string) {
 
 export async function getCandidateSkills(candidateId: string) {
     try {
-        const url = `${API_BASE_URL}/api/endpoints/candidate_skills.php?candidateId=${candidateId}`;
+        const url = `${API_BASE_URL}/candidate_skills.php?candidateId=${candidateId}`;
         const response = await fetch(url, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -494,7 +494,7 @@ export async function getCandidateSkills(candidateId: string) {
 
 export async function getCandidateApplications(candidateId: string) {
     try {
-        const url = `${API_BASE_URL}/api/endpoints/candidate-applications.php?candidate_id=${candidateId}`;
+        const url = `${API_BASE_URL}/candidate-applications.php?candidate_id=${candidateId}`;
         const response = await fetch(url, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -509,7 +509,7 @@ export async function getCandidateApplications(candidateId: string) {
 
 export async function getApplicationNotes(applicationId: string) {
     try {
-        const url = `${API_BASE_URL}/endpoints/application_notes.php?applicationId=${applicationId}`;
+        const url = `${API_BASE_URL}/application_notes.php?applicationId=${applicationId}`;
         const response = await fetch(url, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -524,7 +524,7 @@ export async function getApplicationNotes(applicationId: string) {
 
 export async function getNotifications(candidateId: string) {
     try {
-        const url = `${API_BASE_URL}/endpoints/notifications.php?candidateId=${candidateId}`;
+        const url = `${API_BASE_URL}/notifications.php?candidateId=${candidateId}`;
         const response = await fetch(url, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -539,7 +539,7 @@ export async function getNotifications(candidateId: string) {
 
 export async function getSocialLogins(candidateId: string) {
     try {
-        const url = `${API_BASE_URL}/endpoints/social_logins.php?candidateId=${candidateId}`;
+        const url = `${API_BASE_URL}/social_logins.php?candidateId=${candidateId}`;
         const response = await fetch(url, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -558,7 +558,7 @@ export async function getInterviews(params?: { applicationId?: string; page?: nu
         if (params?.applicationId) queryParams.append('applicationId', params.applicationId);
         if (params?.page) queryParams.append('page', params.page.toString());
         if (params?.limit) queryParams.append('limit', params.limit.toString());
-        const url = `${API_BASE_URL}/endpoints/interviews.php${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+        const url = `${API_BASE_URL}/interviews.php${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
         const response = await fetch(url, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -573,7 +573,7 @@ export async function getInterviews(params?: { applicationId?: string; page?: nu
 
 export async function getJobBenefits(jobId: string) {
     try {
-        const url = `${API_BASE_URL}/endpoints/job_benefits.php?jobId=${jobId}`;
+        const url = `${API_BASE_URL}/job_benefits.php?jobId=${jobId}`;
         const response = await fetch(url, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -588,7 +588,7 @@ export async function getJobBenefits(jobId: string) {
 
 export async function getJobRequirements(jobId: string) {
     try {
-        const url = `${API_BASE_URL}/endpoints/job_requirements.php?jobId=${jobId}`;
+        const url = `${API_BASE_URL}/job_requirements.php?jobId=${jobId}`;
         const response = await fetch(url, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -603,7 +603,7 @@ export async function getJobRequirements(jobId: string) {
 
 export async function getJobSkills(jobId: string) {
     try {
-        const url = `${API_BASE_URL}/endpoints/job_skills.php?jobId=${jobId}`;
+        const url = `${API_BASE_URL}/job_skills.php?jobId=${jobId}`;
         const response = await fetch(url, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -630,7 +630,7 @@ export async function getCandidates(params?: {
     skills?: string[];
 }) {
     try {
-        const url = `${API_BASE_URL}/api/candidates`;
+        const url = `${API_BASE_URL}/candidates`;
 
         const response = await fetch(url, {
             method: 'GET',
@@ -670,7 +670,7 @@ export async function getCandidates(params?: {
 
 export async function getCandidate(id: string) {
     try {
-        const response = await fetch(`${API_BASE_URL}/endpoints/candidates.php?id=${id}`, {
+        const response = await fetch(`${API_BASE_URL}/candidates.php?id=${id}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -708,7 +708,7 @@ export async function getJobs(params?: {
         if (params?.limit) queryParams.append('limit', params.limit.toString());
         if (params?.status) queryParams.append('status', params.status);
         // Construir la URL usando API_BASE_URL para permitir entornos de desarrollo y producción
-        const url = `${API_BASE_URL}/api/jobs.php${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+        const url = `${API_BASE_URL}/jobs.php${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
         const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -733,7 +733,7 @@ export async function getJobs(params?: {
 export async function getJob(id: string) {
     try {
         // Corregido: usar endpoint que funciona con CORS
-        const response = await fetch(`${API_BASE_URL}/api/jobs.php?id=${id}`, {
+        const response = await fetch(`${API_BASE_URL}/jobs.php?id=${id}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -975,7 +975,7 @@ export async function createJob(data: {
     status?: string;
 }) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/jobs.php`, {
+        const response = await fetch(`${API_BASE_URL}/jobs.php`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1016,7 +1016,7 @@ export async function updateJob(id: string, data: {
     status?: string;
 }) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/jobs.php?id=${id}`, {
+        const response = await fetch(`${API_BASE_URL}/jobs.php?id=${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1044,7 +1044,7 @@ export async function updateJob(id: string, data: {
 
 export async function deleteJob(id: string) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/jobs.php?id=${id}`, {
+        const response = await fetch(`${API_BASE_URL}/jobs.php?id=${id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -1083,7 +1083,7 @@ export async function createApplication(data: {
         if (data.cover_letter) formData.append('cover_letter', data.cover_letter);
         if (data.cv_file) formData.append('cv_file', data.cv_file);
 
-        const response = await fetch(`${API_BASE_URL}/endpoints/applications.php`, {
+        const response = await fetch(`${API_BASE_URL}/applications.php`, {
             method: 'POST',
             body: formData,
         });
@@ -1111,7 +1111,7 @@ export async function updateApplication(id: string, data: {
     score?: number;
 }) {
     try {
-        const response = await fetch(`${API_BASE_URL}/endpoints/applications.php?id=${id}`, {
+        const response = await fetch(`${API_BASE_URL}/applications.php?id=${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1139,7 +1139,7 @@ export async function updateApplication(id: string, data: {
 
 export async function deleteApplication(id: string) {
     try {
-        const response = await fetch(`${API_BASE_URL}/endpoints/applications.php?id=${id}`, {
+        const response = await fetch(`${API_BASE_URL}/applications.php?id=${id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -1170,7 +1170,7 @@ export async function createSkill(data: {
     category: string;
 }) {
     try {
-        const response = await fetch(`${API_BASE_URL}/endpoints/skills.php`, {
+        const response = await fetch(`${API_BASE_URL}/skills.php`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1201,7 +1201,7 @@ export async function updateSkill(id: string, data: {
     category?: string;
 }) {
     try {
-        const response = await fetch(`${API_BASE_URL}/endpoints/skills.php?id=${id}`, {
+        const response = await fetch(`${API_BASE_URL}/skills.php?id=${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1229,7 +1229,7 @@ export async function updateSkill(id: string, data: {
 
 export async function deleteSkill(id: string) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/endpoints/skills.php?id=${id}`, {
+        const response = await fetch(`${API_BASE_URL}/skills.php?id=${id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -1262,7 +1262,7 @@ export async function bulkUpdateApplications(applications: Array<{
     score?: number;
 }>) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/endpoints/applications.php`, {
+        const response = await fetch(`${API_BASE_URL}/applications.php`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -1295,7 +1295,7 @@ export async function bulkUpdateApplications(applications: Array<{
 // CultureCard (title, desc y un icono opcional).
 export async function getCultureContent() {
     try {
-        const url = `${API_BASE_URL}/api/endpoints/culture.php`;
+        const url = `${API_BASE_URL}/culture.php`;
         const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -1330,7 +1330,7 @@ export async function getCultureContent() {
 // estructura utilizada por BlogCard (id, title, date, excerpt y to).
 export async function getBlogPosts() {
     try {
-        const url = `${API_BASE_URL}/api/endpoints/news.php`;
+        const url = `${API_BASE_URL}/news.php`;
         const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -1346,7 +1346,6 @@ export async function getBlogPosts() {
             throw new Error(result.error || 'Error al obtener noticias');
         }
         const posts = result.data?.items || [];
-        console.log('getBlogPosts - posts:', posts); // Debug temporal
         return posts.map((post: any) => ({
             id: post.id,
             title: post.title,
@@ -1389,7 +1388,7 @@ export async function getInfo() {
 
 export async function bulkDeleteApplications(ids: string[]) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/endpoints/applications.php`, {
+        const response = await fetch(`${API_BASE_URL}/applications.php`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -1456,3 +1455,4 @@ export async function sendChatMessage(messages: ChatMessage[], options: ChatOpti
         throw error;
     }
 }
+

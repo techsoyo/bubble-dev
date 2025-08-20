@@ -1,11 +1,18 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Upload, X, FileText, User, Briefcase, Heart, CheckCircle } from 'lucide-react';
 import { registerCandidate, uploadCV } from '../lib/apiService';
-import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 import { useLanguage } from '../lib/i18n/LanguageContext';
 
-// Configurar el worker para PDF
-GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js`;
+// Lazy loading de PDF.js para evitar cargar 680KB al inicio
+let pdfJsModule: any = null;
+const loadPdfJs = async () => {
+    if (!pdfJsModule) {
+        const module = await import('pdfjs-dist');
+        module.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js`;
+        pdfJsModule = module;
+    }
+    return pdfJsModule;
+};
 
 interface PersonalInfo {
     name: string;
@@ -106,11 +113,12 @@ const UploadCV: React.FC<UploadCVProps> = ({ onSuccess, jobId }) => {
         return interval;
     }, []);
 
-    // Función para extraer texto de PDF
+    // Función para extraer texto de PDF con lazy loading
     const extractTextFromPDF = async (file: File): Promise<string> => {
         try {
             const arrayBuffer = await file.arrayBuffer();
-            const pdf = await getDocument({ data: arrayBuffer }).promise;
+            const pdfModule = await loadPdfJs();
+            const pdf = await pdfModule.getDocument({ data: arrayBuffer }).promise;
             let fullText = '';
 
             for (let i = 1; i <= pdf.numPages; i++) {

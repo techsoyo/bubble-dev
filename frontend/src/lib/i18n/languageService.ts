@@ -11,7 +11,7 @@ export const languageService = {
    */
   async setLanguage(language: 'es' | 'en'): Promise<void> {
     try {
-      await api.post('/api/language.php', { language });
+      await api.post('/language.php', { language });
     } catch (error) {
       console.error('Error al establecer el idioma en el backend:', error);
     }
@@ -22,7 +22,7 @@ export const languageService = {
    */
   async getLanguage(): Promise<'es' | 'en'> {
     try {
-      const response = await api.get('/api/language.php');
+      const response = await api.get('/language.php');
       return response.data.data.language;
     } catch (error) {
       console.error('Error al obtener el idioma del backend:', error);

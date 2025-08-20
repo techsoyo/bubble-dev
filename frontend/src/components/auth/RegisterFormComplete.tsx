@@ -389,12 +389,12 @@ const RegisterFormComplete: React.FC<RegisterFormCompleteProps> = ({
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="complete-register-email" className="block text-sm font-medium text-gray-700 mb-1">
               Email*
             </label>
             <input
               type="email"
-              id="email"
+              id="complete-register-email"
               name="email"
               value={formData.email}
               onChange={handleChange}
@@ -423,12 +423,12 @@ const RegisterFormComplete: React.FC<RegisterFormCompleteProps> = ({
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="complete-register-password" className="block text-sm font-medium text-gray-700 mb-1">
               Contraseña*
             </label>
             <input
               type="password"
-              id="password"
+              id="complete-register-password"
               name="password"
               value={formData.password}
               onChange={handleChange}

@@ -150,14 +150,22 @@ export function useOptimizedData<T>({
       const error = e as Error;
       console.error('Error al cargar datos:', error);
 
-      // Lógica de retry
-      if (retry && retriesRef.current < adaptedRetryCount) {
+      // Circuit breaker: máximo 3 intentos, después parar completamente
+      const MAX_RETRIES = 3;
+
+      // Lógica de retry con circuit breaker ESTRICTO
+      if (retry && retriesRef.current < MAX_RETRIES) {
         retriesRef.current += 1;
+        console.warn(`Retry ${retriesRef.current}/${MAX_RETRIES} for data loading`);
+
+        // Exponential backoff con límite máximo
+        const backoffDelay = Math.min(1000 * Math.pow(2, retriesRef.current - 1), 5000);
 
         setTimeout(() => {
           loadData();
-        }, adaptedRetryDelay * retriesRef.current); // Backoff exponencial
+        }, backoffDelay);
       } else {
+        console.error('Max retries reached. Stopping all retry attempts.');
         setError(error);
         setLoading(false);
         retriesRef.current = 0;

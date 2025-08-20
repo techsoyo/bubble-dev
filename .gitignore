@@ -37,6 +37,7 @@ varios/data/lint-report.json
 *.temp
 varios/data/*.zip
 varios/data/*.csv
+docum/
 
 # OS/IDE
 .DS_Store
@@ -47,3 +48,4 @@ Thumbs.db
 # Artefactos
 *.zip
 *.tar.gz
+*.pdf

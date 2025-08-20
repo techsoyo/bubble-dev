@@ -208,18 +208,12 @@ export class BundleAnalysis {
      */
     static analyzeBundleSize(): void {
         if (import.meta.env.MODE === 'development' && !this.bundleAnalysisLogged) {
-            // Only run once in development
+            // Only run once in development - silenced for clean console
             const observer = new PerformanceObserver((list) => {
                 list.getEntries().forEach((entry) => {
                     if (entry.entryType === 'navigation' && !this.bundleAnalysisLogged) {
                         const navEntry = entry as PerformanceNavigationTiming;
-                        console.group('Bundle Analysis');
-                        // ...eliminado console.log para producción...
-                        // ...eliminado console.log para producción...
-                        // ...eliminado console.log para producción...
-                        // ...eliminado console.log para producción...
-                        // ...eliminado console.log para producción...
-                        console.groupEnd();
+                        // Bundle analysis silenced - available via isDevelopment flag if needed
                         this.bundleAnalysisLogged = true;
                         observer.disconnect(); // Stop observing after first log
                     }

@@ -32,7 +32,22 @@ export const en = {
     testCredentials: 'Test credentials',
     candidate: 'Candidate',
     hr: 'HR',
-    recruiter: 'Recruiter'
+    recruiter: 'Recruiter',
+    completeRegistrationToApply: 'Complete registration to apply for this position'
+  },
+
+  // Jobs
+  jobs: {
+    applyingForPosition: 'Applying for Position',
+    posted: 'Posted',
+    viewDetails: 'View Details',
+    apply: 'Apply',
+    requirements: 'Requirements',
+    benefits: 'Benefits',
+    skills: 'Skills Required',
+    location: 'Location',
+    company: 'Company',
+    description: 'Description'
   },
 
   // Errores
@@ -507,76 +522,6 @@ export const en = {
     }
   },
 
-  // Ofertas de trabajo
-  jobs: {
-    search: 'Search jobs',
-    filter: 'Filter',
-    sort: 'Sort',
-    location: 'Location',
-    type: 'Type',
-    category: 'Category',
-    date: 'Date Posted',
-    salary: 'Salary',
-    applyNow: 'Apply Now',
-    jobDetails: 'Job Details',
-    responsibilities: 'Responsibilities',
-    requirements: 'Requirements',
-    benefits: 'Benefits',
-    about: 'About this role',
-    similarJobs: 'Similar Jobs',
-    apply: 'Apply',
-    fullTime: 'Full-time',
-    partTime: 'Part-time',
-    contract: 'Contract',
-    temporary: 'Temporary',
-    freelance: 'Freelance',
-    internship: 'Internship',
-    remote: 'Remote',
-    onsite: 'On-site',
-    hybrid: 'Hybrid',
-    applicationForm: 'Application Form',
-    personalDetails: 'Personal Details',
-    resume: 'Resume',
-    coverLetter: 'Cover Letter',
-    submit: 'Submit Application',
-    submitting: 'Submitting...',
-    applicationSuccess: 'Application submitted successfully',
-    applicationError: 'Error submitting application',
-    translating: 'Translating job details...',
-    notFound: 'Job not found',
-    notFoundMessage: 'Sorry, the job you are looking for does not exist or has been removed.',
-    backToHome: 'Back to Home',
-    backToOffers: 'Back to Offers',
-    description: 'Job Description',
-    additionalDescription: 'The ideal candidate should be proactive, able to work in a team, and eager to grow professionally.',
-    whatWeOffer: 'What We Offer',
-    readyToApply: 'Ready to apply for this position?',
-    joinPlatform: 'Join our platform or login to submit your application for this role.',
-    registerAndApply: 'Register & Apply Now',
-    loginAndApply: 'Already registered? Login & Apply',
-    noDreamJob: "Didn't find your dream job?",
-    spontaneousMessage: "If you can't find a position that matches your profile, we encourage you to submit a spontaneous application.",
-    submitSpontaneous: 'Submit Spontaneous Application',
-    moreOpportunities: 'More Opportunities',
-    discoverMore: 'Discover more opportunities',
-    viewAll: 'View All Jobs',
-    defaultDescription: 'We are looking for an experienced professional to join our team and add value from day one.',
-    defaultRequirements: {
-      experience: 'At least 3 years of experience in similar roles',
-      teamWork: 'Ability to work both in a team and independently',
-      communication: 'Excellent written and verbal communication skills',
-      problemSolving: 'Ability to solve problems creatively',
-      passion: 'Passion for excellence and quality in work'
-    },
-    defaultBenefits: {
-      salary: 'Competitive salary according to experience',
-      flexibility: 'Flexible schedule and possibility of remote work',
-      careerPlan: 'Personalized career plan',
-      training: 'Continuous training and professional development',
-      environment: 'Collaborative and dynamic work environment'
-    }
-  },
-
   // Generales
   general: {
     language: 'Language',
@@ -645,7 +590,8 @@ export const es = {
     testCredentials: 'Credenciales de prueba',
     candidate: 'Candidato',
     hr: 'RRHH',
-    recruiter: 'Reclutador'
+    recruiter: 'Reclutador',
+    completeRegistrationToApply: 'Completa el registro para aplicar a esta posición'
   },
 
   // Errores
@@ -1124,6 +1070,8 @@ export const es = {
 
   // Ofertas de trabajo
   jobs: {
+    applyingForPosition: 'Postulando para la Posición',
+    posted: 'Publicado',
     search: 'Buscar empleos',
     filter: 'Filtrar',
     sort: 'Ordenar',

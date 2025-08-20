@@ -98,11 +98,11 @@ const Login: React.FC = () => {
 
                     <div className="rounded-md shadow-sm -space-y-px">
                         <div>
-                            <label htmlFor="email" className="sr-only">
+                            <label htmlFor="main-login-email" className="sr-only">
                                 Email
                             </label>
                             <input
-                                id="email"
+                                id="main-login-email"
                                 name="email"
                                 type="email"
                                 autoComplete="email"
@@ -114,11 +114,11 @@ const Login: React.FC = () => {
                             />
                         </div>
                         <div>
-                            <label htmlFor="password" className="sr-only">
+                            <label htmlFor="main-login-password" className="sr-only">
                                 Contraseña
                             </label>
                             <input
-                                id="password"
+                                id="main-login-password"
                                 name="password"
                                 type="password"
                                 autoComplete="current-password"

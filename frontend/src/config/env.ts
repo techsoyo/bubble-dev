@@ -58,8 +58,9 @@ interface EnvironmentConfig {
 
 // 🔧 CORRECCIÓN: Función para obtener variables de entorno de forma segura
 const getEnvVar = (key: string, defaultValue?: string): string => {
-  // Priorizar Vite env vars sobre process.env
-  const viteValue = import.meta.env[`VITE_${key}`];
+  // Para variables de Vite, usar directamente import.meta.env
+  // Para otras variables, usar process.env si está disponible
+  const viteValue = import.meta.env[key];
   const processValue = (typeof process !== 'undefined' && process.env) ? process.env[key] : undefined;
 
   return viteValue || processValue || defaultValue || '';
@@ -79,20 +80,27 @@ const getNumberEnvVar = (key: string, defaultValue: number): number => {
 
 // 🔧 CORRECCIÓN: Configuración dinámica y robusta de API_BASE_URL
 const getApiBaseUrl = (): string => {
-  if (import.meta.env.PROD) {
-    // Producción: usar VITE_API_BASE_URL o API_BASE_URL de entorno de build
-    return getEnvVar('API_BASE_URL', '');
+  // Prioridad 1: Variable de entorno VITE_API_BASE_URL (acceso directo)
+  const viteApiUrl = import.meta.env.VITE_API_BASE_URL;
+
+  if (viteApiUrl) {
+    return viteApiUrl;
   }
-  // Desarrollo: usar puerto 8000 donde corre el backend PHP
+
+  if (import.meta.env.PROD) {
+    // Producción: usar API_BASE_URL de entorno de build
+    const prodUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.API_BASE_URL;
+    return prodUrl || '';
+  }
+
+  // Desarrollo: fallback al puerto 8000 si no hay configuración
   if (typeof window !== 'undefined') {
     const currentHost = window.location.hostname;
     return `http://${currentHost}:8000`;
   }
   // SSR fallback
   return 'http://localhost:8000';
-};
-
-// 🔧 CORRECCIÓN: Configuración unificada
+};// 🔧 CORRECCIÓN: Configuración unificada
 export const env: EnvironmentConfig = {
   // App Configuration
   NODE_ENV: (import.meta.env.MODE || 'development') as 'development' | 'production' | 'test',
@@ -102,34 +110,34 @@ export const env: EnvironmentConfig = {
 
   // API Configuration
   API_BASE_URL: getApiBaseUrl(),
-  APP_ENV: getEnvVar('APP_ENV', 'development'),
+  APP_ENV: getEnvVar('VITE_APP_ENV', 'development'),
 
   // Development Server
-  DEV_PORT: getNumberEnvVar('DEV_PORT', 3002),
-  DEV_HOST: getEnvVar('DEV_HOST', 'localhost'),
-  DEV_OPEN: getBooleanEnvVar('DEV_OPEN', true),
+  DEV_PORT: getNumberEnvVar('VITE_DEV_PORT', 3002),
+  DEV_HOST: getEnvVar('VITE_DEV_HOST', 'localhost'),
+  DEV_OPEN: getBooleanEnvVar('VITE_DEV_OPEN', true),
 
   // Authentication
-  JWT_SECRET_KEY: getEnvVar('JWT_SECRET_KEY', 'default-secret-key'),
-  SESSION_TIMEOUT: getNumberEnvVar('SESSION_TIMEOUT', 3600000),
+  JWT_SECRET_KEY: getEnvVar('VITE_JWT_SECRET_KEY', 'default-secret-key'),
+  SESSION_TIMEOUT: getNumberEnvVar('VITE_SESSION_TIMEOUT', 3600000),
 
   // External Services
-  GOOGLE_ANALYTICS_ID: getEnvVar('GOOGLE_ANALYTICS_ID'),
-  SENTRY_DSN: getEnvVar('SENTRY_DSN'),
-  HOTJAR_ID: getEnvVar('HOTJAR_ID'),
+  GOOGLE_ANALYTICS_ID: getEnvVar('VITE_GOOGLE_ANALYTICS_ID'),
+  SENTRY_DSN: getEnvVar('VITE_SENTRY_DSN'),
+  HOTJAR_ID: getEnvVar('VITE_HOTJAR_ID'),
 
   // Build Information
-  BUILD_VERSION: getEnvVar('BUILD_VERSION', '1.0.0'),
-  BUILD_DATE: getEnvVar('BUILD_DATE', new Date().toISOString().split('T')[0]),
+  BUILD_VERSION: getEnvVar('VITE_BUILD_VERSION', '1.0.0'),
+  BUILD_DATE: getEnvVar('VITE_BUILD_DATE', new Date().toISOString().split('T')[0]),
 
   // Feature Flags
-  ENABLE_ANALYTICS: getBooleanEnvVar('ENABLE_ANALYTICS', false),
-  ENABLE_ERROR_REPORTING: getBooleanEnvVar('ENABLE_ERROR_REPORTING', false),
-  ENABLE_PERFORMANCE_MONITORING: getBooleanEnvVar('ENABLE_PERFORMANCE_MONITORING', true),
+  ENABLE_ANALYTICS: getBooleanEnvVar('VITE_ENABLE_ANALYTICS', false),
+  ENABLE_ERROR_REPORTING: getBooleanEnvVar('VITE_ENABLE_ERROR_REPORTING', false),
+  ENABLE_PERFORMANCE_MONITORING: getBooleanEnvVar('VITE_ENABLE_PERFORMANCE_MONITORING', true),
 
   // Security
-  ENABLE_CSP: getBooleanEnvVar('ENABLE_CSP', true),
-  ENABLE_SECURITY_HEADERS: getBooleanEnvVar('ENABLE_SECURITY_HEADERS', true),
+  ENABLE_CSP: getBooleanEnvVar('VITE_ENABLE_CSP', true),
+  ENABLE_SECURITY_HEADERS: getBooleanEnvVar('VITE_ENABLE_SECURITY_HEADERS', true),
 };
 
 // 🔧 CORRECCIÓN: Helpers para development/production
@@ -140,8 +148,8 @@ export const isTest = env.NODE_ENV === 'test';
 // 🔧 CORRECCIÓN: Validación de variables críticas
 export const validateEnv = (): boolean => {
   const requiredVars = [
-    'API_BASE_URL',
-    'JWT_SECRET_KEY'
+    'VITE_API_BASE_URL',
+    'VITE_JWT_SECRET_KEY'
   ];
 
   const missing = requiredVars.filter(key => !getEnvVar(key));
@@ -153,8 +161,6 @@ export const validateEnv = (): boolean => {
 
   return true;
 };
-
-// Log de configuración en desarrollo
 
 export default env;
 

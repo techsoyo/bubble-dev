@@ -95,11 +95,6 @@ export default defineConfig({
             if (id.includes('pdfjs-dist')) return 'vendor-pdf';
             if (id.includes('dompurify')) return 'vendor-security';
 
-            // Material UI
-            if (id.includes('@mui/material')) return 'vendor-mui-core';
-            if (id.includes('@mui/icons-material')) return 'vendor-mui-icons';
-            if (id.includes('@emotion')) return 'vendor-emotion';
-
             // Other vendor
             return 'vendor-other';
           }
@@ -135,7 +130,7 @@ export default defineConfig({
     // Additional optimizations
     reportCompressedSize: false, // Skip gzip size reporting for faster builds
     cssCodeSplit: true, // Split CSS into separate files
-    sourcemap: true, // Generate source maps for production debugging
+    sourcemap: process.env.NODE_ENV === 'development', // Only in development for security
   },
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),

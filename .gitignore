@@ -31,6 +31,17 @@ varios/data/lint-report.json
 **/.env
 **/.env.local
 **/.env.*.local
+**/.env.production
+**/.env.backup
+**/cookies.txt
+
+# Archivos sensibles de seguridad
+config_secure/
+security_backup/
+**/*.pem
+**/*.key
+**/*.crt
+**/.ssh/
 
 # Archivos temporales
 *.tmp

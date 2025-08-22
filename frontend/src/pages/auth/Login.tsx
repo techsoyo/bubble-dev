@@ -252,21 +252,23 @@ export default function LoginPage() {
         <CardFooter className="flex-col">
           <div className="text-center">
             <span className="text-sm text-gray-500">¿No tienes una cuenta? </span>
-            <Link to="/auth/register" className="text-sm text-[#FF4785] hover:underline">
+            <Link to="/candidates/login" className="text-sm text-[#FF4785] hover:underline">
               Regístrate
             </Link>
           </div>
 
-          <div className="mt-6 w-full">
-            <Separator className="my-4" />
-            <h3 className="text-sm font-medium text-center mb-4">Credenciales de prueba</h3>
+          {import.meta.env.DEV && (
+            <div className="mt-6 w-full">
+              <Separator className="my-4" />
+              <h3 className="text-sm font-medium text-center mb-4">Credenciales de prueba</h3>
 
-            <div className="space-y-2 text-xs text-gray-600">
-              <p><strong>Candidato:</strong> ana.martinez@email.com / candidato123</p>
-              <p><strong>HR Admin:</strong> maria.lopez@bubblegum.agency / admin456</p>
-              <p><strong>Reclutador Digital:</strong> carlos.mendez@bubblegum.agency / dev2025!</p>
+              <div className="space-y-2 text-xs text-gray-600">
+                <p><strong>Candidato:</strong> ana.martinez@email.com / candidato123</p>
+                <p><strong>HR Admin:</strong> maria.lopez@bubblegum.agency / admin456</p>
+                <p><strong>Reclutador Digital:</strong> carlos.mendez@bubblegum.agency / dev2025!</p>
+              </div>
             </div>
-          </div>
+          )}
         </CardFooter>
       </CardForm>
     </div>

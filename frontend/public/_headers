@@ -1,36 +1,88 @@
-# Configuración de cache para optimizar el rendimiento
-# Archivo: _headers
+# ================================================================
+# CONFIGURACIÓN DE SEGURIDAD Y RENDIMIENTO PARA PRODUCCIÓN
+# ================================================================
+
+# HEADERS DE SEGURIDAD CRÍTICOS GLOBALES
+/*
+  # Content Security Policy (CSP) - CRÍTICO para prevenir XSS
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-CfkGcYvgRfJXXrvUV8JFUkQE5vGynt3abJcJyZB8KlE=' 'sha256-ehlwsI9K5iK41aNU+f2D8GmxNF3LvO9j2dLd+TjwpvQ=' https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; img-src 'self' https: data: blob:; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://api.bubble-talents.com wss: ws:; media-src 'self' data: blob:; object-src 'none'; frame-src 'none'; worker-src 'self' blob:; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests; block-all-mixed-content
+  
+  # Prevenir clickjacking
+  X-Frame-Options: DENY
+  
+  # Prevenir MIME type sniffing
+  X-Content-Type-Options: nosniff
+  
+  # Política de referrer
+  Referrer-Policy: strict-origin-when-cross-origin
+  
+  # Controlar APIs del navegador
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=(), magnetometer=(), gyroscope=()
+  
+  # Prevenir XSS reflection (legacy support)
+  X-XSS-Protection: 1; mode=block
+  
+  # Control de cache para documentos HTML
+  Cache-Control: public, max-age=0, must-revalidate
 
 # Todos los archivos en la carpeta assets con versionado
-/assets/*.*:
+/assets/*.*
   Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
 
 # Archivos estáticos comunes
-/*.ico:
+/*.ico
   Cache-Control: public, max-age=86400
-/*.svg:
+  X-Content-Type-Options: nosniff
+
+/*.svg
   Cache-Control: public, max-age=86400
-/*.png:
+  X-Content-Type-Options: nosniff
+
+/*.png
   Cache-Control: public, max-age=86400
-/*.jpg:
+  X-Content-Type-Options: nosniff
+
+/*.jpg
   Cache-Control: public, max-age=86400
-/*.jpeg:
+  X-Content-Type-Options: nosniff
+
+/*.jpeg
   Cache-Control: public, max-age=86400
-/*.gif:
+  X-Content-Type-Options: nosniff
+
+/*.gif
   Cache-Control: public, max-age=86400
-/*.webp:
+  X-Content-Type-Options: nosniff
+
+/*.webp
   Cache-Control: public, max-age=86400
+  X-Content-Type-Options: nosniff
 
 # Fuentes web
-/assets/fonts/*:
+/assets/fonts/*
   Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
 
-# JavaScript y CSS
-/*.js:
+# JavaScript y CSS con headers de seguridad
+/*.js
   Cache-Control: public, max-age=604800
-/*.css:
-  Cache-Control: public, max-age=604800
+  X-Content-Type-Options: nosniff
 
-# HTML
-/*:
+/*.css
+  Cache-Control: public, max-age=604800
+  X-Content-Type-Options: nosniff
+
+# Manifest y Service Worker con seguridad específica
+/manifest.json
+  Cache-Control: public, max-age=86400
+  X-Content-Type-Options: nosniff
+
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  X-Content-Type-Options: nosniff
+
+# Archivos HTML (incluyendo fallbacks)
+/*.html
   Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff

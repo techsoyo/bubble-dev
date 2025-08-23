@@ -58,6 +58,7 @@ return [
 
   // === ChatbotController ===
   ['GET', '/api/chatbot/data', 'ChatbotController@getChatbotData'],
+  ['GET', '/api/chatbot/{id}', 'ChatbotController@show'],
   ['GET', '/api/chatbot/node', 'ChatbotController@getNode'],
   ['POST', '/api/chatbot/node', 'ChatbotController@processInteraction'],
   ['POST', '/api/chatbot/interaction', 'ChatbotController@processInteraction'],
@@ -140,6 +141,8 @@ return [
   // === NotificationController ===
   ['GET', '/api/notifications', 'NotificationController@index'],
   ['POST', '/api/notifications', 'NotificationController@store'],
+  ['GET', '/api/notifications/{id}', 'NotificationController@show'],
+  ['PUT', '/api/notifications/{id}', 'NotificationController@update'],
   ['PATCH', '/api/notifications/{id}/read', 'NotificationController@markAsRead'],
   ['DELETE', '/api/notifications/{id}', 'NotificationController@delete'],
 
@@ -150,6 +153,16 @@ return [
   ['GET', '/api/skills', 'SkillController@index'],
   ['POST', '/api/skills', 'SkillController@store'],
   ['GET', '/api/skills/{id}', 'SkillController@show'],
+  ['PUT', '/api/skills/{id}', 'SkillController@update'],
+  ['DELETE', '/api/skills/{id}', 'SkillController@delete'],
+  ['POST', '/api/skills/extract', 'SkillController@extract'],
+
+  // === RecruiterController ===
+  ['GET', '/api/recruiters', 'RecruiterController@index'],
+  ['POST', '/api/recruiters', 'RecruiterController@store'],
+  ['GET', '/api/recruiters/{id}', 'RecruiterController@show'],
+  ['PUT', '/api/recruiters/{id}', 'RecruiterController@update'],
+  ['DELETE', '/api/recruiters/{id}', 'RecruiterController@delete'],
 
   // === TestController ===
   ['GET', '/api/test', 'TestController@test'],

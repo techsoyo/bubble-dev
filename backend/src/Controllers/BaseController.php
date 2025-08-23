@@ -79,7 +79,7 @@ abstract class BaseController
 
         try {
             // Obtener cuerpo JSON
-            $data = Request::json();
+            $data = $request->getBody();
 
             // Log validation attempt for security monitoring
             Logger::info('Controller validation started', [
@@ -98,7 +98,7 @@ abstract class BaseController
                     'errors' => $errors
                 ]);
 
-                ResponseHelper::error('Validation failed', 422, ['errors' => $errors]);
+                ResponseHelper::error('Validation failed', null, 422, ['errors' => $errors]);
                 return false;
             }
 
@@ -117,7 +117,7 @@ abstract class BaseController
                 'trace' => $e->getTraceAsString()
             ]);
 
-            ResponseHelper::error('Validation system error', 500);
+            ResponseHelper::error('Validation system error', null, 500);
             return false;
         }
     }
@@ -188,7 +188,7 @@ abstract class BaseController
         ]);
 
         $payload = is_array($errors) ? ['errors' => $errors] : [];
-        ResponseHelper::error($message, $statusCode, $payload);
+        ResponseHelper::error($message, null, $statusCode, $payload);
     }
 
     /**

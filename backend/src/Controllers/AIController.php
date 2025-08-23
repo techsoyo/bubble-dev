@@ -14,7 +14,7 @@ class AIController extends BaseController
     {
         $file = $request->files['cv'] ?? null;
         if (!$file) {
-            return ResponseHelper::error('Archivo CV no encontrado', 400);
+            return ResponseHelper::error('Archivo CV no encontrado', null, 400);
         }
 
         // TODO: implementar lógica de parsing
@@ -30,7 +30,7 @@ class AIController extends BaseController
     {
         $text = $request->input('text');
         if (!$text) {
-            return ResponseHelper::error('Texto del CV no proporcionado', 400);
+            return ResponseHelper::error('Texto del CV no proporcionado', null, 400);
         }
 
         // TODO: IA para parsing del texto
@@ -46,7 +46,7 @@ class AIController extends BaseController
     {
         $file = $request->files['pdf'] ?? null;
         if (!$file) {
-            return ResponseHelper::error('Archivo PDF no encontrado', 400);
+            return ResponseHelper::error('Archivo PDF no encontrado', null, 400);
         }
 
         // TODO: lógica de análisis IA sobre PDF
@@ -64,7 +64,7 @@ class AIController extends BaseController
         $jobId = $request->input('job_id');
 
         if (!$candidateId || !$jobId) {
-            return ResponseHelper::error('Faltan parámetros candidate_id o job_id', 400);
+            return ResponseHelper::error('Faltan parámetros candidate_id o job_id', null, 400);
         }
 
         // TODO: IA para calcular matching real
@@ -82,7 +82,7 @@ class AIController extends BaseController
     {
         $message = $request->input('message');
         if (!$message) {
-            return ResponseHelper::error('Mensaje no proporcionado', 400);
+            return ResponseHelper::error('Mensaje no proporcionado', null, 400);
         }
 
         // TODO: conectar con modelo IA
@@ -107,7 +107,7 @@ class AIController extends BaseController
     {
         $text = $request->input('text');
         if (!$text) {
-            return ResponseHelper::error('Texto no proporcionado', 400);
+            return ResponseHelper::error('Texto no proporcionado', null, 400);
         }
 
         return ResponseHelper::success('Análisis de personalidad completado', [
@@ -119,7 +119,7 @@ class AIController extends BaseController
     {
         $candidateId = $request->input('candidate_id');
         if (!$candidateId) {
-            return ResponseHelper::error('candidate_id no proporcionado', 400);
+            return ResponseHelper::error('candidate_id no proporcionado', null, 400);
         }
 
         return ResponseHelper::success('Predicción completada', [

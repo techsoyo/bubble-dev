@@ -32,11 +32,21 @@ class JobMatchingService
      */
     public function evaluateMatch($candidateData, $jobData)
     {
-    //     return $this->ollamaService->calculateMatching(
-    //         $candidateData['id'] ?? 1,
-    //         $jobData['id'] ?? 1
-    //     );
-    // }
+        // TODO: Implementar lógica de matching con IA
+        // return $this->ollamaService->calculateMatching(
+        //     $candidateData['id'] ?? 1,
+        //     $jobData['id'] ?? 1
+        // );
+
+        // Implementación temporal para el MVP
+        return [
+            'match_percentage' => 75, // Valor por defecto para pruebas
+            'confidence' => 0.8,
+            'strengths' => ['Experiencia relevante', 'Habilidades técnicas'],
+            'weaknesses' => ['Falta experiencia específica'],
+            'explanation' => 'Coincidencia basada en perfil general'
+        ];
+    }
 
     /**
      * Filtra candidatos según su coincidencia con una oferta de trabajo
@@ -56,8 +66,8 @@ class JobMatchingService
             // Solo incluir candidatos que superen el umbral
             if ($matchResult['match_percentage'] >= $threshold) {
                 $results[] = [
-                  'candidate' => $candidate,
-                  'match' => $matchResult
+                    'candidate' => $candidate,
+                    'match' => $matchResult
                 ];
             }
         }
@@ -89,8 +99,8 @@ class JobMatchingService
             // Solo incluir trabajos que superen el umbral
             if ($matchResult['match_percentage'] >= $threshold) {
                 $recommendations[] = [
-                  'job' => $job,
-                  'match' => $matchResult
+                    'job' => $job,
+                    'match' => $matchResult
                 ];
             }
 
@@ -120,10 +130,10 @@ class JobMatchingService
     {
         // Crear un prompt para generar la explicación
         $prompt = 'Explica detalladamente por qué este candidato coincide o no con esta oferta de trabajo. ' .
-          'Analiza punto por punto las habilidades, experiencia, educación y otros requisitos. ' .
-          "Proporciona una explicación clara y completa.\n\n" .
-          "Información del candidato:\n" . json_encode($candidateData, JSON_PRETTY_PRINT) . "\n\n" .
-          "Información del trabajo:\n" . json_encode($jobData, JSON_PRETTY_PRINT);
+            'Analiza punto por punto las habilidades, experiencia, educación y otros requisitos. ' .
+            "Proporciona una explicación clara y completa.\n\n" .
+            "Información del candidato:\n" . json_encode($candidateData, JSON_PRETTY_PRINT) . "\n\n" .
+            "Información del trabajo:\n" . json_encode($jobData, JSON_PRETTY_PRINT);
 
         // Evaluación basada en datos recibidos (implementación del proveedor IA)
         $matchResult = $this->evaluateMatch($candidateData, $jobData);

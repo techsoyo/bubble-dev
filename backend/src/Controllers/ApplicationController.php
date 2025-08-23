@@ -178,5 +178,4 @@ class ApplicationController
       return ResponseHelper::error("Error en eliminación masiva", $e);
     }
   }
-  
 }

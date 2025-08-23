@@ -2,119 +2,140 @@
 
 namespace Controllers;
 
+use Models\JobCategory;
+use Utils\Request;
+use Utils\ResponseHelper;
+use Utils\Logger;
+
 class JobCategoryController extends BaseController
 {
-  public function index($params = [])
-  {
-    // Validar método HTTP
-    if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-      $this->error('Método no permitido', null, 405);
-      return;
-    }
+  private JobCategory $model;
 
-    $this->success('Job categories retrieved successfully', [
-      'categories' => [
-        ['id' => 1, 'name' => 'Technology', 'description' => 'IT and Software jobs'],
-        ['id' => 2, 'name' => 'Marketing', 'description' => 'Marketing and Sales jobs']
-      ],
-      'total' => 2,
-      'endpoint' => 'GET /api/job-categories',
-      'message' => 'Endpoint working - ready for implementation'
-    ]);
+  public function __construct()
+  {
+    parent::__construct();
+    $this->model = new JobCategory();
   }
 
-  public function store($params = [])
+  public function index(Request $request, array $params = [])
   {
-    // Validar método HTTP
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-      $this->error('Método no permitido', null, 405);
-      return;
+    try {
+      $filters = $_GET ?? [];
+      $page = max(1, (int)($filters['page'] ?? 1));
+      $limit = (int)($filters['limit'] ?? 20);
+      $offset = ($page - 1) * $limit;
+
+      // Si se solicitan solo categorías principales
+      if (isset($filters['main_only']) && $filters['main_only'] == '1') {
+        $categories = $this->model->getMainCategories();
+        $total = count($categories);
+      } else {
+        $categories = $this->model->searchJobCategories($filters, $limit, $offset);
+        $total = $this->model->countJobCategories($filters);
+      }
+
+      return ResponseHelper::success('Lista de categorías de trabajo', [
+        'data' => $categories,
+        'total' => $total,
+        'page' => $page,
+        'limit' => $limit
+      ], 200);
+    } catch (\Throwable $e) {
+      Logger::error('Error listing job categories', ['error' => $e->getMessage()]);
+      return ResponseHelper::error('Error al listar categorías de trabajo', $e, 500);
     }
-
-    $requestData = $this->getRequestData();
-
-    $this->success('Job category created successfully', [
-      'category' => [
-        'id' => rand(1, 1000),
-        'name' => $requestData['name'] ?? 'Test Category',
-        'description' => $requestData['description'] ?? 'Test description',
-        'created_at' => date('c')
-      ],
-      'endpoint' => 'POST /api/job-categories',
-      'message' => 'Endpoint working - ready for implementation'
-    ]);
   }
 
-  public function show($params = [])
+  public function show(Request $request, array $params = [])
   {
-    // Validar método HTTP
-    if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-      $this->error('Método no permitido', null, 405);
-      return;
+    try {
+      $id = $params['id'] ?? null;
+      if (!$id) {
+        return ResponseHelper::fail('ID no proporcionado', 400);
+      }
+
+      $category = $this->model->getJobCategoryWithCount((int)$id);
+      if (!$category) {
+        return ResponseHelper::fail('Categoría de trabajo no encontrada', 404);
+      }
+
+      return ResponseHelper::success('Categoría de trabajo encontrada', $category, 200);
+    } catch (\Throwable $e) {
+      Logger::error('Error retrieving job category', ['id' => $id, 'error' => $e->getMessage()]);
+      return ResponseHelper::error('Error al obtener categoría de trabajo', $e, 500);
     }
-
-    $id = $params['id'] ?? 'unknown';
-
-    $this->success('Job category retrieved successfully', [
-      'category' => [
-        'id' => $id,
-        'name' => 'Category ' . $id,
-        'description' => 'Description for category ' . $id,
-        'jobs_count' => rand(1, 50)
-      ],
-      'endpoint' => "GET /api/job-categories/$id",
-      'message' => 'Endpoint working - ready for implementation'
-    ]);
   }
 
-  public function update($params = [])
+  public function store(Request $request, array $params = [])
   {
-    // Validar método HTTP
-    if (!in_array($_SERVER['REQUEST_METHOD'], ['PUT', 'PATCH'])) {
-      $this->error('Método no permitido', null, 405);
-      return;
+    try {
+      $data = $request->getBody();
+
+      $id = $this->model->createJobCategory($data);
+
+      if ($id === false) {
+        return ResponseHelper::fail('Unable to create job category', 400);
+      }
+
+      Logger::info('Job category created from controller', ['id' => $id]);
+      return ResponseHelper::success('Categoría de trabajo creada', ['id' => $id], 201);
+    } catch (\InvalidArgumentException $e) {
+      Logger::error('Validation failed creating job category', ['error' => $e->getMessage()]);
+      return ResponseHelper::fail($e->getMessage(), 422);
+    } catch (\Throwable $e) {
+      Logger::error('Unexpected error creating job category', ['error' => $e->getMessage()]);
+      return ResponseHelper::error('Error al crear categoría de trabajo', $e, 500);
     }
-
-    $id = $params['id'] ?? 'unknown';
-    $requestData = $this->getRequestData();
-
-    $this->success('Job category updated successfully', [
-      'category' => [
-        'id' => $id,
-        'updated_fields' => array_keys($requestData),
-        'updated_at' => date('c')
-      ],
-      'endpoint' => "PUT /api/job-categories/$id",
-      'message' => 'Endpoint working - ready for implementation'
-    ]);
   }
 
-  public function delete($params = [])
+  public function update(Request $request, array $params = [])
   {
-    // Validar método HTTP
-    if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
-      $this->error('Método no permitido', null, 405);
-      return;
+    try {
+      $id = $params['id'] ?? null;
+      $data = $request->getBody();
+
+      if (!$id) {
+        return ResponseHelper::fail('ID no proporcionado', 400);
+      }
+
+      $ok = $this->model->updateJobCategory((int)$id, $data);
+
+      if (!$ok) {
+        return ResponseHelper::fail('Update failed', 400);
+      }
+
+      Logger::info('Job category updated from controller', ['id' => $id]);
+      return ResponseHelper::success("Categoría de trabajo $id actualizada", ['success' => true], 200);
+    } catch (\InvalidArgumentException $e) {
+      Logger::error('Validation failed updating job category', ['id' => $id, 'error' => $e->getMessage()]);
+      return ResponseHelper::fail($e->getMessage(), 422);
+    } catch (\Throwable $e) {
+      Logger::error('Unexpected error updating job category', ['id' => $id, 'error' => $e->getMessage()]);
+      return ResponseHelper::error('Error al actualizar categoría de trabajo', $e, 500);
     }
-
-    $id = $params['id'] ?? 'unknown';
-
-    $this->success('Job category deleted successfully', [
-      'deleted_id' => $id,
-      'endpoint' => "DELETE /api/job-categories/$id",
-      'message' => 'Endpoint working - ready for implementation'
-    ]);
   }
 
-  private function getRequestData()
+  public function delete(Request $request, array $params = [])
   {
-    $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+    try {
+      $id = $params['id'] ?? null;
+      if (!$id) {
+        return ResponseHelper::fail('ID no proporcionado', 400);
+      }
 
-    if (strpos($contentType, 'application/json') !== false) {
-      $input = file_get_contents('php://input');
-      return json_decode($input, true) ?? [];
+      $ok = $this->model->deleteJobCategory((int)$id);
+      if (!$ok) {
+        return ResponseHelper::fail('Delete failed', 400);
+      }
+
+      Logger::info('Job category deleted from controller', ['id' => $id]);
+      return ResponseHelper::success("Categoría de trabajo $id eliminada", [], 204);
+    } catch (\InvalidArgumentException $e) {
+      Logger::error('Validation failed deleting job category', ['id' => $id, 'error' => $e->getMessage()]);
+      return ResponseHelper::fail($e->getMessage(), 422);
+    } catch (\Throwable $e) {
+      Logger::error('Unexpected error deleting job category', ['id' => $id, 'error' => $e->getMessage()]);
+      return ResponseHelper::error('Error al eliminar categoría de trabajo', $e, 500);
     }
-
-    return array_merge($_GET, $_POST);
   }
 }

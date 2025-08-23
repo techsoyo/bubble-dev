@@ -40,7 +40,7 @@ class AdminController extends BaseController
     $ids = $request->input('ids', []);
 
     if (!$action || empty($ids)) {
-      return ResponseHelper::error('Parámetros insuficientes', 400);
+      return ResponseHelper::error('Parámetros insuficientes', null);
     }
 
     // TODO: implementar acciones masivas (ej: borrar usuarios, resetear estados, etc.)

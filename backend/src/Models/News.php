@@ -33,7 +33,7 @@ class News extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-    
+
 
     protected array $fillable = [
         'title',
@@ -49,7 +49,7 @@ class News extends BaseModel
 
     // Estados válidos para noticias
     private const VALID_STATUSES = ['draft', 'published', 'archived', 'scheduled'];
-    
+
     // Cache TTL para noticias públicas (5 minutos)
     private const CACHE_TTL = 300;
 
@@ -79,7 +79,7 @@ class News extends BaseModel
             // Añadir filtro de fecha para noticias ya publicadas
             $currentTime = date('Y-m-d H:i:s');
             $customWhere = "published_at <= :current_time";
-            
+
             $sql = "SELECT * FROM `{$this->table}` WHERE `status` = :status AND `published_at` <= :current_time";
             $params = [
                 ':status' => 'published',
@@ -199,7 +199,7 @@ class News extends BaseModel
         }
 
         // Generar clave de cache
-        $cacheKey = $this->generateCacheKey('featured_news', [
+        $cacheKey = $this->buildNewsCacheKey('featured_news', [
             'limit' => $limit,
             'published_only' => $publishedOnly
         ]);
@@ -275,10 +275,10 @@ class News extends BaseModel
 
         try {
             $searchWildcard = "%{$searchTerm}%";
-            
+
             $sql = "SELECT * FROM `{$this->table}` WHERE 
                     (`title` LIKE :search_title OR `content` LIKE :search_content OR `excerpt` LIKE :search_excerpt)";
-            
+
             $params = [
                 ':search_title' => $searchWildcard,
                 ':search_content' => $searchWildcard,
@@ -475,7 +475,7 @@ class News extends BaseModel
 
         try {
             $newsId = $this->store($data);
-            
+
             // Invalidar cache de noticias
             $this->invalidateNewsCache();
 
@@ -526,7 +526,7 @@ class News extends BaseModel
 
         try {
             $result = $this->update($id, $data);
-            
+
             // Invalidar cache de noticias
             $this->invalidateNewsCache();
 
@@ -559,7 +559,7 @@ class News extends BaseModel
         }
 
         $publishDate = $publishedAt ?? date('Y-m-d H:i:s');
-        
+
         if (!$this->validatePublishedDate($publishDate)) {
             throw new \InvalidArgumentException("Invalid published date format");
         }
@@ -608,7 +608,7 @@ class News extends BaseModel
         // Truncar en la última palabra completa
         $excerpt = substr($plainText, 0, $maxLength);
         $lastSpace = strrpos($excerpt, ' ');
-        
+
         if ($lastSpace !== false) {
             $excerpt = substr($excerpt, 0, $lastSpace);
         }
@@ -650,7 +650,7 @@ class News extends BaseModel
                     GROUP BY `status`";
 
             $results = $this->query($sql, []);
-            
+
             $stats = [];
             foreach ($results as $row) {
                 $stats[$row['status']] = [
@@ -680,9 +680,9 @@ class News extends BaseModel
                         COUNT(*) as count
                     FROM `{$this->table}` 
                     WHERE `category` IS NOT NULL AND `category` != ''";
-            
+
             $params = [];
-            
+
             if ($publishedOnly) {
                 $currentTime = date('Y-m-d H:i:s');
                 $sql .= " AND `status` = :status AND `published_at` <= :current_time";
@@ -693,8 +693,8 @@ class News extends BaseModel
             $sql .= " GROUP BY `category` ORDER BY `count` DESC, `category` ASC";
 
             $results = $this->query($sql, $params);
-            
-            return array_map(function($row) {
+
+            return array_map(function ($row) {
                 return [
                     'category' => $row['category'],
                     'count' => (int)$row['count']
@@ -707,18 +707,281 @@ class News extends BaseModel
     }
 
     /**
-     * Generar clave de cache consistente
+     * Generar clave de cache consistente para noticias (usa método de BaseModel)
      * 
      * @param string $prefix Prefijo de la clave
      * @param array $params Parámetros para incluir en la clave
      * @return string Clave de cache generada
      */
-    private function generateCacheKey(string $prefix, array $params = []): string
+    private function buildNewsCacheKey(string $prefix, array $params = []): string
     {
         $key = "news_{$prefix}";
         if (!empty($params)) {
             $key .= '_' . md5(serialize($params));
         }
         return $key;
+    }
+
+    // =====================================================
+    // CRUD METHODS ESTÁNDAR - BaseModel Template v2.0.0
+    // =====================================================
+
+    /**
+     * Crear nueva noticia con validaciones CRUD estándar
+     *
+     * @param array $data Datos de la noticia
+     * @return int|false ID de la nueva noticia o false en caso de error
+     * @throws InvalidArgumentException Si los datos no son válidos
+     */
+    public static function createNewsStandard(array $data)
+    {
+        self::validateNewsData($data);
+
+        $news = new self();
+        $id = $news->store($data);
+
+        if (!$id) {
+            throw new \Exception('Error al crear la noticia');
+        }
+
+        self::invalidateNewsCacheStandard();
+
+        return $id;
+    }
+
+    /**
+     * Obtener noticia por ID
+     *
+     * @param int $id ID de la noticia
+     * @return array|null
+     */
+    public static function getNewsStandard(int $id): ?array
+    {
+        try {
+            $instance = new self();
+            return $instance->findById($id);
+        } catch (\Exception $e) {
+            self::logError('Error al obtener noticia', ['id' => $id], $e);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar noticia con validaciones CRUD estándar
+     *
+     * @param int $id ID de la noticia
+     * @param array $data Nuevos datos
+     * @return bool
+     * @throws InvalidArgumentException Si los datos no son válidos
+     */
+    public static function updateNewsStandard(int $id, array $data): bool
+    {
+        self::validateNewsData($data, true);
+
+        $news = new self();
+        $existingNews = $news->findById($id);
+        if (!$existingNews) {
+            throw new \InvalidArgumentException("Noticia con ID {$id} no encontrada");
+        }
+
+        $success = $news->update($id, $data);
+
+        if ($success) {
+            self::invalidateNewsCacheStandard();
+        }
+
+        return $success;
+    }
+
+    /**
+     * Eliminar noticia
+     *
+     * @param int $id ID de la noticia
+     * @return bool
+     */
+    public static function deleteNewsStandard(int $id): bool
+    {
+        try {
+            $news = new self();
+            $existingNews = $news->findById($id);
+            if (!$existingNews) {
+                return false;
+            }
+
+            $success = $news->delete($id);
+
+            if ($success) {
+                self::invalidateNewsCacheStandard();
+            }
+
+            return $success;
+        } catch (\Exception $e) {
+            self::logError('Error al eliminar noticia', ['id' => $id], $e);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar noticias CRUD estándar
+     *
+     * @param array $criteria Criterios de búsqueda
+     * @param int $limit Límite de resultados
+     * @param int $offset Offset para paginación
+     * @return array
+     */
+    public static function searchNewsStandard(array $criteria = [], int $limit = 50, int $offset = 0): array
+    {
+        try {
+            $query = "SELECT * FROM news WHERE 1=1";
+            $params = [];
+
+            // Filtro por título
+            if (!empty($criteria['title'])) {
+                $query .= " AND title LIKE :title";
+                $params['title'] = '%' . $criteria['title'] . '%';
+            }
+
+            // Filtro por contenido
+            if (!empty($criteria['content'])) {
+                $query .= " AND content LIKE :content";
+                $params['content'] = '%' . $criteria['content'] . '%';
+            }
+
+            // Filtro por author_id
+            if (!empty($criteria['author_id'])) {
+                $query .= " AND author_id = :author_id";
+                $params['author_id'] = $criteria['author_id'];
+            }
+
+            // Filtro por status
+            if (!empty($criteria['status'])) {
+                $query .= " AND status = :status";
+                $params['status'] = $criteria['status'];
+            }
+
+            $query .= " ORDER BY created_at DESC";
+            $query .= " LIMIT :limit OFFSET :offset";
+            $params['limit'] = $limit;
+            $params['offset'] = $offset;
+
+            $news = new self();
+            return $news->query($query, $params);
+        } catch (\Exception $e) {
+            self::logError('Error en búsqueda de noticias', $criteria, $e);
+            return [];
+        }
+    }
+
+    /**
+     * Contar noticias
+     *
+     * @param array $criteria Criterios de búsqueda
+     * @return int
+     */
+    public static function countNewsStandard(array $criteria = []): int
+    {
+        try {
+            $query = "SELECT COUNT(*) as total FROM news WHERE 1=1";
+            $params = [];
+
+            // Aplicar los mismos filtros que en searchNews
+            if (!empty($criteria['title'])) {
+                $query .= " AND title LIKE :title";
+                $params['title'] = '%' . $criteria['title'] . '%';
+            }
+
+            if (!empty($criteria['content'])) {
+                $query .= " AND content LIKE :content";
+                $params['content'] = '%' . $criteria['content'] . '%';
+            }
+
+            if (!empty($criteria['author_id'])) {
+                $query .= " AND author_id = :author_id";
+                $params['author_id'] = $criteria['author_id'];
+            }
+
+            if (!empty($criteria['status'])) {
+                $query .= " AND status = :status";
+                $params['status'] = $criteria['status'];
+            }
+
+            $news = new self();
+            $result = $news->query($query, $params);
+            return $result[0]['total'] ?? 0;
+        } catch (\Exception $e) {
+            self::logError('Error al contar noticias', $criteria, $e);
+            return 0;
+        }
+    }
+
+    /**
+     * Validar datos de noticia
+     *
+     * @param array $data Datos a validar
+     * @param bool $isUpdate Si es una actualización (permite campos opcionales)
+     * @throws InvalidArgumentException Si los datos no son válidos
+     */
+    private static function validateNewsData(array $data, bool $isUpdate = false): void
+    {
+        // title es requerido en creación
+        if (!$isUpdate && empty($data['title'])) {
+            throw new \InvalidArgumentException('El título es requerido');
+        }
+
+        if (isset($data['title'])) {
+            if (!is_string($data['title']) || strlen(trim($data['title'])) < 3) {
+                throw new \InvalidArgumentException('El título debe tener al menos 3 caracteres');
+            }
+            if (strlen($data['title']) > 255) {
+                throw new \InvalidArgumentException('El título no puede exceder los 255 caracteres');
+            }
+        }
+
+        // content es requerido en creación
+        if (!$isUpdate && empty($data['content'])) {
+            throw new \InvalidArgumentException('El contenido es requerido');
+        }
+
+        if (isset($data['content'])) {
+            if (!is_string($data['content']) || strlen(trim($data['content'])) < 10) {
+                throw new \InvalidArgumentException('El contenido debe tener al menos 10 caracteres');
+            }
+        }
+
+        // author_id es requerido en creación
+        if (!$isUpdate && empty($data['author_id'])) {
+            throw new \InvalidArgumentException('El author_id es requerido');
+        }
+
+        if (isset($data['author_id']) && (!is_numeric($data['author_id']) || $data['author_id'] <= 0)) {
+            throw new \InvalidArgumentException('El author_id debe ser un número entero positivo');
+        }
+
+        // status es requerido en creación
+        if (!$isUpdate && empty($data['status'])) {
+            throw new \InvalidArgumentException('El status es requerido');
+        }
+
+        if (isset($data['status'])) {
+            if (!in_array($data['status'], self::VALID_STATUSES)) {
+                throw new \InvalidArgumentException('Status no válido: ' . $data['status']);
+            }
+        }
+    }
+
+    /**
+     * Invalidar caché relacionado con noticias (versión estática)
+     */
+    private static function invalidateNewsCacheStandard(): void
+    {
+        try {
+            // Crear instancia temporal para acceder a métodos de instancia
+            $tempInstance = new self();
+            $deletedCount = $tempInstance->invalidateNewsCache();
+
+            self::logDebug('Caché de noticias invalidado', ['deleted_count' => $deletedCount]);
+        } catch (\Exception $e) {
+            self::logError('Error al invalidar caché de noticias', [], $e);
+        }
     }
 }

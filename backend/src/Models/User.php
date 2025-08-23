@@ -67,7 +67,7 @@ class User extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-    
+
 
     /**
      * The primary key field name
@@ -777,21 +777,282 @@ class User extends BaseModel
      *
      * Limpia el cache relacionado con usuarios cuando se realizan cambios
      * importantes que afectan las consultas cacheadas.
-     *
-     * @return int Number of cache entries cleared
+     * MÉTODOS CRUD ENCAPSULADOS ADICIONALES - Para uso externo
+     * Complementan los métodos ya existentes (store, update están implementados)
      */
-    public function invalidateUserCache(): int
+
+    // =====================================================
+    // CRUD METHODS ESTÁNDAR - BaseModel Template v2.0.0
+    // =====================================================
+
+    /**
+     * Crear nuevo usuario con validaciones
+     *
+     * @param array $data Datos del usuario
+     * @return int|false ID del nuevo usuario o false en caso de error
+     * @throws InvalidArgumentException Si los datos no son válidos
+     */
+    public static function createUser(array $data)
+    {
+        self::validateUserData($data);
+
+        $user = new self();
+        $id = $user->store($data);
+
+        if (!$id) {
+            throw new \Exception('Error al crear el usuario');
+        }
+
+        self::invalidateUserCache();
+
+        return $id;
+    }
+
+    /**
+     * Obtener usuario por ID
+     *
+     * @param int $id ID del usuario
+     * @return array|null
+     */
+    public static function getUser(int $id): ?array
     {
         try {
-            if (class_exists('\Utils\Cache')) {
-                return \Utils\Cache::deleteByTags(['users', 'user_stats', 'user_roles']);
-            }
-            return 0;
+            $instance = new self();
+            return $instance->findById($id);
         } catch (\Exception $e) {
-            Logger::warning('Failed to invalidate user cache', [
-                'error' => $e->getMessage()
-            ]);
+            self::logError('Error al obtener usuario', ['id' => $id], $e);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar usuario con validaciones
+     *
+     * @param int $id ID del usuario
+     * @param array $data Nuevos datos
+     * @return bool
+     * @throws InvalidArgumentException Si los datos no son válidos
+     */
+    public static function updateUser(int $id, array $data): bool
+    {
+        self::validateUserData($data, true);
+
+        $user = new self();
+        $existingUser = $user->findById($id);
+        if (!$existingUser) {
+            throw new \InvalidArgumentException("Usuario con ID {$id} no encontrado");
+        }
+
+        $success = $user->update($id, $data);
+
+        if ($success) {
+            self::invalidateUserCache();
+        }
+
+        return $success;
+    }
+
+    /**
+     * Eliminar usuario con validaciones
+     *
+     * @param int $id ID del usuario
+     * @return bool
+     */
+    public static function deleteUser(int $id): bool
+    {
+        try {
+            $user = new self();
+            $existingUser = $user->findById($id);
+            if (!$existingUser) {
+                return false;
+            }
+
+            $success = $user->delete($id);
+
+            if ($success) {
+                self::invalidateUserCache();
+            }
+
+            return $success;
+        } catch (\Exception $e) {
+            self::logError('Error al eliminar usuario', ['id' => $id], $e);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar usuarios con filtros
+     *
+     * @param array $criteria Criterios de búsqueda
+     * @param int $limit Límite de resultados
+     * @param int $offset Offset para paginación
+     * @return array
+     */
+    public static function searchUsers(array $criteria = [], int $limit = 50, int $offset = 0): array
+    {
+        try {
+            $query = "SELECT * FROM users WHERE 1=1";
+            $params = [];
+
+            // Filtro por email
+            if (!empty($criteria['email'])) {
+                $query .= " AND email LIKE :email";
+                $params['email'] = '%' . $criteria['email'] . '%';
+            }
+
+            // Filtro por nombre
+            if (!empty($criteria['name'])) {
+                $query .= " AND name LIKE :name";
+                $params['name'] = '%' . $criteria['name'] . '%';
+            }
+
+            // Filtro por rol
+            if (!empty($criteria['role'])) {
+                $query .= " AND role = :role";
+                $params['role'] = $criteria['role'];
+            }
+
+            // Filtro por estado activo
+            if (isset($criteria['is_active'])) {
+                $query .= " AND is_active = :is_active";
+                $params['is_active'] = (bool)$criteria['is_active'];
+            }
+
+            $query .= " ORDER BY created_at DESC";
+            $query .= " LIMIT :limit OFFSET :offset";
+            $params['limit'] = $limit;
+            $params['offset'] = $offset;
+
+            $user = new self();
+            return $user->query($query, $params);
+        } catch (\Exception $e) {
+            self::logError('Error en búsqueda de usuarios', $criteria, $e);
+            return [];
+        }
+    }
+
+    /**
+     * Contar usuarios con filtros
+     *
+     * @param array $criteria Criterios de búsqueda
+     * @return int
+     */
+    public static function countUsers(array $criteria = []): int
+    {
+        try {
+            $query = "SELECT COUNT(*) as total FROM users WHERE 1=1";
+            $params = [];
+
+            // Aplicar los mismos filtros que en searchUsers
+            if (!empty($criteria['email'])) {
+                $query .= " AND email LIKE :email";
+                $params['email'] = '%' . $criteria['email'] . '%';
+            }
+
+            if (!empty($criteria['name'])) {
+                $query .= " AND name LIKE :name";
+                $params['name'] = '%' . $criteria['name'] . '%';
+            }
+
+            if (!empty($criteria['role'])) {
+                $query .= " AND role = :role";
+                $params['role'] = $criteria['role'];
+            }
+
+            if (isset($criteria['is_active'])) {
+                $query .= " AND is_active = :is_active";
+                $params['is_active'] = (bool)$criteria['is_active'];
+            }
+
+            $user = new self();
+            $result = $user->query($query, $params);
+            return $result[0]['total'] ?? 0;
+        } catch (\Exception $e) {
+            self::logError('Error al contar usuarios', $criteria, $e);
             return 0;
+        }
+    }
+
+    /**
+     * Validar datos de usuario
+     *
+     * @param array $data Datos a validar
+     * @param bool $isUpdate Si es una actualización (permite campos opcionales)
+     * @throws InvalidArgumentException Si los datos no son válidos
+     */
+    private static function validateUserData(array $data, bool $isUpdate = false): void
+    {
+        // email es requerido en creación
+        if (!$isUpdate && empty($data['email'])) {
+            throw new \InvalidArgumentException('El email es requerido');
+        }
+
+        if (isset($data['email'])) {
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                throw new \InvalidArgumentException('El email no tiene un formato válido');
+            }
+            if (strlen($data['email']) > 255) {
+                throw new \InvalidArgumentException('El email no puede exceder los 255 caracteres');
+            }
+        }
+
+        // name es requerido en creación
+        if (!$isUpdate && empty($data['name'])) {
+            throw new \InvalidArgumentException('El nombre es requerido');
+        }
+
+        if (isset($data['name'])) {
+            if (!is_string($data['name']) || strlen(trim($data['name'])) < 2) {
+                throw new \InvalidArgumentException('El nombre debe tener al menos 2 caracteres');
+            }
+            if (strlen($data['name']) > 255) {
+                throw new \InvalidArgumentException('El nombre no puede exceder los 255 caracteres');
+            }
+        }
+
+        // password es requerido en creación
+        if (!$isUpdate && empty($data['password'])) {
+            throw new \InvalidArgumentException('La contraseña es requerida');
+        }
+
+        if (isset($data['password'])) {
+            if (strlen($data['password']) < 8) {
+                throw new \InvalidArgumentException('La contraseña debe tener al menos 8 caracteres');
+            }
+            if (strlen($data['password']) > 255) {
+                throw new \InvalidArgumentException('La contraseña no puede exceder los 255 caracteres');
+            }
+        }
+
+        // Validar role si se proporciona
+        if (isset($data['role'])) {
+            $validRoles = ['admin', 'user', 'manager', 'recruiter'];
+            if (!in_array($data['role'], $validRoles)) {
+                throw new \InvalidArgumentException('Rol no válido: ' . $data['role']);
+            }
+        }
+
+        // Validar is_active
+        if (isset($data['is_active']) && !is_bool($data['is_active'])) {
+            throw new \InvalidArgumentException('is_active debe ser un booleano');
+        }
+    }
+
+    /**
+     * Invalidar caché relacionado con usuarios
+     */
+    private static function invalidateUserCache(): void
+    {
+        try {
+            // Como los métodos CRUD son estáticos, necesitamos crear una instancia temporal
+            $tempInstance = new self();
+
+            // Limpiar todo el caché de la instancia
+            $tempInstance->cache = [];
+
+            self::logDebug('Caché de usuarios invalidado');
+        } catch (\Exception $e) {
+            self::logError('Error al invalidar caché de usuarios', [], $e);
         }
     }
 }

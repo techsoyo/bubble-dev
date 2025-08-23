@@ -578,4 +578,188 @@ class CandidateExperience extends BaseModel
             ];
         }
     }
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
+
+    /**
+     * Crear nuevo candidate_experience con validaciones
+     * @param array $data Datos del nuevo candidate_experience
+     * @return mixed ID del nuevo candidate_experience o false en caso de error
+     */
+    public function createCandidateExperience(array $data): mixed
+    {
+        try {
+            $this->validateCandidateExperienceData($data);
+            $id = $this->store($data);
+            $this->invalidateCandidateExperienceCache();
+
+            Logger::info('CandidateExperience created successfully', [
+                'model' => static::class,
+                'id' => $id
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            Logger::error('Error creating candidate_experience', [
+                'model' => static::class,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Obtener candidate_experience por ID
+     * @param mixed $id ID del candidate_experience
+     * @return array|null Datos del candidate_experience o null si no existe
+     */
+    public function getCandidateExperience($id): ?array
+    {
+        try {
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            Logger::error('Error retrieving candidate_experience', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar candidate_experience con validaciones
+     * @param mixed $id ID del candidate_experience a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
+     */
+    public function updateCandidateExperience($id, array $data): bool
+    {
+        try {
+            $this->validateCandidateExperienceData($data, $id);
+            $result = $this->update($id, $data);
+
+            if ($result) {
+                $this->invalidateCandidateExperienceCache();
+                Logger::info('CandidateExperience updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error updating candidate_experience', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar candidate_experience con validaciones
+     * @param mixed $id ID del candidate_experience a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteCandidateExperience($id): bool
+    {
+        try {
+            $result = $this->delete($id);
+
+            if ($result) {
+                $this->invalidateCandidateExperienceCache();
+                Logger::info('CandidateExperience deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error deleting candidate_experience', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar candidate_experiences con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de candidate_experiences
+     */
+    public function searchCandidateExperiences(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            Logger::error('Error searching candidate_experiences', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de candidate_experiences con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de candidate_experiences
+     */
+    public function countCandidateExperiences(array $filters = []): int
+    {
+        try {
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            Logger::error('Error counting candidate_experiences', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de candidate_experiences
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateCandidateExperienceData(array $data, $id = null): void
+    {
+        // TODO: Implementar validaciones específicas del modelo
+    }
+
+    /**
+     * Invalidar cache específico de candidate_experiences
+     */
+    public function invalidateCandidateExperienceCache(): int
+    {
+        try {
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags(['candidate_experiences', 'candidate_experience_core', 'candidate_experience_list']);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            $this->logError('Error invalidating candidate_experience cache', [], $e);
+            return 0;
+        }
+    }
 }

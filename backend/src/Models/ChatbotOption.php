@@ -37,7 +37,7 @@ class ChatbotOption extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-    
+
 
     /**
      * Campos que pueden ser asignados masivamente
@@ -88,7 +88,7 @@ class ChatbotOption extends BaseModel
         }
 
         $cacheKey = "node_options_{$nodeId}_" . ($activeOnly ? 'active' : 'all');
-        
+
         // Verificar cache
         if ($this->isCacheValid($cacheKey)) {
             Logger::debug('Cache hit for node options', ['node_id' => $nodeId]);
@@ -148,7 +148,7 @@ class ChatbotOption extends BaseModel
     public function getActiveOptions(array $filters = []): array
     {
         $cacheKey = 'active_options_' . md5(serialize($filters));
-        
+
         // Verificar cache
         if ($this->isCacheValid($cacheKey)) {
             Logger::debug('Cache hit for active options', ['filters' => $filters]);
@@ -293,7 +293,7 @@ class ChatbotOption extends BaseModel
             // Verificar que el nodo siguiente existe (usando tabla de nodos)
             $nodeCheckSql = "SELECT COUNT(*) as count FROM `bt_chatbot_nodes` WHERE `id` = :next_node_id AND `is_active` = 1";
             $result = $this->query($nodeCheckSql, [':next_node_id' => $nextNodeId]);
-            
+
             $nodeExists = ($result[0]['count'] ?? 0) > 0;
 
             Logger::debug('Option flow validation', [
@@ -330,7 +330,7 @@ class ChatbotOption extends BaseModel
                 SUM(CASE WHEN is_active = 0 THEN 1 ELSE 0 END) as inactive_options,
                 COUNT(DISTINCT node_id) as unique_nodes
             FROM `{$this->table}`";
-            
+
             $basicStats = $this->query($basicStatsSql)[0] ?? [];
 
             // Estadísticas por tipo de acción
@@ -342,7 +342,7 @@ class ChatbotOption extends BaseModel
             WHERE is_active = 1 
             GROUP BY action_type 
             ORDER BY count DESC";
-            
+
             $actionStats = $this->query($actionStatsSql);
 
             // Estadísticas de uso desde analytics (si existe la tabla)
@@ -361,7 +361,7 @@ class ChatbotOption extends BaseModel
                 GROUP BY co.id, co.text, co.action_type
                 ORDER BY usage_count DESC
                 LIMIT 10";
-                
+
                 $usageStats = $this->query($usageStatsSql, [':days' => $days]);
             } catch (PDOException $e) {
                 Logger::warning('Analytics table not available for usage stats', ['error' => $e->getMessage()]);
@@ -414,7 +414,7 @@ class ChatbotOption extends BaseModel
                 $sql = "UPDATE `{$this->table}` 
                        SET `order_position` = :position, `updated_at` = NOW() 
                        WHERE `id` = :option_id AND `node_id` = :node_id";
-                
+
                 $this->query($sql, [
                     ':position' => $position + 1,
                     ':option_id' => $optionId,
@@ -423,7 +423,7 @@ class ChatbotOption extends BaseModel
             }
 
             $this->db->commit();
-            
+
             // Limpiar cache relacionado
             $this->clearNodeCache($nodeId);
 
@@ -475,10 +475,10 @@ class ChatbotOption extends BaseModel
 
         try {
             $id = parent::store($data);
-            
+
             // Limpiar cache relacionado
             $this->clearNodeCache($data['node_id']);
-            
+
             return $id;
         } catch (\Exception $e) {
             throw new \RuntimeException('Failed to create option: ' . $e->getMessage());
@@ -501,12 +501,12 @@ class ChatbotOption extends BaseModel
 
         try {
             $result = parent::update($id, $data);
-            
+
             // Limpiar cache relacionado si se actualizó node_id
             if (isset($data['node_id'])) {
                 $this->clearNodeCache($data['node_id']);
             }
-            
+
             return $result;
         } catch (\Exception $e) {
             throw new \RuntimeException('Failed to update option: ' . $e->getMessage());
@@ -543,7 +543,7 @@ class ChatbotOption extends BaseModel
             $sql = "SELECT COALESCE(MAX(order_position), 0) + 1 as next_position 
                    FROM `{$this->table}` 
                    WHERE `node_id` = :node_id";
-            
+
             $result = $this->query($sql, [':node_id' => $nodeId]);
             return (int)($result[0]['next_position'] ?? 1);
         } catch (PDOException $e) {
@@ -563,8 +563,8 @@ class ChatbotOption extends BaseModel
      */
     private function isCacheValid(string $key): bool
     {
-        return isset($this->optionsCache[$key]) && 
-               (time() - $this->optionsCache[$key]['timestamp']) < self::CACHE_TTL;
+        return isset($this->optionsCache[$key]) &&
+            (time() - $this->optionsCache[$key]['timestamp']) < self::CACHE_TTL;
     }
 
     /**
@@ -604,20 +604,20 @@ class ChatbotOption extends BaseModel
     public function findById($id): ?array
     {
         $cacheKey = "option_{$id}";
-        
+
         // Verificar cache
         if ($this->isCacheValid($cacheKey)) {
             return $this->optionsCache[$cacheKey]['data'];
         }
 
         $option = parent::findById($id);
-        
+
         if ($option) {
             // Decodificar action_data
             if (!empty($option['action_data'])) {
                 $option['action_data'] = json_decode($option['action_data'], true) ?? [];
             }
-            
+
             // Guardar en cache
             $this->optionsCache[$cacheKey] = [
                 'data' => $option,
@@ -627,17 +627,188 @@ class ChatbotOption extends BaseModel
 
         return $option;
     }
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
 
     /**
-     * Registrar error con contexto específico del modelo
+     * Crear nuevo chatbot_option con validaciones
+     * @param array $data Datos del nuevo chatbot_option
+     * @return mixed ID del nuevo chatbot_option o false en caso de error
      */
-    private function logError(string $message, array $context, \Exception $e): void
+    public function createChatbotOption(array $data): mixed
     {
-        Logger::error($message, array_merge($context, [
-            'model' => static::class,
-            'table' => $this->table,
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]));
+        try {
+            $this->validateChatbotOptionData($data);
+            $id = $this->store($data);
+            $this->invalidateChatbotOptionCache();
+
+            Logger::info('ChatbotOption created successfully', [
+                'model' => static::class,
+                'id' => $id
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            Logger::error('Error creating chatbot_option', [
+                'model' => static::class,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Obtener chatbot_option por ID
+     * @param mixed $id ID del chatbot_option
+     * @return array|null Datos del chatbot_option o null si no existe
+     */
+    public function getChatbotOption($id): ?array
+    {
+        try {
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            Logger::error('Error retrieving chatbot_option', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar chatbot_option con validaciones
+     * @param mixed $id ID del chatbot_option a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
+     */
+    public function updateChatbotOption($id, array $data): bool
+    {
+        try {
+            $this->validateChatbotOptionData($data, $id);
+            $result = $this->update($id, $data);
+
+            if ($result) {
+                $this->invalidateChatbotOptionCache();
+                Logger::info('ChatbotOption updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error updating chatbot_option', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar chatbot_option con validaciones
+     * @param mixed $id ID del chatbot_option a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteChatbotOption($id): bool
+    {
+        try {
+            $result = $this->delete($id);
+
+            if ($result) {
+                $this->invalidateChatbotOptionCache();
+                Logger::info('ChatbotOption deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error deleting chatbot_option', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar chatbot_options con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de chatbot_options
+     */
+    public function searchChatbotOptions(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            Logger::error('Error searching chatbot_options', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de chatbot_options con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de chatbot_options
+     */
+    public function countChatbotOptions(array $filters = []): int
+    {
+        try {
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            Logger::error('Error counting chatbot_options', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de chatbot_options
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateChatbotOptionData(array $data, $id = null): void
+    {
+        // TODO: Implementar validaciones específicas del modelo
+    }
+
+    /**
+     * Invalidar cache específico de chatbot_options
+     */
+    public function invalidateChatbotOptionCache(): int
+    {
+        try {
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags(['chatbot_options', 'chatbot_option_core', 'chatbot_option_list']);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            $this->logError('Error invalidating chatbot_option cache', [], $e);
+            return 0;
+        }
     }
 }

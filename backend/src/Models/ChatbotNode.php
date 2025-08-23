@@ -27,18 +27,7 @@ class ChatbotNode extends BaseModel
      */
     protected string $table = 'chatbot_nodes';
     /*
-     * 🔧 CORRECCIÓN AUTOMÁTICA APLICADA
-     * Modelo: ChatbotNode
-     * Fecha: 2025-08-23
-     * 
-     * Cambios realizados:
-     * ➕ Campos añadidos: ['type', 'content', 'is_active', 'created_by']
-     * ❌ Campos removidos: ['name', 'description', 'node_type', 'parent_id', 'conditions', 'actions', 'status', 'sort_order']
-     * 📊 Total campos fillable: 5
-     * 
-     * Los campos fillable ahora coinciden exactamente con las columnas
-     * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
-     */
+    
     
 
     /**
@@ -1014,5 +1003,190 @@ class ChatbotNode extends BaseModel
     public function getStats(): array
     {
         return $this->getChatbotStats()['by_type_and_status'] ?? [];
+    }
+
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
+
+    /**
+     * Crear nuevo chatbot_node con validaciones
+     * @param array $data Datos del nuevo chatbot_node
+     * @return mixed ID del nuevo chatbot_node o false en caso de error
+     */
+    public function createChatbotNode(array $data): mixed
+    {
+        try {
+            $this->validateChatbotNodeData($data);
+            $id = $this->store($data);
+            $this->invalidateChatbotNodeCache();
+
+            Logger::info('ChatbotNode created successfully', [
+                'model' => static::class,
+                'id' => $id
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            Logger::error('Error creating chatbot_node', [
+                'model' => static::class,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Obtener chatbot_node por ID
+     * @param mixed $id ID del chatbot_node
+     * @return array|null Datos del chatbot_node o null si no existe
+     */
+    public function getChatbotNode($id): ?array
+    {
+        try {
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            Logger::error('Error retrieving chatbot_node', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar chatbot_node con validaciones
+     * @param mixed $id ID del chatbot_node a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
+     */
+    public function updateChatbotNode($id, array $data): bool
+    {
+        try {
+            $this->validateChatbotNodeData($data, $id);
+            $result = $this->update($id, $data);
+
+            if ($result) {
+                $this->invalidateChatbotNodeCache();
+                Logger::info('ChatbotNode updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error updating chatbot_node', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar chatbot_node con validaciones
+     * @param mixed $id ID del chatbot_node a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteChatbotNode($id): bool
+    {
+        try {
+            $result = $this->delete($id);
+
+            if ($result) {
+                $this->invalidateChatbotNodeCache();
+                Logger::info('ChatbotNode deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error deleting chatbot_node', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar chatbot_nodes con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de chatbot_nodes
+     */
+    public function searchChatbotNodes(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            Logger::error('Error searching chatbot_nodes', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de chatbot_nodes con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de chatbot_nodes
+     */
+    public function countChatbotNodes(array $filters = []): int
+    {
+        try {
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            Logger::error('Error counting chatbot_nodes', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de chatbot_nodes
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateChatbotNodeData(array $data, $id = null): void
+    {
+        // TODO: Implementar validaciones específicas del modelo
+    }
+
+    /**
+     * Invalidar cache específico de chatbot_nodes
+     */
+    public function invalidateChatbotNodeCache(): int
+    {
+        try {
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags(['chatbot_nodes', 'chatbot_node_core', 'chatbot_node_list']);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            $this->logError('Error invalidating chatbot_node cache', [], $e);
+            return 0;
+        }
     }
 }

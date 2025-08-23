@@ -33,7 +33,7 @@ class Notification extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-     // Corresponde a bt_notifications en BD
+    // Corresponde a bt_notifications en BD
 
     protected array $fillable = [
         'candidate_id',
@@ -54,7 +54,7 @@ class Notification extends BaseModel
      */
     const VALID_TYPES = [
         'general',
-        'assignment_notice', 
+        'assignment_notice',
         'status_change',
         'internal_routing',
         'interview_scheduled',
@@ -67,7 +67,7 @@ class Notification extends BaseModel
      */
     const VALID_STATUSES = [
         'pending',
-        'sent', 
+        'sent',
         'failed'
     ];
 
@@ -89,7 +89,7 @@ class Notification extends BaseModel
             throw new \InvalidArgumentException('Candidate ID cannot be empty');
         }
 
-        $cacheKey = $this->generateCacheKey('unread_notifications', ['candidate_id' => $candidateId]);
+        $cacheKey = $this->buildNotificationCacheKey('unread_notifications', ['candidate_id' => $candidateId]);
 
         try {
             // Intentar obtener desde cache si está habilitado
@@ -105,7 +105,7 @@ class Notification extends BaseModel
             $this->logError('Error getting unread notifications', [
                 'candidate_id' => $candidateId
             ], $e);
-            
+
             // Fallback directo a la query
             return $this->executeUnreadNotificationsQuery($candidateId);
         }
@@ -125,7 +125,7 @@ class Notification extends BaseModel
         ];
 
         $orderBy = ['created_at' => 'DESC'];
-        
+
         return $this->findAll($filters, 1, 50, $orderBy);
     }
 
@@ -152,7 +152,7 @@ class Notification extends BaseModel
             if ($result) {
                 // Invalidar cache relacionado
                 $this->invalidateNotificationCache($notificationId);
-                
+
                 $this->logDebug('Notification marked as read', [
                     'notification_id' => $notificationId
                 ]);
@@ -177,8 +177,8 @@ class Notification extends BaseModel
      * @return array Lista de notificaciones del tipo especificado
      */
     public function getNotificationsByType(
-        string $type, 
-        array $filters = [], 
+        string $type,
+        array $filters = [],
         int $limit = 50,
         int $cacheTtl = self::CACHE_TTL
     ): array {
@@ -191,7 +191,7 @@ class Notification extends BaseModel
         }
 
         $filters['type'] = $type;
-        $cacheKey = $this->generateCacheKey('notifications_by_type', array_merge($filters, ['limit' => $limit]));
+        $cacheKey = $this->buildNotificationCacheKey('notifications_by_type', array_merge($filters, ['limit' => $limit]));
 
         try {
             // Intentar obtener desde cache si está habilitado
@@ -208,7 +208,7 @@ class Notification extends BaseModel
                 'type' => $type,
                 'filters' => $filters
             ], $e);
-            
+
             // Fallback directo a la query
             return $this->executeNotificationsByTypeQuery($filters, $limit);
         }
@@ -242,19 +242,19 @@ class Notification extends BaseModel
 
         try {
             $cutoffDate = date('Y-m-d H:i:s', strtotime("-{$daysOld} days"));
-            
+
             // Preparar condiciones para múltiples estados
             $statusPlaceholders = implode(',', array_fill(0, count($statusesToClean), '?'));
-            
+
             $query = "DELETE FROM `{$this->table}` 
                      WHERE `sent_at` < ? 
                      AND `status` IN ($statusPlaceholders)";
-            
+
             $params = array_merge([$cutoffDate], $statusesToClean);
-            
+
             $stmt = $this->db->prepare($query);
             $stmt->execute($params);
-            
+
             $deletedCount = $stmt->rowCount();
 
             if ($deletedCount > 0) {
@@ -322,7 +322,7 @@ class Notification extends BaseModel
         if (!isset($data['type'])) {
             $data['type'] = 'general';
         }
-        
+
         if (!isset($data['status'])) {
             $data['status'] = 'pending';
         }
@@ -333,12 +333,12 @@ class Notification extends BaseModel
 
         try {
             $notificationId = $this->store($data);
-            
+
             if ($notificationId) {
                 // Invalidar cache después de crear
                 $this->invalidateNotificationCache();
             }
-            
+
             return $notificationId;
         } catch (\Exception $e) {
             $this->logError('Error creating notification', ['data' => $data], $e);
@@ -413,11 +413,11 @@ class Notification extends BaseModel
         try {
             if (class_exists('\Utils\Cache')) {
                 $tags = ['notifications', 'unread_notifications', 'notifications_by_type'];
-                
+
                 if ($notificationId) {
                     $tags[] = "notification_{$notificationId}";
                 }
-                
+
                 return \Utils\Cache::deleteByTags($tags);
             }
             return 0;
@@ -448,52 +448,303 @@ class Notification extends BaseModel
     }
 
     /**
-     * Generar clave de cache para notificaciones
+     * Generar clave de cache para notificaciones (usa método de BaseModel)
      * 
      * @param string $operation Tipo de operación
      * @param array $params Parámetros para la clave
      * @return string Clave de cache
      */
-    private function generateCacheKey(string $operation, array $params = []): string
+    private function buildNotificationCacheKey(string $operation, array $params = []): string
     {
         $keyParts = ['notifications', $operation];
-        
+
         foreach ($params as $key => $value) {
             if (is_array($value)) {
                 $value = md5(serialize($value));
             }
             $keyParts[] = "{$key}:{$value}";
         }
-        
+
         return implode(':', $keyParts);
     }
 
+    // =====================================================
+    // CRUD METHODS ESTÁNDAR - BaseModel Template v2.0.0
+    // =====================================================
+
     /**
-     * Log de errores específico para notificaciones
-     * 
-     * @param string $message
-     * @param array $context
-     * @param \Exception|null $exception
+     * Crear nueva notificación con validaciones CRUD estándar
+     *
+     * @param array $data Datos de la notificación
+     * @return int|false ID de la nueva notificación o false en caso de error
+     * @throws InvalidArgumentException Si los datos no son válidos
      */
-    private function logError(string $message, array $context = [], ?\Exception $exception = null): void
+    public static function createNotificationStandard(array $data)
     {
-        Logger::error($message, array_merge([
-            'model' => static::class,
-            'table' => $this->table
-        ], $context, $exception ? ['exception' => $exception->getMessage()] : []));
+        self::validateNotificationData($data);
+
+        $notification = new self();
+        $id = $notification->store($data);
+
+        if (!$id) {
+            throw new \Exception('Error al crear la notificación');
+        }
+
+        self::invalidateNotificationCacheStandard();
+
+        return $id;
     }
 
     /**
-     * Log de debug específico para notificaciones
-     * 
-     * @param string $message
-     * @param array $context
+     * Obtener notificación por ID
+     *
+     * @param int $id ID de la notificación
+     * @return array|null
      */
-    private function logDebug(string $message, array $context = []): void
+    public static function getNotificationStandard(int $id): ?array
     {
-        Logger::debug($message, array_merge([
-            'model' => static::class,
-            'table' => $this->table
-        ], $context));
+        try {
+            $instance = new self();
+            return $instance->findById($id);
+        } catch (\Exception $e) {
+            self::logError('Error al obtener notificación', ['id' => $id], $e);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar notificación con validaciones
+     *
+     * @param int $id ID de la notificación
+     * @param array $data Nuevos datos
+     * @return bool
+     * @throws InvalidArgumentException Si los datos no son válidos
+     */
+    public static function updateNotificationStandard(int $id, array $data): bool
+    {
+        self::validateNotificationData($data, true);
+
+        $notification = new self();
+        $existingNotification = $notification->findById($id);
+        if (!$existingNotification) {
+            throw new \InvalidArgumentException("Notificación con ID {$id} no encontrada");
+        }
+
+        $success = $notification->update($id, $data);
+
+        if ($success) {
+            self::invalidateNotificationCacheStandard();
+        }
+
+        return $success;
+    }
+
+    /**
+     * Eliminar notificación
+     *
+     * @param int $id ID de la notificación
+     * @return bool
+     */
+    public static function deleteNotificationStandard(int $id): bool
+    {
+        try {
+            $notification = new self();
+            $existingNotification = $notification->findById($id);
+            if (!$existingNotification) {
+                return false;
+            }
+
+            $success = $notification->delete($id);
+
+            if ($success) {
+                self::invalidateNotificationCacheStandard();
+            }
+
+            return $success;
+        } catch (\Exception $e) {
+            self::logError('Error al eliminar notificación', ['id' => $id], $e);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar notificaciones
+     *
+     * @param array $criteria Criterios de búsqueda
+     * @param int $limit Límite de resultados
+     * @param int $offset Offset para paginación
+     * @return array
+     */
+    public static function searchNotificationsStandard(array $criteria = [], int $limit = 50, int $offset = 0): array
+    {
+        try {
+            $query = "SELECT * FROM notifications WHERE 1=1";
+            $params = [];
+
+            // Filtro por candidate_id
+            if (!empty($criteria['candidate_id'])) {
+                $query .= " AND candidate_id = :candidate_id";
+                $params['candidate_id'] = $criteria['candidate_id'];
+            }
+
+            // Filtro por tipo
+            if (!empty($criteria['type'])) {
+                $query .= " AND type = :type";
+                $params['type'] = $criteria['type'];
+            }
+
+            // Filtro por estado de lectura
+            if (isset($criteria['is_read'])) {
+                $query .= " AND is_read = :is_read";
+                $params['is_read'] = (bool)$criteria['is_read'];
+            }
+
+            // Filtro por título
+            if (!empty($criteria['title'])) {
+                $query .= " AND title LIKE :title";
+                $params['title'] = '%' . $criteria['title'] . '%';
+            }
+
+            $query .= " ORDER BY created_at DESC";
+            $query .= " LIMIT :limit OFFSET :offset";
+            $params['limit'] = $limit;
+            $params['offset'] = $offset;
+
+            $notification = new self();
+            return $notification->query($query, $params);
+        } catch (\Exception $e) {
+            self::logError('Error en búsqueda de notificaciones', $criteria, $e);
+            return [];
+        }
+    }
+
+    /**
+     * Contar notificaciones
+     *
+     * @param array $criteria Criterios de búsqueda
+     * @return int
+     */
+    public static function countNotificationsStandard(array $criteria = []): int
+    {
+        try {
+            $query = "SELECT COUNT(*) as total FROM notifications WHERE 1=1";
+            $params = [];
+
+            // Aplicar los mismos filtros que en searchNotifications
+            if (!empty($criteria['candidate_id'])) {
+                $query .= " AND candidate_id = :candidate_id";
+                $params['candidate_id'] = $criteria['candidate_id'];
+            }
+
+            if (!empty($criteria['type'])) {
+                $query .= " AND type = :type";
+                $params['type'] = $criteria['type'];
+            }
+
+            if (isset($criteria['is_read'])) {
+                $query .= " AND is_read = :is_read";
+                $params['is_read'] = (bool)$criteria['is_read'];
+            }
+
+            if (!empty($criteria['title'])) {
+                $query .= " AND title LIKE :title";
+                $params['title'] = '%' . $criteria['title'] . '%';
+            }
+
+            $notification = new self();
+            $result = $notification->query($query, $params);
+            return $result[0]['total'] ?? 0;
+        } catch (\Exception $e) {
+            self::logError('Error al contar notificaciones', $criteria, $e);
+            return 0;
+        }
+    }
+
+    /**
+     * Validar datos de notificación
+     *
+     * @param array $data Datos a validar
+     * @param bool $isUpdate Si es una actualización (permite campos opcionales)
+     * @throws InvalidArgumentException Si los datos no son válidos
+     */
+    private static function validateNotificationData(array $data, bool $isUpdate = false): void
+    {
+        // candidate_id es requerido en creación
+        if (!$isUpdate && empty($data['candidate_id'])) {
+            throw new \InvalidArgumentException('El candidate_id es requerido');
+        }
+
+        if (isset($data['candidate_id']) && (!is_numeric($data['candidate_id']) || $data['candidate_id'] <= 0)) {
+            throw new \InvalidArgumentException('El candidate_id debe ser un número entero positivo');
+        }
+
+        // type es requerido en creación
+        if (!$isUpdate && empty($data['type'])) {
+            throw new \InvalidArgumentException('El tipo es requerido');
+        }
+
+        if (isset($data['type'])) {
+            if (!in_array($data['type'], self::VALID_TYPES)) {
+                throw new \InvalidArgumentException('Tipo de notificación no válido: ' . $data['type']);
+            }
+        }
+
+        // title es requerido en creación
+        if (!$isUpdate && empty($data['title'])) {
+            throw new \InvalidArgumentException('El título es requerido');
+        }
+
+        if (isset($data['title'])) {
+            if (!is_string($data['title']) || strlen(trim($data['title'])) < 1) {
+                throw new \InvalidArgumentException('El título no puede estar vacío');
+            }
+            if (strlen($data['title']) > 255) {
+                throw new \InvalidArgumentException('El título no puede exceder los 255 caracteres');
+            }
+        }
+
+        // message es requerido en creación
+        if (!$isUpdate && empty($data['message'])) {
+            throw new \InvalidArgumentException('El mensaje es requerido');
+        }
+
+        if (isset($data['message'])) {
+            if (!is_string($data['message']) || strlen(trim($data['message'])) < 1) {
+                throw new \InvalidArgumentException('El mensaje no puede estar vacío');
+            }
+        }
+
+        // Validar is_read
+        if (isset($data['is_read']) && !is_bool($data['is_read'])) {
+            throw new \InvalidArgumentException('is_read debe ser un booleano');
+        }
+
+        // Validar data (debe ser un array válido o JSON válido)
+        if (isset($data['data'])) {
+            if (is_string($data['data'])) {
+                json_decode($data['data']);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    throw new \InvalidArgumentException('El campo data debe contener JSON válido');
+                }
+            } elseif (!is_array($data['data']) && !is_null($data['data'])) {
+                throw new \InvalidArgumentException('El campo data debe ser un array o JSON válido');
+            }
+        }
+    }
+
+    /**
+     * Invalidar caché relacionado con notificaciones (versión estática)
+     */
+    private static function invalidateNotificationCacheStandard(): void
+    {
+        try {
+            // Crear instancia temporal para acceder a métodos de instancia
+            $tempInstance = new self();
+            $tempInstance->invalidateAllNotificationCache();
+
+            self::logDebug('Caché de notificaciones invalidado');
+        } catch (\Exception $e) {
+            self::logError('Error al invalidar caché de notificaciones', [], $e);
+        }
     }
 }

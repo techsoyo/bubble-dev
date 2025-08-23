@@ -38,7 +38,7 @@ class SocialLogin extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-    
+
 
     /**
      * Campos que pueden ser asignados masivamente
@@ -111,7 +111,7 @@ class SocialLogin extends BaseModel
 
         try {
             $result = $this->findOneBy('provider', $provider);
-            
+
             if ($result && $result['provider_id'] === $providerId) {
                 // Desencriptar tokens antes de devolver
                 $result = $this->decryptTokens($result);
@@ -290,7 +290,7 @@ class SocialLogin extends BaseModel
 
             foreach ($socialLogins as $login) {
                 $profileData = null;
-                
+
                 // Decodificar profile_data si existe
                 if (!empty($login['profile_data'])) {
                     $profileData = json_decode($login['profile_data'], true);
@@ -347,7 +347,7 @@ class SocialLogin extends BaseModel
     {
         if (isset($this->profileCache[$socialLoginId])) {
             $cached = $this->profileCache[$socialLoginId];
-            
+
             // Verificar si el cache ha expirado
             if ($cached['expires_at'] > time()) {
                 return $cached['data'];
@@ -483,7 +483,7 @@ class SocialLogin extends BaseModel
     {
         try {
             $socialLogin = $this->findById($socialLoginId);
-            
+
             if (!$socialLogin || empty($socialLogin['expires_at'])) {
                 return false; // Si no hay fecha de expiración, asumimos que no expira
             }
@@ -578,7 +578,7 @@ class SocialLogin extends BaseModel
 
             $stmt = $this->db->prepare($query);
             $stmt->execute();
-            
+
             $deletedCount = $stmt->rowCount();
 
             Logger::info('Vinculaciones expiradas limpiadas', [
@@ -592,5 +592,271 @@ class SocialLogin extends BaseModel
             ]);
             throw new \RuntimeException('Error al limpiar vinculaciones expiradas: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * ==========================================
+     * MÉTODOS CRUD ESTÁNDAR (BaseModel Template)
+     * ==========================================
+     */
+
+    /**
+     * Validar datos de SocialLogin
+     *
+     * @param array $data Datos a validar
+     * @param bool $isUpdate Si es una actualización (algunos campos opcionales)
+     * @return array Array con 'valid' (bool) y 'errors' (array)
+     */
+    public static function validateSocialLoginData(array $data, bool $isUpdate = false): array
+    {
+        $errors = [];
+
+        // Validar candidate_id (requerido en creación)
+        if (!$isUpdate && empty($data['candidate_id'])) {
+            $errors[] = 'candidate_id es requerido';
+        } elseif (!empty($data['candidate_id']) && !is_numeric($data['candidate_id'])) {
+            $errors[] = 'candidate_id debe ser un número válido';
+        }
+
+        // Validar provider (requerido en creación)
+        if (!$isUpdate && empty($data['provider'])) {
+            $errors[] = 'provider es requerido';
+        } elseif (!empty($data['provider'])) {
+            if (!is_string($data['provider']) || strlen($data['provider']) > 50) {
+                $errors[] = 'provider debe ser un string válido (máx. 50 caracteres)';
+            } elseif (!in_array($data['provider'], self::SUPPORTED_PROVIDERS)) {
+                $errors[] = 'provider debe ser uno de: ' . implode(', ', self::SUPPORTED_PROVIDERS);
+            }
+        }
+
+        // Validar provider_user_id (requerido en creación)
+        if (!$isUpdate && empty($data['provider_user_id'])) {
+            $errors[] = 'provider_user_id es requerido';
+        } elseif (!empty($data['provider_user_id']) && (!is_string($data['provider_user_id']) || strlen($data['provider_user_id']) > 255)) {
+            $errors[] = 'provider_user_id debe ser un string válido (máx. 255 caracteres)';
+        }
+
+        return [
+            'valid' => empty($errors),
+            'errors' => $errors
+        ];
+    }
+
+    /**
+     * Crear nueva vinculación social (método estándar)
+     *
+     * @param array $data Datos de la vinculación social
+     * @return mixed ID del registro creado o false en caso de error
+     */
+    public static function createSocialLoginStandard(array $data)
+    {
+        $instance = new self();
+
+        // Validar datos
+        $validation = self::validateSocialLoginData($data);
+        if (!$validation['valid']) {
+            $instance->logError('Datos inválidos para crear vinculación social', [
+                'errors' => $validation['errors'],
+                'data' => $data
+            ]);
+            return false;
+        }
+
+        try {
+            $result = $instance->store($data);
+
+            if ($result) {
+                $instance->logDebug('Vinculación social creada exitosamente', [
+                    'id' => $result,
+                    'candidate_id' => $data['candidate_id'] ?? null,
+                    'provider' => $data['provider'] ?? null
+                ]);
+
+                // Invalidar cache relacionado
+                $instance->invalidateModelCache();
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            $instance->logError('Error al crear vinculación social', [
+                'error' => $e->getMessage(),
+                'data' => $data
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Obtener vinculación social por ID (método estándar)
+     *
+     * @param int $id ID de la vinculación social
+     * @return array|null Datos de la vinculación social o null si no existe
+     */
+    public static function getSocialLoginStandard(int $id): ?array
+    {
+        $instance = new self();
+
+        try {
+            $result = $instance->findById($id);
+
+            if ($result) {
+                $instance->logDebug('Vinculación social obtenida', ['id' => $id]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            $instance->logError('Error al obtener vinculación social', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar vinculación social (método estándar)
+     *
+     * @param int $id ID de la vinculación social
+     * @param array $data Datos a actualizar
+     * @return bool Éxito de la operación
+     */
+    public static function updateSocialLoginStandard(int $id, array $data): bool
+    {
+        $instance = new self();
+
+        // Validar datos para actualización
+        $validation = self::validateSocialLoginData($data, true);
+        if (!$validation['valid']) {
+            $instance->logError('Datos inválidos para actualizar vinculación social', [
+                'id' => $id,
+                'errors' => $validation['errors'],
+                'data' => $data
+            ]);
+            return false;
+        }
+
+        try {
+            $result = $instance->update($id, $data);
+
+            if ($result) {
+                $instance->logDebug('Vinculación social actualizada exitosamente', [
+                    'id' => $id,
+                    'data' => $data
+                ]);
+
+                // Invalidar cache relacionado
+                $instance->invalidateModelCache();
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            $instance->logError('Error al actualizar vinculación social', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'data' => $data
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar vinculación social (método estándar)
+     *
+     * @param int $id ID de la vinculación social
+     * @return bool Éxito de la operación
+     */
+    public static function deleteSocialLoginStandard(int $id): bool
+    {
+        $instance = new self();
+
+        try {
+            $result = $instance->delete($id);
+
+            if ($result) {
+                $instance->logDebug('Vinculación social eliminada exitosamente', ['id' => $id]);
+
+                // Invalidar cache relacionado
+                $instance->invalidateModelCache();
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            $instance->logError('Error al eliminar vinculación social', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar vinculaciones sociales (método estándar)
+     *
+     * @param array $criteria Criterios de búsqueda
+     * @param int $limit Límite de resultados (0 = sin límite)
+     * @param int $offset Desplazamiento para paginación
+     * @return array Lista de vinculaciones sociales
+     */
+    public static function searchSocialLoginsStandard(array $criteria = [], int $limit = 0, int $offset = 0): array
+    {
+        $instance = new self();
+
+        try {
+            $result = $instance->findAll($criteria, 1, $limit);
+
+            $instance->logDebug('Búsqueda de vinculaciones sociales realizada', [
+                'criteria' => $criteria,
+                'limit' => $limit,
+                'offset' => $offset,
+                'results_count' => count($result)
+            ]);
+
+            return $result;
+        } catch (\Exception $e) {
+            $instance->logError('Error en búsqueda de vinculaciones sociales', [
+                'criteria' => $criteria,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Contar vinculaciones sociales (método estándar)
+     *
+     * @param array $criteria Criterios de conteo
+     * @return int Número de vinculaciones sociales que coinciden con los criterios
+     */
+    public static function countSocialLoginsStandard(array $criteria = []): int
+    {
+        $instance = new self();
+
+        try {
+            $result = $instance->countAll($criteria);
+
+            $instance->logDebug('Conteo de vinculaciones sociales realizado', [
+                'criteria' => $criteria,
+                'count' => $result
+            ]);
+
+            return $result;
+        } catch (\Exception $e) {
+            $instance->logError('Error en conteo de vinculaciones sociales', [
+                'criteria' => $criteria,
+                'error' => $e->getMessage()
+            ]);
+            return 0;
+        }
+    }
+
+    /**
+     * Invalidar cache del modelo
+     *
+     * @return void
+     */
+    protected function invalidateModelCache(): void
+    {
+        // Limpiar cache específico del modelo usando método de BaseModel
+        $this->invalidateCache();
     }
 }

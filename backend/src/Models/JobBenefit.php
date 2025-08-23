@@ -37,7 +37,7 @@ class JobBenefit extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-    
+
 
     /**
      * Campos que pueden ser asignados masivamente
@@ -86,8 +86,20 @@ class JobBenefit extends BaseModel
      * Monedas válidas
      */
     private const VALID_CURRENCIES = [
-        'USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CHF',
-        'MXN', 'BRL', 'ARS', 'CLP', 'PEN', 'COP', 'UYU'
+        'USD',
+        'EUR',
+        'GBP',
+        'CAD',
+        'AUD',
+        'JPY',
+        'CHF',
+        'MXN',
+        'BRL',
+        'ARS',
+        'CLP',
+        'PEN',
+        'COP',
+        'UYU'
     ];
 
     /**
@@ -120,7 +132,7 @@ class JobBenefit extends BaseModel
             }
 
             $filters = ['job_id' => $jobId];
-            
+
             if (!$includeOptional) {
                 $filters['is_required'] = 1;
             }
@@ -139,7 +151,6 @@ class JobBenefit extends BaseModel
             ]);
 
             return $results;
-
         } catch (\Exception $e) {
             $this->logError('Error getting benefits by job', [
                 'job_id' => $jobId,
@@ -172,7 +183,7 @@ class JobBenefit extends BaseModel
         }
 
         $filters = array_merge(['benefit_type' => $benefitType], $additionalFilters);
-        
+
         $cacheKey = $this->generateCacheKey('benefits_by_type', $filters);
 
         try {
@@ -196,7 +207,6 @@ class JobBenefit extends BaseModel
             ]);
 
             return $results;
-
         } catch (\Exception $e) {
             $this->logError('Error getting benefits by type', [
                 'type' => $benefitType,
@@ -219,7 +229,7 @@ class JobBenefit extends BaseModel
     public function getRequiredBenefits($jobId = null, int $limit = 100, int $cacheTtl = 300): array
     {
         $filters = ['is_required' => 1];
-        
+
         if ($jobId !== null) {
             if (empty($jobId)) {
                 throw new \InvalidArgumentException('Job ID cannot be empty when specified');
@@ -252,7 +262,6 @@ class JobBenefit extends BaseModel
             ]);
 
             return $results;
-
         } catch (\Exception $e) {
             $this->logError('Error getting required benefits', ['job_id' => $jobId], $e);
             throw new \RuntimeException('Failed to get required benefits: ' . $e->getMessage());
@@ -305,7 +314,7 @@ class JobBenefit extends BaseModel
             $totalValue = 0;
             $breakdown = [];
             $currencyBreakdown = [];
-            
+
             foreach ($benefits as $benefit) {
                 $value = $benefit['value'] ?? 0;
                 $currency = $benefit['currency'] ?? $targetCurrency;
@@ -350,7 +359,6 @@ class JobBenefit extends BaseModel
             ]);
 
             return $result;
-
         } catch (\Exception $e) {
             $this->logError('Error calculating benefits value', [
                 'job_id' => $jobId,
@@ -409,7 +417,6 @@ class JobBenefit extends BaseModel
             ]);
 
             return $id;
-
         } catch (\Exception $e) {
             $this->logError('Error creating benefit', ['data' => $data], $e);
             throw new \RuntimeException('Failed to create benefit: ' . $e->getMessage());
@@ -454,7 +461,6 @@ class JobBenefit extends BaseModel
             ]);
 
             return $result;
-
         } catch (\Exception $e) {
             $this->logError('Error updating benefit', [
                 'id' => $id,
@@ -494,7 +500,6 @@ class JobBenefit extends BaseModel
             ]);
 
             return $result;
-
         } catch (\Exception $e) {
             $this->logError('Error deleting benefit', ['id' => $id], $e);
             throw new \RuntimeException('Failed to delete benefit: ' . $e->getMessage());
@@ -559,11 +564,13 @@ class JobBenefit extends BaseModel
 
         $keysToRemove = [];
         foreach ($this->cache as $key => $value) {
-            if (strpos($key, 'job_benefits') !== false || 
+            if (
+                strpos($key, 'job_benefits') !== false ||
                 strpos($key, 'benefits_by_type') !== false ||
                 strpos($key, 'required_benefits') !== false ||
-                strpos($key, 'benefits_value') !== false) {
-                
+                strpos($key, 'benefits_value') !== false
+            ) {
+
                 if ($jobId === null || strpos($key, "job_id:$jobId") !== false) {
                     $keysToRemove[] = $key;
                 }
@@ -578,23 +585,6 @@ class JobBenefit extends BaseModel
             'job_id' => $jobId,
             'keys_removed' => count($keysToRemove)
         ]);
-    }
-
-    /**
-     * Generar clave de cache única
-     * 
-     * @param string $prefix Prefijo de la clave
-     * @param array $data Datos para incluir en la clave
-     * @return string Clave de cache
-     */
-    private function generateCacheKey(string $prefix, array $data): string
-    {
-        ksort($data);
-        $dataString = '';
-        foreach ($data as $key => $value) {
-            $dataString .= "$key:" . (is_array($value) ? json_encode($value) : $value) . "|";
-        }
-        return $prefix . '_' . md5($dataString);
     }
 
     /**
@@ -633,20 +623,240 @@ class JobBenefit extends BaseModel
         return self::VALID_CURRENCIES;
     }
 
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
+
     /**
-     * Logging helpers
+     * Crear nuevo job_benefit con validaciones
+     * @param array $data Datos del nuevo job_benefit
+     * @return mixed ID del nuevo job_benefit o false en caso de error
      */
-    private function logDebug(string $message, array $context = []): void
+    public function createJobBenefit(array $data): mixed
     {
-        Logger::debug($message, array_merge(['model' => static::class], $context));
+        try {
+            $this->validateJobBenefitData($data);
+            $id = $this->store($data);
+            $this->invalidateJobBenefitCache();
+
+            $this->logDebug('JobBenefit created successfully', [
+                'model' => static::class,
+                'id' => $id
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            $this->logError('Error creating job_benefit', [
+                'model' => static::class,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ], $e);
+            return false;
+        }
     }
 
-    private function logError(string $message, array $context = [], ?\Exception $exception = null): void
+    /**
+     * Obtener job_benefit por ID
+     * @param mixed $id ID del job_benefit
+     * @return array|null Datos del job_benefit o null si no existe
+     */
+    public function getJobBenefit($id): ?array
     {
-        $contextData = array_merge(['model' => static::class], $context);
-        if ($exception) {
-            $contextData['exception'] = $exception->getMessage();
+        try {
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            $this->logError('Error retrieving job_benefit', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ], $e);
+            return null;
         }
-        Logger::error($message, $contextData);
+    }
+
+    /**
+     * Actualizar job_benefit con validaciones
+     * @param mixed $id ID del job_benefit a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
+     */
+    public function updateJobBenefit($id, array $data): bool
+    {
+        try {
+            $this->validateJobBenefitData($data, $id);
+            $result = $this->update($id, $data);
+
+            if ($result) {
+                $this->invalidateJobBenefitCache();
+                $this->logDebug('JobBenefit updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            $this->logError('Error updating job_benefit', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ], $e);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar job_benefit con validaciones
+     * @param mixed $id ID del job_benefit a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteJobBenefit($id): bool
+    {
+        try {
+            $result = $this->delete($id);
+
+            if ($result) {
+                $this->invalidateJobBenefitCache();
+                $this->logDebug('JobBenefit deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            $this->logError('Error deleting job_benefit', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ], $e);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar job_benefits con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de job_benefits
+     */
+    public function searchJobBenefits(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            $this->logError('Error searching job_benefits', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ], $e);
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de job_benefits con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de job_benefits
+     */
+    public function countJobBenefits(array $filters = []): int
+    {
+        try {
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            $this->logError('Error counting job_benefits', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ], $e);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de job_benefits
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateJobBenefitData(array $data, $id = null): void
+    {
+        // Validar job_id requerido
+        if (isset($data['job_id'])) {
+            if (empty($data['job_id'])) {
+                throw new \InvalidArgumentException('Job ID is required and cannot be empty');
+            }
+
+            // Validar que el job existe
+            if (!$this->validateJobExists($data['job_id'])) {
+                throw new \InvalidArgumentException('Job ID does not exist');
+            }
+        }
+
+        // Validar benefit_type requerido
+        if (isset($data['benefit_type']) && empty(trim($data['benefit_type']))) {
+            throw new \InvalidArgumentException('Benefit type is required and cannot be empty');
+        }
+
+        // Validar que benefit_type esté en la lista de tipos válidos si se proporciona
+        if (isset($data['benefit_type']) && !in_array($data['benefit_type'], self::VALID_BENEFIT_TYPES)) {
+            throw new \InvalidArgumentException('Invalid benefit type. Valid types: ' . implode(', ', self::VALID_BENEFIT_TYPES));
+        }
+
+        // Validar duplicados: mismo job_id + benefit_type
+        if (isset($data['job_id']) && isset($data['benefit_type'])) {
+            $existing = $this->findBy('job_id', $data['job_id']);
+            if (!empty($existing)) {
+                foreach ($existing as $benefit) {
+                    if ($benefit['benefit_type'] === $data['benefit_type']) {
+                        // Si es actualización, verificar que no sea el mismo registro
+                        if ($id === null || $benefit['id'] != $id) {
+                            throw new \InvalidArgumentException('This benefit type already exists for this job');
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Validar que existe un job con el ID proporcionado
+     * @param mixed $jobId ID del job a validar
+     * @return bool True si existe el job
+     */
+    private function validateJobExists($jobId): bool
+    {
+        try {
+            $sql = "SELECT COUNT(*) as count FROM jobs WHERE id = :job_id";
+            $result = $this->query($sql, [':job_id' => $jobId]);
+            return ($result[0]['count'] ?? 0) > 0;
+        } catch (\Exception $e) {
+            $this->logError('Error validating job exists', ['job_id' => $jobId], $e);
+            return false;
+        }
+    }
+
+    /**
+     * Invalidar cache específico de job_benefits
+     */
+    public function invalidateJobBenefitCache(): int
+    {
+        try {
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags(['job_benefits', 'job_benefit_core', 'job_benefit_list']);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            $this->logError('Error invalidating job_benefit cache', [], $e);
+            return 0;
+        }
     }
 }

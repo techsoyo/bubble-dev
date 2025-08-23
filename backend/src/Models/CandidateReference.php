@@ -293,4 +293,188 @@ class CandidateReference extends BaseModel
             throw new \RuntimeException('Failed to retrieve candidate references: ' . $e->getMessage());
         }
     }
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
+
+    /**
+     * Crear nuevo candidate_reference con validaciones
+     * @param array $data Datos del nuevo candidate_reference
+     * @return mixed ID del nuevo candidate_reference o false en caso de error
+     */
+    public function createCandidateReference(array $data): mixed
+    {
+        try {
+            $this->validateCandidateReferenceData($data);
+            $id = $this->store($data);
+            $this->invalidateCandidateReferenceCache();
+
+            Logger::info('CandidateReference created successfully', [
+                'model' => static::class,
+                'id' => $id
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            Logger::error('Error creating candidate_reference', [
+                'model' => static::class,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Obtener candidate_reference por ID
+     * @param mixed $id ID del candidate_reference
+     * @return array|null Datos del candidate_reference o null si no existe
+     */
+    public function getCandidateReference($id): ?array
+    {
+        try {
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            Logger::error('Error retrieving candidate_reference', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar candidate_reference con validaciones
+     * @param mixed $id ID del candidate_reference a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
+     */
+    public function updateCandidateReference($id, array $data): bool
+    {
+        try {
+            $this->validateCandidateReferenceData($data, $id);
+            $result = $this->update($id, $data);
+
+            if ($result) {
+                $this->invalidateCandidateReferenceCache();
+                Logger::info('CandidateReference updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error updating candidate_reference', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar candidate_reference con validaciones
+     * @param mixed $id ID del candidate_reference a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteCandidateReference($id): bool
+    {
+        try {
+            $result = $this->delete($id);
+
+            if ($result) {
+                $this->invalidateCandidateReferenceCache();
+                Logger::info('CandidateReference deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error deleting candidate_reference', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar candidate_references con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de candidate_references
+     */
+    public function searchCandidateReferences(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            Logger::error('Error searching candidate_references', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de candidate_references con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de candidate_references
+     */
+    public function countCandidateReferences(array $filters = []): int
+    {
+        try {
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            Logger::error('Error counting candidate_references', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de candidate_references
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateCandidateReferenceData(array $data, $id = null): void
+    {
+        // TODO: Implementar validaciones específicas del modelo
+    }
+
+    /**
+     * Invalidar cache específico de candidate_references
+     */
+    public function invalidateCandidateReferenceCache(): int
+    {
+        try {
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags(['candidate_references', 'candidate_reference_core', 'candidate_reference_list']);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            $this->logError('Error invalidating candidate_reference cache', [], $e);
+            return 0;
+        }
+    }
 }

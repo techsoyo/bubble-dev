@@ -494,4 +494,188 @@ class CandidateEducation extends BaseModel
             return [];
         }
     }
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
+
+    /**
+     * Crear nuevo candidate_education con validaciones
+     * @param array $data Datos del nuevo candidate_education
+     * @return mixed ID del nuevo candidate_education o false en caso de error
+     */
+    public function createCandidateEducation(array $data): mixed
+    {
+        try {
+            $this->validateCandidateEducationData($data);
+            $id = $this->store($data);
+            $this->invalidateCandidateEducationCache();
+
+            Logger::info('CandidateEducation created successfully', [
+                'model' => static::class,
+                'id' => $id
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            Logger::error('Error creating candidate_education', [
+                'model' => static::class,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Obtener candidate_education por ID
+     * @param mixed $id ID del candidate_education
+     * @return array|null Datos del candidate_education o null si no existe
+     */
+    public function getCandidateEducation($id): ?array
+    {
+        try {
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            Logger::error('Error retrieving candidate_education', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar candidate_education con validaciones
+     * @param mixed $id ID del candidate_education a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
+     */
+    public function updateCandidateEducation($id, array $data): bool
+    {
+        try {
+            $this->validateCandidateEducationData($data, $id);
+            $result = $this->update($id, $data);
+
+            if ($result) {
+                $this->invalidateCandidateEducationCache();
+                Logger::info('CandidateEducation updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error updating candidate_education', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar candidate_education con validaciones
+     * @param mixed $id ID del candidate_education a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteCandidateEducation($id): bool
+    {
+        try {
+            $result = $this->delete($id);
+
+            if ($result) {
+                $this->invalidateCandidateEducationCache();
+                Logger::info('CandidateEducation deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error deleting candidate_education', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar candidate_educations con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de candidate_educations
+     */
+    public function searchCandidateEducations(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            Logger::error('Error searching candidate_educations', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de candidate_educations con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de candidate_educations
+     */
+    public function countCandidateEducations(array $filters = []): int
+    {
+        try {
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            Logger::error('Error counting candidate_educations', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de candidate_educations
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateCandidateEducationData(array $data, $id = null): void
+    {
+        // TODO: Implementar validaciones específicas del modelo
+    }
+
+    /**
+     * Invalidar cache específico de candidate_educations
+     */
+    public function invalidateCandidateEducationCache(): int
+    {
+        try {
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags(['candidate_educations', 'candidate_education_core', 'candidate_education_list']);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            $this->logError('Error invalidating candidate_education cache', [], $e);
+            return 0;
+        }
+    }
 }

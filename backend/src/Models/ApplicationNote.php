@@ -455,4 +455,189 @@ class ApplicationNote extends BaseModel
         // Fallback al método padre para otros casos
         return parent::findAll($filters, $page, $limit, $orderBy);
     }
+
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
+
+    /**
+     * Crear nuevo application_note con validaciones
+     * @param array $data Datos del nuevo application_note
+     * @return mixed ID del nuevo application_note o false en caso de error
+     */
+    public function createApplicationNote(array $data): mixed
+    {
+        try {
+            $this->validateApplicationNoteData($data);
+            $id = $this->store($data);
+            $this->invalidateApplicationNoteCache();
+
+            Logger::info('ApplicationNote created successfully', [
+                'model' => static::class,
+                'id' => $id
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            Logger::error('Error creating application_note', [
+                'model' => static::class,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Obtener application_note por ID
+     * @param mixed $id ID del application_note
+     * @return array|null Datos del application_note o null si no existe
+     */
+    public function getApplicationNote($id): ?array
+    {
+        try {
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            Logger::error('Error retrieving application_note', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar application_note con validaciones
+     * @param mixed $id ID del application_note a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
+     */
+    public function updateApplicationNote($id, array $data): bool
+    {
+        try {
+            $this->validateApplicationNoteData($data, $id);
+            $result = $this->update($id, $data);
+
+            if ($result) {
+                $this->invalidateApplicationNoteCache();
+                Logger::info('ApplicationNote updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error updating application_note', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar application_note con validaciones
+     * @param mixed $id ID del application_note a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteApplicationNote($id): bool
+    {
+        try {
+            $result = $this->delete($id);
+
+            if ($result) {
+                $this->invalidateApplicationNoteCache();
+                Logger::info('ApplicationNote deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error deleting application_note', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar application_notes con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de application_notes
+     */
+    public function searchApplicationNotes(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            Logger::error('Error searching application_notes', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de application_notes con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de application_notes
+     */
+    public function countApplicationNotes(array $filters = []): int
+    {
+        try {
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            Logger::error('Error counting application_notes', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de application_notes
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateApplicationNoteData(array $data, $id = null): void
+    {
+        // TODO: Implementar validaciones específicas del modelo
+    }
+
+    /**
+     * Invalidar cache específico de application_notes
+     */
+    public function invalidateApplicationNoteCache(): int
+    {
+        try {
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags(['application_notes', 'application_note_core', 'application_note_list']);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            $this->logError('Error invalidating application_note cache', [], $e);
+            return 0;
+        }
+    }
 }

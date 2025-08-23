@@ -22,7 +22,7 @@ class CandidateLanguage extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-    
+
     protected string $primaryKey = 'id';
 
     protected array $fillable = [
@@ -221,7 +221,7 @@ class CandidateLanguage extends BaseModel
             ]);
 
             if ($success) {
-                $this->logInfo('Language proficiency updated', [
+                $this->logDebug('Language proficiency updated', [
                     'language_id' => $languageId,
                     'old_level' => $existing['proficiency_level'] ?? 'unknown',
                     'new_level' => $newProficiencyLevel
@@ -383,9 +383,11 @@ class CandidateLanguage extends BaseModel
                 ];
 
                 // Determinar nivel más alto
-                if ($stats['highest_level'] === null || 
-                    array_search($level, array_keys(self::PROFICIENCY_LEVELS)) > 
-                    array_search($stats['highest_level'], array_keys(self::PROFICIENCY_LEVELS))) {
+                if (
+                    $stats['highest_level'] === null ||
+                    array_search($level, array_keys(self::PROFICIENCY_LEVELS)) >
+                    array_search($stats['highest_level'], array_keys(self::PROFICIENCY_LEVELS))
+                ) {
                     $stats['highest_level'] = $level;
                 }
             }
@@ -399,37 +401,188 @@ class CandidateLanguage extends BaseModel
         }
     }
 
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
+
     /**
-     * Logging helpers siguiendo el patrón del BaseModel
+     * Crear nuevo candidate_language con validaciones
+     * @param array $data Datos del nuevo candidate_language
+     * @return mixed ID del nuevo candidate_language o false en caso de error
      */
-    private function logDebug(string $message, array $context = []): void
+    public function createCandidateLanguage(array $data): mixed
     {
-        Logger::debug($message, array_merge([
-            'model' => static::class,
-            'table' => $this->table
-        ], $context));
-    }
+        try {
+            $this->validateCandidateLanguageData($data);
+            $id = $this->store($data);
+            $this->invalidateCandidateLanguageCache();
 
-    private function logInfo(string $message, array $context = []): void
-    {
-        Logger::info($message, array_merge([
-            'model' => static::class,
-            'table' => $this->table
-        ], $context));
-    }
+            Logger::info('CandidateLanguage created successfully', [
+                'model' => static::class,
+                'id' => $id
+            ]);
 
-    private function logError(string $message, array $context = [], ?\Exception $exception = null): void
-    {
-        $logContext = array_merge([
-            'model' => static::class,
-            'table' => $this->table
-        ], $context);
-
-        if ($exception) {
-            $logContext['exception'] = $exception->getMessage();
-            $logContext['trace'] = $exception->getTraceAsString();
+            return $id;
+        } catch (\Exception $e) {
+            Logger::error('Error creating candidate_language', [
+                'model' => static::class,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
         }
+    }
 
-        Logger::error($message, $logContext);
+    /**
+     * Obtener candidate_language por ID
+     * @param mixed $id ID del candidate_language
+     * @return array|null Datos del candidate_language o null si no existe
+     */
+    public function getCandidateLanguage($id): ?array
+    {
+        try {
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            Logger::error('Error retrieving candidate_language', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar candidate_language con validaciones
+     * @param mixed $id ID del candidate_language a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
+     */
+    public function updateCandidateLanguage($id, array $data): bool
+    {
+        try {
+            $this->validateCandidateLanguageData($data, $id);
+            $result = $this->update($id, $data);
+
+            if ($result) {
+                $this->invalidateCandidateLanguageCache();
+                Logger::info('CandidateLanguage updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error updating candidate_language', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar candidate_language con validaciones
+     * @param mixed $id ID del candidate_language a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteCandidateLanguage($id): bool
+    {
+        try {
+            $result = $this->delete($id);
+
+            if ($result) {
+                $this->invalidateCandidateLanguageCache();
+                Logger::info('CandidateLanguage deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error deleting candidate_language', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar candidate_languages con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de candidate_languages
+     */
+    public function searchCandidateLanguages(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            Logger::error('Error searching candidate_languages', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de candidate_languages con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de candidate_languages
+     */
+    public function countCandidateLanguages(array $filters = []): int
+    {
+        try {
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            Logger::error('Error counting candidate_languages', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de candidate_languages
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateCandidateLanguageData(array $data, $id = null): void
+    {
+        // TODO: Implementar validaciones específicas del modelo
+    }
+
+    /**
+     * Invalidar cache específico de candidate_languages
+     */
+    public function invalidateCandidateLanguageCache(): int
+    {
+        try {
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags(['candidate_languages', 'candidate_language_core', 'candidate_language_list']);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            $this->logError('Error invalidating candidate_language cache', [], $e);
+            return 0;
+        }
     }
 }

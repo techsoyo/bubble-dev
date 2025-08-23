@@ -34,7 +34,7 @@ class JobRequirement extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-    
+
     protected string $primaryKey = 'id';
 
     /**
@@ -255,7 +255,7 @@ class JobRequirement extends BaseModel
             }
 
             // Obtener requisitos del trabajo
-            $requirements = $mandatoryOnly 
+            $requirements = $mandatoryOnly
                 ? $this->getMandatoryRequirements($jobId, $useCache)
                 : $this->getRequirementsByJob($jobId, $useCache);
 
@@ -438,7 +438,7 @@ class JobRequirement extends BaseModel
     {
         $cacheKeys = [
             "job_requirements_job_{$jobId}",
-            "mandatory_requirements_job_{$jobId}", 
+            "mandatory_requirements_job_{$jobId}",
             "requirements_priority_job_{$jobId}_ASC",
             "requirements_priority_job_{$jobId}_DESC"
         ];
@@ -470,43 +470,43 @@ class JobRequirement extends BaseModel
             case 'education':
                 // Verificación básica de educación (expandir según necesidades)
                 return !empty($candidate['education_summary'] ?? '');
-                
+
             case 'experience':
                 // Verificación básica de experiencia
                 return !empty($candidate['experience_summary'] ?? '');
-                
+
             case 'skill':
                 // Verificación básica de habilidades
                 $skills = $candidate['soft_skills'] ?? [];
                 $hardSkills = $candidate['hard_skills'] ?? [];
-                
+
                 if (is_string($skills)) {
                     $skills = json_decode($skills, true) ?? [];
                 }
                 if (is_string($hardSkills)) {
                     $hardSkills = json_decode($hardSkills, true) ?? [];
                 }
-                
+
                 $allSkills = array_merge($skills, $hardSkills);
                 $allSkillsText = strtolower(implode(' ', $allSkills));
-                
+
                 return strpos($allSkillsText, $description) !== false;
-                
+
             case 'language':
                 // Verificación básica de idiomas
                 $languages = $candidate['languages_summary'] ?? '';
                 return strpos(strtolower($languages), $description) !== false;
-                
+
             case 'certification':
                 // Verificación básica de certificaciones  
                 $certifications = $candidate['certifications_summary'] ?? '';
                 return strpos(strtolower($certifications), $description) !== false;
-                
+
             case 'location':
                 // Verificación básica de ubicación
                 $location = strtolower($candidate['location'] ?? '');
                 return strpos($location, $description) !== false;
-                
+
             default:
                 // Para tipos no reconocidos, retornar false por defecto
                 return false;
@@ -530,7 +530,7 @@ class JobRequirement extends BaseModel
     }
 
     // Mantener métodos del modelo original para compatibilidad hacia atrás
-    
+
     /**
      * Obtiene los requisitos de un puesto de trabajo concreto.
      * 
@@ -571,5 +571,276 @@ class JobRequirement extends BaseModel
     public static function getValidPriorities(): array
     {
         return self::VALID_PRIORITIES;
+    }
+
+    // =====================================================
+    // CRUD METHODS ESTÁNDAR - BaseModel Template v2.0.0
+    // =====================================================
+
+    /**
+     * Crear un nuevo requisito de trabajo
+     *
+     * @param array $data Datos del requisito
+     * @return int|false ID del nuevo requisito o false en caso de error
+     * @throws InvalidArgumentException Si los datos no son válidos
+     */
+    public static function createJobRequirement(array $data)
+    {
+        self::validateJobRequirementData($data);
+
+        $jobRequirement = new self();
+        $id = $jobRequirement->store($data);
+
+        if (!$id) {
+            throw new \Exception('Error al crear el requisito de trabajo');
+        }
+
+        self::invalidateJobRequirementCache();
+
+        return $id;
+    }
+
+    /**
+     * Obtener un requisito de trabajo por ID
+     *
+     * @param int $id ID del requisito
+     * @return array|null
+     */
+    public static function getJobRequirement(int $id): ?array
+    {
+        try {
+            $instance = new self();
+            return $instance->findById($id);
+        } catch (\Exception $e) {
+            self::logError('Error al obtener requisito de trabajo', ['id' => $id], $e);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar un requisito de trabajo
+     *
+     * @param int $id ID del requisito
+     * @param array $data Nuevos datos
+     * @return bool
+     * @throws InvalidArgumentException Si los datos no son válidos
+     */
+    public static function updateJobRequirement(int $id, array $data): bool
+    {
+        self::validateJobRequirementData($data, true);
+
+        $jobRequirement = new self();
+        $existingJob = $jobRequirement->findById($id);
+        if (!$existingJob) {
+            throw new \InvalidArgumentException("Requisito de trabajo con ID {$id} no encontrado");
+        }
+
+        $success = $jobRequirement->update($id, $data);
+
+        if ($success) {
+            self::invalidateJobRequirementCache();
+        }
+
+        return $success;
+    }
+
+    /**
+     * Eliminar un requisito de trabajo
+     *
+     * @param int $id ID del requisito
+     * @return bool
+     */
+    public static function deleteJobRequirement(int $id): bool
+    {
+        try {
+            $jobRequirement = new self();
+            $existingJob = $jobRequirement->findById($id);
+            if (!$existingJob) {
+                return false;
+            }
+
+            $success = $jobRequirement->delete($id);
+
+            if ($success) {
+                self::invalidateJobRequirementCache();
+            }
+
+            return $success;
+        } catch (\Exception $e) {
+            self::logError('Error al eliminar requisito de trabajo', ['id' => $id], $e);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar requisitos de trabajo
+     *
+     * @param array $criteria Criterios de búsqueda
+     * @param int $limit Límite de resultados
+     * @param int $offset Offset para paginación
+     * @return array
+     */
+    public static function searchJobRequirements(array $criteria = [], int $limit = 50, int $offset = 0): array
+    {
+        try {
+            $query = "SELECT * FROM job_requirements WHERE 1=1";
+            $params = [];
+
+            // Filtro por job_id
+            if (!empty($criteria['job_id'])) {
+                $query .= " AND job_id = :job_id";
+                $params['job_id'] = $criteria['job_id'];
+            }
+
+            // Filtro por requisito (texto)
+            if (!empty($criteria['requirement'])) {
+                $query .= " AND requirement LIKE :requirement";
+                $params['requirement'] = '%' . $criteria['requirement'] . '%';
+            }
+
+            // Filtro por tipo
+            if (!empty($criteria['requirement_type'])) {
+                $query .= " AND requirement_type = :requirement_type";
+                $params['requirement_type'] = $criteria['requirement_type'];
+            }
+
+            // Filtro por prioridad
+            if (!empty($criteria['priority'])) {
+                $query .= " AND priority = :priority";
+                $params['priority'] = $criteria['priority'];
+            }
+
+            // Filtro por estado activo
+            if (isset($criteria['is_active'])) {
+                $query .= " AND is_active = :is_active";
+                $params['is_active'] = (bool)$criteria['is_active'];
+            }
+
+            $query .= " ORDER BY priority DESC, created_at DESC";
+            $query .= " LIMIT :limit OFFSET :offset";
+            $params['limit'] = $limit;
+            $params['offset'] = $offset;
+
+            return self::query($query, $params);
+        } catch (\Exception $e) {
+            self::logError('Error en búsqueda de requisitos de trabajo', $criteria, $e);
+            return [];
+        }
+    }
+
+    /**
+     * Contar requisitos de trabajo
+     *
+     * @param array $criteria Criterios de búsqueda
+     * @return int
+     */
+    public static function countJobRequirements(array $criteria = []): int
+    {
+        try {
+            $query = "SELECT COUNT(*) as total FROM job_requirements WHERE 1=1";
+            $params = [];
+
+            // Aplicar los mismos filtros que en searchJobRequirements
+            if (!empty($criteria['job_id'])) {
+                $query .= " AND job_id = :job_id";
+                $params['job_id'] = $criteria['job_id'];
+            }
+
+            if (!empty($criteria['requirement'])) {
+                $query .= " AND requirement LIKE :requirement";
+                $params['requirement'] = '%' . $criteria['requirement'] . '%';
+            }
+
+            if (!empty($criteria['requirement_type'])) {
+                $query .= " AND requirement_type = :requirement_type";
+                $params['requirement_type'] = $criteria['requirement_type'];
+            }
+
+            if (!empty($criteria['priority'])) {
+                $query .= " AND priority = :priority";
+                $params['priority'] = $criteria['priority'];
+            }
+
+            if (isset($criteria['is_active'])) {
+                $query .= " AND is_active = :is_active";
+                $params['is_active'] = (bool)$criteria['is_active'];
+            }
+
+            $result = self::query($query, $params);
+            return $result[0]['total'] ?? 0;
+        } catch (\Exception $e) {
+            self::logError('Error al contar requisitos de trabajo', $criteria, $e);
+            return 0;
+        }
+    }
+
+    /**
+     * Validar datos de requisito de trabajo
+     *
+     * @param array $data Datos a validar
+     * @param bool $isUpdate Si es una actualización (permite campos opcionales)
+     * @throws InvalidArgumentException Si los datos no son válidos
+     */
+    private static function validateJobRequirementData(array $data, bool $isUpdate = false): void
+    {
+        // job_id es requerido en creación
+        if (!$isUpdate && empty($data['job_id'])) {
+            throw new \InvalidArgumentException('El job_id es requerido');
+        }
+
+        if (isset($data['job_id']) && (!is_numeric($data['job_id']) || $data['job_id'] <= 0)) {
+            throw new \InvalidArgumentException('El job_id debe ser un número entero positivo');
+        }
+
+        // requirement es requerido en creación
+        if (!$isUpdate && empty($data['requirement'])) {
+            throw new \InvalidArgumentException('El requisito es requerido');
+        }
+
+        if (isset($data['requirement'])) {
+            if (!is_string($data['requirement']) || strlen(trim($data['requirement'])) < 3) {
+                throw new \InvalidArgumentException('El requisito debe tener al menos 3 caracteres');
+            }
+            if (strlen($data['requirement']) > 1000) {
+                throw new \InvalidArgumentException('El requisito no puede exceder los 1000 caracteres');
+            }
+        }
+
+        // Validar tipo de requisito
+        if (isset($data['requirement_type'])) {
+            if (!in_array($data['requirement_type'], self::VALID_REQUIREMENT_TYPES)) {
+                throw new \InvalidArgumentException('Tipo de requisito no válido: ' . $data['requirement_type']);
+            }
+        }
+
+        // Validar prioridad
+        if (isset($data['priority'])) {
+            if (!in_array($data['priority'], self::VALID_PRIORITIES)) {
+                throw new \InvalidArgumentException('Prioridad no válida: ' . $data['priority']);
+            }
+        }
+
+        // Validar is_active
+        if (isset($data['is_active']) && !is_bool($data['is_active'])) {
+            throw new \InvalidArgumentException('is_active debe ser un booleano');
+        }
+    }
+
+    /**
+     * Invalidar caché relacionado con requisitos de trabajo
+     */
+    private static function invalidateJobRequirementCache(): void
+    {
+        try {
+            // Como los métodos CRUD son estáticos, necesitamos crear una instancia temporal
+            $tempInstance = new self();
+
+            // Limpiar todo el caché de la instancia
+            $tempInstance->cache = [];
+
+            self::logDebug('Caché de requisitos de trabajo invalidado');
+        } catch (\Exception $e) {
+            self::logError('Error al invalidar caché de requisitos de trabajo', [], $e);
+        }
     }
 }

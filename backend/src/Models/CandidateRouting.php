@@ -446,4 +446,189 @@ class CandidateRouting extends BaseModel
             throw new \RuntimeException('Failed to retrieve routing history: ' . $e->getMessage());
         }
     }
+
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
+
+    /**
+     * Crear nuevo candidate_routing con validaciones
+     * @param array $data Datos del nuevo candidate_routing
+     * @return mixed ID del nuevo candidate_routing o false en caso de error
+     */
+    public function createCandidateRouting(array $data): mixed
+    {
+        try {
+            $this->validateCandidateRoutingData($data);
+            $id = $this->store($data);
+            $this->invalidateCandidateRoutingCache();
+
+            Logger::info('CandidateRouting created successfully', [
+                'model' => static::class,
+                'id' => $id
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            Logger::error('Error creating candidate_routing', [
+                'model' => static::class,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Obtener candidate_routing por ID
+     * @param mixed $id ID del candidate_routing
+     * @return array|null Datos del candidate_routing o null si no existe
+     */
+    public function getCandidateRouting($id): ?array
+    {
+        try {
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            Logger::error('Error retrieving candidate_routing', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar candidate_routing con validaciones
+     * @param mixed $id ID del candidate_routing a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
+     */
+    public function updateCandidateRouting($id, array $data): bool
+    {
+        try {
+            $this->validateCandidateRoutingData($data, $id);
+            $result = $this->update($id, $data);
+
+            if ($result) {
+                $this->invalidateCandidateRoutingCache();
+                Logger::info('CandidateRouting updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error updating candidate_routing', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar candidate_routing con validaciones
+     * @param mixed $id ID del candidate_routing a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteCandidateRouting($id): bool
+    {
+        try {
+            $result = $this->delete($id);
+
+            if ($result) {
+                $this->invalidateCandidateRoutingCache();
+                Logger::info('CandidateRouting deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error deleting candidate_routing', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar candidate_routings con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de candidate_routings
+     */
+    public function searchCandidateRoutings(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            Logger::error('Error searching candidate_routings', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de candidate_routings con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de candidate_routings
+     */
+    public function countCandidateRoutings(array $filters = []): int
+    {
+        try {
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            Logger::error('Error counting candidate_routings', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de candidate_routings
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateCandidateRoutingData(array $data, $id = null): void
+    {
+        // TODO: Implementar validaciones específicas del modelo
+    }
+
+    /**
+     * Invalidar cache específico de candidate_routings
+     */
+    public function invalidateCandidateRoutingCache(): int
+    {
+        try {
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags(['candidate_routings', 'candidate_routing_core', 'candidate_routing_list']);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            $this->logError('Error invalidating candidate_routing cache', [], $e);
+            return 0;
+        }
+    }
 }

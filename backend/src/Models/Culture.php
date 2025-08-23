@@ -36,7 +36,7 @@ class Culture extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-    
+
 
     /**
      * Campos que pueden ser asignados masivamente
@@ -81,7 +81,7 @@ class Culture extends BaseModel
         }
 
         $cacheKey = "cultures_dept_{$departmentId}_" . ($activeOnly ? 'active' : 'all');
-        
+
         // Verificar cache
         if (isset($this->cultureCache[$cacheKey])) {
             Logger::debug('Culture cache hit', ['cache_key' => $cacheKey]);
@@ -95,7 +95,7 @@ class Culture extends BaseModel
             }
 
             $cultures = $this->findBy('department_id', $departmentId);
-            
+
             if ($activeOnly) {
                 $cultures = array_filter($cultures, fn($culture) => $culture['status'] === 'active');
             }
@@ -113,7 +113,6 @@ class Culture extends BaseModel
             ]);
 
             return $cultures;
-
         } catch (\Exception $e) {
             Logger::error('Error getting cultures by department', [
                 'department_id' => $departmentId,
@@ -144,25 +143,25 @@ class Culture extends BaseModel
             // Obtener datos del candidato (requiere acceso a modelo Candidate)
             $candidateModel = new \Models\Candidate();
             $candidate = $candidateModel->findById($candidateId);
-            
+
             if (!$candidate) {
                 throw new \RuntimeException("Candidate not found: {$candidateId}");
             }
 
             // Obtener datos de la cultura
             $culture = $this->findById($cultureId);
-            
+
             if (!$culture) {
                 throw new \RuntimeException("Culture not found: {$cultureId}");
             }
 
             // Procesar datos culturales
             $culture = $this->processCultureData($culture);
-            
+
             // Extraer soft skills del candidato
             $candidateSkills = [];
             if (isset($candidate['soft_skills'])) {
-                $candidateSkills = is_string($candidate['soft_skills']) 
+                $candidateSkills = is_string($candidate['soft_skills'])
                     ? json_decode($candidate['soft_skills'], true) ?? []
                     : $candidate['soft_skills'] ?? [];
             }
@@ -177,7 +176,6 @@ class Culture extends BaseModel
             ]);
 
             return $matchResult;
-
         } catch (\Exception $e) {
             Logger::error('Error in culture matching', [
                 'candidate_id' => $candidateId,
@@ -204,7 +202,7 @@ class Culture extends BaseModel
         }
 
         $cacheKey = "culture_traits_{$cultureId}";
-        
+
         // Verificar cache
         if (isset($this->cultureCache[$cacheKey])) {
             return $this->cultureCache[$cacheKey];
@@ -212,7 +210,7 @@ class Culture extends BaseModel
 
         try {
             $culture = $this->findById($cultureId);
-            
+
             if (!$culture) {
                 throw new \RuntimeException("Culture not found: {$cultureId}");
             }
@@ -233,7 +231,6 @@ class Culture extends BaseModel
             $this->cultureCache[$cacheKey] = $traits;
 
             return $traits;
-
         } catch (\Exception $e) {
             Logger::error('Error getting culture traits', [
                 'culture_id' => $cultureId,
@@ -273,10 +270,10 @@ class Culture extends BaseModel
                 }
 
                 $deptId = (int) $deptId;
-                
+
                 // Obtener culturas del departamento
                 $cultures = $this->getCulturesByDepartment($deptId, true);
-                
+
                 $departmentResults = [];
                 $totalScore = 0;
                 $cultureCount = 0;
@@ -290,7 +287,7 @@ class Culture extends BaseModel
                         'matched_traits' => $matchResult['matched_traits'] ?? [],
                         'missing_traits' => $matchResult['missing_traits'] ?? []
                     ];
-                    
+
                     $totalScore += $matchResult['score'];
                     $cultureCount++;
                 }
@@ -311,7 +308,6 @@ class Culture extends BaseModel
             ]);
 
             return $results;
-
         } catch (\Exception $e) {
             Logger::error('Error assessing culture fit', [
                 'candidate_id' => $candidateId,
@@ -356,10 +352,10 @@ class Culture extends BaseModel
     {
         $cultureTraits = $culture['traits'] ?? [];
         $cultureValues = $culture['values'] ?? [];
-        
+
         // Combinar traits y values para comparación
         $culturalRequirements = array_merge($cultureTraits, $cultureValues);
-        
+
         if (empty($culturalRequirements) || empty($candidateSkills)) {
             return [
                 'score' => 0,
@@ -374,16 +370,18 @@ class Culture extends BaseModel
 
         foreach ($culturalRequirements as $trait) {
             $traitName = is_array($trait) ? ($trait['name'] ?? $trait['value'] ?? '') : $trait;
-            
+
             if (empty($traitName)) continue;
 
             $found = false;
             foreach ($candidateSkills as $skill) {
                 $skillName = is_array($skill) ? ($skill['name'] ?? $skill['skill'] ?? '') : $skill;
-                
-                if (stripos($skillName, $traitName) !== false || 
+
+                if (
+                    stripos($skillName, $traitName) !== false ||
                     stripos($traitName, $skillName) !== false ||
-                    $this->isSemanticMatch($skillName, $traitName)) {
+                    $this->isSemanticMatch($skillName, $traitName)
+                ) {
                     $matchedTraits[] = $traitName;
                     $found = true;
                     break;
@@ -431,7 +429,7 @@ class Culture extends BaseModel
 
         foreach ($synonyms as $base => $variants) {
             $allTerms = array_merge([$base], $variants);
-            
+
             if ((in_array($skill1Lower, $allTerms) && in_array($skill2Lower, $allTerms))) {
                 return true;
             }
@@ -451,10 +449,9 @@ class Culture extends BaseModel
             $query = "SELECT DISTINCT department_id FROM `{$this->table}` WHERE status = 'active' AND department_id IS NOT NULL";
             $stmt = $this->db->prepare($query);
             $stmt->execute();
-            
+
             $results = $stmt->fetchAll(\PDO::FETCH_COLUMN);
             return array_map('intval', $results);
-            
         } catch (\Exception $e) {
             Logger::error('Error getting active department IDs', ['error' => $e->getMessage()]);
             return [];
@@ -505,7 +502,7 @@ class Culture extends BaseModel
     public function invalidateCultureCache(?int $cultureId = null): int
     {
         $deletedCount = 0;
-        
+
         try {
             if ($cultureId !== null) {
                 // Invalidar cache específico de una cultura
@@ -514,7 +511,7 @@ class Culture extends BaseModel
                     "cultures_dept_*",
                     "culture_match_{$cultureId}_*"
                 ];
-                
+
                 foreach ($patterns as $pattern) {
                     foreach ($this->cultureCache as $key => $value) {
                         if (fnmatch($pattern, $key)) {
@@ -535,7 +532,6 @@ class Culture extends BaseModel
             ]);
 
             return $deletedCount;
-
         } catch (\Exception $e) {
             Logger::error('Error invalidating culture cache', [
                 'culture_id' => $cultureId,
@@ -558,14 +554,14 @@ class Culture extends BaseModel
         }
 
         $cacheKey = "culture_stats_dept_{$departmentId}";
-        
+
         if (isset($this->cultureCache[$cacheKey])) {
             return $this->cultureCache[$cacheKey];
         }
 
         try {
             $cultures = $this->getCulturesByDepartment($departmentId, false);
-            
+
             $stats = [
                 'department_id' => $departmentId,
                 'total_cultures' => count($cultures),
@@ -577,7 +573,6 @@ class Culture extends BaseModel
 
             $this->cultureCache[$cacheKey] = $stats;
             return $stats;
-
         } catch (\Exception $e) {
             Logger::error('Error getting culture stats', [
                 'department_id' => $departmentId,
@@ -593,13 +588,13 @@ class Culture extends BaseModel
     private function extractMostCommonTraits(array $cultures): array
     {
         $traitCount = [];
-        
+
         foreach ($cultures as $culture) {
             $traits = array_merge(
-                $culture['traits'] ?? [], 
+                $culture['traits'] ?? [],
                 $culture['values'] ?? []
             );
-            
+
             foreach ($traits as $trait) {
                 $traitName = is_array($trait) ? ($trait['name'] ?? $trait['value'] ?? '') : $trait;
                 if (!empty($traitName)) {
@@ -607,7 +602,7 @@ class Culture extends BaseModel
                 }
             }
         }
-        
+
         arsort($traitCount);
         return array_slice($traitCount, 0, 10, true); // Top 10
     }
@@ -625,15 +620,215 @@ class Culture extends BaseModel
         foreach ($cultures as $culture) {
             $coverage = 0;
             $maxCoverage = 4; // name, description, values, traits
-            
+
             if (!empty($culture['name'])) $coverage++;
             if (!empty($culture['description'])) $coverage++;
             if (!empty($culture['values'])) $coverage++;
             if (!empty($culture['traits'])) $coverage++;
-            
+
             $totalCoverage += ($coverage / $maxCoverage) * 100;
         }
-        
+
         return round($totalCoverage / count($cultures), 2);
+    }
+
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
+
+    /**
+     * Crear nuevo culture con validaciones
+     * @param array $data Datos del nuevo culture
+     * @return mixed ID del nuevo culture o false en caso de error
+     */
+    public function createCulture(array $data): mixed
+    {
+        try {
+            $this->validateCultureData($data);
+            $id = $this->store($data);
+            $this->invalidateCultureCache();
+
+            $this->logDebug('Culture created successfully', [
+                'model' => static::class,
+                'id' => $id
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            $this->logError('Error creating culture', [
+                'model' => static::class,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ], $e);
+            return false;
+        }
+    }
+
+    /**
+     * Obtener culture por ID
+     * @param mixed $id ID del culture
+     * @return array|null Datos del culture o null si no existe
+     */
+    public function getCulture($id): ?array
+    {
+        try {
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            $this->logError('Error retrieving culture', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ], $e);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar culture con validaciones
+     * @param mixed $id ID del culture a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
+     */
+    public function updateCulture($id, array $data): bool
+    {
+        try {
+            $this->validateCultureData($data, $id);
+            $result = $this->update($id, $data);
+
+            if ($result) {
+                $this->invalidateCultureCache();
+                $this->logDebug('Culture updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            $this->logError('Error updating culture', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ], $e);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar culture con validaciones
+     * @param mixed $id ID del culture a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteCulture($id): bool
+    {
+        try {
+            $result = $this->delete($id);
+
+            if ($result) {
+                $this->invalidateCultureCache();
+                $this->logDebug('Culture deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            $this->logError('Error deleting culture', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ], $e);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar cultures con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de cultures
+     */
+    public function searchCultures(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            $this->logError('Error searching cultures', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ], $e);
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de cultures con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de cultures
+     */
+    public function countCultures(array $filters = []): int
+    {
+        try {
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            $this->logError('Error counting cultures', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ], $e);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de cultures
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateCultureData(array $data, $id = null): void
+    {
+        // Validar nombre requerido
+        if (isset($data['name']) && empty(trim($data['name']))) {
+            throw new \InvalidArgumentException('Culture name is required and cannot be empty');
+        }
+
+        // Validar descripción si se proporciona
+        if (isset($data['description']) && !is_string($data['description'])) {
+            throw new \InvalidArgumentException('Description must be a string');
+        }
+
+        // Validar valores si se proporcionan
+        if (isset($data['values'])) {
+            if (!is_string($data['values']) && !is_array($data['values'])) {
+                throw new \InvalidArgumentException('Values must be a string or array');
+            }
+
+            // Si es array, convertir a JSON
+            if (is_array($data['values'])) {
+                $data['values'] = json_encode($data['values']);
+            }
+        }
+
+        // Validar que el nombre no esté duplicado (si es creación o actualización con nombre diferente)
+        if (isset($data['name'])) {
+            $existing = $this->findBy('name', $data['name']);
+            if (!empty($existing)) {
+                // Si es actualización, verificar que no sea el mismo registro
+                if ($id === null || $existing[0]['id'] != $id) {
+                    throw new \InvalidArgumentException('Culture name already exists');
+                }
+            }
+        }
     }
 }

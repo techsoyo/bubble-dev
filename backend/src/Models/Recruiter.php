@@ -38,7 +38,7 @@ class Recruiter extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-    
+
 
     /**
      * Campos que pueden ser asignados masivamente
@@ -226,7 +226,7 @@ class Recruiter extends BaseModel
 
             // Obtener carga actual de todos los recruiters
             $recruiters = $this->getRecruiterWorkloadForBalancing($departmentId);
-            
+
             if (empty($recruiters)) {
                 $this->db->rollBack();
                 return [
@@ -246,7 +246,7 @@ class Recruiter extends BaseModel
 
             foreach ($overloaded as $overloadedRecruiter) {
                 $excess = $overloadedRecruiter['active_candidates'] - $overloadedRecruiter['max_candidates'];
-                
+
                 // Buscar candidatos más recientes para redistribuir
                 $candidatesToMove = $this->getRecentCandidatesForRedistribution(
                     $overloadedRecruiter['recruiter_id'],
@@ -298,7 +298,6 @@ class Recruiter extends BaseModel
                 'redistributed' => $totalRedistributed,
                 'recruiters_affected' => count(array_unique($recruitersAffected))
             ];
-
         } catch (\Exception $e) {
             $this->db->rollBack();
             $this->logError('Error balancing recruiter workload', ['department_id' => $departmentId], $e);
@@ -316,7 +315,7 @@ class Recruiter extends BaseModel
     public function getRecruiterWithLowestLoad(?int $departmentId = null, array $specializations = []): ?array
     {
         $availableRecruiters = $this->getAvailableRecruiters($departmentId, $specializations);
-        
+
         if (empty($availableRecruiters)) {
             return null;
         }
@@ -371,7 +370,6 @@ class Recruiter extends BaseModel
             ]);
 
             return true;
-
         } catch (\Exception $e) {
             $this->logError('Error assigning candidate to recruiter', [
                 'candidate_id' => $candidateId,
@@ -406,7 +404,7 @@ class Recruiter extends BaseModel
                 GROUP BY sp.id";
 
         $result = $this->query($sql, [':recruiter_id' => $recruiterId]);
-        
+
         if (empty($result)) {
             return [
                 'recruiter_id' => $recruiterId,
@@ -422,7 +420,7 @@ class Recruiter extends BaseModel
 
         $stats = $result[0];
         $stats['last_updated'] = date('Y-m-d H:i:s');
-        
+
         return $stats;
     }
 
@@ -474,7 +472,7 @@ class Recruiter extends BaseModel
     {
         // Filtrar por departamento y ordenar por menor carga
         $sameDepart = array_filter(
-            $availableRecruiters, 
+            $availableRecruiters,
             fn($r) => $r['department_id'] == $departmentId
         );
 
@@ -555,6 +553,191 @@ class Recruiter extends BaseModel
                 'filters' => $filters
             ], $e);
             throw new \RuntimeException('Failed to get assigned candidates: ' . $e->getMessage());
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
+
+    /**
+     * Crear nuevo recruiter con validaciones
+     * @param array $data Datos del nuevo recruiter
+     * @return mixed ID del nuevo recruiter o false en caso de error
+     */
+    public function createRecruiter(array $data): mixed
+    {
+        try {
+            $this->validateRecruiterData($data);
+            $id = $this->store($data);
+            $this->invalidateRecruiterCache();
+
+            Logger::info('Recruiter created successfully', [
+                'model' => static::class,
+                'id' => $id
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            Logger::error('Error creating recruiter', [
+                'model' => static::class,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Obtener recruiter por ID
+     * @param mixed $id ID del recruiter
+     * @return array|null Datos del recruiter o null si no existe
+     */
+    public function getRecruiter($id): ?array
+    {
+        try {
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            Logger::error('Error retrieving recruiter', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar recruiter con validaciones
+     * @param mixed $id ID del recruiter a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
+     */
+    public function updateRecruiter($id, array $data): bool
+    {
+        try {
+            $this->validateRecruiterData($data, $id);
+            $result = $this->update($id, $data);
+
+            if ($result) {
+                $this->invalidateRecruiterCache();
+                Logger::info('Recruiter updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error updating recruiter', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar recruiter con validaciones
+     * @param mixed $id ID del recruiter a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteRecruiter($id): bool
+    {
+        try {
+            $result = $this->delete($id);
+
+            if ($result) {
+                $this->invalidateRecruiterCache();
+                Logger::info('Recruiter deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error deleting recruiter', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar recruiters con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de recruiters
+     */
+    public function searchRecruiters(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            Logger::error('Error searching recruiters', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de recruiters con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de recruiters
+     */
+    public function countRecruiters(array $filters = []): int
+    {
+        try {
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            Logger::error('Error counting recruiters', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de recruiters
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateRecruiterData(array $data, $id = null): void
+    {
+        // TODO: Implementar validaciones específicas del modelo
+    }
+
+    /**
+     * Invalidar cache específico de recruiters
+     */
+    public function invalidateRecruiterCache(): int
+    {
+        try {
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags(['recruiters', 'recruiter_core', 'recruiter_list']);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            $this->logError('Error invalidating recruiter cache', [], $e);
+            return 0;
         }
     }
 }

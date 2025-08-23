@@ -2,11 +2,20 @@
 
 namespace Controllers;
 
+use Models\Job;
 use Utils\Request;
 use Utils\ResponseHelper;
+use Utils\Logger;
 
 class JobController
 {
+    private Job $model;
+
+    public function __construct()
+    {
+        $this->model = new Job();
+    }
+
     /**
      * GET /api/jobs
      * Listar ofertas de trabajo
@@ -14,21 +23,23 @@ class JobController
     public function index(Request $request, array $params = [])
     {
         try {
-            $page   = (int)($request->getQuery('page') ?? 1);
-            $limit  = (int)($request->getQuery('limit') ?? 20);
-            $search = trim((string)($request->getQuery('search') ?? ''));
+            $filters = $_GET ?? [];
+            $page    = max(1, (int)($filters['page'] ?? 1));
+            $limit   = (int)($filters['limit'] ?? 20);
+            $orderBy = [];
 
-            // TODO: fetchJobs($page, $limit, $search)
-            $items = [];
+            $rows  = $this->model->searchJobs($filters, $page, $limit, $orderBy);
+            $total = $this->model->countJobs($filters);
 
             return ResponseHelper::success("Listado de trabajos obtenido", [
-                'page'  => $page,
-                'limit' => $limit,
-                'total' => count($items), // TODO total real
-                'data'  => $items
-            ]);
+                'data' => $rows,
+                'total' => $total,
+                'page' => $page,
+                'limit' => $limit
+            ], 200);
         } catch (\Throwable $e) {
-            return ResponseHelper::error("Error al listar trabajos", $e);
+            Logger::error('Error listing jobs', ['error' => $e->getMessage()]);
+            return ResponseHelper::error("Error al listar trabajos", $e, 500);
         }
     }
 
@@ -41,19 +52,20 @@ class JobController
         try {
             $data = $request->getBody();
 
-            if (empty($data['title'])) {
-                return ResponseHelper::fail("El campo 'title' es obligatorio", 422);
+            $id = $this->model->createJob($data);
+
+            if ($id === false) {
+                return ResponseHelper::fail('Unable to create job', 400);
             }
 
-            // TODO: Insertar en DB
-            // $id = createJob($data);
-
-            return ResponseHelper::success("Trabajo creado correctamente", [
-                'id'   => 0, // id real
-                'data' => $data
-            ], 201);
+            Logger::info('Job created from controller', ['id' => $id]);
+            return ResponseHelper::success("Trabajo creado correctamente", ['id' => $id], 201);
+        } catch (\InvalidArgumentException $e) {
+            Logger::error('Validation failed creating job', ['error' => $e->getMessage()]);
+            return ResponseHelper::fail($e->getMessage(), 422);
         } catch (\Throwable $e) {
-            return ResponseHelper::error("Error al crear trabajo", $e);
+            Logger::error('Unexpected error creating job', ['error' => $e->getMessage()]);
+            return ResponseHelper::error("Error al crear trabajo", $e, 500);
         }
     }
 
@@ -69,20 +81,15 @@ class JobController
                 return ResponseHelper::fail("ID no proporcionado", 400);
             }
 
-            // TODO: Buscar en DB
-            // $job = findJob($id);
-            $job = null;
-
-            if (!$job) {
+            $row = $this->model->getJob($id);
+            if (!$row) {
                 return ResponseHelper::fail("Trabajo no encontrado", 404);
             }
 
-            return ResponseHelper::success("Trabajo encontrado", [
-                'id'   => $id,
-                'data' => $job
-            ]);
+            return ResponseHelper::success("Trabajo encontrado", $row, 200);
         } catch (\Throwable $e) {
-            return ResponseHelper::error("Error al obtener trabajo", $e);
+            Logger::error('Error retrieving job', ['id' => $id, 'error' => $e->getMessage()]);
+            return ResponseHelper::error("Error al obtener trabajo", $e, 500);
         }
     }
 
@@ -100,14 +107,20 @@ class JobController
                 return ResponseHelper::fail("ID no proporcionado", 400);
             }
 
-            // TODO: updateJob($id, $data)
+            $ok = $this->model->updateJob($id, $data);
 
-            return ResponseHelper::success("Trabajo actualizado correctamente", [
-                'id'   => $id,
-                'data' => $data
-            ]);
+            if (!$ok) {
+                return ResponseHelper::fail('Update failed', 400);
+            }
+
+            Logger::info('Job updated from controller', ['id' => $id]);
+            return ResponseHelper::success("Trabajo actualizado correctamente", ['success' => true], 200);
+        } catch (\InvalidArgumentException $e) {
+            Logger::error('Validation failed updating job', ['id' => $id, 'error' => $e->getMessage()]);
+            return ResponseHelper::fail($e->getMessage(), 422);
         } catch (\Throwable $e) {
-            return ResponseHelper::error("Error al actualizar trabajo", $e);
+            Logger::error('Unexpected error updating job', ['id' => $id, 'error' => $e->getMessage()]);
+            return ResponseHelper::error("Error al actualizar trabajo", $e, 500);
         }
     }
 
@@ -123,13 +136,16 @@ class JobController
                 return ResponseHelper::fail("ID no proporcionado", 400);
             }
 
-            // TODO: deleteJob($id)
+            $ok = $this->model->deleteJob($id);
+            if (!$ok) {
+                return ResponseHelper::fail('Delete failed', 400);
+            }
 
-            return ResponseHelper::success("Trabajo eliminado correctamente", [
-                'id' => $id
-            ]);
+            Logger::info('Job deleted from controller', ['id' => $id]);
+            return ResponseHelper::success("Trabajo eliminado correctamente", null, 204);
         } catch (\Throwable $e) {
-            return ResponseHelper::error("Error al eliminar trabajo", $e);
+            Logger::error('Unexpected error deleting job', ['id' => $id, 'error' => $e->getMessage()]);
+            return ResponseHelper::error("Error al eliminar trabajo", $e, 500);
         }
     }
 

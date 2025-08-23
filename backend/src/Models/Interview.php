@@ -34,7 +34,7 @@ class Interview extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-     // Tabla bt_interviews en BD
+    // Tabla bt_interviews en BD
 
     /**
      * Campos que pueden ser asignados masivamente
@@ -131,7 +131,7 @@ class Interview extends BaseModel
 
         $sql = "SELECT * FROM vw_interviews_schedule 
                 WHERE DATE(scheduled_at) BETWEEN :start_date AND :end_date";
-        
+
         $params = [
             ':start_date' => $startDate,
             ':end_date' => $endDate
@@ -180,7 +180,7 @@ class Interview extends BaseModel
                     DATE(scheduled_at) as interview_date
                 FROM vw_interviews_schedule 
                 WHERE DATE(scheduled_at) >= DATE_SUB(CURDATE(), INTERVAL :days DAY)";
-        
+
         $params = [':days' => $days];
 
         if (!empty($interviewerId)) {
@@ -237,7 +237,7 @@ class Interview extends BaseModel
         $sql = "SELECT * FROM vw_interviews_schedule 
                 WHERE DATE(scheduled_at) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL :days DAY)
                 AND interview_status IN ('scheduled', 'confirmed')";
-        
+
         $params = [':days' => $days];
 
         // Añadir filtros adicionales
@@ -292,7 +292,7 @@ class Interview extends BaseModel
                     interview_type,
                     DATE_FORMAT(scheduled_at, '%Y-%m') as month_year
                 FROM vw_interviews_schedule";
-        
+
         $params = [];
 
         if (!empty($filters)) {
@@ -348,14 +348,14 @@ class Interview extends BaseModel
         }
 
         $filters = ['interviewer_id' => $interviewerId];
-        
+
         if (!empty($statusFilter)) {
             // Para filtros complejos usar query directa
             $sql = "SELECT * FROM vw_interviews_schedule 
                     WHERE interviewer_id = :interviewer_id";
-            
+
             $params = [':interviewer_id' => $interviewerId];
-            
+
             if (!empty($statusFilter)) {
                 $statusPlaceholders = [];
                 foreach ($statusFilter as $i => $status) {
@@ -365,9 +365,9 @@ class Interview extends BaseModel
                 }
                 $sql .= ' AND interview_status IN (' . implode(',', $statusPlaceholders) . ')';
             }
-            
+
             $sql .= ' ORDER BY scheduled_at ASC';
-            
+
             try {
                 return $this->query($sql, $params);
             } catch (\Exception $e) {
@@ -414,12 +414,12 @@ class Interview extends BaseModel
 
         try {
             $result = $this->update($interviewId, $data);
-            
+
             if ($result) {
                 // Invalidar cache relacionado
                 $this->invalidateInterviewCache();
-                
-                $this->logInfo('Interview status updated', [
+
+                $this->logDebug('Interview status updated', [
                     'interview_id' => $interviewId,
                     'new_status' => $newStatus,
                     'notes' => $notes
@@ -457,12 +457,12 @@ class Interview extends BaseModel
 
         try {
             $interviewId = $this->store($data);
-            
+
             if ($interviewId) {
                 // Invalidar cache relacionado
                 $this->invalidateInterviewCache();
-                
-                $this->logInfo('New interview scheduled', [
+
+                $this->logDebug('New interview scheduled', [
                     'interview_id' => $interviewId,
                     'application_id' => $data['application_id'],
                     'scheduled_at' => $data['scheduled_at']
@@ -485,7 +485,7 @@ class Interview extends BaseModel
             if (class_exists('\Utils\Cache')) {
                 return \Utils\Cache::deleteByTags([
                     'interviews',
-                    'upcoming_interviews', 
+                    'upcoming_interviews',
                     'interview_stats',
                     'interview_schedule'
                 ]);
@@ -501,48 +501,188 @@ class Interview extends BaseModel
      * MÉTODOS AUXILIARES
      */
 
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
+
     /**
-     * Generar clave de cache para entrevistas
+     * Crear nuevo culture con validaciones
+     * @param array $data Datos del nuevo culture
+     * @return mixed ID del nuevo culture o false en caso de error
      */
-    private function generateCacheKey(string $operation, array $params = []): string
+    public function createCulture(array $data): mixed
     {
-        $key = "interview_{$operation}";
-        if (!empty($params)) {
-            $key .= '_' . md5(serialize($params));
+        try {
+            $this->validateCultureData($data);
+            $id = $this->store($data);
+            $this->invalidateCultureCache();
+
+            Logger::info('Culture created successfully', [
+                'model' => static::class,
+                'id' => $id
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            Logger::error('Error creating culture', [
+                'model' => static::class,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
         }
-        return $key;
     }
 
     /**
-     * Log de información específico del modelo
+     * Obtener culture por ID
+     * @param mixed $id ID del culture
+     * @return array|null Datos del culture o null si no existe
      */
-    private function logInfo(string $message, array $context = []): void
+    public function getCulture($id): ?array
     {
-        Logger::info($message, array_merge([
-            'model' => static::class,
-            'table' => $this->table
-        ], $context));
+        try {
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            Logger::error('Error retrieving culture', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
     }
 
     /**
-     * Log de errores específico del modelo
+     * Actualizar culture con validaciones
+     * @param mixed $id ID del culture a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
      */
-    private function logError(string $message, array $context = [], \Exception $exception = null): void
+    public function updateCulture($id, array $data): bool
     {
-        $logContext = array_merge([
-            'model' => static::class,
-            'table' => $this->table
-        ], $context);
+        try {
+            $this->validateCultureData($data, $id);
+            $result = $this->update($id, $data);
 
-        if ($exception) {
-            $logContext['exception'] = [
-                'message' => $exception->getMessage(),
-                'file' => $exception->getFile(),
-                'line' => $exception->getLine(),
-                'trace' => $exception->getTraceAsString()
-            ];
+            if ($result) {
+                $this->invalidateCultureCache();
+                Logger::info('Culture updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error updating culture', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
         }
+    }
 
-        Logger::error($message, $logContext);
+    /**
+     * Eliminar culture con validaciones
+     * @param mixed $id ID del culture a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteCulture($id): bool
+    {
+        try {
+            $result = $this->delete($id);
+
+            if ($result) {
+                $this->invalidateCultureCache();
+                Logger::info('Culture deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error deleting culture', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar cultures con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de cultures
+     */
+    public function searchCultures(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            Logger::error('Error searching cultures', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de cultures con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de cultures
+     */
+    public function countCultures(array $filters = []): int
+    {
+        try {
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            Logger::error('Error counting cultures', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de cultures
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateCultureData(array $data, $id = null): void
+    {
+        // TODO: Implementar validaciones específicas del modelo
+    }
+
+    /**
+     * Invalidar cache específico de cultures
+     */
+    public function invalidateCultureCache(): int
+    {
+        try {
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags(['cultures', 'culture_core', 'culture_list']);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            $this->logError('Error invalidating culture cache', [], $e);
+            return 0;
+        }
     }
 }

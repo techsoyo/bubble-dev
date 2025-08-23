@@ -2,186 +2,100 @@
 
 namespace Controllers;
 
+use Models\Candidate;
 use Utils\Request;
 use Utils\ResponseHelper;
+use Utils\Logger;
 
 class CandidateController
 {
-    /**
-     * GET /api/candidates
-     * Lista de candidatos (paginable/filtrable)
-     */
-    public function index(Request $request, array $params = [])
+    private Candidate $candidateModel;
+
+    public function __construct()
     {
-        try {
-            // Ejemplo de lectura de query params
-            $page   = (int)($request->getQuery('page') ?? 1);
-            $limit  = (int)($request->getQuery('limit') ?? 20);
-            $search = trim((string)($request->getQuery('search') ?? ''));
-
-            // TODO: Reemplazar por consulta real a DB
-            $items = []; // fetchCandidates($page, $limit, $search)
-
-            return ResponseHelper::success("Listado de candidatos obtenido", [
-                'page'  => $page,
-                'limit' => $limit,
-                'total' => count($items), // TODO: total real
-                'data'  => $items
-            ]);
-        } catch (\Throwable $e) {
-            return ResponseHelper::error("Error al listar candidatos", $e);
-        }
+        $this->candidateModel = new Candidate();
+    }
+    // Métodos CRUD - llamadas directas al modelo
+    public function searchCandidates($filters = [], $page = 1, $limit = 20)
+    {
+        return $this->candidateModel->searchCandidates($filters, $page, $limit);
     }
 
-    /**
-     * POST /api/candidates
-     * Crear candidato (staff/admin)
-     */
-    public function store(Request $request, array $params = [])
+    public function countCandidates($filters = [])
     {
-        try {
-            $data = $request->getBody();
-
-            // Validación mínima
-            if (empty($data['email'])) {
-                return ResponseHelper::fail("El campo 'email' es obligatorio", 422);
-            }
-            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                return ResponseHelper::fail("Formato de email inválido", 422);
-            }
-
-            // TODO: Insertar en DB
-            // $id = createCandidate($data);
-
-            return ResponseHelper::success("Candidato creado correctamente", [
-                'id'   => 0, // reemplazar por $id real
-                'data' => $data
-            ], 201);
-        } catch (\Throwable $e) {
-            return ResponseHelper::error("Error al crear candidato", $e);
-        }
+        return $this->candidateModel->countCandidates($filters);
     }
 
-    /**
-     * POST /api/candidates/register
-     * Registro self-service de candidato
-     */
+    public function createCandidate($data)
+    {
+        return $this->candidateModel->createCandidate($data);
+    }
+
+    // Métodos específicos que mantienen lógica de negocio del controller
     public function register(Request $request, array $params = [])
     {
         try {
             $data = $request->getBody();
 
+            // Preparar datos para registro
             if (empty($data['email']) || empty($data['password'])) {
                 return ResponseHelper::fail("Email y password son obligatorios", 422);
             }
-            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                return ResponseHelper::fail("Formato de email inválido", 422);
+
+            // Hash del password
+            $data['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
+            unset($data['password']); // Remover password plano
+
+            // Asignar valores por defecto para registro
+            $data['registration_source'] = 'self-registration';
+            $data['status'] = 'pending';
+
+            // Usar método encapsulado del modelo
+            $id = $this->candidateModel->createCandidate($data);
+
+            if ($id === false) {
+                return ResponseHelper::fail("Error en el registro - datos inválidos", 422);
             }
 
-            // TODO: crear usuario candidato + hash password
-            // $id = registerCandidate($data['email'], $data['password'], ...)
-
             return ResponseHelper::success("Registro de candidato exitoso", [
-                'candidate_id' => 0, // id real
+                'candidate_id' => $id,
                 'email'        => $data['email']
             ], 201);
+        } catch (\InvalidArgumentException $e) {
+            Logger::warning('Validation error in CandidateController::register', [
+                'email' => $data['email'] ?? null,
+                'error' => $e->getMessage()
+            ]);
+            return ResponseHelper::fail($e->getMessage(), 422);
         } catch (\Throwable $e) {
+            Logger::error('Error in CandidateController::register', [
+                'email' => $data['email'] ?? null,
+                'error' => $e->getMessage()
+            ]);
             return ResponseHelper::error("Error en registro de candidato", $e);
         }
     }
 
-    /**
-     * GET /api/candidates/{id}
-     * Detalle de candidato
-     */
-    public function show(Request $request, array $params = [])
+    public function getCandidate($id)
     {
-        try {
-            $id = $params['id'] ?? null;
-            if (!$id) {
-                return ResponseHelper::fail("ID no proporcionado", 400);
-            }
-
-            // TODO: Buscar en DB
-            // $candidate = findCandidate($id);
-            $candidate = null;
-
-            if (!$candidate) {
-                return ResponseHelper::fail("Candidato no encontrado", 404);
-            }
-
-            return ResponseHelper::success("Candidato encontrado", [
-                'id'   => $id,
-                'data' => $candidate
-            ]);
-        } catch (\Throwable $e) {
-            return ResponseHelper::error("Error al obtener candidato", $e);
-        }
+        return $this->candidateModel->getCandidate($id);
     }
 
-    /**
-     * PUT /api/candidates/{id}
-     * Actualizar candidato
-     */
-    public function update(Request $request, array $params = [])
+    public function updateCandidate($id, $data)
     {
-        try {
-            $id   = $params['id'] ?? null;
-            $data = $request->getBody();
-
-            if (!$id) {
-                return ResponseHelper::fail("ID no proporcionado", 400);
-            }
-
-            // Validaciones básicas opcionales
-            if (isset($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                return ResponseHelper::fail("Formato de email inválido", 422);
-            }
-
-            // TODO: Update en DB
-            // updateCandidate($id, $data)
-
-            return ResponseHelper::success("Candidato actualizado correctamente", [
-                'id'   => $id,
-                'data' => $data
-            ]);
-        } catch (\Throwable $e) {
-            return ResponseHelper::error("Error al actualizar candidato", $e);
-        }
+        return $this->candidateModel->updateCandidate($id, $data);
     }
 
-    /**
-     * DELETE /api/candidates/{id}
-     * Eliminar candidato
-     */
-    public function delete(Request $request, array $params = [])
+    public function deleteCandidate($id)
     {
-        try {
-            $id = $params['id'] ?? null;
-            if (!$id) {
-                return ResponseHelper::fail("ID no proporcionado", 400);
-            }
-
-            // TODO: Delete en DB
-            // deleteCandidate($id)
-
-            return ResponseHelper::success("Candidato eliminado correctamente", [
-                'id' => $id
-            ]);
-        } catch (\Throwable $e) {
-            return ResponseHelper::error("Error al eliminar candidato", $e);
-        }
+        return $this->candidateModel->deleteCandidate($id);
     }
 
-    /**
-     * POST /api/candidates/upload-cv
-     * Subida de CV (multipart/form-data o base64)
-     */
     public function uploadCV(Request $request, array $params = [])
     {
         try {
-            // Puedes tener el archivo en $_FILES o como base64 en el body
-            $fileInfo = $request->getFile('cv') ?? null;
+            // Usar $_FILES directamente ya que getFile() no existe en Request
+            $fileInfo = $_FILES['cv'] ?? null;
             $body     = $request->getBody();
 
             if (!$fileInfo && empty($body['cv_base64'])) {
@@ -195,14 +109,13 @@ class CandidateController
                 'stored_path' => 'path/to/cv.pdf' // reemplazar por real
             ], 201);
         } catch (\Throwable $e) {
+            Logger::error('Error in CandidateController::uploadCV', [
+                'error' => $e->getMessage()
+            ]);
             return ResponseHelper::error("Error al subir CV", $e);
         }
     }
 
-    /**
-     * GET /api/candidates/profile/{id}
-     * Perfil extendido del candidato
-     */
     public function profile(Request $request, array $params = [])
     {
         try {
@@ -225,10 +138,6 @@ class CandidateController
         }
     }
 
-    /**
-     * PATCH /api/candidates/{id}/status
-     * Cambiar estado del candidato
-     */
     public function updateStatus(Request $request, array $params = [])
     {
         try {
@@ -243,22 +152,40 @@ class CandidateController
                 return ResponseHelper::fail("El campo 'status' es obligatorio", 422);
             }
 
-            // TODO: Validar estado permitido y actualizar en DB
-            // updateCandidateStatus($id, $status)
+            // Preparar datos para actualización usando el método encapsulado
+            $updateData = [
+                'status' => $status,
+                'status_notes' => $data['notes'] ?? null
+            ];
+
+            // Usar método encapsulado del modelo que incluye validación de estado
+            $result = $this->candidateModel->updateCandidate($id, $updateData);
+
+            if ($result === false) {
+                return ResponseHelper::fail("Error al actualizar estado - datos inválidos", 422);
+            }
 
             return ResponseHelper::success("Estado del candidato actualizado", [
                 'id'     => $id,
                 'status' => $status
             ]);
+        } catch (\InvalidArgumentException $e) {
+            Logger::warning('Validation error in CandidateController::updateStatus', [
+                'id' => $id ?? null,
+                'status' => $status ?? null,
+                'error' => $e->getMessage()
+            ]);
+            return ResponseHelper::fail($e->getMessage(), 422);
         } catch (\Throwable $e) {
+            Logger::error('Error in CandidateController::updateStatus', [
+                'id' => $id ?? null,
+                'status' => $status ?? null,
+                'error' => $e->getMessage()
+            ]);
             return ResponseHelper::error("Error al actualizar estado del candidato", $e);
         }
     }
 
-    /**
-     * GET /api/recruiters/assigned-candidates
-     * Candidatos asignados a un recruiter (usado por Recruiter dashboard)
-     */
     public function assignedCandidates(Request $request, array $params = [])
     {
         try {
@@ -266,14 +193,24 @@ class CandidateController
             $recruiterId = $request->getQuery('recruiter_id') ?? null;
             // TODO: obtener recruiter_id real desde Auth
 
-            // TODO: Consulta real
-            $items = []; // findAssignedCandidates($recruiterId)
+            // Construir filtros para candidatos asignados
+            $filters = [];
+            if ($recruiterId) {
+                $filters['assigned_recruiter_id'] = $recruiterId;
+            }
+
+            // Usar método encapsulado del modelo
+            $items = $this->candidateModel->searchCandidates($filters);
 
             return ResponseHelper::success("Candidatos asignados obtenidos", [
                 'recruiter_id' => $recruiterId,
                 'data'         => $items
             ]);
         } catch (\Throwable $e) {
+            Logger::error('Error in CandidateController::assignedCandidates', [
+                'recruiter_id' => $recruiterId ?? null,
+                'error' => $e->getMessage()
+            ]);
             return ResponseHelper::error("Error al obtener candidatos asignados", $e);
         }
     }

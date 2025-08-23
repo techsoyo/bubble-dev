@@ -33,7 +33,7 @@ class DepartmentCategory extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-    
+
 
     protected array $fillable = [
         'name',
@@ -205,7 +205,7 @@ class DepartmentCategory extends BaseModel
 
             // Construir WHERE clause
             $whereConditions = [];
-            
+
             if ($categoryId !== null) {
                 $whereConditions[] = "dc.id = :category_id";
                 $params[':category_id'] = $categoryId;
@@ -289,7 +289,7 @@ class DepartmentCategory extends BaseModel
                 'parent_id' => $parentId,
                 'current_id' => $currentId
             ], $e);
-            throw;
+            throw $e;
         }
     }
 
@@ -340,7 +340,7 @@ class DepartmentCategory extends BaseModel
                 'data' => $data,
                 'id' => $id
             ], $e);
-            throw;
+            throw $e;
         }
     }
 
@@ -386,7 +386,7 @@ class DepartmentCategory extends BaseModel
             // Invalidar cache
             $this->invalidateCategoryCache();
 
-            $this->logInfo('Category deleted with hierarchy', [
+            $this->logDebug('Category deleted with hierarchy', [
                 'id' => $id,
                 'promote_children' => $promoteChildren
             ]);
@@ -394,7 +394,7 @@ class DepartmentCategory extends BaseModel
             return $result;
         } catch (\Exception $e) {
             $this->logError('Error deleting category with hierarchy', ['id' => $id], $e);
-            throw;
+            throw $e;
         }
     }
 
@@ -409,7 +409,7 @@ class DepartmentCategory extends BaseModel
         }
 
         $categories = $this->findAll($filters, 1, self::MAX_LIMIT, ['sort_order' => 'ASC', 'name' => 'ASC']);
-        
+
         return $this->buildTreeFromFlat($categories);
     }
 
@@ -463,17 +463,17 @@ class DepartmentCategory extends BaseModel
                 GROUP BY dc.id";
 
         $result = $this->query($sql, [':id' => $categoryId]);
-        
+
         if (empty($result)) {
             return null;
         }
 
         $category = $result[0];
-        
+
         // Parsear departamentos JSON
         if ($category['departments']) {
             $category['departments'] = array_map(
-                'json_decode', 
+                'json_decode',
                 explode(',', $category['departments'])
             );
         } else {
@@ -550,6 +550,251 @@ class DepartmentCategory extends BaseModel
         } catch (\Exception $e) {
             $this->logError('Error getting category stats', [], $e);
             return [];
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
+
+    /**
+     * Crear nuevo department_category con validaciones
+     * @param array $data Datos del nuevo department_category
+     * @return mixed ID del nuevo department_category o false en caso de error
+     */
+    public function createDepartmentCategory(array $data): mixed
+    {
+        try {
+            $this->validateDepartmentCategoryData($data);
+            $id = $this->store($data);
+            $this->invalidateDepartmentCategoryCache();
+
+            $this->logDebug('DepartmentCategory created successfully', [
+                'model' => static::class,
+                'id' => $id
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            $this->logError('Error creating department_category', [
+                'model' => static::class,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ], $e);
+            return false;
+        }
+    }
+
+    /**
+     * Obtener department_category por ID
+     * @param mixed $id ID del department_category
+     * @return array|null Datos del department_category o null si no existe
+     */
+    public function getDepartmentCategory($id): ?array
+    {
+        try {
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            $this->logError('Error retrieving department_category', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ], $e);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar department_category con validaciones
+     * @param mixed $id ID del department_category a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
+     */
+    public function updateDepartmentCategory($id, array $data): bool
+    {
+        try {
+            $this->validateDepartmentCategoryData($data, $id);
+            $result = $this->update($id, $data);
+
+            if ($result) {
+                $this->invalidateDepartmentCategoryCache();
+                $this->logDebug('DepartmentCategory updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            $this->logError('Error updating department_category', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ], $e);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar department_category con validaciones
+     * @param mixed $id ID del department_category a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteDepartmentCategory($id): bool
+    {
+        try {
+            $result = $this->delete($id);
+
+            if ($result) {
+                $this->invalidateDepartmentCategoryCache();
+                $this->logDebug('DepartmentCategory deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            $this->logError('Error deleting department_category', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ], $e);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar department_categories con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de department_categories
+     */
+    public function searchDepartmentCategories(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            $this->logError('Error searching department_categories', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ], $e);
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de department_categories con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de department_categories
+     */
+    public function countDepartmentCategories(array $filters = []): int
+    {
+        try {
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            $this->logError('Error counting department_categories', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ], $e);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de department_categories
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateDepartmentCategoryData(array $data, $id = null): void
+    {
+        // Validar nombre requerido
+        if (isset($data['name']) && empty(trim($data['name']))) {
+            throw new \InvalidArgumentException('Department category name is required and cannot be empty');
+        }
+
+        // Validar longitud del nombre
+        if (isset($data['name']) && strlen($data['name']) > 255) {
+            throw new \InvalidArgumentException('Department category name cannot exceed 255 characters');
+        }
+
+        // Validar department_id si se proporciona
+        if (isset($data['department_id'])) {
+            if (!is_numeric($data['department_id']) || $data['department_id'] <= 0) {
+                throw new \InvalidArgumentException('Department ID must be a positive integer');
+            }
+        }
+
+        // Validar parent_id si se proporciona
+        if (isset($data['parent_id'])) {
+            if ($data['parent_id'] !== null) {
+                if (!is_numeric($data['parent_id']) || $data['parent_id'] <= 0) {
+                    throw new \InvalidArgumentException('Parent ID must be a positive integer or null');
+                }
+
+                // Validar jerarquía si existe el método
+                if (method_exists($this, 'validateHierarchy')) {
+                    $this->validateHierarchy($data['parent_id'], $id);
+                }
+            }
+        }
+
+        // Validar sort_order si se proporciona
+        if (isset($data['sort_order']) && !is_numeric($data['sort_order'])) {
+            throw new \InvalidArgumentException('Sort order must be numeric');
+        }
+
+        // Validar status si se proporciona
+        if (isset($data['status']) && !in_array($data['status'], self::VALID_STATUSES)) {
+            throw new \InvalidArgumentException('Invalid status. Must be: ' . implode(', ', self::VALID_STATUSES));
+        }
+
+        // Validar unicidad del nombre dentro del departamento
+        if (isset($data['name']) && isset($data['department_id'])) {
+            $existing = $this->findAll([
+                'name' => $data['name'],
+                'department_id' => $data['department_id']
+            ]);
+
+            if (!empty($existing)) {
+                // Si es actualización, verificar que no sea el mismo registro
+                if ($id === null || $existing[0]['id'] != $id) {
+                    throw new \InvalidArgumentException('Department category name already exists in this department');
+                }
+            }
+        }
+    }
+
+    /**
+     * Invalidar cache específico de department_categories
+     */
+    public function invalidateDepartmentCategoryCache(): int
+    {
+        try {
+            // Usar el método existente si está disponible
+            if (method_exists($this, 'invalidateCategoryCache')) {
+                return $this->invalidateCategoryCache();
+            }
+
+            // Fallback para cache externo
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags(['department_categories', 'department_category_core', 'department_category_list']);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            $this->logError('Error invalidating department_category cache', [], $e);
+            return 0;
         }
     }
 }

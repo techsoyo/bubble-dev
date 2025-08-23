@@ -33,7 +33,7 @@ class CandidateCertification extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-    
+
     protected string $primaryKey = 'id';
 
     /**
@@ -241,7 +241,7 @@ class CandidateCertification extends BaseModel
             }
 
             $certification = $result[0];
-            
+
             $verificationData = [
                 'exists' => true,
                 'status' => $certification['status'],
@@ -303,11 +303,11 @@ class CandidateCertification extends BaseModel
     {
         try {
             $expiringCertifications = $this->getExpiringCertifications(null, $daysAhead);
-            
+
             $alerts = [];
             foreach ($expiringCertifications as $cert) {
                 $daysRemaining = $cert['days_to_expire'];
-                
+
                 // Determinar el nivel de alerta
                 $alertLevel = 'info';
                 if ($daysRemaining <= 7) {
@@ -355,9 +355,9 @@ class CandidateCertification extends BaseModel
         $errors = [];
 
         if (isset($data['issue_date']) && isset($data['expiry_date'])) {
-            $issueDate = is_string($data['issue_date']) ? 
+            $issueDate = is_string($data['issue_date']) ?
                 new \DateTime($data['issue_date']) : $data['issue_date'];
-            $expiryDate = is_string($data['expiry_date']) ? 
+            $expiryDate = is_string($data['expiry_date']) ?
                 new \DateTime($data['expiry_date']) : $data['expiry_date'];
 
             if ($expiryDate <= $issueDate) {
@@ -433,39 +433,188 @@ class CandidateCertification extends BaseModel
      * MÉTODOS DE UTILIDAD PRIVADOS
      */
 
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
+
     /**
-     * Registra información de depuración
-     *
-     * @param string $message Mensaje de log
-     * @param array<string, mixed> $context Contexto adicional
+     * Crear nuevo candidate_certification con validaciones
+     * @param array $data Datos del nuevo candidate_certification
+     * @return mixed ID del nuevo candidate_certification o false en caso de error
      */
-    private function logDebug(string $message, array $context = []): void
+    public function createCandidateCertification(array $data): mixed
     {
-        Logger::debug($message, array_merge([
-            'model' => static::class,
-            'table' => $this->table
-        ], $context));
+        try {
+            $this->validateCandidateCertificationData($data);
+            $id = $this->store($data);
+            $this->invalidateCandidateCertificationCache();
+
+            Logger::info('CandidateCertification created successfully', [
+                'model' => static::class,
+                'id' => $id
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            Logger::error('Error creating candidate_certification', [
+                'model' => static::class,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
     }
 
     /**
-     * Registra errores
-     *
-     * @param string $message Mensaje de error
-     * @param array<string, mixed> $context Contexto adicional
-     * @param \Exception|null $exception Excepción opcional
+     * Obtener candidate_certification por ID
+     * @param mixed $id ID del candidate_certification
+     * @return array|null Datos del candidate_certification o null si no existe
      */
-    private function logError(string $message, array $context = [], ?\Exception $exception = null): void
+    public function getCandidateCertification($id): ?array
     {
-        $logContext = array_merge([
-            'model' => static::class,
-            'table' => $this->table
-        ], $context);
-
-        if ($exception) {
-            $logContext['exception'] = $exception->getMessage();
-            $logContext['trace'] = $exception->getTraceAsString();
+        try {
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            Logger::error('Error retrieving candidate_certification', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
         }
+    }
 
-        Logger::error($message, $logContext);
+    /**
+     * Actualizar candidate_certification con validaciones
+     * @param mixed $id ID del candidate_certification a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
+     */
+    public function updateCandidateCertification($id, array $data): bool
+    {
+        try {
+            $this->validateCandidateCertificationData($data, $id);
+            $result = $this->update($id, $data);
+
+            if ($result) {
+                $this->invalidateCandidateCertificationCache();
+                Logger::info('CandidateCertification updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error updating candidate_certification', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar candidate_certification con validaciones
+     * @param mixed $id ID del candidate_certification a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteCandidateCertification($id): bool
+    {
+        try {
+            $result = $this->delete($id);
+
+            if ($result) {
+                $this->invalidateCandidateCertificationCache();
+                Logger::info('CandidateCertification deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error deleting candidate_certification', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar candidate_certifications con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de candidate_certifications
+     */
+    public function searchCandidateCertifications(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            Logger::error('Error searching candidate_certifications', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de candidate_certifications con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de candidate_certifications
+     */
+    public function countCandidateCertifications(array $filters = []): int
+    {
+        try {
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            Logger::error('Error counting candidate_certifications', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de candidate_certifications
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateCandidateCertificationData(array $data, $id = null): void
+    {
+        // TODO: Implementar validaciones específicas del modelo
+    }
+
+    /**
+     * Invalidar cache específico de candidate_certifications
+     */
+    public function invalidateCandidateCertificationCache(): int
+    {
+        try {
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags(['candidate_certifications', 'candidate_certification_core', 'candidate_certification_list']);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            $this->logError('Error invalidating candidate_certification cache', [], $e);
+            return 0;
+        }
     }
 }

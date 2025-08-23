@@ -39,7 +39,7 @@ class CandidateSkill extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-    
+
 
     /**
      * Clave primaria compuesta lógica: (candidate_id, skill_id)
@@ -106,7 +106,7 @@ class CandidateSkill extends BaseModel
 
         try {
             if ($useCache && $this->isCacheEnabled()) {
-                return $this->getCachedData($cacheKey, function() use ($candidateId) {
+                return $this->getCachedData($cacheKey, function () use ($candidateId) {
                     return $this->executeCandidateSkillsQuery($candidateId);
                 });
             }
@@ -135,7 +135,7 @@ class CandidateSkill extends BaseModel
 
         try {
             if ($useCache && $this->isCacheEnabled()) {
-                return $this->getCachedData($cacheKey, function() use ($candidateId) {
+                return $this->getCachedData($cacheKey, function () use ($candidateId) {
                     return $this->executeSkillsByCandidateQuery($candidateId);
                 });
             }
@@ -172,7 +172,7 @@ class CandidateSkill extends BaseModel
 
         try {
             if ($useCache && $this->isCacheEnabled()) {
-                return $this->getCachedData($cacheKey, function() use ($skillName, $limit) {
+                return $this->getCachedData($cacheKey, function () use ($skillName, $limit) {
                     return $this->executeCandidatesWithSkillQuery($skillName, $limit);
                 });
             }
@@ -199,9 +199,9 @@ class CandidateSkill extends BaseModel
      * @throws \RuntimeException Si la actualización falla
      */
     public function updateSkillProficiency(
-        string $candidateId, 
-        int $skillId, 
-        string $proficiencyLevel, 
+        string $candidateId,
+        int $skillId,
+        string $proficiencyLevel,
         ?int $yearsExperience = null
     ): bool {
         if (empty($candidateId)) {
@@ -231,25 +231,15 @@ class CandidateSkill extends BaseModel
             }
 
             // Intentar actualizar registro existente
-            $sql = "UPDATE `{$this->table}` SET ";
-            $setClause = [];
-            $params = [];
+            $whereConditions = [
+                'candidate_id' => $candidateId,
+                'skill_id' => $skillId
+            ];
 
-            foreach ($data as $field => $value) {
-                $setClause[] = "`$field` = :$field";
-                $params[":$field"] = $value;
-            }
+            $updated = $this->update($data, $whereConditions);
 
-            $sql .= implode(', ', $setClause);
-            $sql .= " WHERE `candidate_id` = :candidate_id AND `skill_id` = :skill_id";
-            
-            $params[':candidate_id'] = $candidateId;
-            $params[':skill_id'] = $skillId;
-
-            $result = $this->query($sql, $params);
-            
             // Si no se actualizó ningún registro, crear uno nuevo
-            if ($this->db->rowCount() === 0) {
+            if (!$updated) {
                 $insertData = array_merge($data, [
                     'candidate_id' => $candidateId,
                     'skill_id' => $skillId,
@@ -318,9 +308,9 @@ class CandidateSkill extends BaseModel
                 FROM vw_candidate_skills_flat 
                 WHERE candidate_id = :candidate_id 
                 ORDER BY skill_type, skill_name";
-        
+
         $results = $this->query($sql, [':candidate_id' => $candidateId]);
-        
+
         // Agrupar por tipo de habilidad
         $grouped = [];
         foreach ($results as $skill) {
@@ -330,7 +320,7 @@ class CandidateSkill extends BaseModel
             }
             $grouped[$type][] = $skill;
         }
-        
+
         return $grouped;
     }
 
@@ -359,7 +349,7 @@ class CandidateSkill extends BaseModel
                     years_experience DESC,
                     verified DESC
                 LIMIT :limit";
-        
+
         return $this->query($sql, [
             ':skill_name' => strtolower(trim($skillName)),
             ':skill_like' => '%' . strtolower(trim($skillName)) . '%',
@@ -386,7 +376,7 @@ class CandidateSkill extends BaseModel
                     $this->generateCacheKey('candidate_skills_flat', ['candidate_id' => $candidateId]),
                     $this->generateCacheKey('skills_by_candidate', ['candidate_id' => $candidateId])
                 ];
-                
+
                 foreach ($keysToDelete as $key) {
                     if (isset($this->cache[$key])) {
                         unset($this->cache[$key]);
@@ -425,79 +415,197 @@ class CandidateSkill extends BaseModel
 
         // Ejecutar callback y cachear resultado
         $data = $callback();
-        
+
         $this->cache[$cacheKey] = [
             'data' => $data,
             'expires' => time() + self::CACHE_TTL
         ];
-        
+
         return $data;
     }
 
-    /**
-     * Genera clave de cache consistente
-     */
-    private function generateCacheKey(string $type, array $params): string
-    {
-        ksort($params);
-        return sprintf('%s_%s_%s', 
-            static::class, 
-            $type, 
-            md5(serialize($params))
-        );
-    }
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
 
     /**
-     * Ejecuta consulta SQL con parámetros seguros
+     * Crear nuevo candidate_skill con validaciones
+     * @param array $data Datos del nuevo candidate_skill
+     * @return mixed ID del nuevo candidate_skill o false en caso de error
      */
-    private function query(string $sql, array $params = []): array
+    public function createCandidateSkill(array $data): mixed
     {
         try {
-            $stmt = $this->db->prepare($sql);
-            
-            foreach ($params as $key => $value) {
-                $stmt->bindValue($key, $value, $this->getPdoType($value));
-            }
-            
-            $stmt->execute();
-            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        } catch (\PDOException $e) {
-            Logger::error('SQL execution error in CandidateSkill', [
-                'sql' => $sql,
-                'params' => $params,
+            $this->validateCandidateSkillData($data);
+            $id = $this->store($data);
+            $this->invalidateCandidateSkillCache();
+
+            Logger::info('CandidateSkill created successfully', [
+                'model' => static::class,
+                'id' => $id
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            Logger::error('Error creating candidate_skill', [
+                'model' => static::class,
+                'data' => $data,
                 'error' => $e->getMessage()
             ]);
-            throw $e;
+            return false;
         }
     }
 
     /**
-     * Obtiene el tipo PDO apropiado para un valor
+     * Obtener candidate_skill por ID
+     * @param mixed $id ID del candidate_skill
+     * @return array|null Datos del candidate_skill o null si no existe
      */
-    private function getPdoType($value): int
+    public function getCandidateSkill($id): ?array
     {
-        if (is_int($value)) {
-            return \PDO::PARAM_INT;
+        try {
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            Logger::error('Error retrieving candidate_skill', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
         }
-        if (is_bool($value)) {
-            return \PDO::PARAM_BOOL;
-        }
-        if (is_null($value)) {
-            return \PDO::PARAM_NULL;
-        }
-        return \PDO::PARAM_STR;
     }
 
     /**
-     * Log de errores usando Logger
+     * Actualizar candidate_skill con validaciones
+     * @param mixed $id ID del candidate_skill a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
      */
-    private function logError(string $message, array $context, \Exception $e): void
+    public function updateCandidateSkill($id, array $data): bool
     {
-        Logger::error($message, array_merge($context, [
-            'model' => static::class,
-            'table' => $this->table,
-            'exception' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]));
+        try {
+            $this->validateCandidateSkillData($data, $id);
+            $result = $this->update($id, $data);
+
+            if ($result) {
+                $this->invalidateCandidateSkillCache();
+                Logger::info('CandidateSkill updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error updating candidate_skill', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar candidate_skill con validaciones
+     * @param mixed $id ID del candidate_skill a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteCandidateSkill($id): bool
+    {
+        try {
+            $result = $this->delete($id);
+
+            if ($result) {
+                $this->invalidateCandidateSkillCache();
+                Logger::info('CandidateSkill deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error deleting candidate_skill', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar candidate_skills con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de candidate_skills
+     */
+    public function searchCandidateSkills(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            Logger::error('Error searching candidate_skills', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de candidate_skills con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de candidate_skills
+     */
+    public function countCandidateSkills(array $filters = []): int
+    {
+        try {
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            Logger::error('Error counting candidate_skills', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de candidate_skills
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateCandidateSkillData(array $data, $id = null): void
+    {
+        // TODO: Implementar validaciones específicas del modelo
+    }
+
+    /**
+     * Invalidar cache específico de candidate_skills
+     */
+    public function invalidateCandidateSkillCache(): int
+    {
+        try {
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags(['candidate_skills', 'candidate_skill_core', 'candidate_skill_list']);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            $this->logError('Error invalidating candidate_skill cache', [], $e);
+            return 0;
+        }
     }
 }

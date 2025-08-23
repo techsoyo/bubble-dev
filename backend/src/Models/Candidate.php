@@ -346,6 +346,263 @@ class Candidate extends BaseModel
         return $this->update($id, $data);
     }
 
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
+
+    /**
+     * Crear nuevo candidato con validaciones
+     * @param array $data Datos del nuevo candidato
+     * @return mixed ID del nuevo candidato o false en caso de error
+     */
+    public function createCandidate(array $data): mixed
+    {
+        try {
+            // Validaciones específicas del modelo
+            $this->validateCandidateData($data);
+
+            // Llamar al método store de BaseModel
+            $id = $this->store($data);
+
+            // Invalidar cache específico
+            $this->invalidateCandidateCache();
+
+            Logger::info('Candidate created successfully', [
+                'model' => static::class,
+                'id' => $id,
+                'email' => $data['email'] ?? 'N/A'
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            Logger::error('Error creating candidate', [
+                'model' => static::class,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Obtener candidato por ID
+     * @param mixed $id ID del candidato
+     * @return array|null Datos del candidato o null si no existe
+     */
+    public function getCandidate($id): ?array
+    {
+        try {
+            // Usar método de BaseModel con validaciones incluidas
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            Logger::error('Error retrieving candidate', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar candidato con validaciones
+     * @param mixed $id ID del candidato a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
+     */
+    public function updateCandidate($id, array $data): bool
+    {
+        try {
+            // Validaciones específicas del modelo para actualización
+            $this->validateCandidateData($data, $id);
+
+            // Usar método de BaseModel con validaciones incluidas
+            $result = $this->update($id, $data);
+
+            if ($result) {
+                // Invalidar cache específico
+                $this->invalidateCandidateCache();
+
+                Logger::info('Candidate updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error updating candidate', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar candidato con validaciones
+     * @param mixed $id ID del candidato a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteCandidate($id): bool
+    {
+        try {
+            // Usar método de BaseModel con validaciones incluidas
+            $result = $this->delete($id);
+
+            if ($result) {
+                // Invalidar cache específico
+                $this->invalidateCandidateCache();
+
+                Logger::info('Candidate deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error deleting candidate', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar candidatos con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de candidatos
+     */
+    public function searchCandidates(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            // Usar método de BaseModel con validaciones incluidas
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            Logger::error('Error searching candidates', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Buscar candidato por email
+     * @param string $email Email a buscar
+     * @return array|null Candidato encontrado o null
+     */
+    public function getCandidateByEmail(string $email): ?array
+    {
+        try {
+            // Usar método de BaseModel con validaciones incluidas
+            return $this->findOneBy('email', $email);
+        } catch (\Exception $e) {
+            Logger::error('Error finding candidate by email', [
+                'model' => static::class,
+                'email' => $email,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Contar total de candidatos con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de candidatos
+     */
+    public function countCandidates(array $filters = []): int
+    {
+        try {
+            // Usar método de BaseModel con validaciones incluidas
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            Logger::error('Error counting candidates', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de candidatos
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateCandidateData(array $data, $id = null): void
+    {
+        // Validar email requerido para creación
+        if ($id === null && empty($data['email'])) {
+            throw new \InvalidArgumentException('Email is required');
+        }
+
+        // Validar nombre requerido para creación
+        if ($id === null && empty($data['first_name']) && empty($data['name'])) {
+            throw new \InvalidArgumentException('Name is required');
+        }
+
+        // Validar formato de email si está presente
+        if (isset($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            throw new \InvalidArgumentException('Invalid email format');
+        }
+
+        // Verificar email único
+        if (isset($data['email'])) {
+            $existing = $this->findOneBy('email', $data['email']);
+            if ($existing && ($id === null || $existing['id'] != $id)) {
+                throw new \InvalidArgumentException('Email already exists');
+            }
+        }
+
+        // Validar estado válido
+        if (isset($data['status']) && !in_array($data['status'], ['active', 'inactive', 'pending', 'rejected'])) {
+            throw new \InvalidArgumentException('Invalid status value');
+        }
+
+        // Validar tipo de contrato deseado
+        if (isset($data['desired_contract_type']) && !in_array($data['desired_contract_type'], ['full-time', 'part-time', 'contract', 'freelance', 'internship'])) {
+            throw new \InvalidArgumentException('Invalid desired contract type');
+        }
+
+        // Validar URL de LinkedIn si está presente
+        if (isset($data['linkedin_url']) && !empty($data['linkedin_url'])) {
+            if (!filter_var($data['linkedin_url'], FILTER_VALIDATE_URL)) {
+                throw new \InvalidArgumentException('Invalid LinkedIn URL format');
+            }
+        }
+
+        // Validar URL de portfolio si está presente
+        if (isset($data['portfolio_url']) && !empty($data['portfolio_url'])) {
+            if (!filter_var($data['portfolio_url'], FILTER_VALIDATE_URL)) {
+                throw new \InvalidArgumentException('Invalid portfolio URL format');
+            }
+        }
+
+        // Asignar valores por defecto para creación
+        if ($id === null) {
+            $data['status'] = $data['status'] ?? 'active';
+            $data['registration_source'] = $data['registration_source'] ?? 'manual';
+        }
+    }
+
     /**
      * Invalidar cache específico de candidatos
      */

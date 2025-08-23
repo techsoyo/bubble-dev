@@ -34,7 +34,7 @@ class JobSkill extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-    
+
     protected string $primaryKey = 'job_id';
 
     /**
@@ -100,7 +100,7 @@ class JobSkill extends BaseModel
     public function getSkillDemandAnalysis(array $filters = [], int $limit = 50): array
     {
         $cacheKey = "skill_demand_analysis_" . md5(serialize($filters) . $limit);
-        
+
         if (isset($this->cache[$cacheKey])) {
             return $this->cache[$cacheKey];
         }
@@ -112,7 +112,7 @@ class JobSkill extends BaseModel
                     'high' as demand_level
                 FROM vw_skill_demand 
                 CROSS JOIN (SELECT COUNT(DISTINCT job_id) as total_jobs FROM vw_skill_demand) as total";
-        
+
         $params = [];
 
         if (!empty($filters)) {
@@ -133,13 +133,13 @@ class JobSkill extends BaseModel
 
         try {
             $result = $this->query($sql, $params);
-            
+
             // Clasificar niveles de demanda
             $result = $this->classifyDemandLevels($result);
-            
+
             // Cache por 1 hora
             $this->cache[$cacheKey] = $result;
-            
+
             $this->logDebug('Skill demand analysis retrieved', [
                 'skills_count' => count($result),
                 'cache_key' => $cacheKey
@@ -165,7 +165,7 @@ class JobSkill extends BaseModel
     public function getSkillSupplyAnalysis(array $filters = [], int $limit = 50): array
     {
         $cacheKey = "skill_supply_analysis_" . md5(serialize($filters) . $limit);
-        
+
         if (isset($this->cache[$cacheKey])) {
             return $this->cache[$cacheKey];
         }
@@ -177,7 +177,7 @@ class JobSkill extends BaseModel
                     'medium' as supply_level
                 FROM vw_skill_supply 
                 CROSS JOIN (SELECT COUNT(DISTINCT candidate_id) as total_candidates FROM vw_skill_supply) as total";
-        
+
         $params = [];
 
         if (!empty($filters)) {
@@ -198,13 +198,13 @@ class JobSkill extends BaseModel
 
         try {
             $result = $this->query($sql, $params);
-            
+
             // Clasificar niveles de oferta
             $result = $this->classifySupplyLevels($result);
-            
+
             // Cache por 1 hora
             $this->cache[$cacheKey] = $result;
-            
+
             $this->logDebug('Skill supply analysis retrieved', [
                 'skills_count' => count($result),
                 'cache_key' => $cacheKey
@@ -229,7 +229,7 @@ class JobSkill extends BaseModel
     public function getSkillMarketGap(int $limit = 30): array
     {
         $cacheKey = "skill_market_gap_" . $limit;
-        
+
         if (isset($this->cache[$cacheKey])) {
             return $this->cache[$cacheKey];
         }
@@ -259,13 +259,13 @@ class JobSkill extends BaseModel
 
         try {
             $result = $this->query($sql, $params);
-            
+
             // Enriquecer con recomendaciones
             $result = $this->addMarketRecommendations($result);
-            
+
             // Cache por 1 hora
             $this->cache[$cacheKey] = $result;
-            
+
             $this->logDebug('Market gap analysis retrieved', [
                 'gaps_count' => count($result),
                 'cache_key' => $cacheKey
@@ -290,7 +290,7 @@ class JobSkill extends BaseModel
     public function getTrendingSkills(int $days = 30, int $limit = 20): array
     {
         $cacheKey = "trending_skills_{$days}_{$limit}";
-        
+
         if (isset($this->cache[$cacheKey])) {
             return $this->cache[$cacheKey];
         }
@@ -323,13 +323,13 @@ class JobSkill extends BaseModel
 
         try {
             $result = $this->query($sql, $params);
-            
+
             // Enriquecer con metadata
             $result = $this->enrichTrendingSkills($result);
-            
+
             // Cache por 30 minutos (más frecuente para trends)
             $this->cache[$cacheKey] = $result;
-            
+
             $this->logDebug('Trending skills retrieved', [
                 'skills_count' => count($result),
                 'days' => $days,
@@ -404,7 +404,7 @@ class JobSkill extends BaseModel
 
         try {
             $result = $this->query($sql, $params);
-            
+
             $this->logDebug('Jobs with meta by skills retrieved', [
                 'skills' => $skills,
                 'jobs_count' => count($result)
@@ -464,10 +464,10 @@ class JobSkill extends BaseModel
 
         try {
             $result = $this->query($sql, $params);
-            
+
             // Enriquecer con datos adicionales
             $result = $this->enrichCandidateMatches($result, $jobId);
-            
+
             $this->logDebug('Candidate matches found', [
                 'job_id' => $jobId,
                 'matches_count' => count($result),
@@ -498,7 +498,7 @@ class JobSkill extends BaseModel
         }
 
         $cacheKey = "job_skills_optimized_" . $jobId;
-        
+
         if (isset($this->cache[$cacheKey])) {
             return $this->cache[$cacheKey];
         }
@@ -524,13 +524,13 @@ class JobSkill extends BaseModel
 
         try {
             $result = $this->query($sql, $params);
-            
+
             // Enriquecer con recomendaciones de reclutamiento
             $result = $this->addRecruitmentRecommendations($result);
-            
+
             // Cache por 2 horas
             $this->cache[$cacheKey] = $result;
-            
+
             $this->logDebug('Optimized job skills retrieved', [
                 'job_id' => $jobId,
                 'skills_count' => count($result),
@@ -618,37 +618,37 @@ class JobSkill extends BaseModel
     {
         foreach ($data as &$row) {
             $recommendations = [];
-            
+
             switch ($row['market_status']) {
                 case 'critical_shortage':
                     $recommendations[] = 'Incrementar presupuesto de reclutamiento';
                     $recommendations[] = 'Considerar programas de capacitación interna';
                     $recommendations[] = 'Evaluar contratación remota o internacional';
                     break;
-                    
+
                 case 'high_demand':
                     $recommendations[] = 'Acelerar procesos de selección';
                     $recommendations[] = 'Mejorar propuesta de valor al candidato';
                     $recommendations[] = 'Considerar rangos salariales competitivos';
                     break;
-                    
+
                 case 'moderate_demand':
                     $recommendations[] = 'Mantener estrategia actual de reclutamiento';
                     $recommendations[] = 'Optimizar canales de sourcing';
                     break;
-                    
+
                 case 'balanced':
                     $recommendations[] = 'Enfoque selectivo en candidatos de calidad';
                     $recommendations[] = 'Aprovechar mercado estable';
                     break;
-                    
+
                 case 'oversupply':
                     $recommendations[] = 'Elevar estándares de selección';
                     $recommendations[] = 'Proceso de evaluación más riguroso';
                     $recommendations[] = 'Oportunidad para negociar condiciones';
                     break;
             }
-            
+
             $row['recommendations'] = $recommendations;
         }
 
@@ -689,31 +689,31 @@ class JobSkill extends BaseModel
     {
         foreach ($data as &$row) {
             $recruitmentAdvice = [];
-            
+
             switch ($row['availability_status']) {
                 case 'very_scarce':
                     $recruitmentAdvice[] = 'Skill muy escaso - presupuesto alto requerido';
                     $recruitmentAdvice[] = 'Considerar alternativas o training';
                     break;
-                    
+
                 case 'scarce':
                     $recruitmentAdvice[] = 'Skill escaso - competencia alta';
                     $recruitmentAdvice[] = 'Acelerar proceso de selección';
                     break;
-                    
+
                 case 'balanced':
                     $recruitmentAdvice[] = 'Disponibilidad normal';
                     break;
-                    
+
                 case 'abundant':
                     $recruitmentAdvice[] = 'Alta disponibilidad - proceso selectivo';
                     break;
             }
-            
+
             if ($row['is_required']) {
                 $recruitmentAdvice[] = 'Skill obligatorio - no negociable';
             }
-            
+
             $row['recruitment_advice'] = $recruitmentAdvice;
         }
 
@@ -731,7 +731,7 @@ class JobSkill extends BaseModel
 
         sort($values);
         $index = ($percentile / 100) * (count($values) - 1);
-        
+
         if (floor($index) == $index) {
             return $values[$index];
         } else {
@@ -758,7 +758,7 @@ class JobSkill extends BaseModel
     private function getPriorityLevel(int $requiredJobs, int $totalJobs): string
     {
         $requiredRatio = $totalJobs > 0 ? ($requiredJobs / $totalJobs) : 0;
-        
+
         if ($requiredRatio >= 0.8) return 'critical';
         if ($requiredRatio >= 0.5) return 'high';
         if ($requiredRatio >= 0.3) return 'medium';
@@ -784,11 +784,11 @@ class JobSkill extends BaseModel
     private function calculateRecommendationScore(array $candidateData): int
     {
         $score = intval($candidateData['match_percentage']);
-        
+
         // Bonificaciones por skills overlap
         if ($candidateData['skills_overlap'] ?? 0 > 0.8) $score += 10;
         if ($candidateData['skills_overlap'] ?? 0 > 0.6) $score += 5;
-        
+
         return min(100, $score);
     }
 
@@ -809,35 +809,203 @@ class JobSkill extends BaseModel
      */
     public function clearSkillsCache(): void
     {
-        $keysToRemove = array_filter(array_keys($this->cache), function($key) {
-            return strpos($key, 'skill_') === 0 || 
-                   strpos($key, 'trending_') === 0 || 
-                   strpos($key, 'job_skills_') === 0;
+        $keysToRemove = array_filter(array_keys($this->cache), function ($key) {
+            return strpos($key, 'skill_') === 0 ||
+                strpos($key, 'trending_') === 0 ||
+                strpos($key, 'job_skills_') === 0;
         });
-        
+
         foreach ($keysToRemove as $key) {
             unset($this->cache[$key]);
         }
-        
+
         $this->logDebug('Skills cache cleared', [
             'cleared_keys' => count($keysToRemove)
         ]);
     }
 
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
+
     /**
-     * Métodos de logging heredados mejorados
+     * Crear nuevo job_skill con validaciones
+     * @param array $data Datos del nuevo job_skill
+     * @return mixed ID del nuevo job_skill o false en caso de error
      */
-    private function logDebug(string $message, array $context = []): void
+    public function createJobSkill(array $data): mixed
     {
-        Logger::debug($message, array_merge(['model' => static::class], $context));
+        try {
+            $this->validateJobSkillData($data);
+            $id = $this->store($data);
+            $this->invalidateJobSkillCache();
+
+            Logger::info('JobSkill created successfully', [
+                'model' => static::class,
+                'id' => $id
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            Logger::error('Error creating job_skill', [
+                'model' => static::class,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
     }
 
-    private function logError(string $message, array $context = [], ?\Exception $exception = null): void
+    /**
+     * Obtener job_skill por ID
+     * @param mixed $id ID del job_skill
+     * @return array|null Datos del job_skill o null si no existe
+     */
+    public function getJobSkill($id): ?array
     {
-        $logContext = array_merge(['model' => static::class], $context);
-        if ($exception) {
-            $logContext['exception'] = $exception->getMessage();
+        try {
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            Logger::error('Error retrieving job_skill', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
         }
-        Logger::error($message, $logContext);
+    }
+
+    /**
+     * Actualizar job_skill con validaciones
+     * @param mixed $id ID del job_skill a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
+     */
+    public function updateJobSkill($id, array $data): bool
+    {
+        try {
+            $this->validateJobSkillData($data, $id);
+            $result = $this->update($id, $data);
+
+            if ($result) {
+                $this->invalidateJobSkillCache();
+                Logger::info('JobSkill updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error updating job_skill', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar job_skill con validaciones
+     * @param mixed $id ID del job_skill a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteJobSkill($id): bool
+    {
+        try {
+            $result = $this->delete($id);
+
+            if ($result) {
+                $this->invalidateJobSkillCache();
+                Logger::info('JobSkill deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Error deleting job_skill', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar job_skills con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de job_skills
+     */
+    public function searchJobSkills(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            Logger::error('Error searching job_skills', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de job_skills con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de job_skills
+     */
+    public function countJobSkills(array $filters = []): int
+    {
+        try {
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            Logger::error('Error counting job_skills', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de job_skills
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateJobSkillData(array $data, $id = null): void
+    {
+        // TODO: Implementar validaciones específicas del modelo
+    }
+
+    /**
+     * Invalidar cache específico de job_skills
+     */
+    public function invalidateJobSkillCache(): int
+    {
+        try {
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags(['job_skills', 'job_skill_core', 'job_skill_list']);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            $this->logError('Error invalidating job_skill cache', [], $e);
+            return 0;
+        }
     }
 }

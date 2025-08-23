@@ -43,7 +43,7 @@ class Department extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-    
+
 
     /**
      * Campos que pueden ser asignados masivamente
@@ -93,7 +93,7 @@ class Department extends BaseModel
                     applications_count,
                     candidates_count
                 FROM vw_pipeline_department";
-        
+
         $params = [];
 
         if ($departmentId !== null) {
@@ -112,7 +112,7 @@ class Department extends BaseModel
                 $cacheKey = $this->generateCacheKey('department_pipeline', [
                     'department_id' => $departmentId
                 ]);
-                
+
                 return $this->getCachedQuery($cacheKey, $sql, $params, $cacheTtl);
             }
 
@@ -326,14 +326,14 @@ class Department extends BaseModel
 
         try {
             $candidates = $this->query($sql, $params);
-            
+
             // Obtener total para paginación
             $totalQuery = "SELECT COUNT(DISTINCT c.id) as total 
                            FROM bt_candidates c 
                            WHERE c.department_id = :department_id";
-            
+
             $totalParams = [':department_id' => $departmentId];
-            
+
             if (!empty($filters)) {
                 foreach ($filters as $field => $value) {
                     if ($value !== null && $this->isValidFieldName($field)) {
@@ -466,29 +466,23 @@ class Department extends BaseModel
     private function getCachedQuery(string $cacheKey, string $sql, array $params, int $ttl): array
     {
         // Verificar si existe sistema de cache
-        if (isset($this->cache[$cacheKey]) && 
-            isset($this->cache[$cacheKey]['expires']) && 
-            $this->cache[$cacheKey]['expires'] > time()) {
+        if (
+            isset($this->cache[$cacheKey]) &&
+            isset($this->cache[$cacheKey]['expires']) &&
+            $this->cache[$cacheKey]['expires'] > time()
+        ) {
             return $this->cache[$cacheKey]['data'];
         }
 
         // Ejecutar query y cachear resultado
         $result = $this->query($sql, $params);
-        
+
         $this->cache[$cacheKey] = [
             'data' => $result,
             'expires' => time() + $ttl
         ];
 
         return $result;
-    }
-
-    /**
-     * Generar clave de cache única
-     */
-    private function generateCacheKey(string $prefix, array $params): string
-    {
-        return $prefix . '_' . md5(serialize($params));
     }
 
     /**
@@ -571,6 +565,210 @@ class Department extends BaseModel
                 'department_id' => $departmentId
             ], $e);
             throw new \RuntimeException('Failed to get department head: ' . $e->getMessage());
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // ==========================================
+
+    /**
+     * Crear nuevo department con validaciones
+     * @param array $data Datos del nuevo department
+     * @return mixed ID del nuevo department o false en caso de error
+     */
+    public function createDepartment(array $data): mixed
+    {
+        try {
+            $this->validateDepartmentData($data);
+            $id = $this->store($data);
+            $this->invalidateDepartmentCache();
+
+            $this->logDebug('Department created successfully', [
+                'model' => static::class,
+                'id' => $id
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            $this->logError('Error creating department', [
+                'model' => static::class,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ], $e);
+            return false;
+        }
+    }
+
+    /**
+     * Obtener department por ID
+     * @param mixed $id ID del department
+     * @return array|null Datos del department o null si no existe
+     */
+    public function getDepartment($id): ?array
+    {
+        try {
+            return $this->findById($id);
+        } catch (\Exception $e) {
+            $this->logError('Error retrieving department', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ], $e);
+            return null;
+        }
+    }
+
+    /**
+     * Actualizar department con validaciones
+     * @param mixed $id ID del department a actualizar
+     * @param array $data Nuevos datos
+     * @return bool True si la actualización fue exitosa
+     */
+    public function updateDepartment($id, array $data): bool
+    {
+        try {
+            $this->validateDepartmentData($data, $id);
+            $result = $this->update($id, $data);
+
+            if ($result) {
+                $this->invalidateDepartmentCache();
+                $this->logDebug('Department updated successfully', [
+                    'model' => static::class,
+                    'id' => $id,
+                    'fields' => array_keys($data)
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            $this->logError('Error updating department', [
+                'model' => static::class,
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage()
+            ], $e);
+            return false;
+        }
+    }
+
+    /**
+     * Eliminar department con validaciones
+     * @param mixed $id ID del department a eliminar
+     * @return bool True si la eliminación fue exitosa
+     */
+    public function deleteDepartment($id): bool
+    {
+        try {
+            $result = $this->delete($id);
+
+            if ($result) {
+                $this->invalidateDepartmentCache();
+                $this->logDebug('Department deleted successfully', [
+                    'model' => static::class,
+                    'id' => $id
+                ]);
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            $this->logError('Error deleting department', [
+                'model' => static::class,
+                'id' => $id,
+                'error' => $e->getMessage()
+            ], $e);
+            return false;
+        }
+    }
+
+    /**
+     * Buscar departments con filtros
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Página actual
+     * @param int $limit Registros por página
+     * @param array $orderBy Criterios de ordenamiento
+     * @return array Array de departments
+     */
+    public function searchDepartments(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
+    {
+        try {
+            return $this->findAll($filters, $page, $limit, $orderBy);
+        } catch (\Exception $e) {
+            $this->logError('Error searching departments', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ], $e);
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de departments con filtros
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de departments
+     */
+    public function countDepartments(array $filters = []): int
+    {
+        try {
+            return $this->countAll($filters);
+        } catch (\Exception $e) {
+            $this->logError('Error counting departments', [
+                'model' => static::class,
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ], $e);
+            return 0;
+        }
+    }
+
+    // ==========================================
+    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // ==========================================
+
+    /**
+     * Validar datos específicos de departments
+     * @param array $data Datos a validar
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    private function validateDepartmentData(array $data, $id = null): void
+    {
+        // Validar nombre requerido
+        if (isset($data['name']) && empty(trim($data['name']))) {
+            throw new \InvalidArgumentException('Department name is required and cannot be empty');
+        }
+
+        // Validar longitud del nombre
+        if (isset($data['name']) && strlen($data['name']) > 255) {
+            throw new \InvalidArgumentException('Department name cannot exceed 255 characters');
+        }
+
+        // Validar que el nombre no esté duplicado (si es creación o actualización con nombre diferente)
+        if (isset($data['name'])) {
+            $existing = $this->findBy('name', $data['name']);
+            if (!empty($existing)) {
+                // Si es actualización, verificar que no sea el mismo registro
+                if ($id === null || $existing[0]['id'] != $id) {
+                    throw new \InvalidArgumentException('Department name already exists');
+                }
+            }
+        }
+    }
+
+    /**
+     * Invalidar cache específico de departments
+     */
+    public function invalidateDepartmentCache(): int
+    {
+        try {
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags(['departments', 'department_core', 'department_list', 'pipeline']);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            $this->logError('Error invalidating department cache', [], $e);
+            return 0;
         }
     }
 }

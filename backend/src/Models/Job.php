@@ -29,7 +29,7 @@ class Job extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-    
+
 
     /**
      * Campos que pueden ser asignados masivamente
@@ -61,7 +61,7 @@ class Job extends BaseModel
      */
     protected array $hidden = [
         'api_keys',
-        'internal_notes', 
+        'internal_notes',
         'hiring_manager_notes'
     ];
 
@@ -98,8 +98,8 @@ class Job extends BaseModel
             }
         }
 
-        // Añadir ordenación por defecto
-        $sql .= ' ORDER BY posted_at DESC';
+        // Añadir ordenación por defecto (posted_date reemplaza a posted_at)
+        $sql .= ' ORDER BY posted_date DESC';
 
         // Añadir paginación
         $offset = ($page - 1) * $limit;
@@ -197,7 +197,12 @@ class Job extends BaseModel
 
         // Usar la vista con metadatos para obtener información completa
         $sql = "SELECT * FROM vw_jobs_with_meta";
+        // Inicializar parámetros para binds (evita "undefined variable" si no hay filtros)
         $params = [];
+        // Si no se especifica $orderBy, caer a posted_date (nuevo campo)
+        if (empty($orderBy)) {
+            $orderBy = ['posted_date' => 'DESC'];
+        }
 
         // Construir cláusula WHERE
         if (!empty($filters)) {
@@ -242,7 +247,7 @@ class Job extends BaseModel
 
         try {
             $results = $this->query($sql, $params);
-            
+
             $this->logDebug('Jobs retrieved successfully', [
                 'count' => count($results),
                 'page' => $page,
@@ -346,6 +351,162 @@ class Job extends BaseModel
     }
 
     /**
+     * MÉTODOS CRUD ENCAPSULADOS - Para uso externo
+     * Estos métodos encapsulan todas las operaciones CRUD y lógica de negocio
+     */
+
+    /**
+     * Crear nuevo trabajo con validaciones
+     */
+    public function createJob(array $data): mixed
+    {
+        // Validaciones específicas del dominio
+        if (empty($data['title'])) {
+            throw new \InvalidArgumentException('Title is required');
+        }
+
+        if (empty($data['description'])) {
+            throw new \InvalidArgumentException('Description is required');
+        }
+
+        if (empty($data['department_id'])) {
+            throw new \InvalidArgumentException('Department ID is required');
+        }
+
+        // Asignar valores por defecto
+        $data['status'] = $data['status'] ?? 'active';
+        $data['posted_date'] = $data['posted_date'] ?? date('Y-m-d H:i:s');
+        $data['employment_type'] = $data['employment_type'] ?? 'full_time';
+        $data['currency'] = $data['currency'] ?? 'EUR';
+
+        try {
+            $id = $this->store($data);
+            $this->invalidateJobCache();
+
+            Logger::info('Job created successfully', [
+                'id' => $id,
+                'title' => $data['title']
+            ]);
+
+            return $id;
+        } catch (\Exception $e) {
+            Logger::error('Failed to create job', ['data' => $data, 'error' => $e->getMessage()]);
+            throw new \RuntimeException('Failed to create job: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Obtener trabajo por ID
+     */
+    public function getJob($id): ?array
+    {
+        if (empty($id)) {
+            throw new \InvalidArgumentException('ID cannot be empty');
+        }
+
+        return $this->findById($id);
+    }
+
+    /**
+     * Actualizar trabajo con validaciones
+     */
+    public function updateJob($id, array $data): bool
+    {
+        if (empty($id)) {
+            throw new \InvalidArgumentException('ID cannot be empty');
+        }
+
+        if (empty($data)) {
+            throw new \InvalidArgumentException('Data cannot be empty');
+        }
+
+        // Verificar que el trabajo existe
+        $existing = $this->findById($id);
+        if (!$existing) {
+            throw new \InvalidArgumentException('Job not found');
+        }
+
+        try {
+            $result = $this->update($id, $data);
+            $this->invalidateJobCache();
+
+            Logger::info('Job updated successfully', [
+                'id' => $id,
+                'fields' => array_keys($data)
+            ]);
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Failed to update job', ['id' => $id, 'error' => $e->getMessage()]);
+            throw new \RuntimeException('Failed to update job: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Eliminar trabajo con validaciones
+     */
+    public function deleteJob($id): bool
+    {
+        if (empty($id)) {
+            throw new \InvalidArgumentException('ID cannot be empty');
+        }
+
+        // Verificar que el trabajo existe
+        $existing = $this->findById($id);
+        if (!$existing) {
+            throw new \InvalidArgumentException('Job not found');
+        }
+
+        try {
+            $result = $this->delete($id);
+            $this->invalidateJobCache();
+
+            Logger::info('Job deleted successfully', ['id' => $id]);
+
+            return $result;
+        } catch (\Exception $e) {
+            Logger::error('Failed to delete job', ['id' => $id, 'error' => $e->getMessage()]);
+            throw new \RuntimeException('Failed to delete job: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Buscar trabajos con filtros
+     */
+    public function searchJobs(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT): array
+    {
+        return $this->findAll($filters, $page, $limit);
+    }
+
+    /**
+     * Buscar trabajo por título exacto
+     */
+    public function getJobByTitle(string $title): ?array
+    {
+        if (empty($title)) {
+            throw new \InvalidArgumentException('Title cannot be empty');
+        }
+
+        return $this->findOneBy('title', $title);
+    }
+
+    /**
+     * Contar total de trabajos con filtros
+     */
+    public function countJobs(array $filters = []): int
+    {
+        return $this->countAll($filters);
+    }
+
+    /**
+     * Obtener trabajos activos
+     */
+    public function getActiveJobs(int $page = 1, int $limit = self::DEFAULT_LIMIT): array
+    {
+        return $this->findAll(['status' => 'active'], $page, $limit);
+    }
+
+    /**
      * Encuentra trabajos por habilidades requeridas
      *
      * @param array $skills Lista de habilidades a buscar
@@ -361,7 +522,7 @@ class Job extends BaseModel
             // Usar la vista que incluye skills_text para búsqueda más eficiente
             $skillConditions = [];
             $params = [];
-            
+
             foreach ($skills as $index => $skill) {
                 $paramKey = ":skill_$index";
                 $skillConditions[] = "skills_text LIKE $paramKey";
@@ -503,16 +664,21 @@ class Job extends BaseModel
     /**
      * Generar clave de cache única
      */
-    private function generateCacheKey(string $prefix, array $data = []): string
+    protected function generateCacheKey(string $method, ...$params): string
     {
-        $key = $prefix . '_' . md5(serialize($data));
-        return substr($key, 0, 250); // Limitar longitud de clave
+        $keyData = [
+            'table' => $this->table,
+            'method' => $method,
+            'params' => $params
+        ];
+
+        return substr(md5(serialize($keyData)), 0, 250);
     }
 
     /**
      * Método de logging de errores usando la herencia de BaseModel
      */
-    private function logError(string $message, array $context = [], ?\Exception $exception = null): void
+    protected function logError(string $message, array $context = [], ?\Throwable $exception = null): void
     {
         Logger::error($message, array_merge($context, [
             'model' => static::class,
@@ -524,7 +690,7 @@ class Job extends BaseModel
     /**
      * Método de logging de debug usando la herencia de BaseModel
      */
-    private function logDebug(string $message, array $context = []): void
+    protected function logDebug(string $message, array $context = []): void
     {
         Logger::debug($message, array_merge($context, [
             'model' => static::class,

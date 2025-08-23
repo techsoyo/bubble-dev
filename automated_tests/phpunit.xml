@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.0/phpunit.xsd"
+         bootstrap="bootstrap.php"
+         colors="true"
+         executionOrder="random"
+         stopOnFailure="false">
+    
+    <testsuites>
+        <testsuite name="Smoke Tests">
+            <directory>./tests/Smoke</directory>
+        </testsuite>
+        
+        <testsuite name="Security Tests">
+            <directory>./tests/Security</directory>
+        </testsuite>
+        
+        <testsuite name="Unit Tests">
+            <directory>./tests/Unit</directory>
+        </testsuite>
+        
+        <testsuite name="Integration Tests">
+            <directory>./tests/Integration</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory suffix=".php">../backend/src</directory>
+            <directory suffix=".php">../backend/public/api</directory>
+        </include>
+        <exclude>
+            <directory>../backend/tests</directory>
+            <directory>../backend/vendor</directory>
+            <file>../backend/public/api/ai/debug_prompt.php</file>
+        </exclude>
+    </source>
+
+    <logging>
+        <junit outputFile="reports/junit.xml"/>
+        <testdoxHtml outputFile="reports/testdox.html"/>
+    </logging>
+
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="DB_HOST" value="localhost"/>
+        <env name="DB_NAME" value="test_database"/>
+        <env name="JWT_SECRET" value="test_jwt_secret_key_for_testing_only"/>
+        <server name="REQUEST_METHOD" value="GET"/>
+        <server name="HTTP_HOST" value="localhost"/>
+    </php>
+</phpunit>

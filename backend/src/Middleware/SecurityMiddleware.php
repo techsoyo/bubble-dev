@@ -1,138 +1,91 @@
 <?php
 
-namespace Middleware;
-
-use Utils\JWT;
+namespace BubbleTalents\Middleware;
 
 /**
- * Autorización mínima para endpoints de candidato.
- * - Admin/superadmin: acceso total
- * - Recruiter: permitido (si quieres endurecer, abajo hay hook para mirar BD)
- * - El propio candidato (sub/user_id == candidateId): permitido
- * - Resto: 403 en escritura, 403 en lectura (ajusta a tu política)
+ * SecurityMiddleware - Middleware de seguridad básico
+ * Proporciona validaciones de seguridad y headers CORS
  */
 class SecurityMiddleware
 {
-    /**
-     * Lanza excepción si el usuario no es admin/superadmin
-     */
-    public static function assertAdmin($authUser): void
-    {
-        if (!$authUser || !isset($authUser['role']) || !in_array($authUser['role'], ['admin', 'superadmin'], true)) {
-            throw new \RuntimeException('Permisos de administrador requeridos');
-        }
-    }
-    // helpers locales si el bootstrap no los define
-    private static function db(): \PDO
-    {
-        return $GLOBALS['pdo'];
-    }
-    private static function T(string $name): string
-    {
-        return 'bt_' . $name;
+
+  /**
+   * Validar request básico
+   */
+  public static function validateRequest()
+  {
+    // Verificar método HTTP
+    $allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'];
+    if (!in_array($_SERVER['REQUEST_METHOD'], $allowedMethods)) {
+      http_response_code(405);
+      return false;
     }
 
-    /**
-     * Lectura: si no viene $authUser, intenta JWT; si falla, por defecto deniega (403).
-     * Cambia la política si quieres lectura pública.
-     */
-    public static function assertReadAccessForCandidate($candidateId, ?array $authUser = null): void
-    {
-        if ($authUser === null) {
-            try {
-                $authUser = JWT::requireAuth();
-            } catch (\Throwable $e) {
-                throw new \RuntimeException('No autorizado');
-            }
-        }
+    // Validación básica de headers
+    return true;
+  }
 
-        if (self::canAccessCandidate($candidateId, $authUser, false)) {
-            return;
+  /**
+   * Configurar headers CORS
+   */
+  public static function corsHeaders()
+  {
+    header("Access-Control-Allow-Origin: *");
+    header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+    header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+    header("Content-Type: application/json; charset=UTF-8");
+
+    // Responder a preflight requests
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+      http_response_code(200);
+      exit();
+    }
+  }
+
+  /**
+   * Validar contenido JSON
+   */
+  public static function validateJsonInput()
+  {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT') {
+      $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+      if (strpos($contentType, 'application/json') !== false) {
+        $input = file_get_contents('php://input');
+        $data = json_decode($input, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+          http_response_code(400);
+          echo json_encode([
+            'success' => false,
+            'message' => 'Invalid JSON format',
+            'error' => json_last_error_msg()
+          ]);
+          return false;
         }
-        throw new \RuntimeException('Permisos insuficientes');
+        $_POST = array_merge($_POST, $data);
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Aplicar todas las validaciones
+   */
+  public static function apply()
+  {
+    self::corsHeaders();
+
+    if (!self::validateRequest()) {
+      echo json_encode([
+        'success' => false,
+        'message' => 'Invalid request method'
+      ]);
+      exit();
     }
 
-    /**
-     * Escritura: requiere JWT y verificación estricta.
-     */
-    public static function assertWriteAccessForCandidate($candidateId, ?array $authUser): void
-    {
-        if ($authUser === null) {
-            throw new \RuntimeException('No autorizado');
-        }
-        if (!self::canAccessCandidate($candidateId, $authUser, true)) {
-            throw new \RuntimeException('Permisos insuficientes');
-        }
+    if (!self::validateJsonInput()) {
+      exit();
     }
 
-    /**
-     * Lógica central de autorización.
-     * $candidateId puede ser int o uuid (string). Comparamos como string.
-     */
-    private static function canAccessCandidate($candidateId, array $authUser, bool $write): bool
-    {
-        $role   = $authUser['role'] ?? $authUser['scope'] ?? 'user';
-        $userId = $authUser['sub']  ?? $authUser['user_id'] ?? $authUser['id'] ?? null;
-
-        // Admins: barra libre
-        if (in_array($role, ['admin', 'superadmin'], true)) {
-            return true;
-        }
-
-        // El propio candidato (mismo id)
-        if ($userId !== null && (string)$userId === (string)$candidateId) {
-            return true;
-        }
-
-        // Recruiters: permitido. Si quieres endurecer, habilita check por departamento:
-        if ($role === 'recruiter') {
-            // return self::recruiterCanAccessCandidate($candidateId, $authUser, $write);
-            return true;
-        }
-
-        // Por defecto, denegar
-        return false;
-    }
-
-    /**
-     * Hook opcional para validar recruiter por departamento/cartera.
-     * Desactivado por defecto para no romper mientras cerramos backend.
-     */
-    private static function recruiterCanAccessCandidate($candidateId, array $authUser, bool $write): bool
-    {
-        try {
-            $db  = self::db();
-            $rid = $authUser['recruiter_id'] ?? $authUser['id'] ?? null;
-            if (!$rid) {
-                return false;
-            }
-
-            // Ejemplo: recruiter asignado en routing
-            $sql = 'SELECT 1
-                      FROM ' . self::T('candidate_routing') . '
-                     WHERE candidate_id = ?
-                       AND recruiter_id = ?
-                  ORDER BY assigned_at DESC
-                     LIMIT 1';
-            $st  = $db->prepare($sql);
-            $st->execute([(string)$candidateId, $rid]);
-            if ($st->fetchColumn()) {
-                return true;
-            }
-
-            // O por pertenencia al mismo departamento del último routing
-            $sql = 'SELECT r.department_id
-                      FROM ' . self::T('candidate_routing') . ' r
-                  ORDER BY r.assigned_at DESC
-                     LIMIT 1';
-            // Aquí podrías cruzar con la tabla de perfiles del recruiter
-            // y validar que gestiona ese department_id.
-
-            // Por simplicidad, negar si no hay match
-            return false;
-        } catch (\Throwable $e) {
-            // En duda, negar
-            return false;
-        }
-    }
+    return true;
+  }
 }

@@ -63,28 +63,6 @@ $container->setParameter('ai.openai.model', $_ENV['OPENAI_MODEL'] ?? 'gpt-4');
 // 3. SERVICIOS DE IA
 // ====================================================================
 
-// Servicio Ollama
-$container->register('ai.ollama_service', \Services\AI\OllamaService::class)
-  ->setArguments([
-    new Reference('http.client'),
-    new Reference('logger'),
-    [
-      'base_url' => '%ai.ollama.base_url%',
-      'model' => '%ai.ollama.model%',
-      'timeout' => '%ai.ollama.timeout%',
-    ]
-  ]);
-
-// Servicio OpenAI
-$container->register('ai.openai_service', \Services\AI\OpenAIService::class)
-  ->setArguments([
-    new Reference('http.client'),
-    new Reference('logger'),
-    [
-      'api_key' => '%ai.openai.api_key%',
-      'model' => '%ai.openai.model%',
-    ]
-  ]);
 
 // Factory de proveedores de IA
 $container->register('ai.provider_factory', \Services\AI\AIProviderFactory::class)

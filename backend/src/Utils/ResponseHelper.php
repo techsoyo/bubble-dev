@@ -4,77 +4,49 @@ namespace Utils;
 
 class ResponseHelper
 {
-    /**
-     * Obtiene y decodifica el cuerpo JSON de la petición actual
-     * @return array|null
-     */
-    public static function getJsonInput(): ?array
+    public static function success(string $message = 'OK', array $data = [], int $status = 200)
     {
-        $input = file_get_contents('php://input');
-        if (empty($input)) {
-            return null;
-        }
-        $data = json_decode($input, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            return null;
-        }
-        return $data;
+        http_response_code($status);
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode([
+            'success' => true,
+            'message' => $message,
+            'data'    => $data
+        ], JSON_UNESCAPED_UNICODE);
+        return true;
     }
 
-    /**
-     * Registra un mensaje en el log del sistema
-     * @param string $level Nivel ('info', 'error', etc.)
-     * @param string $message Mensaje
-     * @param array $context Contexto adicional
-     */
-    public static function log(string $level, string $message, array $context = []): void
+    public static function fail(string $message = 'Bad Request', int $status = 400, array $extra = [])
     {
-        $contextStr = $context ? json_encode($context, JSON_UNESCAPED_UNICODE) : '';
-        error_log("[ResponseHelper][$level] $message $contextStr");
-    }
-    public static function success(string $message = 'OK', $data = null, int $status = 200, array $extraHeaders = []): void
-    {
-        self::send($status, ['success' => true, 'message' => $message, 'data' => $data], $extraHeaders);
+        http_response_code($status);
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode(array_merge([
+            'success' => false,
+            'message' => $message,
+        ], $extra), JSON_UNESCAPED_UNICODE);
+        return false;
     }
 
-    public static function error(string $message = 'Error', int $status = 400, array $payload = [], array $extraHeaders = []): void
+    public static function error(string $message = 'Internal Server Error', \Throwable $e = null, int $status = 500)
     {
-        $body = array_merge(['success' => false, 'message' => $message], $payload);
-        self::send($status, $body, $extraHeaders);
-    }
+        http_response_code($status);
+        header('Content-Type: application/json; charset=UTF-8');
 
-    public static function exception(\Throwable $e, int $status = 500, ?bool $includeTrace = null): void
-    {
-        if ($includeTrace === null) {
-            $env = getenv('APP_ENV') ?: 'prod';
-            $includeTrace = ($env === 'dev' || $env === 'local');
-        }
-
-        $body = [
-          'ok'      => false,
-          'message' => $e->getMessage(),
+        $payload = [
+            'success' => false,
+            'message' => $message,
         ];
 
-        if ($includeTrace) {
-            $body['type']  = get_class($e);
-            $body['file']  = $e->getFile();
-            $body['line']  = $e->getLine();
-            $body['trace'] = explode("\n", $e->getTraceAsString());
+        $isDev = (getenv('APP_ENV') && strtolower(getenv('APP_ENV')) !== 'production') || getenv('APP_DEBUG') === 'true';
+        if ($e && $isDev) {
+            $payload['error'] = [
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ];
         }
 
-        self::send($status, $body);
-    }
-
-    private static function send(int $status, array $body, array $extraHeaders = []): void
-    {
-        if (!headers_sent()) {
-            http_response_code($status);
-            header('Content-Type: application/json; charset=UTF-8');
-            foreach ($extraHeaders as $k => $v) {
-                header($k . ': ' . $v);
-            }
-        }
-        echo json_encode($body, JSON_UNESCAPED_UNICODE);
-        exit;
+        echo json_encode($payload, JSON_UNESCAPED_UNICODE);
+        return false;
     }
 }

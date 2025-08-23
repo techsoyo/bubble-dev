@@ -224,29 +224,35 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
   }, [formData, modalOpen, flowState, storageKey]);
 
   // --- Formulario dinámico ---
-  const updateSimpleField = (field: keyof CvFormData, value: string | number | boolean | string[] | undefined) => {
+  const updateSimpleField = useCallback((field: keyof CvFormData, value: string | number | boolean | string[] | undefined) => {
     updateField(field, value);
-  };
+  }, [updateField]);
 
-  function arrayHelpersString(field: keyof CvFormData) {
+  const arrayHelpersString = useCallback((field: keyof CvFormData) => {
     const arr = (formData[field] as string[]) || [];
     return {
       items: arr,
-      add: (item: string) => updateField(field, [...arr, item]),
+      add: (item: string) => {
+        updateField(field, [...arr, item]);
+      },
       remove: (idx: number) => updateField(field, arr.filter((_, i) => i !== idx)),
       update: (idx: number, item: string) => updateField(field, arr.map((v, i) => i === idx ? item : v))
     };
-  }
-  function arrayHelpersExp(field: keyof CvFormData) {
+  }, [formData, updateField]);
+
+  const arrayHelpersExp = useCallback((field: keyof CvFormData) => {
     const arr = (formData[field] as ExperienciaLaboral[]) || [];
     return {
       items: arr,
-      add: (item: ExperienciaLaboral) => updateField(field, [...arr, item]),
+      add: (item: ExperienciaLaboral) => {
+        updateField(field, [...arr, item]);
+      },
       remove: (idx: number) => updateField(field, arr.filter((_, i) => i !== idx)),
       update: (idx: number, item: ExperienciaLaboral) => updateField(field, arr.map((v, i) => i === idx ? item : v))
     };
-  }
-  function arrayHelpersEdu(field: keyof CvFormData) {
+  }, [formData, updateField]);
+
+  const arrayHelpersEdu = useCallback((field: keyof CvFormData) => {
     const arr = (formData[field] as Educacion[]) || [];
     return {
       items: arr,
@@ -254,8 +260,9 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
       remove: (idx: number) => updateField(field, arr.filter((_, i) => i !== idx)),
       update: (idx: number, item: Educacion) => updateField(field, arr.map((v, i) => i === idx ? item : v))
     };
-  }
-  function arrayHelpersProj(field: keyof CvFormData) {
+  }, [formData, updateField]);
+
+  const arrayHelpersProj = useCallback((field: keyof CvFormData) => {
     const arr = (formData[field] as Proyecto[]) || [];
     return {
       items: arr,
@@ -263,12 +270,12 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
       remove: (idx: number) => updateField(field, arr.filter((_, i) => i !== idx)),
       update: (idx: number, item: Proyecto) => updateField(field, arr.map((v, i) => i === idx ? item : v))
     };
-  }
+  }, [formData, updateField]);
 
-  const exp = arrayHelpersExp('puestos_anteriores');
-  const edu = arrayHelpersEdu('educacion');
-  const cert = arrayHelpersString('certificaciones');
-  const proj = arrayHelpersProj('proyectos');
+  const exp = useMemo(() => arrayHelpersExp('puestos_anteriores'), [arrayHelpersExp]);
+  const edu = useMemo(() => arrayHelpersEdu('educacion'), [arrayHelpersEdu]);
+  const cert = useMemo(() => arrayHelpersString('certificaciones'), [arrayHelpersString]);
+  const proj = useMemo(() => arrayHelpersProj('proyectos'), [arrayHelpersProj]);
 
   // Render helpers
   const renderBasicInput = (label: string, field: keyof CvFormData, type: string = 'text') => (
@@ -291,7 +298,11 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
             <Info className="h-3 w-3 text-gray-400" />
           </span>
         </h4>
-        <Button size="sm" variant="ghost" onClick={() => exp.add({ puesto: '', empresa: '', fecha_inicio: '', fecha_fin: '', descripcion: '' })}><Plus className="h-3 w-3" /></Button>
+        <Button size="sm" variant="ghost" onClick={(e) => {
+          e.preventDefault();
+          console.log('➕ Añadiendo experiencia');
+          exp.add({ puesto: '', empresa: '', fecha_inicio: '', fecha_fin: '', descripcion: '' });
+        }}><Plus className="h-3 w-3" /></Button>
       </div>
       <div role="list" aria-label="Lista de experiencias">
         {exp.items.map((p, i) => (
@@ -322,7 +333,11 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
             <Info className="h-3 w-3 text-gray-400" />
           </span>
         </h4>
-        <Button size="sm" variant="ghost" onClick={() => edu.add({ titulo: '', institucion: '', fecha_inicio: '', fecha_fin: '' })}><Plus className="h-3 w-3" /></Button>
+        <Button size="sm" variant="ghost" onClick={(e) => {
+          e.preventDefault();
+          console.log('➕ Añadiendo educación');
+          edu.add({ titulo: '', institucion: '', fecha_inicio: '', fecha_fin: '' });
+        }}><Plus className="h-3 w-3" /></Button>
       </div>
       <div role="list" aria-label="Lista de educación">
         {edu.items.map((e, i) => (
@@ -353,7 +368,11 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
             <Info className="h-3 w-3 text-gray-400" />
           </span>
         </h4>
-        <Button size="sm" variant="ghost" onClick={() => cert.add('')}><Plus className="h-3 w-3" /></Button>
+        <Button size="sm" variant="ghost" onClick={(e) => {
+          e.preventDefault();
+          console.log('➕ Añadiendo certificación');
+          cert.add('');
+        }}><Plus className="h-3 w-3" /></Button>
       </div>
       <div role="list" aria-label="Lista de certificaciones">
         {cert.items.map((c, i) => (
@@ -375,7 +394,11 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
             <Info className="h-3 w-3 text-gray-400" />
           </span>
         </h4>
-        <Button size="sm" variant="ghost" onClick={() => proj.add({ nombre: '', descripcion: '' })}><Plus className="h-3 w-3" /></Button>
+        <Button size="sm" variant="ghost" onClick={(e) => {
+          e.preventDefault();
+          console.log('➕ Añadiendo proyecto');
+          proj.add({ nombre: '', descripcion: '' });
+        }}><Plus className="h-3 w-3" /></Button>
       </div>
       <div role="list" aria-label="Lista de proyectos">
         {proj.items.map((p, i) => (

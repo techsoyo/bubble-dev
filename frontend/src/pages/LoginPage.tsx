@@ -30,18 +30,25 @@ const LoginPage: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      // Usar api con baseURL dinámica y endpoint relativo
-      const res = await api.post('/auth.php?action=login', { email, password });
+      // MIGRATED: auth.php → /api/auth/login (REST endpoint)
+      const res = await api.post('/api/auth/login', { email, password });
       const data = res.data;
+
+      // REST response structure validation
       if (!data.success || !data.token) {
-        setError(data.error || 'Credenciales incorrectas');
+        setError(data.error || data.message || 'Credenciales incorrectas');
         setLoading(false);
         return;
       }
-      // El backend debe establecer cookie JWT httpOnly si corresponde
+
+      // El backend REST debe establecer cookie JWT httpOnly si corresponde
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err?.response?.data?.error || 'Error de red o del servidor');
+      // Enhanced error handling for REST API
+      const errorMessage = err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        'Error de red o del servidor';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

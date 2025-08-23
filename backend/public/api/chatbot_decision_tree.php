@@ -1,10 +1,12 @@
 <?php
 
 declare(strict_types=1);
+
+require_once __DIR__ . '/bootstrap.php';
 header('Content-Type: application/json; charset=utf-8');
 
 error_log("=== INICIANDO chatbot_decision_tree.php ===");
-require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 
 use Utils\Database;
 

@@ -107,7 +107,7 @@ class ChatbotNode extends BaseModel
     /**
      * Crear nuevo nodo
      */
-    public function create($data)
+    public function store($data)
     {
         try {
             $sql = "INSERT INTO {$this->table} (id, type, content, metadata, created_by) 
@@ -116,11 +116,11 @@ class ChatbotNode extends BaseModel
             $stmt = $this->db->prepare($sql);
 
             return $stmt->execute([
-              $data['id'],
-              $data['type'],
-              $data['content'],
-              $data['metadata'] ?? null,
-              $data['created_by'] ?? 'system'
+                $data['id'],
+                $data['type'],
+                $data['content'],
+                $data['metadata'] ?? null,
+                $data['created_by'] ?? 'system'
             ]);
         } catch (Exception $e) {
             error_log('Error al crear nodo: ' . $e->getMessage());
@@ -166,8 +166,8 @@ class ChatbotNode extends BaseModel
         try {
             // Para soft delete, usar update en lugar de delete
             return $this->update($id, [
-              'is_active' => 0,
-              'updated_at' => date('Y-m-d H:i:s')
+                'is_active' => 0,
+                'updated_at' => date('Y-m-d H:i:s')
             ]);
         } catch (Exception $e) {
             error_log("Error al eliminar nodo $id: " . $e->getMessage());

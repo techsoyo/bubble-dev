@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 header('Content-Type: application/json; charset=UTF-8');
 
 try {
@@ -20,14 +20,20 @@ try {
     $offset = ($page - 1) * $limit;
     if ($jobId) {
         $st = $db->prepare('SELECT id, job_id, benefit FROM bt_job_benefits WHERE job_id = ? ORDER BY id ASC LIMIT ? OFFSET ?');
-        $st->execute([$jobId, $limit, $offset]);
+        $st->bindValue(1, $jobId, PDO::PARAM_INT);
+        $st->bindValue(2, $limit, PDO::PARAM_INT);
+        $st->bindValue(3, $offset, PDO::PARAM_INT);
+        $st->execute();
         $list = $st->fetchAll();
     } else {
         $st = $db->prepare('SELECT id, job_id, benefit FROM bt_job_benefits ORDER BY job_id ASC, id ASC LIMIT ? OFFSET ?');
-        $st->execute([$limit, $offset]);
+        $st->bindValue(1, $limit, PDO::PARAM_INT);
+        $st->bindValue(2, $offset, PDO::PARAM_INT);
+        $st->execute();
         $list = $st->fetchAll();
     }
-    jsonResponse(200, ['ok' => true, 'message' => 'OK', 'data' => $list]);
+    echo json_encode(['ok' => true, 'message' => 'OK', 'data' => $list]);
 } catch (Throwable $e) {
-    jsonResponse(500, ['ok' => false, 'message' => 'Error', 'data' => ['error' => $e->getMessage()]]);
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'message' => 'Error', 'data' => ['error' => $e->getMessage()]]);
 }

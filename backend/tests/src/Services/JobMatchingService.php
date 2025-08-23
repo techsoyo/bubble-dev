@@ -11,16 +11,16 @@ class JobMatchingService
 {
     /**
      * Servicio de Ollama
-     * @var OllamaService
-     */
-    private $ollamaService;
+    //  * @var OllamaService
+    //  */
+    // private $ollamaService;
 
     /**
      * Constructor
      */
     public function __construct()
     {
-        $this->ollamaService = new OllamaService();
+        // $this->ollamaService = new OllamaService();
     }
 
     /**
@@ -32,7 +32,7 @@ class JobMatchingService
      */
     public function evaluateMatch($candidateData, $jobData)
     {
-        return $this->ollamaService->calculateMatching(
+        // return $this->ollamaService->calculateMatching(
             $candidateData['id'] ?? 1,
             $jobData['id'] ?? 1
         );

@@ -37,10 +37,10 @@ class CandidateController extends BaseController
     {
         // Parámetros de filtrado opcionales
         $filters = [
-          'skill' => $request->getParams()['skill'] ?? null,
-          'location' => $request->getParams()['location'] ?? null,
-          'experience' => $request->getParams()['experience'] ?? null,
-          'search' => $request->getParams()['search'] ?? null
+            'skill' => $request->getParams()['skill'] ?? null,
+            'location' => $request->getParams()['location'] ?? null,
+            'experience' => $request->getParams()['experience'] ?? null,
+            'search' => $request->getParams()['search'] ?? null
         ];
 
         // Parámetros de paginación opcionales
@@ -59,13 +59,13 @@ class CandidateController extends BaseController
         $total = $this->candidateModel->countAll($filters);
 
         $this->success('Candidatos obtenidos correctamente', [
-          'candidates' => $candidates,
-          'pagination' => [
-            'total' => $total,
-            'page' => $page,
-            'limit' => $limit,
-            'pages' => ceil($total / $limit)
-          ]
+            'candidates' => $candidates,
+            'pagination' => [
+                'total' => $total,
+                'page' => $page,
+                'limit' => $limit,
+                'pages' => ceil($total / $limit)
+            ]
         ]);
     }
 
@@ -106,16 +106,16 @@ class CandidateController extends BaseController
      * @param Request $request Objeto de solicitud
      * @return void
      */
-    public function create(Request $request)
+    public function store(Request $request)
     {
         // Validar datos de entrada
         $data = $this->validate($request, [
-          'user_id' => 'required|numeric',
-          'full_name' => 'required',
-          'email' => 'required|email',
-          'phone' => 'required',
-          'location' => 'required',
-          'skills' => 'required'
+            'user_id' => 'required|numeric',
+            'full_name' => 'required',
+            'email' => 'required|email',
+            'phone' => 'required',
+            'location' => 'required',
+            'skills' => 'required'
         ]);
 
         if (!$data) {
@@ -179,7 +179,7 @@ class CandidateController extends BaseController
         }
 
         // Crear candidato
-        $candidateId = $this->candidateModel->create($data);
+        $candidateId = $this->candidateModel->store($data);
 
         if (!$candidateId) {
             $this->error('Error al crear el candidato');
@@ -208,10 +208,10 @@ class CandidateController extends BaseController
 
         // Validar datos de entrada
         $data = $this->validate($request, [
-          'full_name' => 'required',
-          'email' => 'required|email',
-          'phone' => 'required',
-          'location' => 'required'
+            'full_name' => 'required',
+            'email' => 'required|email',
+            'phone' => 'required',
+            'location' => 'required'
         ]);
 
         if (!$data) {

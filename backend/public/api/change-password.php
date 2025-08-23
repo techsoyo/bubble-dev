@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/bootstrap.php';
+
 $ROOT = dirname(dirname(dirname(__DIR__))); // Corregido: api -> public -> backend -> raiz
 $BOOT = $ROOT . '/config/bootstrap.php';
 if (!is_file($BOOT)) {

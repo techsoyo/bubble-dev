@@ -2,42 +2,62 @@
 
 namespace Middleware;
 
-use Utils\JWT;
 use Utils\Request;
-use Utils\ResponseHelper;
 
 /**
- * Middleware para autenticación mediante JWT
+ * Middleware de autenticación para rutas protegidas
  */
 class AuthMiddleware
 {
-    /**
-     * Verifica si el usuario está autenticado mediante JWT
-     *
-     * @param Request $request Objeto de solicitud
-     * @return bool True si el usuario está autenticado, false en caso contrario
-     */
-    public static function handle(Request $request)
-    {
-        // Obtener el token de autenticación
-        $token = $request->getAuthToken();
+  /**
+   * Manejar la autenticación de la request
+   * 
+   * @param Request $request
+   * @return void
+   * @throws \Exception Si no hay autenticación válida
+   */
+  public static function handle(Request $request)
+  {
+    // Intentar obtener el usuario usando el método existente
+    try {
+      $user = $request->getUser();
 
-        if (!$token) {
-            ResponseHelper::error('No autorizado: Token no proporcionado', null, 401);
-            return false;
-        }
+      // Si no hay usuario, es posible que no haya token
+      if (!$user) {
+        self::respondUnauthorized('No authentication token provided or token invalid');
+        return;
+      }
 
-        // Verificar el token
-        $payload = JWT::verify($token);
+      // Si llegamos aquí, el usuario está autenticado correctamente
 
-        if (!$payload) {
-            ResponseHelper::error('No autorizado: Token inválido o expirado', null, 401);
-            return false;
-        }
-
-        // Almacenar los datos del usuario en la solicitud para su uso posterior
-        $request->setUser($payload);
-
-        return true;
+    } catch (\RuntimeException $e) {
+      // Token inválido o error de autenticación
+      self::respondUnauthorized($e->getMessage());
+      return;
+    } catch (\Exception $e) {
+      // Otro tipo de error
+      self::respondUnauthorized('Authentication error: ' . $e->getMessage());
+      return;
     }
+  }
+
+  /**
+   * Responder con error 401 y terminar ejecución
+   * 
+   * @param string $message
+   */
+  private static function respondUnauthorized($message = 'Unauthorized')
+  {
+    http_response_code(401);
+    header('Content-Type: application/json');
+    echo json_encode([
+      'success' => false,
+      'error' => $message,
+      'code' => 401,
+      'timestamp' => date('c'),
+      'path' => $_SERVER['REQUEST_URI'] ?? '',
+      'method' => $_SERVER['REQUEST_METHOD'] ?? ''
+    ]);
+    exit;
+  }
 }

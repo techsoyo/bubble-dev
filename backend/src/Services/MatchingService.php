@@ -14,11 +14,11 @@ namespace Services;
  */
 class MatchingService
 {
-  private $ollamaService;
+  // private $ollamaService;
 
   public function __construct()
   {
-    $this->ollamaService = new OllamaService();
+    // $this->ollamaService = new OllamaService();
   }
 
   /**

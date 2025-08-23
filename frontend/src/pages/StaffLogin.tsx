@@ -109,7 +109,7 @@ export default function StaffLogin() {
 
               <Button
                 type="submit"
-                className="w-full bg-[#FF4785] hover:bg-[#FF3575]"
+                className="w-full bg-primary hover:bg-primary-hover"
                 disabled={isLoading}
               >
                 {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
@@ -124,7 +124,7 @@ export default function StaffLogin() {
                 type="button"
                 onClick={() => navigate('/')}
                 className="text-sm font-medium hover:underline"
-                style={{ color: '#FF4785' }}
+                style={{ color: 'var(--color-primary)' }}
               >
                 Volver al inicio
               </button>

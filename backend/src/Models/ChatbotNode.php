@@ -1,255 +1,1018 @@
 <?php
 
-// backend/src/Models/ChatbotNode.php
+declare(strict_types=1);
 
 namespace Models;
 
+use Utils\Logger;
 use Exception;
 use PDO;
 
 /**
- * Modelo para los nodos del chatbot.
+ * Modelo para los nodos del chatbot optimizado con BaseModel
+ * 
  * Representa cada mensaje, opción, formulario o redirección en el flujo conversacional.
- */
-/**
- * Modelo para los nodos del chatbot.
- * Requiere que BaseModel defina la propiedad protegida $db (PDO) y esté correctamente incluida.
+ * Incluye funcionalidades avanzadas para manejo de árboles jerárquicos, cache optimizado,
+ * y validación robusta de flujos de conversación.
+ *
+ * @package Models
+ * @author Bubble of Talents Development Team
+ * @version 2.0.0
+ * @since 2025-08-23
  */
 class ChatbotNode extends BaseModel
 {
-    /** @var string|null ID único del nodo */
-    public $id;
-    /** @var string Tipo de nodo: message|options|form|redirect */
-    public $type;
-    /** @var string Contenido del nodo (texto, instrucciones, etc.) */
-    public $content;
-    /** @var mixed|null Metadatos adicionales en formato JSON */
-    public $metadata;
-    /** @var int Activo (1) o inactivo (0) */
-    public $is_active;
-    /** @var string|null Fecha de creación */
-    public $created_at;
-    /** @var string|null Fecha de última actualización */
-    public $updated_at;
-    /** @var string|null Usuario que creó el nodo */
-    public $created_by;
-
-    protected string $table = 'bt_chatbot_nodes';
+    /**
+     * Tabla asociada al modelo
+     */
+    protected string $table = 'chatbot_nodes';
+    /*
+     * 🔧 CORRECCIÓN AUTOMÁTICA APLICADA
+     * Modelo: ChatbotNode
+     * Fecha: 2025-08-23
+     * 
+     * Cambios realizados:
+     * ➕ Campos añadidos: ['type', 'content', 'is_active', 'created_by']
+     * ❌ Campos removidos: ['name', 'description', 'node_type', 'parent_id', 'conditions', 'actions', 'status', 'sort_order']
+     * 📊 Total campos fillable: 5
+     * 
+     * Los campos fillable ahora coinciden exactamente con las columnas
+     * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
+     */
+    
 
     /**
-     * Constructor
-     * @param array $data Datos para inicializar el nodo
+     * Campos que pueden ser asignados masivamente
      */
-    public function __construct($data = [])
-    {
-        parent::__construct();
-        $this->id = $data['id'] ?? null;
-        $this->type = $data['type'] ?? 'message';
-        $this->content = $data['content'] ?? '';
-        $this->metadata = $data['metadata'] ?? null;
-        $this->is_active = $data['is_active'] ?? 1;
-        $this->created_at = $data['created_at'] ?? null;
-        $this->updated_at = $data['updated_at'] ?? null;
-        $this->created_by = $data['created_by'] ?? 'system';
-    }
-
-    // Métodos CRUD y utilidades heredados de BaseModel
-
-    // Métodos CRUD y utilidades heredados de BaseModel
+    protected array $fillable = [
+        'type',
+        'content',
+        'metadata',
+        'is_active',
+        'created_by',
+    ];
 
     /**
-     * Obtener todos los nodos activos
+     * Campos que deben ocultarse en arrays/JSON
      */
-    public function getAllActive()
+    protected array $hidden = [
+        'internal_config',
+        'debug_data'
+    ];
+
+    /**
+     * Cache para árboles de conversación
+     */
+    private array $nodeTreeCache = [];
+    
+    /**
+     * TTL del cache en segundos (5 minutos por defecto)
+     */
+    private const CACHE_TTL = 300;
+
+    /**
+     * Tipos de nodo permitidos
+     */
+    private const VALID_NODE_TYPES = [
+        'message',
+        'options', 
+        'form',
+        'redirect',
+        'condition',
+        'action'
+    ];
+
+    /**
+     * Estados válidos de nodos
+     */
+    private const VALID_STATUSES = [
+        'active',
+        'inactive', 
+        'draft',
+        'archived'
+    ];
+
+    /**
+     * Obtener la estructura jerárquica completa del chatbot
+     * 
+     * Construye el árbol completo de nodos del chatbot con sus relaciones padre-hijo,
+     * optimizado con cache para mejorar rendimiento en consultas frecuentes.
+     *
+     * @param bool $useCache Si debe utilizar cache para la consulta
+     * @param bool $activeOnly Si solo debe incluir nodos activos
+     * @return array Estructura jerárquica de nodos
+     * @throws \RuntimeException Si hay error en la consulta
+     */
+    public function getNodeTree(bool $useCache = true, bool $activeOnly = true): array
     {
+        $cacheKey = "node_tree_" . ($activeOnly ? 'active' : 'all');
+
+        // Verificar cache si está habilitado
+        if ($useCache && isset($this->nodeTreeCache[$cacheKey])) {
+            $cacheData = $this->nodeTreeCache[$cacheKey];
+            if (time() - $cacheData['timestamp'] < self::CACHE_TTL) {
+                Logger::debug('Retrieved node tree from cache', ['cache_key' => $cacheKey]);
+                return $cacheData['data'];
+            }
+        }
+
         try {
-            $sql = "SELECT * FROM {$this->table} WHERE is_active = 1 ORDER BY created_at ASC";
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute();
+            $sql = "SELECT * FROM `{$this->table}`";
+            $params = [];
 
+            if ($activeOnly) {
+                $sql .= " WHERE status = :status";
+                $params[':status'] = 'active';
+            }
+
+            $sql .= " ORDER BY parent_id ASC, sort_order ASC, name ASC";
+
+            $stmt = $this->db->prepare($sql);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value, $this->getPdoType($value));
+            }
+
+            $stmt->execute();
             $nodes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Decodificar metadata JSON
+            // Procesar metadatos JSON
             foreach ($nodes as &$node) {
-                $node['metadata'] = json_decode($node['metadata'], true) ?: [];
+                $node['metadata'] = $node['metadata'] ? json_decode($node['metadata'], true) : [];
+                $node['conditions'] = $node['conditions'] ? json_decode($node['conditions'], true) : [];
+                $node['actions'] = $node['actions'] ? json_decode($node['actions'], true) : [];
             }
 
-            return $nodes;
-        } catch (Exception $e) {
-            error_log('Error al obtener nodos activos: ' . $e->getMessage());
-            throw $e;
-        }
-    }
+            // Construir estructura jerárquica
+            $tree = $this->buildNodeHierarchy($nodes);
 
-    /**
-     * Obtener nodo por ID
-     */
-    public function getById($id)
-    {
-        try {
-            $sql = "SELECT * FROM {$this->table} WHERE id = ? AND is_active = 1";
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([$id]);
-
-            $node = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($node) {
-                $node['metadata'] = json_decode($node['metadata'], true) ?: [];
+            // Guardar en cache
+            if ($useCache) {
+                $this->nodeTreeCache[$cacheKey] = [
+                    'data' => $tree,
+                    'timestamp' => time()
+                ];
             }
 
-            return $node;
-        } catch (Exception $e) {
-            error_log("Error al obtener nodo por ID $id: " . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    /**
-     * Crear nuevo nodo
-     */
-    public function create($data)
-    {
-        try {
-            $sql = "INSERT INTO {$this->table} (id, type, content, metadata, created_by) 
-                    VALUES (?, ?, ?, ?, ?)";
-
-            $stmt = $this->db->prepare($sql);
-
-            return $stmt->execute([
-              $data['id'],
-              $data['type'],
-              $data['content'],
-              $data['metadata'] ?? null,
-              $data['created_by'] ?? 'system'
+            Logger::info('Node tree built successfully', [
+                'total_nodes' => count($nodes),
+                'tree_depth' => $this->calculateTreeDepth($tree),
+                'use_cache' => $useCache,
+                'active_only' => $activeOnly
             ]);
+
+            return $tree;
+
         } catch (Exception $e) {
-            error_log('Error al crear nodo: ' . $e->getMessage());
-            throw $e;
+            Logger::error('Error building node tree', [
+                'active_only' => $activeOnly,
+                'error' => $e->getMessage()
+            ]);
+            throw new \RuntimeException('Failed to build node tree: ' . $e->getMessage());
         }
     }
 
     /**
-     * Actualizar nodo
+     * Encontrar nodos hijos de un nodo específico
+     *
+     * @param string|int $parentId ID del nodo padre
+     * @param bool $activeOnly Si solo incluir nodos activos
+     * @param bool $recursive Si incluir hijos anidados
+     * @return array Lista de nodos hijos
+     * @throws \InvalidArgumentException Si el parent_id es inválido
+     * @throws \RuntimeException Si hay error en la consulta
      */
-    public function update($id, array $data): bool
+    public function findChildNodes($parentId, bool $activeOnly = true, bool $recursive = false): array
+    {
+        if (empty($parentId)) {
+            throw new \InvalidArgumentException('Parent ID cannot be empty');
+        }
+
+        try {
+            if ($recursive) {
+                return $this->findChildNodesRecursive($parentId, $activeOnly);
+            }
+
+            $sql = "SELECT * FROM `{$this->table}` WHERE parent_id = :parent_id";
+            $params = [':parent_id' => $parentId];
+
+            if ($activeOnly) {
+                $sql .= " AND status = :status";
+                $params[':status'] = 'active';
+            }
+
+            $sql .= " ORDER BY sort_order ASC, name ASC";
+
+            $stmt = $this->db->prepare($sql);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value, $this->getPdoType($value));
+            }
+
+            $stmt->execute();
+            $childNodes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Procesar metadatos JSON
+            foreach ($childNodes as &$node) {
+                $node['metadata'] = $node['metadata'] ? json_decode($node['metadata'], true) : [];
+                $node['conditions'] = $node['conditions'] ? json_decode($node['conditions'], true) : [];
+                $node['actions'] = $node['actions'] ? json_decode($node['actions'], true) : [];
+            }
+
+            Logger::debug('Child nodes found successfully', [
+                'parent_id' => $parentId,
+                'count' => count($childNodes),
+                'active_only' => $activeOnly,
+                'recursive' => $recursive
+            ]);
+
+            return $childNodes;
+
+        } catch (Exception $e) {
+            Logger::error('Error finding child nodes', [
+                'parent_id' => $parentId,
+                'active_only' => $activeOnly,
+                'error' => $e->getMessage()
+            ]);
+            throw new \RuntimeException('Failed to find child nodes: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Obtener solo nodos activos con filtros opcionales
+     *
+     * @param array $filters Filtros adicionales
+     * @param array $orderBy Ordenamiento
+     * @return array Lista de nodos activos
+     * @throws \RuntimeException Si hay error en la consulta
+     */
+    public function getActiveNodes(array $filters = [], array $orderBy = []): array
     {
         try {
-            $updateFields = [];
-            $filteredData = [];
+            $baseFilters = ['status' => 'active'];
+            $mergedFilters = array_merge($baseFilters, $filters);
 
-            foreach ($data as $field => $value) {
-                if (in_array($field, ['type', 'content', 'metadata', 'is_active'])) {
-                    $filteredData[$field] = $value;
+            $defaultOrderBy = ['sort_order' => 'ASC', 'name' => 'ASC'];
+            $mergedOrderBy = array_merge($defaultOrderBy, $orderBy);
+
+            $nodes = $this->findAll($mergedFilters, 1, self::MAX_LIMIT, $mergedOrderBy);
+
+            // Procesar metadatos JSON para nodos activos
+            foreach ($nodes as &$node) {
+                if (isset($node['metadata'])) {
+                    $node['metadata'] = $node['metadata'] ? json_decode($node['metadata'], true) : [];
+                }
+                if (isset($node['conditions'])) {
+                    $node['conditions'] = $node['conditions'] ? json_decode($node['conditions'], true) : [];
+                }
+                if (isset($node['actions'])) {
+                    $node['actions'] = $node['actions'] ? json_decode($node['actions'], true) : [];
                 }
             }
 
-            if (empty($filteredData)) {
-                return false;
-            }
-
-            // Agregar timestamp de actualización
-            $filteredData['updated_at'] = date('Y-m-d H:i:s');
-
-            // Usar el método del BaseModel
-            return parent::update($id, $filteredData);
-        } catch (Exception $e) {
-            error_log("Error al actualizar nodo $id: " . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    /**
-     * Eliminar nodo (soft delete)
-     */
-    public function delete($id): bool
-    {
-        try {
-            // Para soft delete, usar update en lugar de delete
-            return $this->update($id, [
-              'is_active' => 0,
-              'updated_at' => date('Y-m-d H:i:s')
+            Logger::debug('Active nodes retrieved successfully', [
+                'count' => count($nodes),
+                'filters' => $filters
             ]);
-        } catch (Exception $e) {
-            error_log("Error al eliminar nodo $id: " . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    /**
-     * Eliminar nodo permanentemente
-     */
-    public function forceDelete($id): bool
-    {
-        try {
-            // Usar el método del BaseModel para eliminación real
-            return parent::delete($id);
-        } catch (Exception $e) {
-            error_log("Error al eliminar permanentemente nodo $id: " . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    /**
-     * Buscar nodos por tipo
-     */
-    public function getByType($type)
-    {
-        try {
-            $sql = "SELECT * FROM {$this->table} WHERE type = ? AND is_active = 1 ORDER BY created_at ASC";
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([$type]);
-
-            $nodes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            // Decodificar metadata JSON
-            foreach ($nodes as &$node) {
-                $node['metadata'] = json_decode($node['metadata'], true) ?: [];
-            }
 
             return $nodes;
+
         } catch (Exception $e) {
-            error_log("Error al obtener nodos por tipo $type: " . $e->getMessage());
-            throw $e;
+            Logger::error('Error getting active nodes', [
+                'filters' => $filters,
+                'error' => $e->getMessage()
+            ]);
+            throw new \RuntimeException('Failed to get active nodes: ' . $e->getMessage());
         }
     }
 
     /**
-     * Verificar si un nodo existe
+     * Ejecutar la acción asociada a un nodo
+     *
+     * @param string|int $nodeId ID del nodo
+     * @param array $context Contexto de la conversación
+     * @param array $userInput Input del usuario
+     * @return array Resultado de la ejecución
+     * @throws \InvalidArgumentException Si los parámetros son inválidos
+     * @throws \RuntimeException Si hay error en la ejecución
      */
-    public function exists($id)
+    public function executeNodeAction($nodeId, array $context = [], array $userInput = []): array
     {
-        try {
-            $sql = "SELECT COUNT(*) FROM {$this->table} WHERE id = ?";
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([$id]);
+        if (empty($nodeId)) {
+            throw new \InvalidArgumentException('Node ID cannot be empty');
+        }
 
-            return $stmt->fetchColumn() > 0;
+        try {
+            // Obtener el nodo
+            $node = $this->findById($nodeId);
+            if (!$node) {
+                throw new \RuntimeException("Node not found: $nodeId");
+            }
+
+            // Verificar que el nodo esté activo
+            if ($node['status'] !== 'active') {
+                throw new \RuntimeException("Node is not active: $nodeId");
+            }
+
+            // Procesar metadatos JSON
+            $actions = $node['actions'] ? json_decode($node['actions'], true) : [];
+            $metadata = $node['metadata'] ? json_decode($node['metadata'], true) : [];
+            $conditions = $node['conditions'] ? json_decode($node['conditions'], true) : [];
+
+            $result = [
+                'node_id' => $nodeId,
+                'node_type' => $node['node_type'],
+                'execution_time' => date('Y-m-d H:i:s'),
+                'success' => false,
+                'response' => null,
+                'next_node' => null,
+                'errors' => []
+            ];
+
+            // Evaluar condiciones antes de ejecutar
+            if (!empty($conditions)) {
+                $conditionResult = $this->evaluateNodeConditions($conditions, $context, $userInput);
+                if (!$conditionResult['passed']) {
+                    $result['errors'][] = 'Node conditions not met';
+                    $result['condition_errors'] = $conditionResult['errors'];
+                    return $result;
+                }
+            }
+
+            // Ejecutar acciones según el tipo de nodo
+            switch ($node['node_type']) {
+                case 'message':
+                    $result = $this->executeMessageAction($node, $actions, $context, $userInput, $result);
+                    break;
+
+                case 'options':
+                    $result = $this->executeOptionsAction($node, $actions, $context, $userInput, $result);
+                    break;
+
+                case 'form':
+                    $result = $this->executeFormAction($node, $actions, $context, $userInput, $result);
+                    break;
+
+                case 'redirect':
+                    $result = $this->executeRedirectAction($node, $actions, $context, $userInput, $result);
+                    break;
+
+                case 'condition':
+                    $result = $this->executeConditionAction($node, $actions, $context, $userInput, $result);
+                    break;
+
+                case 'action':
+                    $result = $this->executeCustomAction($node, $actions, $context, $userInput, $result);
+                    break;
+
+                default:
+                    throw new \RuntimeException("Unknown node type: {$node['node_type']}");
+            }
+
+            Logger::info('Node action executed successfully', [
+                'node_id' => $nodeId,
+                'node_type' => $node['node_type'],
+                'success' => $result['success']
+            ]);
+
+            return $result;
+
         } catch (Exception $e) {
-            error_log("Error al verificar existencia del nodo $id: " . $e->getMessage());
-            throw $e;
+            Logger::error('Error executing node action', [
+                'node_id' => $nodeId,
+                'error' => $e->getMessage()
+            ]);
+            throw new \RuntimeException('Failed to execute node action: ' . $e->getMessage());
         }
     }
 
     /**
-     * Obtener estadísticas de nodos
+     * Validar el flujo de conversación desde un nodo raíz
+     *
+     * @param string|int $startNodeId ID del nodo inicial
+     * @param int $maxDepth Profundidad máxima a validar
+     * @return array Resultado de la validación
+     * @throws \InvalidArgumentException Si los parámetros son inválidos
+     * @throws \RuntimeException Si hay error en la validación
      */
-    public function getStats()
+    public function validateNodeFlow($startNodeId, int $maxDepth = 50): array
+    {
+        if (empty($startNodeId)) {
+            throw new \InvalidArgumentException('Start node ID cannot be empty');
+        }
+
+        if ($maxDepth <= 0 || $maxDepth > 100) {
+            throw new \InvalidArgumentException('Max depth must be between 1 and 100');
+        }
+
+        try {
+            $validation = [
+                'is_valid' => true,
+                'start_node_id' => $startNodeId,
+                'total_nodes_checked' => 0,
+                'max_depth_reached' => 0,
+                'errors' => [],
+                'warnings' => [],
+                'orphaned_nodes' => [],
+                'circular_references' => [],
+                'dead_ends' => [],
+                'validation_time' => date('Y-m-d H:i:s')
+            ];
+
+            // Obtener todos los nodos activos para validación
+            $allNodes = $this->getActiveNodes();
+            $nodesMap = [];
+            foreach ($allNodes as $node) {
+                $nodesMap[$node['id']] = $node;
+            }
+
+            // Validar nodo inicial
+            if (!isset($nodesMap[$startNodeId])) {
+                $validation['is_valid'] = false;
+                $validation['errors'][] = "Start node not found or inactive: $startNodeId";
+                return $validation;
+            }
+
+            // Realizar validación recursiva
+            $visitedNodes = [];
+            $pathStack = [];
+
+            $this->validateNodeRecursive(
+                $startNodeId,
+                $nodesMap,
+                $visitedNodes,
+                $pathStack,
+                0,
+                $maxDepth,
+                $validation
+            );
+
+            // Buscar nodos huérfanos
+            $reachableNodes = array_keys($visitedNodes);
+            foreach ($allNodes as $node) {
+                if (!in_array($node['id'], $reachableNodes)) {
+                    $validation['orphaned_nodes'][] = $node['id'];
+                    $validation['warnings'][] = "Orphaned node found: {$node['id']} ({$node['name']})";
+                }
+            }
+
+            // Determinar si la validación es exitosa
+            $validation['is_valid'] = empty($validation['errors']);
+
+            Logger::info('Node flow validation completed', [
+                'start_node_id' => $startNodeId,
+                'is_valid' => $validation['is_valid'],
+                'total_nodes_checked' => $validation['total_nodes_checked'],
+                'errors_count' => count($validation['errors']),
+                'warnings_count' => count($validation['warnings'])
+            ]);
+
+            return $validation;
+
+        } catch (Exception $e) {
+            Logger::error('Error validating node flow', [
+                'start_node_id' => $startNodeId,
+                'error' => $e->getMessage()
+            ]);
+            throw new \RuntimeException('Failed to validate node flow: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Limpiar cache de árboles de conversación
+     */
+    public function clearNodeTreeCache(): void
+    {
+        $this->nodeTreeCache = [];
+        Logger::debug('Node tree cache cleared');
+    }
+
+    /**
+     * Obtener estadísticas del chatbot
+     *
+     * @return array Estadísticas completas
+     */
+    public function getChatbotStats(): array
     {
         try {
             $sql = "SELECT 
-                        type,
+                        node_type,
+                        status,
                         COUNT(*) as count,
-                        SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_count
-                    FROM {$this->table} 
-                    GROUP BY type";
+                        AVG(sort_order) as avg_sort_order
+                    FROM `{$this->table}` 
+                    GROUP BY node_type, status
+                    ORDER BY node_type, status";
 
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
 
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stats = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Calcular totales
+            $totalNodes = $this->countAll();
+            $activeNodes = $this->countAll(['status' => 'active']);
+
+            return [
+                'total_nodes' => $totalNodes,
+                'active_nodes' => $activeNodes,
+                'inactive_nodes' => $totalNodes - $activeNodes,
+                'by_type_and_status' => $stats,
+                'generated_at' => date('Y-m-d H:i:s')
+            ];
+
         } catch (Exception $e) {
-            error_log('Error al obtener estadísticas de nodos: ' . $e->getMessage());
-            throw $e;
+            Logger::error('Error getting chatbot stats', ['error' => $e->getMessage()]);
+            throw new \RuntimeException('Failed to get chatbot stats: ' . $e->getMessage());
         }
+    }
+
+    // =============================
+    // MÉTODOS PRIVADOS DE UTILIDAD
+    // =============================
+
+    /**
+     * Construir jerarquía de nodos recursivamente
+     */
+    private function buildNodeHierarchy(array $nodes, $parentId = null): array
+    {
+        $tree = [];
+
+        foreach ($nodes as $node) {
+            if ($node['parent_id'] == $parentId) {
+                $node['children'] = $this->buildNodeHierarchy($nodes, $node['id']);
+                $tree[] = $node;
+            }
+        }
+
+        return $tree;
+    }
+
+    /**
+     * Calcular profundidad del árbol
+     */
+    private function calculateTreeDepth(array $tree, int $currentDepth = 0): int
+    {
+        $maxDepth = $currentDepth;
+
+        foreach ($tree as $node) {
+            if (isset($node['children']) && !empty($node['children'])) {
+                $childDepth = $this->calculateTreeDepth($node['children'], $currentDepth + 1);
+                $maxDepth = max($maxDepth, $childDepth);
+            }
+        }
+
+        return $maxDepth;
+    }
+
+    /**
+     * Buscar nodos hijos de forma recursiva
+     */
+    private function findChildNodesRecursive($parentId, bool $activeOnly): array
+    {
+        $allChildren = [];
+        $directChildren = $this->findChildNodes($parentId, $activeOnly, false);
+
+        foreach ($directChildren as $child) {
+            $allChildren[] = $child;
+            $grandChildren = $this->findChildNodesRecursive($child['id'], $activeOnly);
+            $allChildren = array_merge($allChildren, $grandChildren);
+        }
+
+        return $allChildren;
+    }
+
+    /**
+     * Evaluar condiciones del nodo
+     */
+    private function evaluateNodeConditions(array $conditions, array $context, array $userInput): array
+    {
+        $result = [
+            'passed' => true,
+            'errors' => []
+        ];
+
+        // Implementación básica de evaluación de condiciones
+        foreach ($conditions as $condition) {
+            if (!$this->evaluateSingleCondition($condition, $context, $userInput)) {
+                $result['passed'] = false;
+                $result['errors'][] = "Condition failed: " . json_encode($condition);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Evaluar una condición individual
+     */
+    private function evaluateSingleCondition(array $condition, array $context, array $userInput): bool
+    {
+        // Implementación básica - se puede extender según necesidades
+        $type = $condition['type'] ?? '';
+        $field = $condition['field'] ?? '';
+        $operator = $condition['operator'] ?? '==';
+        $value = $condition['value'] ?? '';
+
+        $actualValue = null;
+
+        switch ($type) {
+            case 'context':
+                $actualValue = $context[$field] ?? null;
+                break;
+            case 'user_input':
+                $actualValue = $userInput[$field] ?? null;
+                break;
+            default:
+                return false;
+        }
+
+        return $this->compareValues($actualValue, $operator, $value);
+    }
+
+    /**
+     * Comparar valores según operador
+     */
+    private function compareValues($actual, string $operator, $expected): bool
+    {
+        switch ($operator) {
+            case '==':
+            case '=':
+                return $actual == $expected;
+            case '!=':
+                return $actual != $expected;
+            case '>':
+                return $actual > $expected;
+            case '>=':
+                return $actual >= $expected;
+            case '<':
+                return $actual < $expected;
+            case '<=':
+                return $actual <= $expected;
+            case 'contains':
+                return is_string($actual) && str_contains($actual, $expected);
+            case 'not_contains':
+                return is_string($actual) && !str_contains($actual, $expected);
+            case 'in':
+                return is_array($expected) && in_array($actual, $expected);
+            case 'not_in':
+                return is_array($expected) && !in_array($actual, $expected);
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Ejecutar acción de mensaje
+     */
+    private function executeMessageAction(array $node, array $actions, array $context, array $userInput, array $result): array
+    {
+        $result['success'] = true;
+        $result['response'] = [
+            'type' => 'message',
+            'content' => $actions['message'] ?? $node['description'] ?? '',
+            'next_action' => $actions['next_action'] ?? 'wait_input'
+        ];
+
+        // Determinar siguiente nodo
+        if (isset($actions['next_node_id'])) {
+            $result['next_node'] = $actions['next_node_id'];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Ejecutar acción de opciones
+     */
+    private function executeOptionsAction(array $node, array $actions, array $context, array $userInput, array $result): array
+    {
+        $result['success'] = true;
+        $result['response'] = [
+            'type' => 'options',
+            'content' => $actions['message'] ?? $node['description'] ?? '',
+            'options' => $actions['options'] ?? []
+        ];
+
+        return $result;
+    }
+
+    /**
+     * Ejecutar acción de formulario
+     */
+    private function executeFormAction(array $node, array $actions, array $context, array $userInput, array $result): array
+    {
+        $result['success'] = true;
+        $result['response'] = [
+            'type' => 'form',
+            'content' => $actions['message'] ?? $node['description'] ?? '',
+            'form_fields' => $actions['form_fields'] ?? []
+        ];
+
+        return $result;
+    }
+
+    /**
+     * Ejecutar acción de redirección
+     */
+    private function executeRedirectAction(array $node, array $actions, array $context, array $userInput, array $result): array
+    {
+        $result['success'] = true;
+        $result['response'] = [
+            'type' => 'redirect',
+            'url' => $actions['redirect_url'] ?? '',
+            'message' => $actions['message'] ?? 'Redirigiendo...'
+        ];
+
+        return $result;
+    }
+
+    /**
+     * Ejecutar acción condicional
+     */
+    private function executeConditionAction(array $node, array $actions, array $context, array $userInput, array $result): array
+    {
+        $conditions = $node['conditions'] ? json_decode($node['conditions'], true) : [];
+        $conditionResult = $this->evaluateNodeConditions($conditions, $context, $userInput);
+
+        $result['success'] = true;
+        $result['response'] = [
+            'type' => 'condition',
+            'condition_passed' => $conditionResult['passed']
+        ];
+
+        // Determinar siguiente nodo basado en la condición
+        if ($conditionResult['passed']) {
+            $result['next_node'] = $actions['success_node_id'] ?? null;
+        } else {
+            $result['next_node'] = $actions['failure_node_id'] ?? null;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Ejecutar acción personalizada
+     */
+    private function executeCustomAction(array $node, array $actions, array $context, array $userInput, array $result): array
+    {
+        $result['success'] = true;
+        $result['response'] = [
+            'type' => 'custom_action',
+            'action_data' => $actions
+        ];
+
+        // Procesar acciones personalizadas según configuración
+        if (isset($actions['webhook_url'])) {
+            // Simular llamada a webhook
+            $result['response']['webhook_called'] = true;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Validar nodo de forma recursiva
+     */
+    private function validateNodeRecursive(
+        $nodeId,
+        array $nodesMap,
+        array &$visitedNodes,
+        array &$pathStack,
+        int $currentDepth,
+        int $maxDepth,
+        array &$validation
+    ): void {
+        // Verificar profundidad máxima
+        if ($currentDepth >= $maxDepth) {
+            $validation['warnings'][] = "Maximum depth reached at node: $nodeId";
+            $validation['max_depth_reached'] = max($validation['max_depth_reached'], $currentDepth);
+            return;
+        }
+
+        // Detectar referencias circulares
+        if (in_array($nodeId, $pathStack)) {
+            $validation['is_valid'] = false;
+            $validation['errors'][] = "Circular reference detected: " . implode(' -> ', $pathStack) . " -> $nodeId";
+            $validation['circular_references'][] = $nodeId;
+            return;
+        }
+
+        // Marcar como visitado
+        $visitedNodes[$nodeId] = true;
+        $pathStack[] = $nodeId;
+        $validation['total_nodes_checked']++;
+
+        $node = $nodesMap[$nodeId] ?? null;
+        if (!$node) {
+            $validation['is_valid'] = false;
+            $validation['errors'][] = "Referenced node not found: $nodeId";
+            array_pop($pathStack);
+            return;
+        }
+
+        // Validar estructura del nodo
+        $this->validateNodeStructure($node, $validation);
+
+        // Encontrar nodos siguientes y validar recursivamente
+        $nextNodes = $this->getNextNodesFromNode($node);
+        
+        if (empty($nextNodes)) {
+            $validation['dead_ends'][] = $nodeId;
+        } else {
+            foreach ($nextNodes as $nextNodeId) {
+                if (!isset($visitedNodes[$nextNodeId])) {
+                    $this->validateNodeRecursive(
+                        $nextNodeId,
+                        $nodesMap,
+                        $visitedNodes,
+                        $pathStack,
+                        $currentDepth + 1,
+                        $maxDepth,
+                        $validation
+                    );
+                }
+            }
+        }
+
+        array_pop($pathStack);
+    }
+
+    /**
+     * Validar estructura individual del nodo
+     */
+    private function validateNodeStructure(array $node, array &$validation): void
+    {
+        // Validar tipo de nodo
+        if (!in_array($node['node_type'], self::VALID_NODE_TYPES)) {
+            $validation['errors'][] = "Invalid node type '{$node['node_type']}' in node: {$node['id']}";
+        }
+
+        // Validar estado
+        if (!in_array($node['status'], self::VALID_STATUSES)) {
+            $validation['errors'][] = "Invalid status '{$node['status']}' in node: {$node['id']}";
+        }
+
+        // Validar campos requeridos
+        if (empty($node['name'])) {
+            $validation['warnings'][] = "Node {$node['id']} has no name";
+        }
+
+        // Validar JSON válido en campos metadata, conditions, actions
+        $jsonFields = ['metadata', 'conditions', 'actions'];
+        foreach ($jsonFields as $field) {
+            if (!empty($node[$field]) && json_decode($node[$field]) === null && json_last_error() !== JSON_ERROR_NONE) {
+                $validation['errors'][] = "Invalid JSON in field '$field' for node: {$node['id']}";
+            }
+        }
+    }
+
+    /**
+     * Obtener IDs de nodos siguientes desde un nodo
+     */
+    private function getNextNodesFromNode(array $node): array
+    {
+        $nextNodes = [];
+
+        // Buscar en las acciones del nodo
+        $actions = $node['actions'] ? json_decode($node['actions'], true) : [];
+        
+        if (isset($actions['next_node_id'])) {
+            $nextNodes[] = $actions['next_node_id'];
+        }
+
+        if (isset($actions['success_node_id'])) {
+            $nextNodes[] = $actions['success_node_id'];
+        }
+
+        if (isset($actions['failure_node_id'])) {
+            $nextNodes[] = $actions['failure_node_id'];
+        }
+
+        // Para nodos de opciones, buscar en las opciones
+        if (isset($actions['options']) && is_array($actions['options'])) {
+            foreach ($actions['options'] as $option) {
+                if (isset($option['next_node_id'])) {
+                    $nextNodes[] = $option['next_node_id'];
+                }
+            }
+        }
+
+        return array_unique(array_filter($nextNodes));
+    }
+
+    /**
+     * Override del método store para validación adicional
+     */
+    public function store(array $data)
+    {
+        // Validar tipo de nodo
+        if (isset($data['node_type']) && !in_array($data['node_type'], self::VALID_NODE_TYPES)) {
+            throw new \InvalidArgumentException("Invalid node type: {$data['node_type']}");
+        }
+
+        // Validar estado
+        if (isset($data['status']) && !in_array($data['status'], self::VALID_STATUSES)) {
+            throw new \InvalidArgumentException("Invalid status: {$data['status']}");
+        }
+
+        // Validar y serializar campos JSON
+        $jsonFields = ['metadata', 'conditions', 'actions'];
+        foreach ($jsonFields as $field) {
+            if (isset($data[$field]) && is_array($data[$field])) {
+                $data[$field] = json_encode($data[$field]);
+            }
+        }
+
+        // Limpiar cache después de crear
+        $result = parent::store($data);
+        if ($result) {
+            $this->clearNodeTreeCache();
+        }
+
+        return $result;
+    }
+
+    /**
+     * Override del método update para validación adicional
+     */
+    public function update($id, array $data): bool
+    {
+        // Validar tipo de nodo
+        if (isset($data['node_type']) && !in_array($data['node_type'], self::VALID_NODE_TYPES)) {
+            throw new \InvalidArgumentException("Invalid node type: {$data['node_type']}");
+        }
+
+        // Validar estado
+        if (isset($data['status']) && !in_array($data['status'], self::VALID_STATUSES)) {
+            throw new \InvalidArgumentException("Invalid status: {$data['status']}");
+        }
+
+        // Validar y serializar campos JSON
+        $jsonFields = ['metadata', 'conditions', 'actions'];
+        foreach ($jsonFields as $field) {
+            if (isset($data[$field]) && is_array($data[$field])) {
+                $data[$field] = json_encode($data[$field]);
+            }
+        }
+
+        // Limpiar cache después de actualizar
+        $result = parent::update($id, $data);
+        if ($result) {
+            $this->clearNodeTreeCache();
+        }
+
+        return $result;
+    }
+
+    /**
+     * Override del método delete para limpiar cache
+     */
+    public function delete($id): bool
+    {
+        $result = parent::delete($id);
+        if ($result) {
+            $this->clearNodeTreeCache();
+        }
+
+        return $result;
+    }
+
+    /**
+     * Método de compatibilidad hacia atrás - Obtener todos los nodos activos
+     */
+    public function getAllActive(): array
+    {
+        return $this->getActiveNodes();
+    }
+
+    /**
+     * Método de compatibilidad hacia atrás - Obtener nodo por ID
+     */
+    public function getById($id): ?array
+    {
+        return $this->findById($id);
+    }
+
+    /**
+     * Método de compatibilidad hacia atrás - Obtener nodos por tipo
+     */
+    public function getByType(string $type): array
+    {
+        return $this->findBy('node_type', $type);
+    }
+
+    /**
+     * Método de compatibilidad hacia atrás - Verificar existencia
+     */
+    public function exists($id): bool
+    {
+        return $this->findById($id) !== null;
+    }
+
+    /**
+     * Método de compatibilidad hacia atrás - Obtener estadísticas
+     */
+    public function getStats(): array
+    {
+        return $this->getChatbotStats()['by_type_and_status'] ?? [];
     }
 }

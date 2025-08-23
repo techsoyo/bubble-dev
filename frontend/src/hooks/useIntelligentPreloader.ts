@@ -26,7 +26,7 @@ export const useIntelligentPreloader = () => {
 
         // Precargar UploadCV solo si el user está logueado
         localStorage.getItem('auth_token') ?
-          import('../components/UploadCVOptimized') :
+          import('../components/UploadCV') :
           Promise.resolve(),
 
         // Precargar Estadísticas solo para usuarios HR/Admin

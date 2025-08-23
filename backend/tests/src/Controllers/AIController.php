@@ -4,7 +4,7 @@ namespace Controllers;
 
 use Services\CVParsingService;
 use Services\JobMatchingService;
-use Services\OllamaService;
+// use Services\OllamaService;
 use Utils\Request;
 
 /**
@@ -44,7 +44,7 @@ class AIController extends BaseController
 
         try {
             error_log('parseCVFromFile: INICIO analyzeCV');
-            $result = $this->ollamaService->analyzeCV($cvText);
+            // $result = $this->ollamaService->analyzeCV($cvText);
             error_log('parseCVFromFile: analyzeCV FINALIZADO');
 
             // Guardar el resultado en JSON para trazabilidad
@@ -59,7 +59,7 @@ class AIController extends BaseController
             error_log('FIN parseCVFromFile');
         }
     }
-    private $ollamaService;
+    // private $ollamaService;
     private $cvParsingService;
     private $jobMatchingService;
 
@@ -69,7 +69,7 @@ class AIController extends BaseController
     public function __construct()
     {
         // parent::__construct();
-        $this->ollamaService = new OllamaService();
+        // $this->ollamaService = new OllamaService();
         $this->cvParsingService = new CVParsingService();
         $this->jobMatchingService = new JobMatchingService();
     }
@@ -182,7 +182,7 @@ class AIController extends BaseController
 
         try {
             // Procesar el mensaje
-            $response = $this->ollamaService->chat([
+            // $response = $this->ollamaService->chat([
               'messages' => array_merge($previousMessages, [
                 ['role' => 'user', 'content' => $data['message']]
               ])

@@ -2,336 +2,279 @@
 
 namespace Controllers;
 
-use Models\Candidate;
-use Services\CVParsingService;
-use Services\FileService;
 use Utils\Request;
+use Utils\ResponseHelper;
 
-/**
- * Controlador para la gestión de candidatos
- */
-class CandidateController extends BaseController
+class CandidateController
 {
-    private $candidateModel;
-    private $cvParsingService;
-    private $fileService;
-
     /**
-     * Constructor
+     * GET /api/candidates
+     * Lista de candidatos (paginable/filtrable)
      */
-    public function __construct()
+    public function index(Request $request, array $params = [])
     {
-        parent::__construct();
-        $this->candidateModel = new Candidate();
-        $this->cvParsingService = new CVParsingService();
-        $this->fileService = new FileService();
+        try {
+            // Ejemplo de lectura de query params
+            $page   = (int)($request->getQuery('page') ?? 1);
+            $limit  = (int)($request->getQuery('limit') ?? 20);
+            $search = trim((string)($request->getQuery('search') ?? ''));
+
+            // TODO: Reemplazar por consulta real a DB
+            $items = []; // fetchCandidates($page, $limit, $search)
+
+            return ResponseHelper::success("Listado de candidatos obtenido", [
+                'page'  => $page,
+                'limit' => $limit,
+                'total' => count($items), // TODO: total real
+                'data'  => $items
+            ]);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error al listar candidatos", $e);
+        }
     }
 
     /**
-     * Obtener todos los candidatos
-     *
-     * @param Request $request Objeto de solicitud
-     * @return void
+     * POST /api/candidates
+     * Crear candidato (staff/admin)
      */
-    public function getAll(Request $request)
+    public function store(Request $request, array $params = [])
     {
-        // Parámetros de filtrado opcionales
-        $filters = [
-          'skill' => $request->getParams()['skill'] ?? null,
-          'location' => $request->getParams()['location'] ?? null,
-          'experience' => $request->getParams()['experience'] ?? null,
-          'search' => $request->getParams()['search'] ?? null
-        ];
+        try {
+            $data = $request->getBody();
 
-        // Parámetros de paginación opcionales
-        $page = isset($request->getParams()['page']) ? (int)$request->getParams()['page'] : 1;
-        $limit = isset($request->getParams()['limit']) ? (int)$request->getParams()['limit'] : 10;
-
-        // Verificar permisos (solo admin y reclutadores pueden ver todos los candidatos)
-        $userData = $request->getUser();
-        if (!in_array($userData['role'], ['admin', 'recruiter'])) {
-            $this->error('No tienes permisos para acceder a esta información', null, 403);
-            return;
-        }
-
-        // Obtener candidatos filtrados y paginados
-        $candidates = $this->candidateModel->findAll($filters, $page, $limit);
-        $total = $this->candidateModel->countAll($filters);
-
-        $this->success('Candidatos obtenidos correctamente', [
-          'candidates' => $candidates,
-          'pagination' => [
-            'total' => $total,
-            'page' => $page,
-            'limit' => $limit,
-            'pages' => ceil($total / $limit)
-          ]
-        ]);
-    }
-
-    /**
-     * Obtener un candidato por su ID
-     *
-     * @param Request $request Objeto de solicitud
-     * @param array $params Parámetros de la ruta
-     * @return void
-     */
-    public function getById(Request $request, $params)
-    {
-        if (!isset($params['id'])) {
-            $this->error('ID de candidato no proporcionado', null, 400);
-            return;
-        }
-
-        $candidate = $this->candidateModel->findById($params['id']);
-
-        if (!$candidate) {
-            $this->error('Candidato no encontrado', null, 404);
-            return;
-        }
-
-        // Verificar permisos (solo admin, reclutadores o el propio candidato pueden ver los detalles)
-        $userData = $request->getUser();
-        if (!in_array($userData['role'], ['admin', 'recruiter']) && $userData['sub'] !== $candidate['user_id']) {
-            $this->error('No tienes permisos para acceder a esta información', null, 403);
-            return;
-        }
-
-        $this->success('Candidato obtenido correctamente', $candidate);
-    }
-
-    /**
-     * Crear un nuevo candidato
-     *
-     * @param Request $request Objeto de solicitud
-     * @return void
-     */
-    public function create(Request $request)
-    {
-        // Validar datos de entrada
-        $data = $this->validate($request, [
-          'user_id' => 'required|numeric',
-          'full_name' => 'required',
-          'email' => 'required|email',
-          'phone' => 'required',
-          'location' => 'required',
-          'skills' => 'required'
-        ]);
-
-        if (!$data) {
-            return;
-        }
-
-        // Convertir skills de string a array si es necesario
-        if (is_string($data['skills'])) {
-            $data['skills'] = json_encode(explode(',', $data['skills']));
-        } elseif (is_array($data['skills'])) {
-            $data['skills'] = json_encode($data['skills']);
-        }
-
-        // Verificar permisos (solo admin, reclutadores o el propio usuario pueden crear su perfil)
-        $userData = $request->getUser();
-        if (!in_array($userData['role'], ['admin', 'recruiter']) && $userData['sub'] !== $data['user_id']) {
-            $this->error('No tienes permisos para crear este perfil', null, 403);
-            return;
-        }
-
-        // Procesar CV si se ha subido
-        if (isset($_FILES['cv']) && $_FILES['cv']['error'] === UPLOAD_ERR_OK) {
-            $cvUploadDir = __DIR__ . '/../../../uploads/cvs';
-
-            $cvPath = $this->fileService->uploadFile($_FILES['cv'], $cvUploadDir);
-
-            if ($cvPath) {
-                $data['cv_path'] = $cvPath;
-
-                // Procesar CV para extracción de texto (sin IA obligatoria)
-                try {
-                    $result = $this->cvParsingService->processCV($cvPath);
-
-                    if ($result['success']) {
-                        // Guardar referencia al archivo de texto
-                        $data['cv_text_file'] = $result['text_file'];
-
-                        // Extraer habilidades básicas del texto
-                        if (!empty($result['extracted_text'])) {
-                            $basicSkills = $this->cvParsingService->extractBasicSkills($result['extracted_text']);
-                            if (!empty($basicSkills)) {
-                                // Combinar con skills existentes
-                                $existingSkills = !empty($data['skills']) ? json_decode($data['skills'], true) : [];
-                                if (!is_array($existingSkills)) {
-                                    $existingSkills = [];
-                                }
-
-                                $allSkills = array_unique(array_merge($existingSkills, $basicSkills));
-                                $data['skills'] = json_encode($allSkills);
-                            }
-                        }
-                    }
-
-                    // Log para debug
-                    error_log('CV procesado correctamente: ' . ($result['success'] ? 'éxito' : 'error'));
-                } catch (\Exception $e) {
-                    // Solo registrar el error pero continuar sin IA
-                    error_log('Error procesando CV (sin IA): ' . $e->getMessage());
-                }
+            // Validación mínima
+            if (empty($data['email'])) {
+                return ResponseHelper::fail("El campo 'email' es obligatorio", 422);
             }
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                return ResponseHelper::fail("Formato de email inválido", 422);
+            }
+
+            // TODO: Insertar en DB
+            // $id = createCandidate($data);
+
+            return ResponseHelper::success("Candidato creado correctamente", [
+                'id'   => 0, // reemplazar por $id real
+                'data' => $data
+            ], 201);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error al crear candidato", $e);
         }
-
-        // Crear candidato
-        $candidateId = $this->candidateModel->create($data);
-
-        if (!$candidateId) {
-            $this->error('Error al crear el candidato');
-            return;
-        }
-
-        // Obtener el candidato creado
-        $candidate = $this->candidateModel->findById($candidateId);
-
-        $this->success('Candidato creado correctamente', $candidate, 201);
     }
 
     /**
-     * Actualizar un candidato existente
-     *
-     * @param Request $request Objeto de solicitud
-     * @param array $params Parámetros de la ruta
-     * @return void
+     * POST /api/candidates/register
+     * Registro self-service de candidato
      */
-    public function update(Request $request, $params)
+    public function register(Request $request, array $params = [])
     {
-        if (!isset($params['id'])) {
-            $this->error('ID de candidato no proporcionado', null, 400);
-            return;
-        }
+        try {
+            $data = $request->getBody();
 
-        // Validar datos de entrada
-        $data = $this->validate($request, [
-          'full_name' => 'required',
-          'email' => 'required|email',
-          'phone' => 'required',
-          'location' => 'required'
-        ]);
-
-        if (!$data) {
-            return;
-        }
-
-        // Convertir skills de string a array si es necesario
-        if (isset($data['skills'])) {
-            if (is_string($data['skills'])) {
-                $data['skills'] = json_encode(explode(',', $data['skills']));
-            } elseif (is_array($data['skills'])) {
-                $data['skills'] = json_encode($data['skills']);
+            if (empty($data['email']) || empty($data['password'])) {
+                return ResponseHelper::fail("Email y password son obligatorios", 422);
             }
-        }
-
-        // Verificar que el candidato existe
-        $candidate = $this->candidateModel->findById($params['id']);
-
-        if (!$candidate) {
-            $this->error('Candidato no encontrado', null, 404);
-            return;
-        }
-
-        // Verificar permisos (solo admin, reclutadores o el propio candidato pueden actualizar el perfil)
-        $userData = $request->getUser();
-        if (!in_array($userData['role'], ['admin', 'recruiter']) && $userData['sub'] !== $candidate['user_id']) {
-            $this->error('No tienes permisos para actualizar este perfil', null, 403);
-            return;
-        }
-
-        // Procesar CV si se ha subido
-        if (isset($_FILES['cv']) && $_FILES['cv']['error'] === UPLOAD_ERR_OK) {
-            $cvUploadDir = __DIR__ . '/../../uploads/cvs';
-
-            $cvPath = $this->fileService->uploadFile($_FILES['cv'], $cvUploadDir);
-
-            if ($cvPath) {
-                $data['cv_path'] = $cvPath;
-
-                // Procesar CV para extracción de texto (sin IA obligatoria)
-                try {
-                    $result = $this->cvParsingService->processCV($cvPath);
-
-                    if ($result['success']) {
-                        // Guardar referencia al archivo de texto
-                        $data['cv_text_file'] = $result['text_file'];
-
-                        // Extraer habilidades básicas del texto
-                        if (!empty($result['extracted_text'])) {
-                            $basicSkills = $this->cvParsingService->extractBasicSkills($result['extracted_text']);
-                            if (!empty($basicSkills)) {
-                                // Combinar con skills existentes
-                                $existingSkills = !empty($data['skills']) ? json_decode($data['skills'], true) : [];
-                                if (!is_array($existingSkills)) {
-                                    $existingSkills = [];
-                                }
-
-                                $allSkills = array_unique(array_merge($existingSkills, $basicSkills));
-                                $data['skills'] = json_encode($allSkills);
-                            }
-                        }
-                    }
-                } catch (\Exception $e) {
-                    // Solo registrar el error pero continuar sin IA
-                    error_log('Error procesando CV (sin IA): ' . $e->getMessage());
-                }
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                return ResponseHelper::fail("Formato de email inválido", 422);
             }
+
+            // TODO: crear usuario candidato + hash password
+            // $id = registerCandidate($data['email'], $data['password'], ...)
+
+            return ResponseHelper::success("Registro de candidato exitoso", [
+                'candidate_id' => 0, // id real
+                'email'        => $data['email']
+            ], 201);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error en registro de candidato", $e);
         }
-
-        // Actualizar candidato
-        $updated = $this->candidateModel->update($params['id'], $data);
-
-        if (!$updated) {
-            $this->error('Error al actualizar el candidato');
-            return;
-        }
-
-        // Obtener el candidato actualizado
-        $candidate = $this->candidateModel->findById($params['id']);
-
-        $this->success('Candidato actualizado correctamente', $candidate);
     }
 
     /**
-     * Eliminar un candidato
-     *
-     * @param Request $request Objeto de solicitud
-     * @param array $params Parámetros de la ruta
-     * @return void
+     * GET /api/candidates/{id}
+     * Detalle de candidato
      */
-    public function delete(Request $request, $params)
+    public function show(Request $request, array $params = [])
     {
-        if (!isset($params['id'])) {
-            $this->error('ID de candidato no proporcionado', null, 400);
-            return;
+        try {
+            $id = $params['id'] ?? null;
+            if (!$id) {
+                return ResponseHelper::fail("ID no proporcionado", 400);
+            }
+
+            // TODO: Buscar en DB
+            // $candidate = findCandidate($id);
+            $candidate = null;
+
+            if (!$candidate) {
+                return ResponseHelper::fail("Candidato no encontrado", 404);
+            }
+
+            return ResponseHelper::success("Candidato encontrado", [
+                'id'   => $id,
+                'data' => $candidate
+            ]);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error al obtener candidato", $e);
         }
+    }
 
-        // Verificar que el candidato existe
-        $candidate = $this->candidateModel->findById($params['id']);
+    /**
+     * PUT /api/candidates/{id}
+     * Actualizar candidato
+     */
+    public function update(Request $request, array $params = [])
+    {
+        try {
+            $id   = $params['id'] ?? null;
+            $data = $request->getBody();
 
-        if (!$candidate) {
-            $this->error('Candidato no encontrado', null, 404);
-            return;
+            if (!$id) {
+                return ResponseHelper::fail("ID no proporcionado", 400);
+            }
+
+            // Validaciones básicas opcionales
+            if (isset($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                return ResponseHelper::fail("Formato de email inválido", 422);
+            }
+
+            // TODO: Update en DB
+            // updateCandidate($id, $data)
+
+            return ResponseHelper::success("Candidato actualizado correctamente", [
+                'id'   => $id,
+                'data' => $data
+            ]);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error al actualizar candidato", $e);
         }
+    }
 
-        // Verificar permisos (solo admin, reclutadores o el propio candidato pueden eliminar el perfil)
-        $userData = $request->getUser();
-        if (!in_array($userData['role'], ['admin', 'recruiter']) && $userData['sub'] !== $candidate['user_id']) {
-            $this->error('No tienes permisos para eliminar este perfil', null, 403);
-            return;
+    /**
+     * DELETE /api/candidates/{id}
+     * Eliminar candidato
+     */
+    public function delete(Request $request, array $params = [])
+    {
+        try {
+            $id = $params['id'] ?? null;
+            if (!$id) {
+                return ResponseHelper::fail("ID no proporcionado", 400);
+            }
+
+            // TODO: Delete en DB
+            // deleteCandidate($id)
+
+            return ResponseHelper::success("Candidato eliminado correctamente", [
+                'id' => $id
+            ]);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error al eliminar candidato", $e);
         }
+    }
 
-        // Eliminar candidato
-        $deleted = $this->candidateModel->delete($params['id']);
+    /**
+     * POST /api/candidates/upload-cv
+     * Subida de CV (multipart/form-data o base64)
+     */
+    public function uploadCV(Request $request, array $params = [])
+    {
+        try {
+            // Puedes tener el archivo en $_FILES o como base64 en el body
+            $fileInfo = $request->getFile('cv') ?? null;
+            $body     = $request->getBody();
 
-        if (!$deleted) {
-            $this->error('Error al eliminar el candidato');
-            return;
+            if (!$fileInfo && empty($body['cv_base64'])) {
+                return ResponseHelper::fail("Se requiere 'cv' (archivo) o 'cv_base64'", 422);
+            }
+
+            // TODO: Validaciones de tipo/tamaño y almacenamiento
+            // $storedPath = storeCv($fileInfo || $body['cv_base64'])
+
+            return ResponseHelper::success("CV subido correctamente", [
+                'stored_path' => 'path/to/cv.pdf' // reemplazar por real
+            ], 201);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error al subir CV", $e);
         }
+    }
 
-        $this->success('Candidato eliminado correctamente');
+    /**
+     * GET /api/candidates/profile/{id}
+     * Perfil extendido del candidato
+     */
+    public function profile(Request $request, array $params = [])
+    {
+        try {
+            $id = $params['id'] ?? null;
+            if (!$id) {
+                return ResponseHelper::fail("ID no proporcionado", 400);
+            }
+
+            // TODO: Unir datos de varias tablas (experiencia, edu, skills…)
+            $profile = [
+                'candidate'   => ['id' => $id, 'name' => 'Mocked Candidate'],
+                'experiences' => [],
+                'education'   => [],
+                'skills'      => [],
+            ];
+
+            return ResponseHelper::success("Perfil de candidato obtenido", $profile);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error al obtener perfil", $e);
+        }
+    }
+
+    /**
+     * PATCH /api/candidates/{id}/status
+     * Cambiar estado del candidato
+     */
+    public function updateStatus(Request $request, array $params = [])
+    {
+        try {
+            $id   = $params['id'] ?? null;
+            $data = $request->getBody();
+            $status = $data['status'] ?? null;
+
+            if (!$id) {
+                return ResponseHelper::fail("ID no proporcionado", 400);
+            }
+            if (!$status) {
+                return ResponseHelper::fail("El campo 'status' es obligatorio", 422);
+            }
+
+            // TODO: Validar estado permitido y actualizar en DB
+            // updateCandidateStatus($id, $status)
+
+            return ResponseHelper::success("Estado del candidato actualizado", [
+                'id'     => $id,
+                'status' => $status
+            ]);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error al actualizar estado del candidato", $e);
+        }
+    }
+
+    /**
+     * GET /api/recruiters/assigned-candidates
+     * Candidatos asignados a un recruiter (usado por Recruiter dashboard)
+     */
+    public function assignedCandidates(Request $request, array $params = [])
+    {
+        try {
+            // Ejemplo: recruiter_id desde token/sesión o query param
+            $recruiterId = $request->getQuery('recruiter_id') ?? null;
+            // TODO: obtener recruiter_id real desde Auth
+
+            // TODO: Consulta real
+            $items = []; // findAssignedCandidates($recruiterId)
+
+            return ResponseHelper::success("Candidatos asignados obtenidos", [
+                'recruiter_id' => $recruiterId,
+                'data'         => $items
+            ]);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error al obtener candidatos asignados", $e);
+        }
     }
 }

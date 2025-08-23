@@ -207,7 +207,7 @@ class User extends BaseModel
      *
      * Uso de referencia disponible en la documentación interna.
      */
-    public function create(array $data)
+    public function store(array $data)
     {
         // Validate required fields
         if (empty($data['email']) || empty($data['password'])) {
@@ -241,7 +241,7 @@ class User extends BaseModel
         $data['created_at'] = date('Y-m-d H:i:s');
 
         try {
-            $userId = parent::create($data);
+            $userId = parent::store($data);
 
             // Invalidate user-related caches
             $this->invalidateCache();

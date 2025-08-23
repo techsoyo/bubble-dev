@@ -521,7 +521,8 @@ export function useSkipLinks(): void {
         const skipLink = document.createElement('a');
         skipLink.href = '#main-content';
         skipLink.textContent = 'Skip to main content';
-        skipLink.className = 'sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-blue-600 text-white p-2 z-50';
+        skipLink.className = 'sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-blue-600 text-white p-2';
+        skipLink.style.zIndex = 'var(--z-tooltip)';
         skipLink.style.position = 'absolute';
         skipLink.style.top = '-40px';
         skipLink.style.left = '6px';

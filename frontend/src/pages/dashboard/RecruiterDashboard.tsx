@@ -1,5 +1,6 @@
 // src/pages/dashboard/RecruiterDashboard.tsx
-import React, { useState, useEffect, useReducer, useMemo } from 'react';
+import * as React from 'react';
+import { useState, useEffect, useReducer, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../lib/i18n/LanguageContext';
 import { Button } from '../../components/ui/button';
@@ -11,6 +12,7 @@ import { Filters } from '../../components/ui/filters';
 import { DashboardHeader } from '../../components/ui/dashboard-header';
 import StatusChangeForm from '../../components/StatusChangeForm';
 import { sendCandidateStatusUpdateNotification } from '../../lib/emailService';
+import { getAssignedCandidates, getRecruiterDashboardStats } from '../../lib/apiService';
 import { toast } from '../../components/ui/use-toast';
 
 interface Candidate {
@@ -291,26 +293,22 @@ const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({ recruiterId: pr
             try {
                 setIsLoading(true);
 
-                // Cargar candidatos asignados (simulado)
+                // Cargar candidatos asignados usando apiService
                 const recruiterEmail = user?.email || localStorage.getItem('userEmail');
                 if (recruiterEmail) {
-                    // Aquí normalmente cargarías desde la API
-                    // Por ahora usamos datos mock
-                    const mockAssignedCandidates = [
-                        {
-                            candidateId: '1',
-                            candidateName: 'Juan Pérez',
-                            candidateDepartment: 'Desarrollo',
-                            assignedDate: '2025-01-01'
-                        },
-                        {
-                            candidateId: '2',
-                            candidateName: 'María García',
-                            candidateDepartment: 'Marketing',
-                            assignedDate: '2025-01-02'
+                    try {
+                        const result = await getAssignedCandidates(recruiterId);
+
+                        if (result.success && result.data) {
+                            setAssignedCandidates(result.data);
+                        } else {
+                            console.warn('No se encontraron candidatos asignados');
+                            setAssignedCandidates([]);
                         }
-                    ];
-                    setAssignedCandidates(mockAssignedCandidates);
+                    } catch (error) {
+                        console.error('Error cargando candidatos asignados:', error);
+                        setAssignedCandidates([]);
+                    }
                 }
 
                 // Cargar entrevistas programadas desde localStorage

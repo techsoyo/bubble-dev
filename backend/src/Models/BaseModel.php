@@ -78,48 +78,58 @@ abstract class BaseModel
      * @var int
      */
     protected const DEFAULT_LIMIT = 20;
-
+    protected array $cache = [];
     /**
      * Initialize the model with database connection
      *
      * @throws \RuntimeException If database connection fails
      */
-    public function __construct()
+    public function __construct(?string $table = null, string|int $primaryKey = 'id')
     {
-        // Incluir la función getDbConnection si no está disponible
         if (!function_exists('getDbConnection')) {
             require_once __DIR__ . '/../../config/database.php';
         }
-
-        // Incluir Logger si no está disponible
         if (!class_exists('Utils\Logger')) {
             require_once __DIR__ . '/../Utils/Logger.php';
         }
 
+        // Asignar tabla si se proporciona
+        if ($table !== null) {
+            $this->table = T($table); // Usar la función T() para prefijos
+        } elseif (empty($this->table)) {
+            // Si no se proporciona tabla y no está definida, inferir del nombre de la clase
+            $className = basename(str_replace('\\', '/', static::class));
+
+            // Manejar clases anónimas
+            if (str_contains($className, 'class@anonymous')) {
+                $this->table = T('base_model_table');
+            } else {
+                // Convertir CamelCase a snake_case y remover 'Model'
+                $tableName = str_replace('Model', '', $className);
+                $tableName = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $tableName));
+                $this->table = T($tableName);
+            }
+        } else {
+            // Asegurar que la tabla existente use el prefijo correcto
+            $this->table = T($this->table);
+        }
+
+        // Asignar primary key
+        $this->primaryKey = (string) $primaryKey;
+
         $this->db = getDbConnection();
         if (!$this->db) {
             Logger::error('Failed to initialize database connection', [
-                'model' => static::class
+                'model' => static::class,
+                'table' => $this->table
             ]);
             throw new \RuntimeException('Database connection failed');
         }
 
-        // Ajustar dinámicamente el nombre de la tabla con un prefijo si se define
-        // en las variables de entorno.  Esto permite que modelos como "candidates"
-        // apunten a tablas prefijadas (p. ej. "bt_candidates") sin modificar
-        // individualmente cada modelo.  Si la variable DB_TABLE_PREFIX no existe
-        // o ya se ha aplicado, se deja el nombre tal cual.
-        $prefix = getenv('DB_TABLE_PREFIX') ?: '';
-        if ($prefix) {
-            // Asegurarse de que no se duplique el prefijo
-            if (isset($this->table) && strpos($this->table, $prefix) !== 0) {
-                $this->table = $prefix . $this->table;
-            }
-        }
-
         Logger::debug('Model initialized successfully', [
             'model' => static::class,
-            'table' => $this->table ?? 'undefined'
+            'table' => $this->table,
+            'primaryKey' => $this->primaryKey
         ]);
     }
 
@@ -207,8 +217,7 @@ abstract class BaseModel
             $stmt->execute();
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            Logger::debug('Records retrieved successfully', [
-                'model' => static::class,
+            $this->logDebug('Records retrieved successfully', [
                 'count' => count($results),
                 'page' => $page,
                 'limit' => $limit
@@ -216,11 +225,11 @@ abstract class BaseModel
 
             return $this->hideFields($results);
         } catch (PDOException $e) {
-            Logger::error('Database error in findAll', [
-                'model' => static::class,
+            $this->logError('Database error in findAll', [
                 'filters' => $filters,
-                'error' => $e->getMessage()
-            ]);
+                'page' => $page,
+                'limit' => $limit
+            ], $e);
             throw new \RuntimeException('Failed to retrieve records: ' . $e->getMessage());
         }
     }
@@ -276,10 +285,7 @@ abstract class BaseModel
 
             return (int)$result['total'];
         } catch (PDOException $e) {
-            Logger::error('Database error in countAll', [
-                'model' => static::class,
-                'error' => $e->getMessage()
-            ]);
+            $this->logError('Database error in countAll', ['filters' => $filters], $e);
             throw new \RuntimeException('Failed to count records: ' . $e->getMessage());
         }
     }
@@ -348,10 +354,10 @@ abstract class BaseModel
      *
      * @usage
      * ```php
-     * $id = $model->create(['name' => 'John', 'email' => 'john@local']);
+     * $id = $model->store(['name' => 'John', 'email' => 'john@local']);
      * ```
      */
-    public function create(array $data)
+    public function store(array $data)
     {
         if (empty($data)) {
             throw new \InvalidArgumentException('Data cannot be empty');
@@ -361,7 +367,7 @@ abstract class BaseModel
 
         try {
             $fields = array_keys($data);
-            $placeholders = array_map(fn ($field) => ":$field", $fields);
+            $placeholders = array_map(fn($field) => ":$field", $fields);
 
             $fieldsStr = '`' . implode('`, `', $fields) . '`';
             $placeholdersStr = implode(', ', $placeholders);
@@ -519,7 +525,7 @@ abstract class BaseModel
 
         try {
             $fields = array_keys($data);
-            $setStatements = array_map(fn ($field) => "`$field` = :$field", $fields);
+            $setStatements = array_map(fn($field) => "`$field` = :$field", $fields);
 
             $query = "UPDATE `{$this->table}` SET " . implode(', ', $setStatements) .
                 " WHERE `{$this->primaryKey}` = :id";
@@ -1036,5 +1042,110 @@ abstract class BaseModel
             ]);
             return 0;
         }
+    }
+
+    /**
+     * Get the table name with proper prefix handling
+     *
+     * @return string Table name with prefix applied
+     */
+    public function getTableName(): string
+    {
+        return $this->table;
+    }
+
+    /**
+     * Get the primary key field name
+     *
+     * @return string Primary key field name
+     */
+    public function getPrimaryKey(): string
+    {
+        return $this->primaryKey;
+    }
+
+    /**
+     * Check if we are in development environment
+     *
+     * @return bool True if in development mode
+     */
+    protected function isDevelopment(): bool
+    {
+        if (!function_exists('isDevelopment')) {
+            require_once __DIR__ . '/../../config/config.php';
+        }
+        return isDevelopment();
+    }
+
+    /**
+     * Check if debug mode is enabled
+     *
+     * @return bool True if debug mode is enabled
+     */
+    protected function isDebug(): bool
+    {
+        if (!function_exists('isDebug')) {
+            require_once __DIR__ . '/../../config/config.php';
+        }
+        return isDebug();
+    }
+
+    /**
+     * Enhanced error logging that respects environment configuration
+     *
+     * @param string $message Error message
+     * @param array $context Additional context for logging
+     * @param \Throwable|null $exception Optional exception to log
+     */
+    protected function logError(string $message, array $context = [], ?\Throwable $exception = null): void
+    {
+        $context['model'] = static::class;
+        $context['table'] = $this->table;
+
+        if ($exception) {
+            $context['exception'] = [
+                'message' => $exception->getMessage(),
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+                'code' => $exception->getCode()
+            ];
+
+            // Solo incluir stack trace en desarrollo
+            if ($this->isDevelopment()) {
+                $context['exception']['trace'] = $exception->getTraceAsString();
+            }
+        }
+
+        Logger::error($message, $context);
+    }
+
+    /**
+     * Enhanced debug logging that only logs in debug mode
+     *
+     * @param string $message Debug message
+     * @param array $context Additional context for logging
+     */
+    protected function logDebug(string $message, array $context = []): void
+    {
+        if ($this->isDebug()) {
+            $context['model'] = static::class;
+            $context['table'] = $this->table;
+            Logger::debug($message, $context);
+        }
+    }
+
+    /**
+     * Get configuration value using the config system
+     *
+     * @param string $key Configuration key
+     * @param mixed $default Default value if not found
+     * @return mixed Configuration value
+     */
+    protected function config(string $key, $default = null)
+    {
+        if (!function_exists('config')) {
+            require_once __DIR__ . '/../../config/config.php';
+        }
+        return config($key, $default);
     }
 }

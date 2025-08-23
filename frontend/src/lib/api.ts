@@ -6,7 +6,7 @@ import { env } from '../config/env';
 import { PROTECTED_ROUTES } from './protectedRoutes'; // rutas que sí requieren auth
 
 
-export const api = axios.create({
+export const api = axios.store({
   baseURL: env.API_BASE_URL,
   timeout: 10000,
   headers: {

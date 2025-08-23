@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../config/bootstrap.php';
+require_once dirname(__DIR__, 3) . '/config/bootstrap.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');

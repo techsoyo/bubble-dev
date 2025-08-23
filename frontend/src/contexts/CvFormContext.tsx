@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useReducer, ReactNode } from 'react';
 import {
   CvFormContextState,
   CvFormAction,
@@ -54,9 +54,9 @@ export const CvFormProvider: React.FC<CvFormProviderProps> = ({ children }) => {
     dispatch({ type: 'SET_DATA', payload: data });
   };
 
-  const updateField = (field: keyof CvFormData, value: any) => {
+  const updateField = useCallback((field: keyof CvFormData, value: any) => {
     dispatch({ type: 'UPDATE_FIELD', payload: { field, value } });
-  };
+  }, []);
 
   const setErrors = (errors: string[]) => {
     dispatch({ type: 'SET_ERRORS', payload: errors });

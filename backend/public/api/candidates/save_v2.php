@@ -5,7 +5,7 @@
  * Versión actualizada con esquema de BD correcto
  */
 
-require_once __DIR__ . '/../../../config/bootstrap.php';
+require_once dirname(__DIR__, 4) . '/config/bootstrap.php';
 
 use Utils\ResponseHelper;
 use Utils\Database;

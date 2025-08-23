@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import * as React from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
@@ -22,7 +23,7 @@ import {
     Target,
     BarChart3
 } from 'lucide-react';
-import { getCandidates, getJobs, getInterviews } from '../../lib/apiService';
+import { getCandidates, getJobs, getInterviews, getRecruiters } from '../../lib/apiService';
 import StatusChangeForm from '../../components/StatusChangeForm';
 
 interface ManagerDashboardProps { }
@@ -82,22 +83,19 @@ const ManagerDashboard: React.FC<ManagerDashboardProps> = React.memo(() => {
     const [recruiterFilter, setRecruiterFilter] = useState('');
     const [priorityFilter, setPriorityFilter] = useState('');
 
-    // Datos del equipo (mock data - en producción vendría de API)
-    const [teamMembers] = useState<TeamMember[]>([
-        { id: '1', name: 'Ana García', role: 'Senior Recruiter', activeCandidates: 12, interviewsThisWeek: 8, hiresThisMonth: 3 },
-        { id: '2', name: 'Carlos López', role: 'Junior Recruiter', activeCandidates: 8, interviewsThisWeek: 5, hiresThisMonth: 1 },
-        { id: '3', name: 'María Rodriguez', role: 'Technical Recruiter', activeCandidates: 15, interviewsThisWeek: 10, hiresThisMonth: 4 },
-    ]);
+    // Datos del equipo - Se cargarán desde la API
+    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
 
     // Carga de datos
     useEffect(() => {
         const loadData = async () => {
             try {
                 setLoading(true);
-                const [candidatesRes, jobsRes, interviewsRes] = await Promise.all([
+                const [candidatesRes, jobsRes, interviewsRes, recruitersRes] = await Promise.all([
                     getCandidates(),
                     getJobs(),
-                    getInterviews().catch(() => ({ success: false, data: [] }))
+                    getInterviews().catch(() => ({ success: false, data: [] })),
+                    getRecruiters().catch(() => ({ success: false, data: [] }))
                 ]);
 
                 if (candidatesRes.success && candidatesRes.data) {
@@ -108,6 +106,20 @@ const ManagerDashboard: React.FC<ManagerDashboardProps> = React.memo(() => {
                 }
                 if (interviewsRes.success && interviewsRes.data) {
                     setInterviews(interviewsRes.data);
+                }
+                if (recruitersRes.success && recruitersRes.data) {
+                    // Mapear datos de recruiters a formato TeamMember
+                    const formattedTeam = recruitersRes.data.map((recruiter: any) => ({
+                        id: recruiter.id,
+                        name: recruiter.name,
+                        role: recruiter.role || 'Recruiter',
+                        email: recruiter.email,
+                        department: recruiter.department,
+                        activeCandidates: recruiter.active_jobs || 0,
+                        interviewsThisWeek: 0, // Se puede calcular más adelante
+                        hiresThisMonth: 0 // Se puede calcular más adelante
+                    }));
+                    setTeamMembers(formattedTeam);
                 }
             } catch (err) {
                 setError('Error al cargar los datos del equipo');

@@ -1,6 +1,6 @@
 // src/lib/googleTranslation.ts
 
-import React from 'react';
+import * as React from 'react';
 import { getApiBaseUrl } from '../hooks/useApiConfig';
 
 const API_BASE_URL = getApiBaseUrl();
@@ -36,7 +36,8 @@ export async function translateWithGoogle(
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/translate/jobs`, {
+    // API_BASE_URL puede incluir "/api", evitar duplicarlo
+    const response = await fetch(`${API_BASE_URL}/jobs?action=translate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

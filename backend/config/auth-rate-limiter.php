@@ -50,36 +50,6 @@ function rate_limit_register_failure(string $ip): bool
   }
   return true;
 }
-/**
- * Función principal de verificación de rate limiting (DEPRECATED - usar rate_limit_init)
- */
-function rate_limit_check(string $ip): bool
-{
-  if (!isset($_SESSION['rate_limit'])) {
-    $_SESSION['rate_limit'] = [];
-  }
-  $now = time();
-  $entry = &$_SESSION['rate_limit'][$ip];
-
-  // Si no existe, inicializa
-  if (empty($entry)) {
-    $entry = ['count' => 1, 'start' => $now];
-    return true;
-  }
-
-  // Si aún dentro de la ventana
-  if ($now - $entry['start'] <= RATE_LIMIT_WINDOW_SECONDS) {
-    if ($entry['count'] >= RATE_LIMIT_MAX_ATTEMPTS) {
-      return false;      // Bloquea
-    }
-    $entry['count']++;
-    return true;           // Aumenta contador
-  }
-
-  // Ventana expirada: reinicia
-  $entry = ['count' => 1, 'start' => $now];
-  return true;
-}
 
 class AuthRateLimiter
 {

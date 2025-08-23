@@ -1,13 +1,8 @@
 <?php
 
 declare(strict_types=1);
-$ROOT = dirname(dirname(dirname(__DIR__))); // Corregido: api -> public -> backend -> raiz
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-  http_response_code(500);
-  exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
+
+require_once __DIR__ . '/bootstrap.php';
 
 // Content Type header (CORS ya configurado en bootstrap.php)
 header('Content-Type: application/json');
@@ -87,4 +82,3 @@ try {
   http_response_code(500);
   echo json_encode(['success' => false, 'message' => 'Error interno del servidor']);
 }
-

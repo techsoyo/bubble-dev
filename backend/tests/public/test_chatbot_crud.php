@@ -27,7 +27,7 @@ try {
     $host = config('DB_HOST');
     $dbname = config('DB_NAME');
     $username = config('DB_USER');
-    $password = config('DB_PASS');
+    $password = config('DB_PASSWORD');
 
     $dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
     $pdo = new PDO($dsn, $username, $password, [

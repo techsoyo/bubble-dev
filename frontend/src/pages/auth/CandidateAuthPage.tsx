@@ -12,17 +12,17 @@ import { useFormErrors } from '../../hooks/useFormErrors';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../lib/i18n/LanguageContext';
 import { X } from 'lucide-react';
-// Eliminamos imports de formularios legacy; usamos CvFormWrapper + Provider
 import { CvFormProvider } from '../../contexts/CvFormContext';
 import { CvFormData } from '../../domain/cvSchema';
 import { CvFormWrapper } from '../../components/wrappers/CvFormWrapper';
+import { formSubmissionLimiter, generateClientFingerprint } from '../../security/xss';
 
 const API_CONFIG = {
   BASE_URL: 'http://localhost:8000',
   ENDPOINTS: {
     login: '/auth/login.php',
     register: '/api/save-candidate.php',
-    PDF_PARSE: '/api/cv/parse.php'
+    PDF_PARSE: '/api/analyze_cv.php' // Endpoint correcto que funciona con Groq
   }
 };
 
@@ -82,10 +82,20 @@ export default function CandidateAuthPage() {
 
     if (!loginForm.email.trim()) {
       setError('email', t('errors.emailRequired'));
+      setIsLoading(false);
       return;
     }
     if (!loginForm.password.trim()) {
       setError('password', t('errors.passwordRequired'));
+      setIsLoading(false);
+      return;
+    }
+
+    // Rate limiting protection
+    const fingerprint = generateClientFingerprint();
+    if (!formSubmissionLimiter.isAllowed(fingerprint)) {
+      setError('general', 'Demasiados intentos de inicio de sesión. Espera 1 minuto antes de intentarlo de nuevo.');
+      setIsLoading(false);
       return;
     }
 
@@ -183,7 +193,7 @@ export default function CandidateAuthPage() {
 
     try {
       const formData = new FormData();
-      formData.append('file', registerForm.cv);
+      formData.append('cv_file', registerForm.cv); // Campo correcto que espera el backend
       formData.append('user_email', registerForm.email);
 
       toast({
@@ -205,13 +215,16 @@ export default function CandidateAuthPage() {
         return;
       }
 
-      if (response.ok && json?.success && json.cv_data) {
+      if (response.ok && json?.success && json?.data?.structured_data) {
+        console.log('[CandidateAuthPage] CV procesado exitosamente. Datos recibidos:', json);
+        console.log('[CandidateAuthPage] structured_data:', json.data.structured_data);
+
         toast({
           title: t('success.cvProcessed'),
           description: t('success.cvDataReady'),
           variant: 'default'
         });
-        setRegisterForm(prev => ({ ...prev, cvData: json.cv_data }));
+        setRegisterForm(prev => ({ ...prev, cvData: json.data.structured_data }));
         setShowValidationModal(true);
         setCvProcessingFailed(false);
       } else {
@@ -333,7 +346,7 @@ export default function CandidateAuthPage() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-[#FF4785] hover:bg-[#FF3575] text-white"
+                  className="w-full bg-primary hover:bg-primary-hover text-white"
                 >
                   {isLoading ? t('auth.loggingIn') : t('auth.loginButton')}
                 </Button>
@@ -387,7 +400,7 @@ export default function CandidateAuthPage() {
                   type="button"
                   onClick={toggleToRegister}
                   className="text-sm font-medium hover:underline"
-                  style={{ color: '#FF4785' }}
+                  style={{ color: 'var(--color-primary)' }}
                 >
                   {t('auth.register')}
                 </button>
@@ -420,11 +433,11 @@ export default function CandidateAuthPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <h3 className="text-2xl font-semibold mb-2 text-[#FF4785]">{t('register.registrationCompleted')}</h3>
+                  <h3 className="text-2xl font-semibold mb-2 text-primary">{t('register.registrationCompleted')}</h3>
                   <p className="text-gray-300 mb-6">{t('register.profileRegisteredSuccessfully')}</p>
                   <Button
                     onClick={toggleToLogin}
-                    className="bg-[#FF4785] hover:bg-[#FF3575]"
+                    className="bg-primary hover:bg-primary-hover"
                   >
                     {t('register.goToLogin')}
                   </Button>
@@ -564,7 +577,7 @@ export default function CandidateAuthPage() {
                     <Button
                       type="submit"
                       disabled={isRegistering || !gdprConsent}
-                      className="bg-[#FF4785] hover:bg-[#FF3575] text-white flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-primary hover:bg-primary-hover text-white flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
                       title={!gdprConsent ? t('register.gdprTooltipRegister') : ""}
                     >
                       {isRegistering ? t('register.registering') : t('register.registerButton')}

@@ -1,55 +1,46 @@
 <?php
-// Router para el servidor de desarrollo PHP
-$request_uri = $_SERVER['REQUEST_URI'];
 
-// Separar la ruta del query string
-$parsed_uri = parse_url($request_uri);
-$path = $parsed_uri['path'] ?? '';
-$file_path = __DIR__ . $path;
+/**
+ * Router principal usando AltoRouter para manejo centralizado de rutas
+ * Este archivo es usado por el servidor PHP integrado
+ * 
+ * Uso: php -S localhost:8000 -t . router.php
+ */
 
-// Si el archivo existe, servirlo directamente
-if (file_exists($file_path) && !is_dir($file_path)) {
-  return false; // Usar el servidor PHP integrado por defecto
-}
-
-// Redirigir requests de API a los endpoints correspondientes
-if (strpos($path, '/api/') === 0) {
-  $file_path = __DIR__ . $path;
-
-  // Si el archivo existe tal como está
-  if (file_exists($file_path)) {
-    include $file_path;
-    return true;
+// Si estamos usando el servidor embebido (cli-server), delegar archivos existentes al servidor
+if (PHP_SAPI === 'cli-server') {
+  $uriPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+  // Cuando se ejecuta con "-t public", los recursos están bajo /public
+  $publicPath = __DIR__ . '/public' . $uriPath;
+  if (is_file($publicPath)) {
+    // Devolver false indica al servidor embebido que sirva el archivo directamente
+    return false;
   }
 
-  // Si no existe, intentar con extensión .php
-  $php_file_path = $file_path . '.php';
-  if (file_exists($php_file_path)) {
-    include $php_file_path;
-    return true;
-  }
-}
-
-// Redirigir requests de /endpoints/ a /api/endpoints/
-if (strpos($path, '/endpoints/') === 0) {
-  $redirected_path = '/api' . $path;
-  $file_path = __DIR__ . $redirected_path;
-
-  // Si el archivo existe tal como está
-  if (file_exists($file_path)) {
-    include $file_path;
-    return true;
-  }
-
-  // Si no existe, intentar con extensión .php
-  $php_file_path = $file_path . '.php';
-  if (file_exists($php_file_path)) {
-    include $php_file_path;
-    return true;
+  // Soportar rutas tipo /api/xyz sin .php apuntando a public/api/xyz.php
+  if (str_starts_with($uriPath, '/api/')) {
+    $apiScript = __DIR__ . '/public' . $uriPath;
+    if (pathinfo($apiScript, PATHINFO_EXTENSION) !== 'php') {
+      $apiScriptPhp = $apiScript . '.php';
+      if (is_file($apiScriptPhp)) {
+        // Incluir el script de la API y terminar
+        require $apiScriptPhp;
+        return true;
+      }
+    }
   }
 }
 
-// Para todo lo demás, devolver 404
-http_response_code(404);
-echo "Endpoint no encontrado: " . $request_uri;
-return true;
+// Cargar autoloader de Composer
+require_once __DIR__ . '/vendor/autoload.php';
+
+// Cargar bootstrap con configuraciones
+require_once __DIR__ . '/config/bootstrap.php';
+
+use Router\AppRouter;
+
+// Crear instancia del router sin basePath para simplificar
+$router = new AppRouter();
+
+// Procesar la solicitud
+$router->dispatch();

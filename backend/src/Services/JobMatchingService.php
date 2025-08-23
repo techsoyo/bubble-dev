@@ -10,17 +10,17 @@ use Utils\TranslationService as T;
 class JobMatchingService
 {
     /**
-     * Servicio de Ollama
-     * @var OllamaService
-     */
-    private $ollamaService;
+    //  * Servicio de Ollama
+    //  * @var OllamaService
+    //  */
+    // private $ollamaService;
 
     /**
      * Constructor
      */
     public function __construct()
     {
-        $this->ollamaService = new OllamaService();
+        // $this->ollamaService = new OllamaService();
     }
 
     /**
@@ -32,11 +32,11 @@ class JobMatchingService
      */
     public function evaluateMatch($candidateData, $jobData)
     {
-        return $this->ollamaService->calculateMatching(
-            $candidateData['id'] ?? 1,
-            $jobData['id'] ?? 1
-        );
-    }
+    //     return $this->ollamaService->calculateMatching(
+    //         $candidateData['id'] ?? 1,
+    //         $jobData['id'] ?? 1
+    //     );
+    // }
 
     /**
      * Filtra candidatos según su coincidencia con una oferta de trabajo

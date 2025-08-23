@@ -31,10 +31,10 @@ class JobController extends BaseController
     {
         // Parámetros de filtrado opcionales
         $filters = [
-          'category' => $request->getParams()['category'] ?? null,
-          'location' => $request->getParams()['location'] ?? null,
-          'type' => $request->getParams()['type'] ?? null,
-          'search' => $request->getParams()['search'] ?? null
+            'category' => $request->getParams()['category'] ?? null,
+            'location' => $request->getParams()['location'] ?? null,
+            'type' => $request->getParams()['type'] ?? null,
+            'search' => $request->getParams()['search'] ?? null
         ];
 
         // Parámetros de paginación opcionales
@@ -46,13 +46,13 @@ class JobController extends BaseController
         $total = $this->jobModel->countAll($filters);
 
         $this->success('Trabajos obtenidos correctamente', [
-          'jobs' => $jobs,
-          'pagination' => [
-            'total' => $total,
-            'page' => $page,
-            'limit' => $limit,
-            'pages' => ceil($total / $limit)
-          ]
+            'jobs' => $jobs,
+            'pagination' => [
+                'total' => $total,
+                'page' => $page,
+                'limit' => $limit,
+                'pages' => ceil($total / $limit)
+            ]
         ]);
     }
 
@@ -86,16 +86,16 @@ class JobController extends BaseController
      * @param Request $request Objeto de solicitud
      * @return void
      */
-    public function create(Request $request)
+    public function store(Request $request)
     {
         // Validar datos de entrada
         $data = $this->validate($request, [
-          'title' => 'required',
-          'description' => 'required',
-          'location' => 'required',
-          'type' => 'required',
-          'category' => 'required',
-          'company_id' => 'required|numeric'
+            'title' => 'required',
+            'description' => 'required',
+            'location' => 'required',
+            'type' => 'required',
+            'category' => 'required',
+            'company_id' => 'required|numeric'
         ]);
 
         if (!$data) {
@@ -110,7 +110,7 @@ class JobController extends BaseController
         $data['created_by'] = $userData['sub'];
 
         // Crear trabajo
-        $jobId = $this->jobModel->create($data);
+        $jobId = $this->jobModel->store($data);
 
         if (!$jobId) {
             $this->error('Error al crear el trabajo');
@@ -139,11 +139,11 @@ class JobController extends BaseController
 
         // Validar datos de entrada
         $data = $this->validate($request, [
-          'title' => 'required',
-          'description' => 'required',
-          'location' => 'required',
-          'type' => 'required',
-          'category' => 'required'
+            'title' => 'required',
+            'description' => 'required',
+            'location' => 'required',
+            'type' => 'required',
+            'category' => 'required'
         ]);
 
         if (!$data) {

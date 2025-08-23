@@ -1,22 +1,555 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Models;
 
+use Utils\Logger;
+
 /**
- * Modelo para las categorías dentro de cada departamento.
+ * Modelo para las categorías dentro de cada departamento con soporte jerárquico
+ *
+ * Proporciona funcionalidad completa para manejar categorías de departamentos
+ * con estructura jerárquica, cache optimizado y validaciones.
+ *
+ * @package Models
+ * @author Bubble of Talents Development Team
+ * @version 2.0.0
+ * @since 2025-08-23
  */
 class DepartmentCategory extends BaseModel
 {
     protected string $table = 'department_categories';
+    /*
+     * 🔧 CORRECCIÓN AUTOMÁTICA APLICADA
+     * Modelo: DepartmentCategory
+     * Fecha: 2025-08-23
+     * 
+     * Cambios realizados:
+     * ➕ Campos añadidos: ['department_id']
+     * ❌ Campos removidos: ['description', 'parent_id', 'sort_order', 'status']
+     * 📊 Total campos fillable: 2
+     * 
+     * Los campos fillable ahora coinciden exactamente con las columnas
+     * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
+     */
+    
+
+    protected array $fillable = [
+        'name',
+        'department_id',
+    ];
+
+    protected array $hidden = [];
 
     /**
-     * Devuelve las categorías de un departamento concreto.
+     * Cache TTL para jerarquías de categorías en segundos
+     */
+    private const HIERARCHY_CACHE_TTL = 3600; // 1 hora
+
+    /**
+     * Cache TTL para categorías con departamentos en segundos
+     */
+    private const DEPARTMENT_CACHE_TTL = 1800; // 30 minutos
+
+    /**
+     * Estados válidos para categorías
+     */
+    private const VALID_STATUSES = ['active', 'inactive', 'draft'];
+
+    /**
+     * Devuelve las categorías de un departamento concreto (método original)
      *
      * @param int $departmentId ID del departamento
      * @return array Lista de categorías
      */
     public function findByDepartmentId(int $departmentId): array
     {
-        return $this->findAll(['department_id' => $departmentId], 1, self::MAX_LIMIT);
+        if ($departmentId <= 0) {
+            throw new \InvalidArgumentException('Department ID must be positive');
+        }
+
+        try {
+            return $this->findAll(['department_id' => $departmentId], 1, self::MAX_LIMIT);
+        } catch (\Exception $e) {
+            $this->logError('Error finding categories by department', [
+                'department_id' => $departmentId
+            ], $e);
+            throw new \RuntimeException('Failed to find categories by department: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Obtiene la estructura jerárquica completa de categorías
+     *
+     * Construye un árbol jerárquico de todas las categorías activas
+     * con soporte de cache para optimizar rendimiento.
+     *
+     * @param bool $includeInactive Incluir categorías inactivas
+     * @param int $cacheTtl TTL del cache en segundos
+     * @return array Estructura jerárquica de categorías
+     */
+    public function getCategoriesHierarchy(bool $includeInactive = false, int $cacheTtl = self::HIERARCHY_CACHE_TTL): array
+    {
+        $cacheKey = $this->generateCacheKey('categories_hierarchy', [
+            'include_inactive' => $includeInactive
+        ]);
+
+        try {
+            // Intentar obtener desde cache si está habilitado
+            if ($cacheTtl > 0 && class_exists('\Utils\Cache')) {
+                return \Utils\Cache::get($cacheKey, $cacheTtl, function () use ($includeInactive) {
+                    return $this->buildCategoriesHierarchy($includeInactive);
+                });
+            }
+
+            // Fallback sin cache
+            return $this->buildCategoriesHierarchy($includeInactive);
+        } catch (\Exception $e) {
+            $this->logError('Error getting categories hierarchy', [
+                'include_inactive' => $includeInactive
+            ], $e);
+            return [];
+        }
+    }
+
+    /**
+     * Obtiene una categoría con sus departamentos relacionados
+     *
+     * Incluye información completa de la categoría junto con
+     * todos los departamentos que pertenecen a ella.
+     *
+     * @param int $categoryId ID de la categoría
+     * @param int $cacheTtl TTL del cache en segundos
+     * @return array|null Categoría con departamentos o null si no existe
+     */
+    public function getCategoryWithDepartments(int $categoryId, int $cacheTtl = self::DEPARTMENT_CACHE_TTL): ?array
+    {
+        if ($categoryId <= 0) {
+            throw new \InvalidArgumentException('Category ID must be positive');
+        }
+
+        $cacheKey = $this->generateCacheKey('category_with_departments', ['id' => $categoryId]);
+
+        try {
+            if ($cacheTtl > 0 && class_exists('\Utils\Cache')) {
+                return \Utils\Cache::get($cacheKey, $cacheTtl, function () use ($categoryId) {
+                    return $this->executeCategoryWithDepartmentsQuery($categoryId);
+                });
+            }
+
+            return $this->executeCategoryWithDepartmentsQuery($categoryId);
+        } catch (\Exception $e) {
+            $this->logError('Error getting category with departments', [
+                'category_id' => $categoryId
+            ], $e);
+            return null;
+        }
+    }
+
+    /**
+     * Obtiene las categorías de nivel superior (sin parent)
+     *
+     * Devuelve solo las categorías raíz que no tienen categoría padre,
+     * ordenadas por sort_order y nombre.
+     *
+     * @param bool $includeInactive Incluir categorías inactivas
+     * @return array Lista de categorías principales
+     */
+    public function getTopLevelCategories(bool $includeInactive = false): array
+    {
+        try {
+            $filters = ['parent_id' => null];
+            if (!$includeInactive) {
+                $filters['status'] = 'active';
+            }
+
+            $orderBy = [
+                'sort_order' => 'ASC',
+                'name' => 'ASC'
+            ];
+
+            return $this->findAll($filters, 1, self::MAX_LIMIT, $orderBy);
+        } catch (\Exception $e) {
+            $this->logError('Error getting top level categories', [
+                'include_inactive' => $includeInactive
+            ], $e);
+            throw new \RuntimeException('Failed to get top level categories: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Obtiene candidatos agrupados por categoría usando vistas de BD
+     *
+     * Utiliza las vistas optimizadas para obtener estadísticas de candidatos
+     * por categoría de departamento.
+     *
+     * @param int|null $categoryId ID específico de categoría (null para todas)
+     * @param array $filters Filtros adicionales para candidatos
+     * @return array Candidatos agrupados por categoría
+     */
+    public function getCandidatesByCategory(?int $categoryId = null, array $filters = []): array
+    {
+        try {
+            $sql = "SELECT 
+                        dc.id as category_id,
+                        dc.name as category_name,
+                        dc.description as category_description,
+                        COUNT(DISTINCT c.id) as candidates_count,
+                        COUNT(DISTINCT CASE WHEN c.status = 'active' THEN c.id END) as active_candidates_count,
+                        GROUP_CONCAT(DISTINCT c.id ORDER BY c.created_at DESC LIMIT 5) as recent_candidate_ids
+                    FROM bt_department_categories dc
+                    LEFT JOIN bt_candidates c ON c.department_category_id = dc.id";
+
+            $params = [];
+
+            // Construir WHERE clause
+            $whereConditions = [];
+            
+            if ($categoryId !== null) {
+                $whereConditions[] = "dc.id = :category_id";
+                $params[':category_id'] = $categoryId;
+            }
+
+            // Agregar filtros adicionales para candidatos
+            if (!empty($filters)) {
+                foreach ($filters as $field => $value) {
+                    if ($value !== null && $this->isValidFieldName($field)) {
+                        $whereConditions[] = "c.`$field` = :filter_$field";
+                        $params[":filter_$field"] = $value;
+                    }
+                }
+            }
+
+            if (!empty($whereConditions)) {
+                $sql .= ' WHERE ' . implode(' AND ', $whereConditions);
+            }
+
+            $sql .= ' GROUP BY dc.id, dc.name, dc.description
+                      ORDER BY dc.sort_order ASC, dc.name ASC';
+
+            return $this->query($sql, $params);
+        } catch (\Exception $e) {
+            $this->logError('Error getting candidates by category', [
+                'category_id' => $categoryId,
+                'filters' => $filters
+            ], $e);
+            throw new \RuntimeException('Failed to get candidates by category: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Valida la estructura jerárquica antes de guardar
+     *
+     * Previene loops circulares y valida la integridad de la jerarquía.
+     *
+     * @param int|null $parentId ID de la categoría padre
+     * @param int|null $currentId ID de la categoría actual (para updates)
+     * @return bool True si la estructura es válida
+     * @throws \InvalidArgumentException Si la estructura no es válida
+     */
+    public function validateHierarchy(?int $parentId, ?int $currentId = null): bool
+    {
+        if ($parentId === null) {
+            return true; // Categoría raíz, siempre válida
+        }
+
+        if ($parentId === $currentId) {
+            throw new \InvalidArgumentException('Una categoría no puede ser padre de sí misma');
+        }
+
+        try {
+            // Verificar que el padre existe y está activo
+            $parent = $this->findById($parentId);
+            if (!$parent) {
+                throw new \InvalidArgumentException('La categoría padre especificada no existe');
+            }
+
+            if ($parent['status'] !== 'active') {
+                throw new \InvalidArgumentException('La categoría padre debe estar activa');
+            }
+
+            // Verificar loops circulares
+            if ($currentId !== null) {
+                $ancestors = $this->getAncestors($parentId);
+                if (in_array($currentId, array_column($ancestors, 'id'))) {
+                    throw new \InvalidArgumentException('La jerarquía propuesta crearía un bucle circular');
+                }
+            }
+
+            // Validar profundidad máxima (por ejemplo, 5 niveles)
+            $depth = $this->getCategoryDepth($parentId);
+            if ($depth >= 5) {
+                throw new \InvalidArgumentException('La profundidad máxima de jerarquía es 5 niveles');
+            }
+
+            return true;
+        } catch (\Exception $e) {
+            $this->logError('Error validating hierarchy', [
+                'parent_id' => $parentId,
+                'current_id' => $currentId
+            ], $e);
+            throw;
+        }
+    }
+
+    /**
+     * Crea o actualiza una categoría con validaciones
+     *
+     * @param array $data Datos de la categoría
+     * @param int|null $id ID para actualización (null para crear)
+     * @return mixed ID de la categoría creada o true para actualización
+     * @throws \InvalidArgumentException Si los datos no son válidos
+     */
+    public function createOrUpdate(array $data, ?int $id = null)
+    {
+        // Validar datos requeridos
+        if (empty($data['name'])) {
+            throw new \InvalidArgumentException('El nombre de la categoría es requerido');
+        }
+
+        // Validar estado
+        if (isset($data['status']) && !in_array($data['status'], self::VALID_STATUSES)) {
+            throw new \InvalidArgumentException('Estado no válido. Debe ser: ' . implode(', ', self::VALID_STATUSES));
+        }
+
+        // Establecer valores por defecto
+        $data['status'] = $data['status'] ?? 'active';
+        $data['sort_order'] = $data['sort_order'] ?? 0;
+
+        try {
+            // Validar jerarquía
+            $parentId = $data['parent_id'] ?? null;
+            $this->validateHierarchy($parentId, $id);
+
+            // Crear o actualizar
+            if ($id === null) {
+                $result = $this->store($data);
+                $this->logDebug('Category created successfully', ['id' => $result]);
+            } else {
+                $result = $this->update($id, $data);
+                $this->logDebug('Category updated successfully', ['id' => $id]);
+            }
+
+            // Invalidar cache
+            $this->invalidateCategoryCache();
+
+            return $result;
+        } catch (\Exception $e) {
+            $this->logError('Error creating/updating category', [
+                'data' => $data,
+                'id' => $id
+            ], $e);
+            throw;
+        }
+    }
+
+    /**
+     * Elimina una categoría y reorganiza la jerarquía
+     *
+     * @param int $id ID de la categoría a eliminar
+     * @param bool $promoteChildren Si promover hijos al padre o eliminarlos
+     * @return bool True si se eliminó correctamente
+     */
+    public function deleteWithHierarchy(int $id, bool $promoteChildren = true): bool
+    {
+        if ($id <= 0) {
+            throw new \InvalidArgumentException('ID must be positive');
+        }
+
+        try {
+            // Obtener la categoría a eliminar
+            $category = $this->findById($id);
+            if (!$category) {
+                throw new \InvalidArgumentException('Category not found');
+            }
+
+            // Obtener categorías hijas
+            $children = $this->findAll(['parent_id' => $id]);
+
+            if ($promoteChildren && !empty($children)) {
+                // Promover hijos al abuelo
+                $newParentId = $category['parent_id'];
+                foreach ($children as $child) {
+                    $this->update($child['id'], ['parent_id' => $newParentId]);
+                }
+            } elseif (!empty($children)) {
+                // Eliminar hijos recursivamente
+                foreach ($children as $child) {
+                    $this->deleteWithHierarchy($child['id'], false);
+                }
+            }
+
+            // Eliminar la categoría
+            $result = $this->delete($id);
+
+            // Invalidar cache
+            $this->invalidateCategoryCache();
+
+            $this->logInfo('Category deleted with hierarchy', [
+                'id' => $id,
+                'promote_children' => $promoteChildren
+            ]);
+
+            return $result;
+        } catch (\Exception $e) {
+            $this->logError('Error deleting category with hierarchy', ['id' => $id], $e);
+            throw;
+        }
+    }
+
+    /**
+     * Construye la estructura jerárquica de categorías
+     */
+    private function buildCategoriesHierarchy(bool $includeInactive): array
+    {
+        $filters = [];
+        if (!$includeInactive) {
+            $filters['status'] = 'active';
+        }
+
+        $categories = $this->findAll($filters, 1, self::MAX_LIMIT, ['sort_order' => 'ASC', 'name' => 'ASC']);
+        
+        return $this->buildTreeFromFlat($categories);
+    }
+
+    /**
+     * Construye árbol jerárquico desde lista plana
+     */
+    private function buildTreeFromFlat(array $categories): array
+    {
+        $tree = [];
+        $indexed = [];
+
+        // Indexar por ID
+        foreach ($categories as $category) {
+            $category['children'] = [];
+            $indexed[$category['id']] = $category;
+        }
+
+        // Construir árbol
+        foreach ($indexed as $category) {
+            if ($category['parent_id'] === null) {
+                $tree[] = &$indexed[$category['id']];
+            } else {
+                if (isset($indexed[$category['parent_id']])) {
+                    $indexed[$category['parent_id']]['children'][] = &$indexed[$category['id']];
+                }
+            }
+        }
+
+        return $tree;
+    }
+
+    /**
+     * Ejecuta query para obtener categoría con departamentos
+     */
+    private function executeCategoryWithDepartmentsQuery(int $categoryId): ?array
+    {
+        $sql = "SELECT 
+                    dc.*,
+                    COUNT(d.id) as departments_count,
+                    GROUP_CONCAT(
+                        JSON_OBJECT(
+                            'id', d.id,
+                            'name', d.name,
+                            'description', d.description,
+                            'status', d.status
+                        )
+                    ) as departments
+                FROM bt_department_categories dc
+                LEFT JOIN bt_departments d ON d.category_id = dc.id
+                WHERE dc.id = :id
+                GROUP BY dc.id";
+
+        $result = $this->query($sql, [':id' => $categoryId]);
+        
+        if (empty($result)) {
+            return null;
+        }
+
+        $category = $result[0];
+        
+        // Parsear departamentos JSON
+        if ($category['departments']) {
+            $category['departments'] = array_map(
+                'json_decode', 
+                explode(',', $category['departments'])
+            );
+        } else {
+            $category['departments'] = [];
+        }
+
+        return $category;
+    }
+
+    /**
+     * Obtiene los ancestros de una categoría
+     */
+    private function getAncestors(int $categoryId): array
+    {
+        $ancestors = [];
+        $currentId = $categoryId;
+
+        while ($currentId !== null) {
+            $category = $this->findById($currentId);
+            if (!$category) {
+                break;
+            }
+            $ancestors[] = $category;
+            $currentId = $category['parent_id'];
+        }
+
+        return $ancestors;
+    }
+
+    /**
+     * Calcula la profundidad de una categoría en la jerarquía
+     */
+    private function getCategoryDepth(int $categoryId): int
+    {
+        return count($this->getAncestors($categoryId));
+    }
+
+    /**
+     * Invalida el cache específico de categorías
+     */
+    public function invalidateCategoryCache(): int
+    {
+        try {
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags([
+                    'categories_hierarchy',
+                    'category_with_departments',
+                    'department_categories'
+                ]);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            $this->logError('Error invalidating category cache', [], $e);
+            return 0;
+        }
+    }
+
+    /**
+     * Obtiene estadísticas de uso de categorías
+     */
+    public function getCategoryStats(): array
+    {
+        try {
+            $sql = "SELECT 
+                        COUNT(*) as total_categories,
+                        COUNT(CASE WHEN status = 'active' THEN 1 END) as active_categories,
+                        COUNT(CASE WHEN parent_id IS NULL THEN 1 END) as root_categories,
+                        MAX(sort_order) as max_sort_order,
+                        COUNT(DISTINCT parent_id) as categories_with_children
+                    FROM bt_department_categories";
+
+            $result = $this->query($sql, []);
+            return $result[0] ?? [];
+        } catch (\Exception $e) {
+            $this->logError('Error getting category stats', [], $e);
+            return [];
+        }
     }
 }

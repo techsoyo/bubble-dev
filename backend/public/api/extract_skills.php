@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 // preflightHandle(); // ELIMINADO: Preflight se maneja automáticamente en bootstrap.php
 // sendCorsHeaders(); // ELIMINADO: CORS se configura automáticamente en bootstrap.php
 

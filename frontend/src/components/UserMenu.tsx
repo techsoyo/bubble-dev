@@ -21,7 +21,7 @@ const UserMenu: React.FC = () => {
                     Iniciar Sesión
                 </button>
                 <button
-                    onClick={() => navigate('/auth/register')}
+                    onClick={() => navigate('/candidates/login')}
                     className="bg-white text-indigo-600 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium"
                 >
                     Registrarse

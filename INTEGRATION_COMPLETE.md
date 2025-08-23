@@ -7,7 +7,7 @@ Se ha completado exitosamente la integración completa del frontend con GroqApiS
 
 ### Backend (PHP)
 - **GroqApiService** - Servicio de análisis de CV usando Groq API (100% gratuito)
-- **Endpoint de Análisis**: `/api/ai/analyze-cv.php` 
+- **Endpoint de Análisis**: `/api/analyze_cv.php` 
 - **Endpoint de Guardado**: `/api/candidates/save_v2.php`
 - **Base de Datos**: Esquema completo con 9 tablas relacionadas
 
@@ -87,7 +87,7 @@ GROQ_API_KEY=your_groq_api_key_here
 
 ### 1. Análisis de CV
 ```http
-POST /api/ai/analyze-cv.php
+POST /api/analyze_cv.php
 Content-Type: application/json
 
 {

@@ -10,6 +10,8 @@
  */
 
 declare(strict_types=1);
+
+require_once __DIR__ . '/bootstrap.php';
 $ROOT = dirname(__DIR__, 2);             // endpoints -> api -> backend/
 $BOOT = $ROOT . '/config/bootstrap.php';
 if (!is_file($BOOT)) {
@@ -35,7 +37,7 @@ function pdo(): PDO
     $host = getenv('DB_HOST');
     $db = getenv('DB_NAME');
     $usr  = getenv('DB_USER');
-    $pwd = getenv('DB_PASS');
+    $pwd = getenv('DB_PASSWORD');
     $dsn  = "mysql:host={$host};dbname={$db};charset=utf8mb4";
     $pdo = new PDO($dsn, $usr, $pwd, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

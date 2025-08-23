@@ -1,0 +1,66 @@
+{
+  "baseUrl": "http://localhost:8000",
+  "totalEndpoints": 32,
+  "endpointsWithUsage": 11,
+  "generatedAt": "2025-08-21T22:08:47.636Z",
+  "summary": {
+    "totalFiles": 11,
+    "endpoints": [
+      {
+        "legacy": "api/save-candidate.php",
+        "rest": "/api/candidates/save",
+        "usageCount": 1
+      },
+      {
+        "legacy": "api/candidate-experiences.php",
+        "rest": "/api/candidates/experiences",
+        "usageCount": 1
+      },
+      {
+        "legacy": "api/candidate-notifications.php",
+        "rest": "/api/candidates/notifications",
+        "usageCount": 1
+      },
+      {
+        "legacy": "test_chatbot_crud.php",
+        "rest": "/api/ai/chatbot-test",
+        "usageCount": 1
+      },
+      {
+        "legacy": "api/change-password.php",
+        "rest": "/api/users/change-password",
+        "usageCount": 1
+      },
+      {
+        "legacy": "api/get-notification-preferences.php",
+        "rest": "/api/notifications/preferences",
+        "usageCount": 1
+      },
+      {
+        "legacy": "api/save-notification-preferences.php",
+        "rest": "/api/notifications/preferences/save",
+        "usageCount": 1
+      },
+      {
+        "legacy": "auth/logout.php",
+        "rest": "/api/auth/logout",
+        "usageCount": 1
+      },
+      {
+        "legacy": "auth/oauth/start.php",
+        "rest": "/api/auth/oauth/start",
+        "usageCount": 1
+      },
+      {
+        "legacy": "api/auth/csrf-token.php",
+        "rest": "/api/auth/csrf-token",
+        "usageCount": 1
+      },
+      {
+        "legacy": "api/auth/validate-csrf.php",
+        "rest": "/api/auth/validate-csrf",
+        "usageCount": 1
+      }
+    ]
+  }
+}

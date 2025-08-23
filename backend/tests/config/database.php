@@ -25,7 +25,7 @@ function getDbConnection()
   $port = config('DB_PORT', '3306');
   $dbname = config('DB_NAME', 'bubble_talents_db');
   $username = config('DB_USER', 'root');
-  $password = config('DB_PASS', '');
+  $password = config('DB_PASSWORD', '');
 
   $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
 

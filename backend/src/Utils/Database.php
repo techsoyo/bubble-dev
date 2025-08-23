@@ -30,6 +30,12 @@ class Database
         $user = getenv('DB_USER') ?: 'root';
         $pass = getenv('DB_PASSWORD') ?: '';
 
+        // DEBUG: Log para diagnosticar el problema
+        error_log("DEBUG Database connection attempt:");
+        error_log("- DSN: $dsn");
+        error_log("- User: $user");
+        error_log("- Pass: " . ($pass ? '[SET]' : '[EMPTY]'));
+
         // Validación de credenciales críticas
         if (empty($user)) {
             throw new \Exception('DB connection failed: DB_USER is not configured');

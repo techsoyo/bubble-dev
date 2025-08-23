@@ -42,14 +42,14 @@ class ChatbotController
 
             // Estructurar la respuesta
             $chatbotData = [
-              'nodes' => $nodes,
-              'options' => $options,
-              'config' => [
-                'default_node' => 'welcome',
-                'typing_speed' => 50,
-                'max_conversation_time' => 3600, // 1 hora
-                'analytics_enabled' => true
-              ]
+                'nodes' => $nodes,
+                'options' => $options,
+                'config' => [
+                    'default_node' => 'welcome',
+                    'typing_speed' => 50,
+                    'max_conversation_time' => 3600, // 1 hora
+                    'analytics_enabled' => true
+                ]
             ];
 
             return $this->responseHandler->success($chatbotData, 'Configuración del chatbot obtenida correctamente');
@@ -85,8 +85,8 @@ class ChatbotController
             $options = $this->chatbotOption->getByNodeId($nodeId);
 
             $response = [
-              'node' => $node,
-              'options' => $options
+                'node' => $node,
+                'options' => $options
             ];
 
             return $this->responseHandler->success($response, 'Nodo obtenido correctamente');
@@ -158,9 +158,9 @@ class ChatbotController
         $actionData = json_decode($option['action_data'], true) ?: [];
 
         $result = [
-          'action_type' => $option['action_type'],
-          'next_node_id' => $option['next_node_id'],
-          'action_data' => $actionData
+            'action_type' => $option['action_type'],
+            'next_node_id' => $option['next_node_id'],
+            'action_data' => $actionData
         ];
 
         switch ($option['action_type']) {
@@ -208,22 +208,22 @@ class ChatbotController
     {
         try {
             $analyticsData = [
-              'conversation_id' => $conversationId,
-              'event_name' => 'option_selected',
-              'event_data' => json_encode([
+                'conversation_id' => $conversationId,
+                'event_name' => 'option_selected',
+                'event_data' => json_encode([
+                    'option_id' => $optionId,
+                    'option_text' => $input['option_text'] ?? '',
+                    'current_node_id' => $currentNodeId,
+                    'user_input' => $input
+                ]),
+                'node_id' => $currentNodeId,
                 'option_id' => $optionId,
-                'option_text' => $input['option_text'] ?? '',
-                'current_node_id' => $currentNodeId,
-                'user_input' => $input
-              ]),
-              'node_id' => $currentNodeId,
-              'option_id' => $optionId,
-              'user_ip' => $_SERVER['REMOTE_ADDR'] ?? null,
-              'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
-              'session_id' => $input['session_id'] ?? session_id()
+                'user_ip' => $_SERVER['REMOTE_ADDR'] ?? null,
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
+                'session_id' => $input['session_id'] ?? session_id()
             ];
 
-            $this->chatbotAnalytics->create($analyticsData);
+            $this->chatbotAnalytics->store($analyticsData);
         } catch (Exception $e) {
             // Log error but don't fail the interaction
             error_log('Error al registrar analytics: ' . $e->getMessage());
@@ -244,17 +244,17 @@ class ChatbotController
             }
 
             $analyticsData = [
-              'conversation_id' => $input['conversation_id'],
-              'event_name' => $input['event_name'],
-              'event_data' => json_encode($input['event_data'] ?? []),
-              'node_id' => $input['node_id'] ?? null,
-              'option_id' => $input['option_id'] ?? null,
-              'user_ip' => $_SERVER['REMOTE_ADDR'] ?? null,
-              'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
-              'session_id' => $input['session_id'] ?? session_id()
+                'conversation_id' => $input['conversation_id'],
+                'event_name' => $input['event_name'],
+                'event_data' => json_encode($input['event_data'] ?? []),
+                'node_id' => $input['node_id'] ?? null,
+                'option_id' => $input['option_id'] ?? null,
+                'user_ip' => $_SERVER['REMOTE_ADDR'] ?? null,
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
+                'session_id' => $input['session_id'] ?? session_id()
             ];
 
-            $this->chatbotAnalytics->create($analyticsData);
+            $this->chatbotAnalytics->store($analyticsData);
 
             return $this->responseHandler->success([], 'Evento registrado correctamente');
         } catch (Exception $e) {
@@ -310,14 +310,14 @@ class ChatbotController
             }
 
             $nodeData = [
-              'id' => $input['id'],
-              'type' => $input['type'],
-              'content' => $input['content'],
-              'metadata' => json_encode($input['metadata'] ?? []),
-              'created_by' => $input['created_by'] ?? 'admin'
+                'id' => $input['id'],
+                'type' => $input['type'],
+                'content' => $input['content'],
+                'metadata' => json_encode($input['metadata'] ?? []),
+                'created_by' => $input['created_by'] ?? 'admin'
             ];
 
-            $result = $this->chatbotNode->create($nodeData);
+            $result = $this->chatbotNode->store($nodeData);
 
             if ($result) {
                 return $this->responseHandler->success(['node_id' => $input['id']], 'Nodo creado correctamente');
@@ -359,16 +359,16 @@ class ChatbotController
             }
 
             $optionData = [
-              'id' => $input['id'],
-              'node_id' => $input['node_id'],
-              'text' => $input['text'],
-              'next_node_id' => $input['next_node_id'] ?? null,
-              'action_type' => $input['action_type'],
-              'action_data' => json_encode($input['action_data'] ?? []),
-              'order_position' => $input['order_position'] ?? 1
+                'id' => $input['id'],
+                'node_id' => $input['node_id'],
+                'text' => $input['text'],
+                'next_node_id' => $input['next_node_id'] ?? null,
+                'action_type' => $input['action_type'],
+                'action_data' => json_encode($input['action_data'] ?? []),
+                'order_position' => $input['order_position'] ?? 1
             ];
 
-            $result = $this->chatbotOption->create($optionData);
+            $result = $this->chatbotOption->store($optionData);
 
             if ($result) {
                 return $this->responseHandler->success(['option_id' => $input['id']], 'Opción creada correctamente');

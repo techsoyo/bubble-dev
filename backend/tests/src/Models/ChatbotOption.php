@@ -129,7 +129,7 @@ class ChatbotOption extends BaseModel
     /**
      * Crear nueva opción
      */
-    public function create($data)
+    public function store($data)
     {
         try {
             $sql = "INSERT INTO {$this->table} (id, node_id, text, next_node_id, action_type, action_data, order_position) 

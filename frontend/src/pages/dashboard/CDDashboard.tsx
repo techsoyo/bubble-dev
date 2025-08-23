@@ -3,6 +3,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   getCandidateApplications,
+  submitApplication,
+  updateCandidateProfile,
 } from '../../lib/apiService';
 import { useLanguage } from '../../lib/i18n/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -202,7 +204,7 @@ export default function CDDashboard(): JSX.Element {
 
       // Si no hay usuario autenticado después de la inicialización, redirigir al login
       if (!isLoggedIn || !user) {
-        navigate('/auth/register');
+        navigate('/candidates/login');
         return;
       }
 
@@ -231,15 +233,40 @@ export default function CDDashboard(): JSX.Element {
     initializeData();
   }, [user, isLoggedIn, isLoading, isInitialized, navigate, loadApplications, loadExperiences, loadNotifications]);
 
-  const handleSimulateSubmit = useCallback(() => {
+  const handleProfileUpdate = useCallback(async () => {
+    if (!coverLetter.trim() && !salary.trim()) {
+      setSuccessMsg('Por favor, completa al menos un campo para actualizar');
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
-      setSuccessMsg('¡Tu postulación fue enviada exitosamente (simulado)!');
-      setCoverLetter('');
-      setSalary('');
+    try {
+      const updateData: any = {};
+
+      if (coverLetter.trim()) {
+        updateData.professional_summary = coverLetter;
+      }
+
+      if (salary.trim()) {
+        updateData.availability = `Salario esperado: €${salary}`;
+      }
+
+      const result = await updateCandidateProfile(updateData);
+
+      if (result.success) {
+        setSuccessMsg('¡Tu perfil fue actualizado exitosamente!');
+        setCoverLetter('');
+        setSalary('');
+      } else {
+        throw new Error(result.message || 'Error al actualizar perfil');
+      }
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      setSuccessMsg(`Error: ${error.message || 'No se pudo actualizar el perfil'}`);
+    } finally {
       setLoading(false);
-    }, 1200);
-  }, []);
+    }
+  }, [coverLetter, salary]);
 
   const handleSaveNotificationPreferences = useCallback(async () => {
     try {
@@ -429,10 +456,10 @@ export default function CDDashboard(): JSX.Element {
                         <button
                           type="button"
                           className="w-full bg-[#FF4785] hover:bg-[#FF3575] text-white font-bold py-2 rounded"
-                          onClick={handleSimulateSubmit}
+                          onClick={handleProfileUpdate}
                           disabled={loading}
                         >
-                          {loading ? t('dashboard.submittingApplication') : t('dashboard.submitApplication')}
+                          {loading ? t('dashboard.updatingProfile') : t('dashboard.updateProfile')}
                         </button>
                         {successMsg && (
                           <div className="text-green-600 font-semibold text-center mt-2">{successMsg}</div>

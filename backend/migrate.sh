@@ -209,7 +209,7 @@ class DoctrineFactory
         ];
 
         $connection = DriverManager::getConnection($connectionParams, $config);
-        return EntityManager::create($connection, $config);
+        return EntityManager::store($connection, $config);
     }
 }';
 

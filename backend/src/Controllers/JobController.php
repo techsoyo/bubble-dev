@@ -2,220 +2,206 @@
 
 namespace Controllers;
 
-use Models\Job;
 use Utils\Request;
+use Utils\ResponseHelper;
 
-/**
- * Controlador para la gestión de trabajos
- */
-class JobController extends BaseController
+class JobController
 {
-    private $jobModel;
-
     /**
-     * Constructor
+     * GET /api/jobs
+     * Listar ofertas de trabajo
      */
-    public function __construct()
+    public function index(Request $request, array $params = [])
     {
-        parent::__construct();
-        $this->jobModel = new Job();
+        try {
+            $page   = (int)($request->getQuery('page') ?? 1);
+            $limit  = (int)($request->getQuery('limit') ?? 20);
+            $search = trim((string)($request->getQuery('search') ?? ''));
+
+            // TODO: fetchJobs($page, $limit, $search)
+            $items = [];
+
+            return ResponseHelper::success("Listado de trabajos obtenido", [
+                'page'  => $page,
+                'limit' => $limit,
+                'total' => count($items), // TODO total real
+                'data'  => $items
+            ]);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error al listar trabajos", $e);
+        }
     }
 
     /**
-     * Obtener todos los trabajos
-     *
-     * @param Request $request Objeto de solicitud
-     * @return void
+     * POST /api/jobs
+     * Crear oferta de trabajo
      */
-    public function getAll(Request $request)
+    public function store(Request $request, array $params = [])
     {
-        // Parámetros de filtrado opcionales
-        $filters = [
-          'category' => $request->getParams()['category'] ?? null,
-          'location' => $request->getParams()['location'] ?? null,
-          'type' => $request->getParams()['type'] ?? null,
-          'search' => $request->getParams()['search'] ?? null
-        ];
+        try {
+            $data = $request->getBody();
 
-        // Parámetros de paginación opcionales
-        $page = isset($request->getParams()['page']) ? (int)$request->getParams()['page'] : 1;
-        $limit = isset($request->getParams()['limit']) ? (int)$request->getParams()['limit'] : 10;
+            if (empty($data['title'])) {
+                return ResponseHelper::fail("El campo 'title' es obligatorio", 422);
+            }
 
-        // Obtener trabajos filtrados y paginados
-        $jobs = $this->jobModel->findAll($filters, $page, $limit);
-        $total = $this->jobModel->countAll($filters);
+            // TODO: Insertar en DB
+            // $id = createJob($data);
 
-        $this->success('Trabajos obtenidos correctamente', [
-          'jobs' => $jobs,
-          'pagination' => [
-            'total' => $total,
-            'page' => $page,
-            'limit' => $limit,
-            'pages' => ceil($total / $limit)
-          ]
-        ]);
+            return ResponseHelper::success("Trabajo creado correctamente", [
+                'id'   => 0, // id real
+                'data' => $data
+            ], 201);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error al crear trabajo", $e);
+        }
     }
 
     /**
-     * Obtener un trabajo por su ID
-     *
-     * @param Request $request Objeto de solicitud
-     * @param array $params Parámetros de la ruta
-     * @return void
+     * GET /api/jobs/{id}
+     * Ver detalle de un trabajo
      */
-    public function getById(Request $request, $params)
+    public function show(Request $request, array $params = [])
     {
-        if (!isset($params['id'])) {
-            $this->error('ID de trabajo no proporcionado', null, 400);
-            return;
+        try {
+            $id = $params['id'] ?? null;
+            if (!$id) {
+                return ResponseHelper::fail("ID no proporcionado", 400);
+            }
+
+            // TODO: Buscar en DB
+            // $job = findJob($id);
+            $job = null;
+
+            if (!$job) {
+                return ResponseHelper::fail("Trabajo no encontrado", 404);
+            }
+
+            return ResponseHelper::success("Trabajo encontrado", [
+                'id'   => $id,
+                'data' => $job
+            ]);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error al obtener trabajo", $e);
         }
-
-        $job = $this->jobModel->findById($params['id']);
-
-        if (!$job) {
-            $this->error('Trabajo no encontrado', null, 404);
-            return;
-        }
-
-        $this->success('Trabajo obtenido correctamente', $job);
     }
 
     /**
-     * Crear un nuevo trabajo
-     *
-     * @param Request $request Objeto de solicitud
-     * @return void
+     * PUT /api/jobs/{id}
+     * Actualizar trabajo
      */
-    public function create(Request $request)
+    public function update(Request $request, array $params = [])
     {
-        // Validar datos de entrada
-        $data = $this->validate($request, [
-          'title' => 'required',
-          'description' => 'required',
-          'location' => 'required',
-          'type' => 'required',
-          'category' => 'required',
-          'company_id' => 'required|numeric'
-        ]);
+        try {
+            $id   = $params['id'] ?? null;
+            $data = $request->getBody();
 
-        if (!$data) {
-            return;
+            if (!$id) {
+                return ResponseHelper::fail("ID no proporcionado", 400);
+            }
+
+            // TODO: updateJob($id, $data)
+
+            return ResponseHelper::success("Trabajo actualizado correctamente", [
+                'id'   => $id,
+                'data' => $data
+            ]);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error al actualizar trabajo", $e);
         }
-
-        // Añadir fecha de publicación
-        $data['date_posted'] = date('Y-m-d H:i:s');
-
-        // Añadir usuario que crea el trabajo
-        $userData = $request->getUser();
-        $data['created_by'] = $userData['sub'];
-
-        // Crear trabajo
-        $jobId = $this->jobModel->create($data);
-
-        if (!$jobId) {
-            $this->error('Error al crear el trabajo');
-            return;
-        }
-
-        // Obtener el trabajo creado
-        $job = $this->jobModel->findById($jobId);
-
-        $this->success('Trabajo creado correctamente', $job, 201);
     }
 
     /**
-     * Actualizar un trabajo existente
-     *
-     * @param Request $request Objeto de solicitud
-     * @param array $params Parámetros de la ruta
-     * @return void
+     * DELETE /api/jobs/{id}
+     * Eliminar trabajo
      */
-    public function update(Request $request, $params)
+    public function delete(Request $request, array $params = [])
     {
-        if (!isset($params['id'])) {
-            $this->error('ID de trabajo no proporcionado', null, 400);
-            return;
+        try {
+            $id = $params['id'] ?? null;
+            if (!$id) {
+                return ResponseHelper::fail("ID no proporcionado", 400);
+            }
+
+            // TODO: deleteJob($id)
+
+            return ResponseHelper::success("Trabajo eliminado correctamente", [
+                'id' => $id
+            ]);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error al eliminar trabajo", $e);
         }
-
-        // Validar datos de entrada
-        $data = $this->validate($request, [
-          'title' => 'required',
-          'description' => 'required',
-          'location' => 'required',
-          'type' => 'required',
-          'category' => 'required'
-        ]);
-
-        if (!$data) {
-            return;
-        }
-
-        // Verificar que el trabajo existe
-        $job = $this->jobModel->findById($params['id']);
-
-        if (!$job) {
-            $this->error('Trabajo no encontrado', null, 404);
-            return;
-        }
-
-        // Verificar que el usuario tiene permisos para actualizar el trabajo
-        $userData = $request->getUser();
-        if ($userData['role'] !== 'admin' && $job['created_by'] !== $userData['sub']) {
-            $this->error('No tienes permisos para actualizar este trabajo', null, 403);
-            return;
-        }
-
-        // Actualizar trabajo
-        $updated = $this->jobModel->update($params['id'], $data);
-
-        if (!$updated) {
-            $this->error('Error al actualizar el trabajo');
-            return;
-        }
-
-        // Obtener el trabajo actualizado
-        $job = $this->jobModel->findById($params['id']);
-
-        $this->success('Trabajo actualizado correctamente', $job);
     }
 
     /**
-     * Eliminar un trabajo
-     *
-     * @param Request $request Objeto de solicitud
-     * @param array $params Parámetros de la ruta
-     * @return void
+     * GET /api/job_skills/{id}
+     * Habilidades requeridas de un trabajo
      */
-    public function delete(Request $request, $params)
+    public function skills(Request $request, array $params = [])
     {
-        if (!isset($params['id'])) {
-            $this->error('ID de trabajo no proporcionado', null, 400);
-            return;
+        try {
+            $id = $params['id'] ?? null;
+            if (!$id) {
+                return ResponseHelper::fail("ID no proporcionado", 400);
+            }
+
+            // TODO: fetchJobSkills($id)
+            $skills = [];
+
+            return ResponseHelper::success("Habilidades del trabajo obtenidas", [
+                'job_id' => $id,
+                'skills' => $skills
+            ]);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error al obtener habilidades del trabajo", $e);
         }
+    }
 
-        // Verificar que el trabajo existe
-        $job = $this->jobModel->findById($params['id']);
+    /**
+     * GET /api/job_requirements/{id}
+     * Requisitos de un trabajo
+     */
+    public function requirements(Request $request, array $params = [])
+    {
+        try {
+            $id = $params['id'] ?? null;
+            if (!$id) {
+                return ResponseHelper::fail("ID no proporcionado", 400);
+            }
 
-        if (!$job) {
-            $this->error('Trabajo no encontrado', null, 404);
-            return;
+            // TODO: fetchJobRequirements($id)
+            $requirements = [];
+
+            return ResponseHelper::success("Requisitos del trabajo obtenidos", [
+                'job_id'       => $id,
+                'requirements' => $requirements
+            ]);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error al obtener requisitos del trabajo", $e);
         }
+    }
 
-        // Verificar que el usuario tiene permisos para eliminar el trabajo
-        $userData = $request->getUser();
-        if ($userData['role'] !== 'admin' && $job['created_by'] !== $userData['sub']) {
-            $this->error('No tienes permisos para eliminar este trabajo', null, 403);
-            return;
+    /**
+     * GET /api/job_benefits/{id}
+     * Beneficios de un trabajo
+     */
+    public function benefits(Request $request, array $params = [])
+    {
+        try {
+            $id = $params['id'] ?? null;
+            if (!$id) {
+                return ResponseHelper::fail("ID no proporcionado", 400);
+            }
+
+            // TODO: fetchJobBenefits($id)
+            $benefits = [];
+
+            return ResponseHelper::success("Beneficios del trabajo obtenidos", [
+                'job_id'   => $id,
+                'benefits' => $benefits
+            ]);
+        } catch (\Throwable $e) {
+            return ResponseHelper::error("Error al obtener beneficios del trabajo", $e);
         }
-
-        // Eliminar trabajo
-        $deleted = $this->jobModel->delete($params['id']);
-
-        if (!$deleted) {
-            $this->error('Error al eliminar el trabajo');
-            return;
-        }
-
-        $this->success('Trabajo eliminado correctamente');
     }
 }

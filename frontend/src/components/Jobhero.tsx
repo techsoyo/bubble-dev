@@ -209,7 +209,7 @@ export default function JobHeroLite() {
           {/* Botones con gradientes coloridos */}
           <div className="text-center">
             <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8">
-              <Link to="/auth/register" className="group">
+              <Link to="/candidates/login" className="group">
                 <Button
                   variant="ghost"
                   className="w-56 h-12 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-medium text-sm uppercase tracking-wider transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25 relative overflow-hidden border-0"

@@ -79,7 +79,7 @@ const getNumberEnvVar = (key: string, defaultValue: number): number => {
 };
 
 // 🔧 CORRECCIÓN: Configuración dinámica y robusta de API_BASE_URL
-const getApiBaseUrl = (): string => {
+export const getApiBaseUrl = (): string => {
   // Prioridad 1: Variable de entorno VITE_API_BASE_URL (acceso directo)
   const viteApiUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -93,7 +93,7 @@ const getApiBaseUrl = (): string => {
     return prodUrl || '';
   }
 
-  // Desarrollo: fallback al puerto 8000 si no hay configuración
+  // Desarrollo: fallback al puerto 8000 SIN /api (porque se añade en cada función)
   if (typeof window !== 'undefined') {
     const currentHost = window.location.hostname;
     return `http://${currentHost}:8000`;

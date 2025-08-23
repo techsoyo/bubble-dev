@@ -12,6 +12,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import ApiService from '@/services/ApiService';
 
 export interface JobDetails {
     id: string;
@@ -75,125 +76,26 @@ const DEFAULT_OPTIONS: UseJobDetailsOptions = {
     retry: 3
 };
 
-// Mock API function - replace with actual API call
+// API function for fetching job details
 const fetchJobDetails = async (jobId: string): Promise<JobDetails> => {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
+    try {
+        // Real API call
+        const response = await ApiService.get<JobDetails>(`jobs/${jobId}`);
 
-    // Mock data - replace with actual API call
-    const mockJobs: Record<string, JobDetails> = {
-        '1': {
-            id: '1',
-            title: 'Senior Frontend Developer',
-            company: 'TechCorp Inc.',
-            location: 'San Francisco, CA',
-            type: 'full-time',
-            category: 'Engineering',
-            description: 'We are looking for a passionate Senior Frontend Developer to join our dynamic team...',
-            requirements: [
-                '5+ years of experience with React and TypeScript',
-                'Strong understanding of modern JavaScript (ES6+)',
-                'Experience with state management (Redux, Zustand)',
-                'Knowledge of testing frameworks (Jest, Cypress)',
-                'Familiarity with CI/CD pipelines'
-            ],
-            responsibilities: [
-                'Develop and maintain high-quality frontend applications',
-                'Collaborate with designers and backend developers',
-                'Write clean, maintainable, and testable code',
-                'Participate in code reviews and technical discussions',
-                'Mentor junior developers'
-            ],
-            benefits: [
-                'Competitive salary and equity package',
-                'Flexible working hours and remote work options',
-                'Health, dental, and vision insurance',
-                'Professional development budget',
-                'Modern office space with free snacks'
-            ],
-            salary: {
-                min: 120000,
-                max: 160000,
-                currency: 'USD',
-                period: 'yearly'
-            },
-            skills: ['React', 'TypeScript', 'JavaScript', 'CSS', 'Node.js', 'Git'],
-            experience: {
-                min: 5,
-                max: 8,
-                level: 'senior'
-            },
-            remote: true,
-            datePosted: '2025-01-01T00:00:00Z',
-            applicationDeadline: '2025-02-01T23:59:59Z',
-            isActive: true,
-            applicationsCount: 45,
-            viewsCount: 324,
-            companyLogo: '/images/companies/techcorp.png',
-            companyDescription: 'TechCorp is a leading technology company focused on building innovative solutions...',
-            contactEmail: 'jobs@techcorp.com'
-        },
-        '2': {
-            id: '2',
-            title: 'Backend Engineer',
-            company: 'DataFlow Systems',
-            location: 'New York, NY',
-            type: 'full-time',
-            category: 'Engineering',
-            description: 'Join our backend team to build scalable and robust API services...',
-            requirements: [
-                '3+ years of experience with Node.js or Python',
-                'Experience with databases (PostgreSQL, MongoDB)',
-                'Knowledge of microservices architecture',
-                'Understanding of API design principles',
-                'Experience with cloud platforms (AWS, GCP)'
-            ],
-            responsibilities: [
-                'Design and implement RESTful APIs',
-                'Optimize database performance',
-                'Ensure system security and scalability',
-                'Collaborate with frontend and DevOps teams',
-                'Write comprehensive tests'
-            ],
-            benefits: [
-                'Competitive compensation package',
-                'Remote-first culture',
-                'Learning and development opportunities',
-                'Health and wellness benefits',
-                'Stock options'
-            ],
-            salary: {
-                min: 90000,
-                max: 130000,
-                currency: 'USD',
-                period: 'yearly'
-            },
-            skills: ['Node.js', 'Python', 'PostgreSQL', 'Docker', 'AWS', 'REST APIs'],
-            experience: {
-                min: 3,
-                max: 6,
-                level: 'mid'
-            },
-            remote: true,
-            datePosted: '2025-01-02T00:00:00Z',
-            applicationDeadline: '2025-01-30T23:59:59Z',
-            isActive: true,
-            applicationsCount: 28,
-            viewsCount: 198,
-            companyLogo: '/images/companies/dataflow.png',
-            companyDescription: 'DataFlow Systems specializes in data processing and analytics solutions...',
-            contactEmail: 'careers@dataflow.com'
-        }
-    };
-
-    const job = mockJobs[jobId];
-    if (!job) {
-        throw new Error(`Job with ID ${jobId} not found`);
+        // Normalize dates to ensure consistency
+        return {
+            ...response,
+            datePosted: response.datePosted || new Date().toISOString(),
+            applicationDeadline: response.applicationDeadline || undefined
+        };
+    } catch (error) {
+        console.error('Error fetching job details:', error);
+        throw error;
     }
-
-    return job;
 };
 
+
+// Query key factory
 // Query key factory
 const createJobQueryKey = (jobId: string) => ['job', jobId];
 
@@ -236,10 +138,14 @@ export const useJobDetails = (
         if (!job) return;
 
         try {
-            // Get related jobs from cache or fetch them
-            const relatedJobIds = ['1', '2'].filter(id => id !== jobId); // Mock related jobs
+            // Fetch related jobs from API based on job category, skills, or company
+            const relatedJobsResponse = await ApiService.get<{ jobIds: string[] }>(`jobs/${jobId}/related`, {
+                timeout: 5000 // shorter timeout for prefetch
+            });
 
-            for (const relatedJobId of relatedJobIds) {
+            const relatedJobIds = relatedJobsResponse.jobIds || [];
+
+            for (const relatedJobId of relatedJobIds.slice(0, 3)) { // Limit to 3 related jobs
                 queryClient.prefetchQuery({
                     queryKey: createJobQueryKey(relatedJobId),
                     queryFn: () => fetchJobDetails(relatedJobId),
@@ -281,11 +187,12 @@ export const useJobApplication = (jobId: string) => {
     const submitApplication = useCallback(async (applicationData: Record<string, any>) => {
         setIsSubmitting(true);
         try {
-            // Mock API call - replace with actual implementation
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Use the application data in the API call
-            console.log('Submitting application:', applicationData);
+            // Real API call to submit application
+            const response = await ApiService.post(`jobs/${jobId}/apply`, {
+                ...applicationData,
+                jobId,
+                appliedAt: new Date().toISOString()
+            });
 
             // Update job application count in cache
             queryClient.setQueryData(
@@ -301,9 +208,10 @@ export const useJobApplication = (jobId: string) => {
                 }
             );
 
-            return { success: true };
+            return response;
         } catch (error) {
-            throw new Error('Failed to submit application');
+            console.error('Failed to submit application:', error);
+            throw error;
         } finally {
             setIsSubmitting(false);
         }
@@ -319,16 +227,16 @@ export const useJobBookmark = (jobId: string) => {
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Initialize bookmark status - in real app, fetch from API
+    // Initialize bookmark status from API
     useEffect(() => {
-        // Mock API call to check bookmark status
         const checkBookmarkStatus = async () => {
             try {
-                // Simulate checking bookmark status based on jobId
-                const bookmarked = localStorage.getItem(`bookmark_${jobId}`) === 'true';
-                setIsBookmarked(bookmarked);
+                // Real API call to get bookmark status
+                const response = await ApiService.get<{ isBookmarked: boolean }>(`jobs/${jobId}/bookmark`);
+                setIsBookmarked(response.isBookmarked);
             } catch (error) {
                 console.error('Failed to check bookmark status:', error);
+                setIsBookmarked(false);
             }
         };
 
@@ -338,16 +246,17 @@ export const useJobBookmark = (jobId: string) => {
     const toggleBookmark = useCallback(async () => {
         setIsLoading(true);
         try {
-            // Mock API call - replace with actual implementation
-            await new Promise(resolve => setTimeout(resolve, 500));
-
             const newBookmarkState = !isBookmarked;
-            setIsBookmarked(newBookmarkState);
 
-            // Store in localStorage for demo purposes
-            localStorage.setItem(`bookmark_${jobId}`, String(newBookmarkState));
+            // Real API call to toggle bookmark
+            await ApiService.post(`jobs/${jobId}/bookmark`, {
+                isBookmarked: newBookmarkState
+            });
+
+            setIsBookmarked(newBookmarkState);
         } catch (error) {
             console.error('Failed to toggle bookmark:', error);
+            throw error;
         } finally {
             setIsLoading(false);
         }

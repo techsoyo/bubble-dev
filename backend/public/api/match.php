@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/bootstrap.php';
+
 // Sube 1 nivel: api → backend/
 $ROOT = dirname(__DIR__, 1);
 $BOOT = $ROOT . '/config/bootstrap.php';

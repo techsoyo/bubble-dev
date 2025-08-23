@@ -1,20 +1,20 @@
-import React from 'react';
-import { Box, Typography, Card, CardContent } from '@mui/material';
+import * as React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 
 const AIAnalyticsDashboard: React.FC = () => {
   return (
-    <Box p={3}>
-      <Typography variant="h4" gutterBottom>
+    <div className="p-3">
+      <h4 className="text-2xl font-semibold mb-4">
         Dashboard de Analytics de IA
-      </Typography>
+      </h4>
       <Card>
-        <CardContent>
-          <Typography variant="body1">
+        <CardContent className="pt-6">
+          <p className="text-base">
             Dashboard en desarrollo - Funcionalidad será implementada próximamente
-          </Typography>
+          </p>
         </CardContent>
       </Card>
-    </Box>
+    </div>
   );
 };
 

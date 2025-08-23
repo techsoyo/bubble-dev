@@ -35,7 +35,7 @@ export default function ProtectedRoute({
             return <Navigate to="/staff/login" state={{ from: location }} replace />;
         } else if (currentPath.includes('/dashboard/cddashboard')) {
             // Es candidato, redirigir al registro/login de candidatos
-            return <Navigate to="/auth/register" state={{ from: location }} replace />;
+            return <Navigate to="/candidates/login" state={{ from: location }} replace />;
         } else {
             // Por defecto, redirigir al login general
             return <Navigate to="/auth/login" state={{ from: location }} replace />;

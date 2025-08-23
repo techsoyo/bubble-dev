@@ -29,7 +29,7 @@ require_once BASE_PATH . '/config/security-headers.php'; // headers de seguridad
 
 require_once BASE_PATH . '/config/database.php';
 
-// === CONFIGURACIÓN CORS INTEGRADA ===
+// === CONFIGURACIÓN CORS ROBUSTA ===
 // Solo se ejecuta para peticiones HTTP (no CLI)
 if (PHP_SAPI !== 'cli' && !defined('CORS_APPLIED')) {
   define('CORS_APPLIED', true);
@@ -40,30 +40,46 @@ if (PHP_SAPI !== 'cli' && !defined('CORS_APPLIED')) {
   $corsMethods = getenv('CORS_ALLOWED_METHODS') ?: 'GET,POST,PUT,PATCH,DELETE,OPTIONS';
   $corsHeaders = getenv('CORS_ALLOWED_HEADERS') ?: 'Content-Type,Authorization,X-Requested-With';
   $corsMaxAge = (int)(getenv('CORS_MAX_AGE') ?: '86400');
+  $appEnv = getenv('APP_ENV') ?: 'production';
 
-  // Convertir orígenes a array
-  $allowedOrigins = array_map('trim', explode(',', $corsOrigins));
+  // Convertir orígenes a array y limpiar espacios
+  $allowedOrigins = array_filter(array_map('trim', explode(',', $corsOrigins)));
 
   // Obtener origen de la petición
   $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
   // Verificar si el origen está permitido
-  $isAllowedOrigin = in_array($origin, $allowedOrigins, true);
+  $isAllowedOrigin = false;
+  if ($origin && in_array($origin, $allowedOrigins, true)) {
+    $isAllowedOrigin = true;
+  }
 
-  // Aplicar headers CORS
+  // Logging para development cuando el origen no está permitido
+  if ($appEnv === 'development' && $origin && !$isAllowedOrigin) {
+    error_log("CORS WARNING: Origin '{$origin}' not allowed. Allowed origins: " . implode(', ', $allowedOrigins));
+  }
+
+  // Aplicar headers CORS - siempre incluir Vary: Origin
+  header('Vary: Origin');
+
   if ($isAllowedOrigin && $origin) {
     header('Access-Control-Allow-Origin: ' . $origin);
+
+    // Solo agregar credentials si el origen está permitido (nunca con wildcard)
+    if ($corsCredentials) {
+      header('Access-Control-Allow-Credentials: true');
+    }
   }
 
-  if ($corsCredentials) {
-    header('Access-Control-Allow-Credentials: true');
-  }
-
+  // Headers de métodos y headers permitidos (siempre presentes para preflight)
   header('Access-Control-Allow-Methods: ' . $corsMethods);
   header('Access-Control-Allow-Headers: ' . $corsHeaders);
-  header('Access-Control-Max-Age: ' . $corsMaxAge);
 
-  // Manejar preflight OPTIONS
+  if ($corsMaxAge > 0) {
+    header('Access-Control-Max-Age: ' . $corsMaxAge);
+  }
+
+  // Manejar preflight OPTIONS - respuesta 204 sin body
   if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;

@@ -63,7 +63,7 @@ export default function ApplicationDetailsPage() {
     // Producción: solo usar contexto de autenticación
     const authContext = useAuth();
     if (!authContext.isLoggedIn) {
-      navigate('/auth/register'); // Candidatos van al registro/login de candidatos
+      navigate('/candidates/login'); // Candidatos van al registro/login de candidatos
       return;
     }
     loadApplicationData(authContext.user?.email);
@@ -74,7 +74,7 @@ export default function ApplicationDetailsPage() {
       setLoading(true);
       setError(null);
       if (!userEmail) {
-        navigate('/auth/register'); // Candidatos van al registro/login de candidatos
+        navigate('/candidates/login'); // Candidatos van al registro/login de candidatos
         return;
       }
       // Get all applications and jobs

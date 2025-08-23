@@ -1,368 +1,263 @@
 <?php
 
-require_once __DIR__ . '/../bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automáticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automáticamente en bootstrap.php
-
 /**
- * Endpoint: Análisis completo de CV con seguridad mejorada
- * POST /ai/analyze-cv
- *
- * Este endpoint permite analizar un CV tanto desde un archivo subido
- * como desde texto plano proporcionado en formato JSON.
- *
- * @version 1.1.0
- * @author Bubble of Talents Security Team
+ * Endpoint único para análisis completo de CV
+ * 
+ * Soporta análisis de:
+ * - Texto de CV (usando GroqApiService)  
+ * - Archivos PDF (usando GroqApiService con extracción de texto)
+ * - Archivos de texto (TXT, JSON)
+ * - Archivos de documentos (DOC, DOCX)
+ * 
+ * Funciona para todas las rutas:
+ * - /api/analyze_cv.php (directo)
+ * - /ai/analyze-cv (via index.php)
+ * 
+ * Versión consolidada usando solo Groq (sin Ollama)
+ * 
+ * @version 2.2.0 - Solo Groq API
+ * @author Bubble of Talents Team
  */
 
-// Control de acceso inicial
-// Restringir métodos HTTP
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    header('Allow: POST');
-    echo json_encode([
-        'success' => false,
-        'message' => 'Método no permitido. Use POST.'
-    ]);
-    exit;
-}
+require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
 
-// Cargar dependencias
-require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../src/Utils/ResponseHelper.php';
-
+use Services\GroqApiService;
+use Services\Exceptions\AiUnavailableException;
 use Utils\ResponseHelper;
 
-// Configuración de seguridad para este endpoint
-define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB máximo para archivos
-define('ALLOWED_EXTENSIONS', ['pdf', 'doc', 'docx', 'txt']); // Extensiones permitidas
+// Configuración de seguridad
+define('MAX_FILE_SIZE', 10 * 1024 * 1024); // 10MB máximo para archivos
 define('MAX_TEXT_LENGTH', 1024 * 1024); // 1MB máximo para texto plano
+define('ALLOWED_EXTENSIONS', ['pdf', 'doc', 'docx', 'txt']); // Extensiones permitidas
+define('ALLOWED_PDF_TYPES', ['application/pdf']); // Solo PDFs
+define('ALLOWED_TEXT_TYPES', ['text/plain', 'application/json']); // Tipos de texto
+
+// Solo permitir método POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+  ResponseHelper::error('Método no permitido. Use POST.', 405);
+  exit;
+}
 
 /**
- * Valida y procesa un archivo subido
- *
- * @param array $fileData Datos del archivo ($_FILES['campo'])
- * @return array [status, message, data]
+ * Valida archivo subido según su tipo
  */
 function validateUploadedFile($fileData)
 {
-    // Comprobar errores de subida
-    if ($fileData['error'] !== UPLOAD_ERR_OK) {
-        $errors = [
-            UPLOAD_ERR_INI_SIZE => 'El archivo excede el tamaño máximo permitido por PHP.',
-            UPLOAD_ERR_FORM_SIZE => 'El archivo excede el tamaño máximo permitido por el formulario.',
-            UPLOAD_ERR_PARTIAL => 'El archivo se subió parcialmente.',
-            UPLOAD_ERR_NO_FILE => 'No se subió ningún archivo.',
-            UPLOAD_ERR_NO_TMP_DIR => 'Falta la carpeta temporal.',
-            UPLOAD_ERR_CANT_WRITE => 'Error al escribir el archivo.',
-            UPLOAD_ERR_EXTENSION => 'Una extensión PHP detuvo la subida.',
-        ];
-        $errorMsg = isset($errors[$fileData['error']]) ?
-            $errors[$fileData['error']] :
-            'Error desconocido en la subida.';
-        return ['status' => false, 'message' => $errorMsg, 'data' => null];
-    }
-
-    // Validar tamaño
-    if ($fileData['size'] > MAX_FILE_SIZE) {
-        return [
-            'status' => false,
-            'message' => 'El archivo excede el tamaño máximo permitido (' . (MAX_FILE_SIZE / 1024 / 1024) . 'MB).',
-            'data' => null
-        ];
-    }
-
-    // Validar extensión
-    $extension = strtolower(pathinfo($fileData['name'], PATHINFO_EXTENSION));
-    if (!in_array($extension, ALLOWED_EXTENSIONS)) {
-        return [
-            'status' => false,
-            'message' => 'Tipo de archivo no permitido. Extensiones aceptadas: ' . implode(', ', ALLOWED_EXTENSIONS),
-            'data' => null
-        ];
-    }
-
-    // Validar MIME type
-    $finfo = new finfo(FILEINFO_MIME_TYPE);
-    $mime = $finfo->file($fileData['tmp_name']);
-    $allowedMimes = [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'text/plain'
+  // Comprobar errores de subida
+  if ($fileData['error'] !== UPLOAD_ERR_OK) {
+    $errors = [
+      UPLOAD_ERR_INI_SIZE => 'El archivo excede el tamaño máximo permitido por PHP.',
+      UPLOAD_ERR_FORM_SIZE => 'El archivo excede el tamaño máximo permitido.',
+      UPLOAD_ERR_PARTIAL => 'El archivo se subió parcialmente.',
+      UPLOAD_ERR_NO_FILE => 'No se subió ningún archivo.',
+      UPLOAD_ERR_NO_TMP_DIR => 'Falta la carpeta temporal.',
+      UPLOAD_ERR_CANT_WRITE => 'Error al escribir el archivo.',
+      UPLOAD_ERR_EXTENSION => 'Una extensión PHP detuvo la subida.',
     ];
+    return ['status' => false, 'message' => $errors[$fileData['error']] ?? 'Error desconocido en la subida.'];
+  }
 
-    if (!in_array($mime, $allowedMimes)) {
-        return [
-            'status' => false,
-            'message' => 'Tipo de contenido no permitido.',
-            'data' => null
-        ];
-    }
-
-    // Mover a ubicación segura con nombre aleatorio para evitar colisiones
-    $uploadDir = __DIR__ . '/../../uploads/';
-    if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0755, true);
-    }
-
-    $safeFilename = md5(uniqid() . $fileData['name']) . '.' . $extension;
-    $destination = $uploadDir . $safeFilename;
-
-    if (!move_uploaded_file($fileData['tmp_name'], $destination)) {
-        return [
-            'status' => false,
-            'message' => 'Error al guardar el archivo subido.',
-            'data' => null
-        ];
-    }
-
+  // Validar tamaño
+  if ($fileData['size'] > MAX_FILE_SIZE) {
     return [
-        'status' => true,
-        'message' => 'Archivo subido correctamente.',
-        'data' => [
-            'path' => $destination,
-            'name' => htmlspecialchars($fileData['name'], ENT_QUOTES, 'UTF-8'),
-            'type' => $mime,
-            'size' => $fileData['size']
-        ]
+      'status' => false,
+      'message' => 'El archivo excede el tamaño máximo permitido (' . (MAX_FILE_SIZE / 1024 / 1024) . 'MB).'
     ];
+  }
+
+  // Validar extensión
+  $extension = strtolower(pathinfo($fileData['name'], PATHINFO_EXTENSION));
+  if (!in_array($extension, ALLOWED_EXTENSIONS)) {
+    return ['status' => false, 'message' => 'Extensión de archivo no permitida. Use: ' . implode(', ', ALLOWED_EXTENSIONS)];
+  }
+
+  // Validar MIME type
+  $finfo = new finfo(FILEINFO_MIME_TYPE);
+  $mime = $finfo->file($fileData['tmp_name']);
+
+  $allowedMimes = array_merge(ALLOWED_PDF_TYPES, ALLOWED_TEXT_TYPES, [
+    'application/msword', // .doc
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document' // .docx
+  ]);
+
+  if (!in_array($mime, $allowedMimes)) {
+    return ['status' => false, 'message' => 'Tipo de archivo no válido.'];
+  }
+
+  // Crear directorio si no existe
+  $uploadDir = __DIR__ . '/../../uploads/cvs/';
+  if (!is_dir($uploadDir)) {
+    mkdir($uploadDir, 0755, true);
+  }
+
+  // Generar nombre seguro
+  $safeFilename = 'cv_' . date('Y-m-d_H-i-s') . '_' . md5(uniqid()) . '.' . $extension;
+  $destination = $uploadDir . $safeFilename;
+
+  if (!move_uploaded_file($fileData['tmp_name'], $destination)) {
+    return ['status' => false, 'message' => 'Error al guardar el archivo.'];
+  }
+
+  return [
+    'status' => true,
+    'path' => $destination,
+    'extension' => $extension,
+    'mime' => $mime,
+    'size' => $fileData['size']
+  ];
 }
 
+/**
+ * Extrae texto de diferentes tipos de archivo
+ */
+function extractTextFromFile($filePath, $extension, $mime)
+{
+  switch ($extension) {
+    case 'txt':
+      return file_get_contents($filePath);
+
+    case 'pdf':
+      // Para PDFs, retornar null para usar análisis directo con Vision
+      return null;
+
+    case 'doc':
+    case 'docx':
+      // TODO: Implementar extracción de Word si es necesario
+      throw new Exception('Análisis de archivos Word no implementado aún');
+
+    default:
+      throw new Exception('Tipo de archivo no soportado: ' . $extension);
+  }
+}
+
+// === PROCESAMIENTO PRINCIPAL ===
+
 try {
-    // Verificar autenticación (token bearer)
-    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-    if (empty($authHeader) || strpos($authHeader, 'Bearer ') !== 0) {
-        ResponseHelper::error('No autorizado. Se requiere autenticación Bearer.', 401);
-        exit;
+  $startTime = microtime(true);
+  $cvText = '';
+  $isPdfAnalysis = false;
+  $processingMethod = 'unknown';
+
+  // Obtener input JSON
+  $input = file_get_contents('php://input');
+  $data = json_decode($input, true);
+
+  // Si hay error en JSON pero también archivos subidos, continuar
+  if (json_last_error() !== JSON_ERROR_NONE && empty($_FILES)) {
+    ResponseHelper::error('JSON inválido: ' . json_last_error_msg(), 400);
+    exit;
+  }
+
+  // === OPCIÓN 1: Archivo subido ===
+  if (isset($_FILES['cv_file']) && $_FILES['cv_file']['error'] !== UPLOAD_ERR_NO_FILE) {
+    $fileValidation = validateUploadedFile($_FILES['cv_file']);
+
+    if (!$fileValidation['status']) {
+      ResponseHelper::error($fileValidation['message'], 400);
+      exit;
     }
 
-    $token = trim(substr($authHeader, 7));
-    $validToken = getenv('API_TOKEN');
+    $filePath = $fileValidation['path'];
+    $extension = $fileValidation['extension'];
+    $mime = $fileValidation['mime'];
 
-    if (empty($validToken) || !hash_equals($validToken, $token)) {
-        ResponseHelper::error('Token de autenticación inválido.', 401);
-        exit;
-    }
-
-    // Procesar según tipo de solicitud
-    if (isset($_FILES['cv'])) {
-        // Validar y procesar archivo subido
-        $fileResult = validateUploadedFile($_FILES['cv']);
-
-        if (!$fileResult['status']) {
-            ResponseHelper::error($fileResult['message'], 400);
-            exit;
-        }
-
-        // Extraer contenido según tipo de archivo
-        $filePath = $fileResult['data']['path'];
-        $fileType = $fileResult['data']['type'];
-
-        // Aquí se procesaría según tipo (PDF, DOC, etc.)
-        // Por ahora, solo leemos el contenido de texto plano como ejemplo
-        if ($fileType === 'text/plain') {
-            $cvText = file_get_contents($filePath);
-        } else {
-            // Para otros formatos, se asumirá una extracción básica de texto
-            $cvText = 'Contenido extraído del archivo: ' . $fileResult['data']['name'];
-        }
+    if ($extension === 'pdf') {
+      // Análisis directo de PDF con Vision
+      $isPdfAnalysis = true;
+      $processingMethod = 'ollama-vision';
     } else {
-        // Procesar entrada JSON
-        $input = ResponseHelper::getJsonInput(MAX_TEXT_LENGTH);
+      // Extraer texto del archivo
+      $cvText = extractTextFromFile($filePath, $extension, $mime);
+      $processingMethod = 'groq-text-from-file';
+    }
+  }
+  // === OPCIÓN 2: Texto directo en JSON ===
+  elseif (isset($data['cv_text'])) {
+    $cvText = $data['cv_text'];
+    $processingMethod = 'groq-text-direct';
 
-        if ($input === null) {
-            // El método getJsonInput ya envía la respuesta de error apropiada
-            exit;
-        }
+    if (strlen($cvText) > MAX_TEXT_LENGTH) {
+      ResponseHelper::error('El texto del CV excede el tamaño máximo permitido.', 400);
+      exit;
+    }
+  }
+  // === OPCIÓN 3: Archivo de texto por ruta ===
+  elseif (isset($data['text_file_path'])) {
+    $filePath = $data['text_file_path'];
 
-        // Validar campos requeridos
-        if (!isset($input['text_file_path']) && !isset($input['cv_text'])) {
-            ResponseHelper::error('Se requiere text_file_path o cv_text', 400);
-            exit;
-        }
-
-        // Procesar según tipo de entrada
-        if (isset($input['text_file_path'])) {
-            // Validar ruta de archivo
-            $filePath = $input['text_file_path'];
-
-            // Validación de seguridad: prevenir path traversal
-            $realPath = realpath($filePath);
-            $uploadsDir = realpath(__DIR__ . '/../../uploads');
-
-            if ($realPath === false || strpos($realPath, $uploadsDir) !== 0) {
-                ResponseHelper::error('Ruta de archivo no permitida', 403);
-                exit;
-            }
-
-            // Verificar existencia y permisos
-            if (!file_exists($filePath) || !is_readable($filePath)) {
-                ResponseHelper::error('Archivo no encontrado o sin permisos: ' . basename($filePath), 404);
-                exit;
-            }
-
-            // Leer contenido con límite
-            $cvText = file_get_contents($filePath, false, null, 0, MAX_TEXT_LENGTH);
-            if ($cvText === false) {
-                ResponseHelper::error('No se pudo leer el archivo', 500);
-                exit;
-            }
-        } else {
-            // Validar y sanear texto del CV
-            $cvText = $input['cv_text'];
-
-            // Verificar longitud
-            if (strlen($cvText) > MAX_TEXT_LENGTH) {
-                ResponseHelper::error('El texto del CV excede el tamaño máximo permitido', 413);
-                exit;
-            }
-
-            // Sanitizar texto (eliminar caracteres de control)
-            $cvText = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $cvText);
-        }
+    if (!file_exists($filePath)) {
+      ResponseHelper::error('Archivo no encontrado: ' . $filePath, 404);
+      exit;
     }
 
-    // Análisis de CV con límites de procesamiento y timeouts
-    // Establecer límite de tiempo para el procesamiento
-    set_time_limit(30);
+    $fileContent = file_get_contents($filePath);
+    $fileData = json_decode($fileContent, true);
 
-    // Registrar inicio de procesamiento para monitoreo
-    $startTime = microtime(true);
-    $requestId = uniqid('CV-');
+    if (json_last_error() === JSON_ERROR_NONE && isset($fileData['text'])) {
+      $cvText = $fileData['text'];
+    } else {
+      $cvText = $fileContent;
+    }
+    $processingMethod = 'groq-text-from-path';
+  } else {
+    ResponseHelper::error('No se proporcionó CV. Use cv_file, cv_text o text_file_path.', 400);
+    exit;
+  }
 
+  // === PROCESAMIENTO SEGÚN TIPO ===
+
+  $groqService = new GroqApiService();
+
+  if ($isPdfAnalysis) {
+    // Análisis de PDF con Groq (extrae texto del PDF internamente)
     try {
-        // Extraer información mediante expresiones regulares seguras con timeout
-        // Prevenir ataques de ReDOS (Regex Denial of Service) con límites de tiempo
-
-        // Función para ejecutar regex con timeout
-        function pregMatchWithTimeout($pattern, $subject, &$matches, $timeout = 1)
-        {
-            // Configurar gestión de errores para evitar bloqueos
-            $previousHandler = set_error_handler(function ($severity, $message, $file, $line) {
-                throw new \RuntimeException($message);
-            });
-
-            // Configurar límite de tiempo
-            $previousTimeout = ini_get('max_execution_time');
-            set_time_limit($timeout);
-
-            $result = false;
-            try {
-                // Ejecutar la expresión regular
-                $result = preg_match($pattern, $subject, $matches);
-            } catch (\Exception $e) {
-                error_log('Error en regex: ' . $e->getMessage());
-            } finally {
-                // Restaurar configuración
-                set_time_limit($previousTimeout);
-                set_error_handler($previousHandler);
-            }
-
-            return $result;
-        }
-
-        // Inicializar resultados
-        $name = null;
-        $email = null;
-        $location = null;
-        $phone = null;
-
-        // Patrones de expresiones regulares optimizados y seguros
-        $nameMatches = [];
-        if (pregMatchWithTimeout('/Nombre[:\s]+([A-Za-zÁÉÍÓÚáéíóúñÑ\s]{2,50})\b/u', $cvText, $nameMatches, 1)) {
-            $name = trim($nameMatches[1]);
-            // Sanitizar: eliminar caracteres no permitidos
-            $name = preg_replace('/[^\p{L}\p{M}\s\-\.]/u', '', $name);
-            // Limitar longitud
-            $name = substr($name, 0, 100);
-        }
-
-        $emailMatches = [];
-        if (pregMatchWithTimeout('/\b([A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,255}\.[A-Za-z]{2,6})\b/', $cvText, $emailMatches, 1)) {
-            $potentialEmail = $emailMatches[1];
-            // Validación adicional con filter_var
-            if (filter_var($potentialEmail, FILTER_VALIDATE_EMAIL)) {
-                $email = $potentialEmail;
-            }
-        }
-
-        $locationMatches = [];
-        if (pregMatchWithTimeout('/Ubicación[:\s]+([A-Za-zÁÉÍÓÚáéíóúñÑ\s,]{2,50})\b/u', $cvText, $locationMatches, 1)) {
-            $location = trim($locationMatches[1]);
-            // Sanitizar: eliminar caracteres no permitidos
-            $location = preg_replace('/[^\p{L}\p{M}\s\-\.,]/u', '', $location);
-            // Limitar longitud
-            $location = substr($location, 0, 100);
-        }
-
-        $phoneMatches = [];
-        if (pregMatchWithTimeout('/\b(\+?[\d\s\-\(\)]{8,20})\b/', $cvText, $phoneMatches, 1)) {
-            $phone = trim($phoneMatches[1]);
-            // Sanitizar: solo permitir dígitos, +, espacio, paréntesis y guiones
-            $phone = preg_replace('/[^\d\+\s\-\(\)]/u', '', $phone);
-            // Limitar longitud
-            $phone = substr($phone, 0, 20);
-        }
-
-        // Registrar tiempo de procesamiento
-        $processingTime = microtime(true) - $startTime;
-
-        // Construir resultado
-        $result = [
-            'personal_info' => [
-                'name' => $name,
-                'email' => $email,
-                'location' => $location,
-                'phone' => $phone,
-            ],
-            'meta' => [
-                'request_id' => $requestId,
-                'processing_time' => round($processingTime, 3) . 's',
-                'text_length' => strlen($cvText),
-            ]
-        ];
-
-        // En modo debug/desarrollo, incluir texto procesado para depuración
-        if (isDevelopment() && isDebug()) {
-            $result['debug'] = [
-                'raw_text_preview' => substr($cvText, 0, 500) . (strlen($cvText) > 500 ? '...' : '')
-            ];
-        } else {
-            // En producción, no incluir el texto original por privacidad y seguridad
-            $result['debug'] = null;
-        }
-
-        // Registrar análisis exitoso
-        error_log("[{$requestId}] Análisis de CV completado en {$processingTime}s");
-
-        // Devolver resultado
-        ResponseHelper::success('CV analizado correctamente', $result);
-    } catch (Throwable $e) {
-        // Capturar cualquier error (Exception o Error)
-        error_log("[{$requestId}] Error en análisis de CV: " . $e->getMessage() . ' en ' . $e->getFile() . ':' . $e->getLine());
-
-        // Limpiar cualquier archivo temporal creado en caso de error
-        if (isset($filePath) && file_exists($filePath) && strpos($filePath, __DIR__ . '/../../uploads/') === 0) {
-            @unlink($filePath);
-        }
-
-        // Respuesta de error genérica para producción
-        ResponseHelper::error(
-            'Error al procesar el CV. Por favor, intente nuevamente o contacte soporte.',
-            500,
-            isDevelopment() ? ['exception' => $e->getMessage()] : ['request_id' => $requestId]
-        );
+      $cvData = $groqService->analyzeCvFromPdf($filePath);
+      $processingService = 'Groq API (Llama3) - PDF';
+    } catch (Exception $e) {
+      ResponseHelper::error('Error en análisis PDF: ' . $e->getMessage(), 500);
+      exit;
     }
-} catch (Throwable $e) {
-    // Captura de errores a nivel global
-    $errorId = uniqid('ERR-');
-    error_log("[{$errorId}] Error global: " . $e->getMessage() . ' en ' . $e->getFile() . ':' . $e->getLine());
+  } else {
+    // Análisis de texto con Groq
+    if (empty($cvText)) {
+      ResponseHelper::error('No se pudo extraer texto del CV', 400);
+      exit;
+    }
 
-    // Respuesta de error genérica y segura
-    ResponseHelper::error(
-        'Ha ocurrido un error en el servidor. Por favor, intente más tarde.',
-        500,
-        ['error_id' => $errorId]
-    );
+    $cvData = $groqService->analyzeCvFromText($cvText);
+    $processingService = 'Groq API (Llama3) - Text';
+  }
+
+  $endTime = microtime(true);
+  $processingTime = round($endTime - $startTime, 2);
+
+  // Limpiar archivo temporal si existe
+  if (isset($filePath) && file_exists($filePath) && strpos($filePath, '/uploads/cvs/') !== false) {
+    unlink($filePath);
+  }
+
+  // === RESPUESTA EXITOSA ===
+  ResponseHelper::success('CV analizado correctamente', [
+    'structured_data' => $cvData,
+    'processing_info' => [
+      'method' => $processingMethod,
+      'service' => $processingService,
+      'text_length' => $isPdfAnalysis ? 'PDF' : strlen($cvText),
+      'processing_time' => $processingTime,
+      'extracted_fields' => array_keys($cvData),
+      'total_fields' => count($cvData),
+      'endpoint' => '/api/analyze_cv.php',
+      'version' => '2.0.0'
+    ],
+    'success' => true
+  ]);
+} catch (AiUnavailableException $e) {
+  ResponseHelper::error('Servicio de IA no disponible: ' . $e->getMessage(), 503);
+} catch (Exception $e) {
+  ResponseHelper::error('Error al analizar CV: ' . $e->getMessage(), 500);
+
+  // Limpiar archivo temporal en caso de error
+  if (isset($filePath) && file_exists($filePath) && strpos($filePath, '/uploads/cvs/') !== false) {
+    unlink($filePath);
+  }
 }

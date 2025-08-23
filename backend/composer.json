@@ -1,18 +1,24 @@
 {
     "name": "bubble-of-talents/backend",
-    "description": "Backend de Bubble of Talents (aplicación, no paquete público).",
+    "description": "Backend de Bubble of Talents - Sistema de reclutamiento con IA",
     "type": "project",
     "license": "proprietary",
     "require": {
-        "smalot/pdfparser": "^2.12",
-        "phpoffice/phpword": "^1.3",
+        "php": "^8.1",
+        "altorouter/altorouter": "^2.0",
         "firebase/php-jwt": "^6.0",
-        "stichoza/google-translate-php": "^5.3",
-        "hanwoolderink/ollama-php-client": "^1.0",
-        "guzzlehttp/guzzle": "^7.9"
+        "guzzlehttp/guzzle": "^7.9",
+        "monolog/monolog": "^3.5",
+        "phpmailer/phpmailer": "^6.10",
+        "phpoffice/phpword": "^1.3",
+        "ramsey/uuid": "^4.7",
+        "smalot/pdfparser": "^2.12",
+        "stichoza/google-translate-php": "^5.3"
     },
     "config": {
-        "optimize-autoloader": true
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
     },
     "autoload": {
         "psr-4": {
@@ -20,13 +26,20 @@
             "Controllers\\": "src/Controllers/",
             "Models\\": "src/Models/",
             "Utils\\": "src/Utils/",
-            "Domain\\": "src/Domain/"
+            "Domain\\": "src/Domain/",
+            "Router\\": "src/Router/",
+            "Middleware\\": "src/Middleware/",
+            "Parsers\\": "src/Parsers/"
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "^12.3"
+        "phpunit/phpunit": "^12.3",
+        "phpstan/phpstan": "^1.10",
+        "mockery/mockery": "^1.6"
     },
     "scripts": {
-        "test": "vendor/bin/phpunit"
+        "test": "vendor/bin/phpunit",
+        "analyze": "vendor/bin/phpstan analyse src",
+        "dev": "php -S localhost:8000 -t public router.php"
     }
 }

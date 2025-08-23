@@ -51,7 +51,8 @@ const CVConfirmationModal: React.FC<CVConfirmationModalProps> = ({
       // Mostrar notificación adicional para confirmación visual
       const notifyModalOpen = () => {
         const toast = document.createElement('div');
-        toast.className = 'fixed top-4 left-4 bg-green-500 text-white p-2 rounded-md shadow-lg z-[9999]';
+        toast.className = 'fixed top-4 left-4 bg-green-500 text-white p-2 rounded-md shadow-lg';
+        toast.style.zIndex = 'var(--z-toast)';
         toast.textContent = 'Modal abierto - Por favor confirma los datos';
         document.body.appendChild(toast);
 
@@ -141,7 +142,8 @@ const CVConfirmationModal: React.FC<CVConfirmationModalProps> = ({
     // Mostrar toast de confirmación
     const showSuccessToast = () => {
       const toast = document.createElement('div');
-      toast.className = 'fixed top-4 right-4 bg-green-500 text-white p-4 rounded-md shadow-lg z-50 transition-opacity duration-500';
+      toast.className = 'fixed top-4 right-4 bg-green-500 text-white p-4 rounded-md shadow-lg transition-opacity duration-500';
+      toast.style.zIndex = 'var(--z-toast)';
       toast.textContent = '¡Datos confirmados! Asignando categoría y departamento...';
       document.body.appendChild(toast);
 
@@ -297,7 +299,10 @@ const CVConfirmationModal: React.FC<CVConfirmationModalProps> = ({
 
   return (
     <>
-      <div className="fixed bottom-4 right-4 bg-blue-500 text-white p-2 rounded z-50">
+      <div
+        className="fixed bottom-4 right-4 bg-blue-500 text-white p-2 rounded"
+        style={{ zIndex: 'var(--z-debug)' }}
+      >
         Estado del modal: {isOpen ? 'Abierto' : 'Cerrado'}
       </div>
       {/* Forzar el modal a estar visible cuando isOpen es true */}

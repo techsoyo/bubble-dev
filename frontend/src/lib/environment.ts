@@ -42,7 +42,6 @@ interface EnvironmentConfig {
     enableXSSProtection: boolean;
 
     // Development
-    mockApi: boolean;
     debugMode: boolean;
     showPerformanceMetrics: boolean;
 
@@ -141,7 +140,6 @@ function getEnvironmentConfig(): EnvironmentConfig {
         enableXSSProtection: parseBoolean(import.meta.env.VITE_ENABLE_XSS_PROTECTION, true),
 
         // Development
-        mockApi: parseBoolean(import.meta.env.VITE_MOCK_API),
         debugMode: parseBoolean(import.meta.env.VITE_DEBUG_MODE),
         showPerformanceMetrics: parseBoolean(import.meta.env.VITE_SHOW_PERFORMANCE_METRICS),
 
@@ -168,10 +166,6 @@ function validateEnvironmentConfig(config: EnvironmentConfig): void {
 
         if (!config.enableErrorReporting) {
             console.warn('Error reporting is disabled in production environment');
-        }
-
-        if (config.mockApi) {
-            throw new Error('Mock API cannot be enabled in production environment');
         }
     }
 

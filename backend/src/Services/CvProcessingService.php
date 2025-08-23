@@ -129,7 +129,7 @@ class CvProcessingService
     // Intentar con proveedor específico o buscar uno disponible
     if ($request->ai_provider !== 'auto') {
       try {
-        $aiService = $this->aiProviderFactory->create($request->ai_provider);
+        $aiService = $this->aiProviderFactory->store($request->ai_provider);
         if (!$aiService->isAvailable()) {
           throw new \Exception("Provider {$request->ai_provider} is not available");
         }

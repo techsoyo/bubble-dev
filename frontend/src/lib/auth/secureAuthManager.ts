@@ -18,6 +18,8 @@ export interface LoginCredentials {
   rememberMe?: boolean;
 }
 
+import { env } from '@/config/env';
+
 export interface AuthResponse {
   success: boolean;
   user?: User;
@@ -25,7 +27,7 @@ export interface AuthResponse {
 }
 
 export class SecureAuthManager {
-  private static readonly API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  private static readonly API_BASE_URL = env.API_BASE_URL;
   private static currentUser: User | null = null;
 
   /**
@@ -33,6 +35,7 @@ export class SecureAuthManager {
    */
   static async verifySession(): Promise<{ isValid: boolean; user?: User }> {
     try {
+      // Usar el archivo PHP directo que sí funciona
       const response = await fetch(`${this.API_BASE_URL}/auth/verify-session.php`, {
         method: 'GET',
         credentials: 'include'
@@ -116,11 +119,10 @@ export class SecureAuthManager {
     try {
       const sanitizedCredentials = {
         email: InputSanitizer.sanitizeEmail(credentials.email),
-        password: credentials.password,
-        action: 'staff_login'
+        password: credentials.password
       };
 
-      const response = await fetch(`${this.API_BASE_URL}/auth/staff-login-simple.php`, {
+      const response = await fetch(`${this.API_BASE_URL}/auth/staff-login.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

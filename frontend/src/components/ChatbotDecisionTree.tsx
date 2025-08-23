@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, RotateCcw } from 'lucide-react';
 import { env } from '../config/env';
+import { useOverlay } from '../hooks/useOverlay';
 
 // Interfaces para el sistema de Decision Tree
 interface ChatbotNode {
@@ -123,7 +124,13 @@ const ChatbotDecisionTree: React.FC = () => {
       abortController.abort();
     };
   }, []);
-  // Dependencias del efecto
+
+  // Sistema de gestión de overlays
+  const { elementRef, activate, deactivate } = useOverlay({
+    id: 'chatbot-main',
+    type: 'chatbot',
+    priority: 1090 // Corresponde a --z-chatbot
+  });
 
   //
 
@@ -358,11 +365,13 @@ const ChatbotDecisionTree: React.FC = () => {
   const toggleChatbot = () => {
     if (!state.isOpen) {
       setState(prev => ({ ...prev, isOpen: true }));
+      activate(); // Activar overlay
       if (state.messages.length === 0) {
         initializeConversation();
       }
     } else {
       setState(prev => ({ ...prev, isOpen: false }));
+      deactivate(); // Desactivar overlay
     }
   };
 
@@ -377,12 +386,12 @@ const ChatbotDecisionTree: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 chatbot-fixed">
+    <div ref={elementRef} className="chatbot-fixed">
       {/* Botón del chatbot */}
       {!state.isOpen && (
         <button
           onClick={toggleChatbot}
-          className="bg-[#FF4785] hover:bg-[#FF4785]/90 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110 group"
+          className="bg-primary hover:bg-primary-opacity-90 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110 group"
           aria-label="Abrir chatbot"
         >
           <MessageCircle size={24} className="group-hover:scale-110 transition-transform" />
@@ -401,7 +410,7 @@ const ChatbotDecisionTree: React.FC = () => {
       {state.isOpen && (
         <div className="bg-white rounded-lg shadow-2xl w-80 h-96 flex flex-col border border-gray-200">
           {/* Header */}
-          <div className="bg-[#FF4785] text-white p-4 rounded-t-lg flex items-center justify-between">
+          <div className="bg-primary text-white p-4 rounded-t-lg flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                 💼
@@ -444,7 +453,7 @@ const ChatbotDecisionTree: React.FC = () => {
               >
                 <div
                   className={`max-w-[80%] p-3 rounded-lg text-sm ${message.type === 'user'
-                    ? 'bg-[#FF4785] text-white rounded-br-none'
+                    ? 'bg-primary text-white rounded-br-none'
                     : 'bg-gray-100 text-gray-800 rounded-bl-none'
                     }`}
                 >
@@ -468,9 +477,9 @@ const ChatbotDecisionTree: React.FC = () => {
                   <button
                     key={option.id}
                     onClick={() => handleOptionSelect(option)}
-                    className="w-full text-left p-3 border border-gray-200 rounded-lg hover:border-[#FF4785] hover:bg-[#FF4785]/5 transition-all duration-200 text-sm group"
+                    className="w-full text-left p-3 border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-opacity-5 transition-all duration-200 text-sm group"
                   >
-                    <span className="group-hover:text-[#FF4785] transition-colors">
+                    <span className="group-hover:text-primary transition-colors">
                       {option.text}
                     </span>
                   </button>

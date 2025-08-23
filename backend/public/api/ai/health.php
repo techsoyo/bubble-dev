@@ -6,7 +6,7 @@
  * Usado para confirmar que el sistema está funcionando correctamente
  */
 
-require_once __DIR__ . '/../../config/bootstrap.php';
+require_once dirname(__DIR__, 3) . '/config/bootstrap.php';
 
 
 // Verificar el estado del sistema

@@ -436,74 +436,205 @@ export class IntelligentMatching {
   }
 
   private async fetchCandidate(candidateId: string): Promise<Candidate> {
-    // Mock implementation
-    return {
-      id: candidateId,
-      name: 'John Doe',
-      email: 'john@example.com',
-      skills: ['JavaScript', 'React', 'Node.js'],
-      experience: [
-        {
-          id: '1',
-          company: 'Tech Corp',
-          position: 'Frontend Developer',
-          duration: 2,
-          startDate: '2022-01-01',
-          industry: 'technology'
+    try {
+      const response = await fetch(`/api/candidates/${candidateId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         }
-      ],
-      education: [
-        {
-          id: '1',
-          institution: 'University',
-          degree: 'Computer Science',
-          field: 'Software Engineering',
-          startYear: 2018,
-          endYear: 2022
-        }
-      ],
-      status: 'active',
-      createdAt: '2022-01-01',
-      updatedAt: '2024-01-01'
-    };
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error al obtener candidato: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.success || !data.data) {
+        throw new Error('Datos de candidato no válidos');
+      }
+
+      return this.transformCandidateData(data.data);
+    } catch (error) {
+      console.error('Error fetching candidate:', error);
+      throw new Error(`No se pudo obtener información del candidato ${candidateId}`);
+    }
   }
 
   private async fetchJob(jobId: string): Promise<Job> {
-    // Mock implementation
+    try {
+      const response = await fetch(`/api/jobs/${jobId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error al obtener trabajo: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.success || !data.data) {
+        throw new Error('Datos de trabajo no válidos');
+      }
+
+      return this.transformJobData(data.data);
+    } catch (error) {
+      console.error('Error fetching job:', error);
+      throw new Error(`No se pudo obtener información del trabajo ${jobId}`);
+    }
+  }
+
+  private async fetchCompany(jobId: string): Promise<Company> {
+    try {
+      // Para una agencia de marketing, usamos datos fijos de la agencia
+      // ya que no hay múltiples compañías
+      return {
+        id: '1',
+        name: 'Bubble Marketing Agency',
+        industry: 'marketing',
+        size: 'medium',
+        location: 'Madrid, España',
+        culture: {
+          innovation: 0.9,
+          collaboration: 0.8,
+          workLifeBalance: 0.8,
+          growth: 0.9,
+          diversity: 0.8,
+          flexibility: 0.9
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching company:', error);
+      throw new Error('No se pudo obtener información de la agencia');
+    }
+  }
+
+  // Métodos de transformación de datos
+  private transformCandidateData(rawData: any): Candidate {
     return {
-      id: jobId,
-      title: 'Senior Frontend Developer',
-      description: 'Looking for an experienced frontend developer',
-      companyId: '1',
-      remote: true,
-      experienceLevel: 'senior',
-      employmentType: 'full-time',
-      requiredSkills: ['JavaScript', 'React', 'TypeScript'],
-      preferredSkills: ['Node.js', 'GraphQL'],
-      salaryRange: { min: 80000, max: 120000 },
-      industry: 'technology',
-      status: 'active',
-      postedDate: '2024-01-01'
+      id: rawData.id?.toString() || '',
+      name: rawData.full_name || rawData.name || '',
+      email: rawData.email || '',
+      skills: this.parseSkills(rawData.skills),
+      experience: this.parseExperience(rawData.experience),
+      education: this.parseEducation(rawData.education),
+      status: rawData.status || 'active',
+      createdAt: rawData.created_at || new Date().toISOString(),
+      updatedAt: rawData.updated_at || new Date().toISOString()
     };
   }
 
-  private async fetchCompany(_jobId: string): Promise<Company> {
-    // Mock implementation
+  private transformJobData(rawData: any): Job {
     return {
-      id: '1',
-      name: 'Innovation Labs',
-      industry: 'technology',
-      size: 'medium',
-      location: 'San Francisco',
-      culture: {
-        innovation: 0.9,
-        collaboration: 0.8,
-        workLifeBalance: 0.7,
-        growth: 0.8,
-        diversity: 0.7,
-        flexibility: 0.9
-      }
+      id: rawData.id?.toString() || '',
+      title: rawData.title || '',
+      description: rawData.description || '',
+      companyId: '1', // Siempre la agencia
+      remote: this.parseBoolean(rawData.remote),
+      experienceLevel: rawData.experience_level || 'mid',
+      employmentType: rawData.type || 'full-time',
+      requiredSkills: this.parseSkills(rawData.required_skills),
+      preferredSkills: this.parseSkills(rawData.preferred_skills),
+      salaryRange: this.parseSalaryRange(rawData.salary_range),
+      industry: 'marketing', // Siempre marketing para la agencia
+      status: rawData.status || 'active',
+      postedDate: rawData.created_at || rawData.date_posted || new Date().toISOString()
     };
+  }
+
+  private parseSkills(skillsData: any): string[] {
+    if (Array.isArray(skillsData)) {
+      return skillsData;
+    }
+    if (typeof skillsData === 'string') {
+      try {
+        const parsed = JSON.parse(skillsData);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return skillsData.split(',').map(s => s.trim()).filter(Boolean);
+      }
+    }
+    return [];
+  }
+
+  private parseExperience(experienceData: any): any[] {
+    if (Array.isArray(experienceData)) {
+      return experienceData;
+    }
+    if (typeof experienceData === 'string') {
+      try {
+        const parsed = JSON.parse(experienceData);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  }
+
+  private parseEducation(educationData: any): any[] {
+    if (Array.isArray(educationData)) {
+      return educationData;
+    }
+    if (typeof educationData === 'string') {
+      try {
+        const parsed = JSON.parse(educationData);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  }
+
+  private parseBoolean(value: any): boolean {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'string') {
+      return value.toLowerCase() === 'true' || value === '1';
+    }
+    if (typeof value === 'number') {
+      return value === 1;
+    }
+    return false;
+  }
+
+  private parseSalaryRange(salaryData: any): { min: number; max: number } {
+    const defaultRange = { min: 0, max: 0 };
+
+    if (typeof salaryData === 'object' && salaryData !== null) {
+      return {
+        min: Number(salaryData.min) || 0,
+        max: Number(salaryData.max) || 0
+      };
+    }
+
+    if (typeof salaryData === 'string') {
+      try {
+        const parsed = JSON.parse(salaryData);
+        if (typeof parsed === 'object' && parsed !== null) {
+          return {
+            min: Number(parsed.min) || 0,
+            max: Number(parsed.max) || 0
+          };
+        }
+      } catch {
+        // Intentar parsear formato "min-max" o "min - max"
+        const match = salaryData.match(/(\d+)\s*-\s*(\d+)/);
+        if (match) {
+          return {
+            min: Number(match[1]) || 0,
+            max: Number(match[2]) || 0
+          };
+        }
+      }
+    }
+
+    return defaultRange;
   }
 
   private assessDataQuality(candidate: Candidate, job: Job): number {

@@ -1,7 +1,7 @@
 <?php
 
 // backend/api/endpoints/chatbot_options.php
-require_once __DIR__ . '/../../bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 
 use Utils\Database;
 

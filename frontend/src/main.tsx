@@ -9,6 +9,8 @@ import { registerServiceWorker, setupConnectivityDetection } from './lib/service
 
 // Security: Initialize SRI Manager for external resources
 import { SRIManager } from './security/sri';
+// Security: Initialize XSS Protection System
+import { initXSSProtection } from './security/xss';
 
 // Initialize security for external resources
 const initializeSecurity = async () => {
@@ -44,6 +46,9 @@ createRoot(document.getElementById('root')!).render(
 // Registrar el Service Worker y configurar detección de conectividad
 registerServiceWorker();
 setupConnectivityDetection();
+
+// Activar protecciones XSS y rate limiting
+initXSSProtection();
 
 // Initialize security in the background without blocking rendering
 initializeSecurity().then(() => {

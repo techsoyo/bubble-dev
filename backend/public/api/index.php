@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 // preflightHandle(); // ELIMINADO: Preflight se maneja automáticamente en bootstrap.php
 // sendCorsHeaders(); // ELIMINADO: CORS se configura automáticamente en bootstrap.php
 require_once __DIR__ . '/../../src/Utils/ResponseHelper.php';
@@ -36,7 +36,7 @@ try {
             break;
         case '/ai/analyze-cv':
             if ($request_method === 'POST') {
-                require_once __DIR__ . '/endpoints/analyze_cv.php';
+                require_once __DIR__ . '/analyze_cv.php';
             } else {
                 http_response_code(405);
                 Res::error('Método no permitido', 405);

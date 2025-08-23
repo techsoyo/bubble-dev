@@ -9,7 +9,7 @@
   height: 100%;
   background-color: #F24495;
   /* Cambiado a rosa/fucsia para coincidir con el iris */
-  z-index: 9999;
+  z-index: var(--z-debug);
   display: flex;
   justify-content: center;
   align-items: center;

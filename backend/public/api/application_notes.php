@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 // preflightHandle(); // ELIMINADO: Preflight se maneja automáticamente en bootstrap.php
 // sendCorsHeaders(); // ELIMINADO: CORS se configura automáticamente en bootstrap.php
 require_once __DIR__ . '/../../src/Utils/ResponseHelper.php';
@@ -28,44 +28,44 @@ $noteModel = new ApplicationNote();
 try {
     switch ($method) {
         case 'GET': {
-            $applicationId = $_GET['application_id'] ?? $_GET['applicationId'] ?? null;
-            ['ok' => $ok, 'errors' => $errs] = Val::validate(['application_id' => $applicationId], [
-                'application_id' => 'required|string:1,36'
-            ]);
-            if (!$ok) {
-                Res::error('Validación fallida', 422, ['errors' => $errs]);
-            }
-            // Ownership: aquí podrías validar que el usuario tiene acceso a la aplicación
-            $notes = $noteModel->findByApplicationId($applicationId);
-            Res::success('OK', ['items' => $notes]);
-            break;
-        }
-        case 'POST': {
-            $input = Request::json();
-            ['ok' => $ok, 'errors' => $errs] = Val::validate($input, [
-                'application_id' => 'required|string:1,36',
-                'note'           => 'required|string:1,1000'
-            ]);
-            if (!$ok) {
-                Res::error('Validación fallida', 422, ['errors' => $errs]);
-            }
-            // Ownership: aquí podrías validar que el usuario tiene acceso a la aplicación
-            $existingNotes = $noteModel->findByApplicationId($input['application_id']);
-            $nextIdx = 0;
-            foreach ($existingNotes as $n) {
-                if ((int)$n['note_idx'] >= $nextIdx) {
-                    $nextIdx = (int)$n['note_idx'] + 1;
+                $applicationId = $_GET['application_id'] ?? $_GET['applicationId'] ?? null;
+                ['ok' => $ok, 'errors' => $errs] = Val::validate(['application_id' => $applicationId], [
+                    'application_id' => 'required|string:1,36'
+                ]);
+                if (!$ok) {
+                    Res::error('Validación fallida', 422, ['errors' => $errs]);
                 }
+                // Ownership: aquí podrías validar que el usuario tiene acceso a la aplicación
+                $notes = $noteModel->findByApplicationId($applicationId);
+                Res::success('OK', ['items' => $notes]);
+                break;
             }
-            $data = [
-                'application_id' => $input['application_id'],
-                'note_idx' => $nextIdx,
-                'note' => $input['note']
-            ];
-            $noteModel->create($data);
-            Res::success('Nota agregada', null, 201);
-            break;
-        }
+        case 'POST': {
+                $input = Request::json();
+                ['ok' => $ok, 'errors' => $errs] = Val::validate($input, [
+                    'application_id' => 'required|string:1,36',
+                    'note'           => 'required|string:1,1000'
+                ]);
+                if (!$ok) {
+                    Res::error('Validación fallida', 422, ['errors' => $errs]);
+                }
+                // Ownership: aquí podrías validar que el usuario tiene acceso a la aplicación
+                $existingNotes = $noteModel->findByApplicationId($input['application_id']);
+                $nextIdx = 0;
+                foreach ($existingNotes as $n) {
+                    if ((int)$n['note_idx'] >= $nextIdx) {
+                        $nextIdx = (int)$n['note_idx'] + 1;
+                    }
+                }
+                $data = [
+                    'application_id' => $input['application_id'],
+                    'note_idx' => $nextIdx,
+                    'note' => $input['note']
+                ];
+                $noteModel->store($data);
+                Res::success('Nota agregada', null, 201);
+                break;
+            }
         default:
             Res::error('Método no permitido', 405);
     }

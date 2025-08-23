@@ -30,9 +30,9 @@ class Candidate extends BaseModel
      * @param array $data Datos del candidato
      * @return int|false ID del candidato creado o false si falla
      */
-    public function create($data)
+    public function store($data)
     {
-        return parent::create($data);
+        return parent::store($data);
     }
 
     /**
@@ -46,9 +46,9 @@ class Candidate extends BaseModel
     public function updateCVInfo($id, $cvPath, $parsedData)
     {
         $data = [
-          'cv_file_path' => $cvPath,
-          'cv_parsed_data' => json_encode($parsedData),
-          'cv_updated_at' => date('Y-m-d H:i:s')
+            'cv_file_path' => $cvPath,
+            'cv_parsed_data' => json_encode($parsedData),
+            'cv_updated_at' => date('Y-m-d H:i:s')
         ];
 
         return $this->update($id, $data);
@@ -101,8 +101,8 @@ class Candidate extends BaseModel
     public function updateStatus($id, $status, $notes = null)
     {
         $data = [
-          'status' => $status,
-          'status_updated_at' => date('Y-m-d H:i:s')
+            'status' => $status,
+            'status_updated_at' => date('Y-m-d H:i:s')
         ];
 
         if ($notes !== null) {

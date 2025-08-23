@@ -205,7 +205,7 @@ class AIIntegrationService
     {
         $healthEndpoint = rtrim($this->aiModuleUrl, '/') . '/health';
 
-        $context = stream_context_create([
+        $context = stream_context_store([
             'http' => [
                 'method' => 'GET',
                 'timeout' => min($this->timeout, 10), // Shorter timeout for health check
@@ -302,7 +302,7 @@ class AIIntegrationService
         }
 
         try {
-            $response = $this->makeRetryableRequest('/api/ai/analyze-cv.php', $requestData);
+            $response = $this->makeRetryableRequest('/api/analyze_cv.php', $requestData);
 
             // Validate response
             $validatedResponse = $this->validateAIResponse($response, 'cv_analysis');
@@ -471,7 +471,7 @@ class AIIntegrationService
             throw new \Exception('Failed to encode request data as JSON');
         }
 
-        $context = stream_context_create([
+        $context = stream_context_store([
             'http' => [
                 'method' => 'POST',
                 'header' => [

@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+
+require_once __DIR__ . '/bootstrap.php';
 $ROOT = dirname(__DIR__, 1);             // ajusta salto de nivel según carpeta
 $BOOT = $ROOT . '/config/bootstrap.php'; // si estás en /backend/public, sube 1 nivel; si estás en /backend/api, también 1
 if (!is_file($BOOT)) {

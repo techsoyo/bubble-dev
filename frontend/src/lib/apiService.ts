@@ -1,11 +1,10 @@
 // src/lib/apiService.ts
 
 // 🔧 CORRECCIÓN: Importar configuración dinámica
-import { getApiBaseUrl } from '../hooks/useApiConfig';
+import { getApiBaseUrl } from '../config/env';
 
-// Configuración dinámica de la URL base del API
+// Declarar API_BASE_URL una sola vez
 const API_BASE_URL = getApiBaseUrl();
-
 // Mapeo de iconos para la cultura corporativa.  La clave es el título devuelto por el backend
 // y el valor es un nodo de React que representa el icono correspondiente.  Puedes añadir
 // más entradas según los títulos que maneje tu base de datos.
@@ -71,16 +70,38 @@ export async function changeCandidateStatus(data: {
 // --- NUEVAS FUNCIONES PARA LA VERSIÓN MEJORADA ---
 
 // AUTENTICACIÓN DE CANDIDATOS CON SOCIAL LOGIN
-export async function socialLogin(provider: 'google' | 'linkedin' | 'apple', token: string) {
-    // Nuevo endpoint producción
-    const response = await fetch("/api/auth/social-login", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ provider, token }),
-    });
-    return response.json();
+export async function socialLogin(provider: 'google' | 'linkedin' | 'apple', authCode: string) {
+    try {
+        // Endpoint de producción que maneja el intercambio OAuth
+        const response = await fetch(`${API_BASE_URL}/api/auth/social-login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                provider,
+                code: authCode, // Enviar código de autorización en lugar de token
+                redirect_uri: `${window.location.origin}/auth/callback/${provider}`
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.message || `Error en autenticación con ${provider}`);
+        }
+
+        return result;
+    } catch (error) {
+        console.error(`Error en socialLogin con ${provider}:`, error);
+        throw error;
+    }
 }
 
 export async function registerCandidate(data: {
@@ -118,8 +139,20 @@ export async function registerCandidate(data: {
         currency: string;
     };
 }) {
-    // Nuevo endpoint producción
-    const response = await fetch("/api/candidates/register", {
+    // Usar el endpoint específico para candidatos procesados por IA
+    const response = await fetch("/api/candidates/save_v2.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+    });
+    return response.json();
+}
+
+// Nueva función específica para candidatos procesados por IA con campos de Groq
+export async function saveCandidateFromAI(data: any) {
+    const response = await fetch("/api/candidates/save_v2.php", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -141,6 +174,8 @@ export async function testBackendConnectionV2() {
     return { success: true, message: "Función de test de backend eliminada. Usar health-check real." };
 }
 
+// 🧪 TESTING: Función comentada para probar solo con login()
+/*
 export async function loginCandidate(email: string, password: string) {
     // Nuevo endpoint producción
     const response = await fetch("/api/auth/login", {
@@ -152,6 +187,7 @@ export async function loginCandidate(email: string, password: string) {
     });
     return response.json();
 }
+*/
 
 export async function login(data: {
     email: string;
@@ -169,6 +205,8 @@ export async function login(data: {
     return response.json();
 }
 
+// 🧪 TESTING: Función comentada para probar solo con login()
+/*
 // AUTENTICACIÓN DE RRHH Y RECRUITERS
 export async function loginStaff(email: string, password: string) {
     // Nuevo endpoint producción
@@ -181,6 +219,7 @@ export async function loginStaff(email: string, password: string) {
     });
     return response.json();
 }
+*/
 
 // CAMBIO DE CONTRASEÑA PARA CANDIDATOS
 export async function changeCandidatePassword(data: {
@@ -358,6 +397,36 @@ export async function getHRDashboardStats() {
     }
 }
 
+// Función para obtener candidatos asignados a un reclutador
+export async function getAssignedCandidates(recruiter_id?: string) {
+    try {
+        const url = recruiter_id
+            ? `/api/recruiters/${recruiter_id}/assigned-candidates`
+            : '/api/recruiters/assigned-candidates';
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: getAuthHeaders(),
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.message || 'Error al obtener candidatos asignados');
+        }
+
+        return result;
+    } catch (error) {
+        console.error('Error fetching assigned candidates:', error);
+        throw error;
+    }
+}
+
 // Función para obtener estadísticas del dashboard del reclutador
 export async function getRecruiterDashboardStats(recruiter_id: string) {
     // Nuevo endpoint producción
@@ -464,7 +533,7 @@ export async function getDepartments() {
 
 export async function getCandidateExperiences(candidateId: string) {
     try {
-        const url = `${API_BASE_URL}/candidate_experiences.php?candidateId=${candidateId}`;
+        const url = `${API_BASE_URL}/candidate-experiences.php?candidate_id=${candidateId}`;
         const response = await fetch(url, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -603,6 +672,7 @@ export async function getJobRequirements(jobId: string) {
 
 export async function getJobSkills(jobId: string) {
     try {
+        // API_BASE_URL ya puede incluir /api, evitar duplicarlo
         const url = `${API_BASE_URL}/job_skills.php?jobId=${jobId}`;
         const response = await fetch(url, {
             method: 'GET',
@@ -707,7 +777,7 @@ export async function getJobs(params?: {
         if (params?.page) queryParams.append('page', params.page.toString());
         if (params?.limit) queryParams.append('limit', params.limit.toString());
         if (params?.status) queryParams.append('status', params.status);
-        // Construir la URL usando API_BASE_URL para permitir entornos de desarrollo y producción
+        // Construir la URL evitando doble "/api" (API_BASE_URL ya puede incluir /api)
         const url = `${API_BASE_URL}/jobs.php${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
         const response = await fetch(url, {
             method: 'GET',
@@ -732,7 +802,7 @@ export async function getJobs(params?: {
 
 export async function getJob(id: string) {
     try {
-        // Corregido: usar endpoint que funciona con CORS
+        // Usar endpoint PHP con parámetro de query
         const response = await fetch(`${API_BASE_URL}/jobs.php?id=${id}`, {
             method: 'GET',
             headers: {
@@ -931,6 +1001,39 @@ export async function updateCandidate(id: string, data: {
     }
 }
 
+export async function updateCandidateProfile(data: {
+    professional_summary?: string;
+    availability?: string;
+    expected_salary?: string;
+}) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/update-candidate-profile.php`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.message || 'Error al actualizar perfil');
+        }
+
+        return result;
+    } catch (error) {
+        console.error('Error en updateCandidateProfile:', error);
+        throw error;
+    }
+}
+
 export async function deleteCandidate(id: string) {
     try {
         // Nuevo endpoint producción
@@ -975,7 +1078,7 @@ export async function createJob(data: {
     status?: string;
 }) {
     try {
-        const response = await fetch(`${API_BASE_URL}/jobs.php`, {
+        const response = await fetch(`${API_BASE_URL}/jobs`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1016,7 +1119,7 @@ export async function updateJob(id: string, data: {
     status?: string;
 }) {
     try {
-        const response = await fetch(`${API_BASE_URL}/jobs.php?id=${id}`, {
+        const response = await fetch(`${API_BASE_URL}/jobs/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1044,7 +1147,7 @@ export async function updateJob(id: string, data: {
 
 export async function deleteJob(id: string) {
     try {
-        const response = await fetch(`${API_BASE_URL}/jobs.php?id=${id}`, {
+        const response = await fetch(`${API_BASE_URL}/jobs/${id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -1083,7 +1186,7 @@ export async function createApplication(data: {
         if (data.cover_letter) formData.append('cover_letter', data.cover_letter);
         if (data.cv_file) formData.append('cv_file', data.cv_file);
 
-        const response = await fetch(`${API_BASE_URL}/applications.php`, {
+        const response = await fetch(`${API_BASE_URL}/applications`, {
             method: 'POST',
             body: formData,
         });
@@ -1111,7 +1214,7 @@ export async function updateApplication(id: string, data: {
     score?: number;
 }) {
     try {
-        const response = await fetch(`${API_BASE_URL}/applications.php?id=${id}`, {
+        const response = await fetch(`${API_BASE_URL}/applications/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1139,7 +1242,7 @@ export async function updateApplication(id: string, data: {
 
 export async function deleteApplication(id: string) {
     try {
-        const response = await fetch(`${API_BASE_URL}/applications.php?id=${id}`, {
+        const response = await fetch(`${API_BASE_URL}/applications/${id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -1262,7 +1365,7 @@ export async function bulkUpdateApplications(applications: Array<{
     score?: number;
 }>) {
     try {
-        const response = await fetch(`${API_BASE_URL}/applications.php`, {
+        const response = await fetch(`${API_BASE_URL}/applications`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -1388,7 +1491,7 @@ export async function getInfo() {
 
 export async function bulkDeleteApplications(ids: string[]) {
     try {
-        const response = await fetch(`${API_BASE_URL}/applications.php`, {
+        const response = await fetch(`${API_BASE_URL}/applications`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

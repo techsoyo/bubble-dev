@@ -21,7 +21,7 @@ const API_CONFIG = {
   BASE_URL: 'http://localhost/bubble_of_talents_1.0/',
   ENDPOINTS: {
     login: '/auth/login.php',
-    register: '/api/save-candidate.php',
+    register: '//api/candidates/save // MIGRATED',
     PDF_PARSE: '/api/endpoints/pdf_parse_openai.php'
   }
 };
@@ -246,7 +246,7 @@ export default function CandidateAuthPage() {
     try {
       // Construir URL de OAuth con job ID si existe
       const jobParam = jobId ? `&job=${jobId}` : '';
-      const oauthUrl = `http://localhost:8000/auth/oauth/start.php?provider=${provider}${jobParam}`;
+      const oauthUrl = `http://localhost:8000//api/auth/oauth/start // MIGRATED?provider=${provider}${jobParam}`;
 
       // Mostrar mensaje de redirección
       toast({

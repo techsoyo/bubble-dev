@@ -23,6 +23,11 @@ use Utils\Validator;
  */
 abstract class BaseController
 {
+    public function __construct()
+    {
+        // Constructor base vacío implementado para evitar errores de llamada en hijos
+    }
+
     /**
      * Maximum request size for JSON input (in bytes)
      *
@@ -291,7 +296,7 @@ abstract class BaseController
     protected function sanitizeInput($data, string $context = 'general')
     {
         if (is_array($data)) {
-            return array_map(fn ($item) => $this->sanitizeInput($item, $context), $data);
+            return array_map(fn($item) => $this->sanitizeInput($item, $context), $data);
         }
 
         if (!is_string($data)) {

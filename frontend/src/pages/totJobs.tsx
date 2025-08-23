@@ -69,7 +69,7 @@ export default function TotJobs() {
     };
 
     const handleApply = () => {
-        navigate('/auth/register');
+        navigate('/candidates/login');
     };
 
     if (loading) {
@@ -175,7 +175,7 @@ export default function TotJobs() {
                                     To apply for this job, you must be registered or logged in.
                                 </div>
                                 <CandidateApplicationForm />
-                                <Button className="bg-[#FF4785] hover:bg-[#FF3575]" onClick={handleApply}>Inscribirse</Button>
+                                <Button className="bg-primary hover:bg-primary-hover" onClick={handleApply}>Inscribirse</Button>
                                 <DialogClose asChild>
                                     <Button variant="outline" onClick={handleClose}>Volver</Button>
                                 </DialogClose>

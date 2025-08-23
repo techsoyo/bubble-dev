@@ -40,7 +40,6 @@ const DashboardPage = lazy(() => import('./pages/dashboard/CDDashboard'));
 const ApplicationDetailsPage = lazy(() => import('./pages/dashboard/ApplicationDetails'));
 const HRDashboardPage = lazy(() => import('./pages/dashboard/HRDashboard'));
 const RecruiterDashboardPage = lazy(() => import('./pages/dashboard/RecruiterDashboard'));
-const TestApiConnection = lazy(() => import('./components/TestApiConnection'));
 const ApiTester = lazy(() => import('./pages/ApiTester'));
 const ChatBotManage = lazy(() => import('./components/ChatBotManage'));
 
@@ -67,12 +66,24 @@ import { isDevelopment, isProduction, showApiTester } from './config/env';
 // Componentes de optimización offline
 import OfflineDetector from './components/ui/OfflineDetector';
 
-// AOS
-import AOS from 'aos';
+// AOS - Import dinámico compatible con Vite
+let AOS: any = null;
+if (typeof window !== 'undefined') {
+  import('aos').then(module => {
+    AOS = module;
+    // Inicializar AOS cuando se carga
+    if (AOS && AOS.init) {
+      AOS.init({
+        duration: 800,
+        easing: 'ease-out',
+        once: false,
+        disable: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+      });
+    }
+  }).catch(() => console.warn('AOS failed to load'));
+}
 import 'aos/dist/aos.css';
 
-// 🚫 DEPRECATED: Ya no se usan datos mock - ahora se usa base de datos
-// import { initializeMockData } from './lib/setup-mock-data';
 
 // Preload critical components
 import './preload';
@@ -162,17 +173,16 @@ const App = () => {
       loadAnalytics();
     }
 
-    // Initialize animations
-    AOS.init({
-      duration: 800,
-      easing: 'ease-out',
-      once: false,
-      // Respect user's motion preferences
-      disable: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    });
-
-    // 🚫 DEPRECATED: Ya no se inicializan datos mock - ahora se usa base de datos
-    // initializeMockData();
+    // Initialize animations only if AOS is available
+    if (AOS && AOS.init) {
+      AOS.init({
+        duration: 800,
+        easing: 'ease-out',
+        once: false,
+        // Respect user's motion preferences
+        disable: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+      });
+    }
 
     // Add global error handler for unhandled promise rejections
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
@@ -227,6 +237,11 @@ const App = () => {
                         </OfflineAwareSuspense>
                       } />
                       <Route path="/talent/login" element={<TalentLogin />} />
+                      <Route path="/candidates/login" element={
+                        <Suspense fallback={<LoadingSpinner size="large" />}>
+                          <CandidateAuthPage />
+                        </Suspense>
+                      } />
                       <Route path="/staff/login" element={<StaffLogin />} />
                       <Route path="jobs/:id" element={
                         <OfflineAwareSuspense
@@ -249,27 +264,22 @@ const App = () => {
                       <Route path="auth/login" element={<Login />} />
                       {/* Redirección de /login a /auth/login para mayor comodidad */}
                       <Route path="login" element={<Navigate to="/auth/login" replace />} />
-                      <Route path="test-api" element={
-                        <Suspense fallback={<LoadingSpinner size="large" />}>
-                          <TestApiConnection />
-                        </Suspense>
-                      } />
                       <Route path="test-chatbot" element={
                         <Suspense fallback={<LoadingSpinner size="large" />}>
                           <ChatBotManage />
                         </Suspense>
                       } />
-                      <Route path="auth/register" element={
+                      <Route path="candidates/login" element={
                         <Suspense fallback={<LoadingSpinner size="large" />}>
                           <CandidateAuthPage />
                         </Suspense>
                       } />
-                      <Route path="auth/register-old" element={
+                      <Route path="candidates/login-old" element={
                         <Suspense fallback={<LoadingSpinner size="large" />}>
                           <RegisterPage />
                         </Suspense>
                       } />
-                      <Route path="auth/register-complete" element={
+                      <Route path="candidates/login-complete" element={
                         <Suspense fallback={<LoadingSpinner size="large" />}>
                           <RegisterCompletePage />
                         </Suspense>

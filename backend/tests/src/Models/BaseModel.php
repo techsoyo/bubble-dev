@@ -348,10 +348,10 @@ abstract class BaseModel
      *
      * @usage
      * ```php
-     * $id = $model->create(['name' => 'John', 'email' => 'john@local']);
+     * $id = $model->store(['name' => 'John', 'email' => 'john@local']);
      * ```
      */
-    public function create(array $data)
+    public function store(array $data)
     {
         if (empty($data)) {
             throw new \InvalidArgumentException('Data cannot be empty');
@@ -361,7 +361,7 @@ abstract class BaseModel
 
         try {
             $fields = array_keys($data);
-            $placeholders = array_map(fn ($field) => ":$field", $fields);
+            $placeholders = array_map(fn($field) => ":$field", $fields);
 
             $fieldsStr = '`' . implode('`, `', $fields) . '`';
             $placeholdersStr = implode(', ', $placeholders);
@@ -519,7 +519,7 @@ abstract class BaseModel
 
         try {
             $fields = array_keys($data);
-            $setStatements = array_map(fn ($field) => "`$field` = :$field", $fields);
+            $setStatements = array_map(fn($field) => "`$field` = :$field", $fields);
 
             $query = "UPDATE `{$this->table}` SET " . implode(', ', $setStatements) .
                 " WHERE `{$this->primaryKey}` = :id";

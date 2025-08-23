@@ -5,7 +5,7 @@ function Get-SHA256Hash {
   param([string]$content)
     
   $bytes = [System.Text.Encoding]::UTF8.GetBytes($content.Trim())
-  $sha256 = [System.Security.Cryptography.SHA256]::Create()
+  $sha256 = [System.Security.Cryptography.SHA256]::store()
   $hashBytes = $sha256.ComputeHash($bytes)
   $base64Hash = [System.Convert]::ToBase64String($hashBytes)
     

@@ -4,9 +4,27 @@ dist/
 build/
 *.log
 
+# Asegurar node_modules en raíz y frontend
+/node_modules/
+/frontend/node_modules/
+
 # Frontend bundlers
+
+# SQL dumps and local DB exports
+*.sql
+*.sql.gz
+database_backups/
+
+# Logs
+/backend/logs/
+*.log
+
+# Composer
 frontend/.next/
 frontend/.nuxt/
+/backend/.composer
+
+# Node/NPM
 frontend/.cache/
 frontend/.vite/
 frontend/coverage/
@@ -15,16 +33,19 @@ frontend/coverage/
 backend/vendor/
 backend/storage/*
 !backend/storage/.gitkeep
+# Build directories
 backend/public/uploads/*
 !backend/public/uploads/.gitkeep
 backend/.php-cs-fixer.cache
 
 # Tests y reportes
+# Coverage and reports
 test-results/
 playwright-report/
 coverage/
 varios/tests/playwright-report/
 varios/data/tree.*
+# IDEs and editors
 varios/data/lint-report.json
 
 # Entornos
@@ -33,22 +54,38 @@ varios/data/lint-report.json
 **/.env.*.local
 **/.env.production
 **/.env.backup
+# System files
 **/cookies.txt
 
 # Archivos sensibles de seguridad
+# Temporary files
 config_secure/
 security_backup/
 **/*.pem
 **/*.key
 **/*.crt
+# Sensitive folders
 **/.ssh/
 
 # Archivos temporales
+# Keep specific small files that are intentionally in repo
 *.tmp
 *.temp
 varios/data/*.zip
 varios/data/*.csv
 docum/
+
+# Ignorar carpetas llamadas `text`
+**/text/**
+
+# Patrones de debug adicionales
+*debug*
+debug.*
+*.stacktrace
+
+# Ignorar todos los archivos Markdown por defecto, excepto el README principal
+*.md
+!README.md
 
 # OS/IDE
 .DS_Store

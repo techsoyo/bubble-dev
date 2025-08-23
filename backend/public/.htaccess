@@ -1,0 +1,92 @@
+# ================================================================
+# BUBBLE OF TALENTS - PUBLIC DIRECTORY HTACCESS
+# Para uso con Apache/Laragon con DocumentRoot en backend/public
+# ================================================================
+
+RewriteEngine On
+
+# ===== MANEJO CORS =====
+<IfModule mod_headers.c>
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Access-Control-Allow-Credentials "true"
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, X-CSRF-Token"
+    Header always set Access-Control-Max-Age "86400"
+</IfModule>
+
+# ===== PREFLIGHT OPTIONS =====
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule .* - [R=204,L]
+
+# ===== ARCHIVOS ESTÁTICOS =====
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule .* - [L]
+
+# ===== DIRECTORIOS ESTÁTICOS =====
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule .* - [L]
+
+# ===== TODAS LAS REQUESTS → index.php =====
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
+
+# Configuración adicional de seguridad
+# Denegar acceso directo a archivos PHP en carpetas específicas
+<FilesMatch "\.(php)$">
+    <IfModule mod_rewrite.c>
+        RewriteEngine On
+        RewriteCond %{REQUEST_FILENAME} !^(.*/)?router\.php$
+        RewriteCond %{REQUEST_URI} !^/api/
+        RewriteRule .* - [F]
+    </IfModule>
+</FilesMatch>
+
+# Configuración de tipos MIME para archivos estáticos comunes
+<IfModule mod_mime.c>
+    AddType application/json .json
+    AddType application/javascript .js
+    AddType text/css .css
+    AddType image/svg+xml .svg
+    AddType application/font-woff .woff
+    AddType application/font-woff2 .woff2
+</IfModule>
+
+# Configuración de cache para archivos estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType application/font-woff "access plus 1 month"
+    ExpiresByType application/font-woff2 "access plus 1 month"
+</IfModule>
+
+# Compresión Brotli para mejor rendimiento
+<IfModule mod_brotli.c>
+    SetOutputFilter BROTLI_COMPRESS
+    SetEnvIfNoCase Request_URI \
+        \.(?:gif|jpg|jpeg|png|svg|zip|gz|bz2|rar|7z)$ no-brotli
+
+    # Compresión Brotli para tipos específicos
+    AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/xml text/css
+    AddOutputFilterByType BROTLI_COMPRESS application/javascript application/json
+    AddOutputFilterByType BROTLI_COMPRESS application/xml application/rss+xml
+    AddOutputFilterByType BROTLI_COMPRESS application/font-woff application/font-woff2
+</IfModule>
+
+# Compresión GZIP como fallback
+<IfModule mod_deflate.c>
+    SetOutputFilter DEFLATE
+    SetEnvIfNoCase Request_URI \
+        \.(?:gif|jpg|jpeg|png|svg|zip|gz|bz2|rar|7z)$ no-gzip dont-vary
+
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+    AddOutputFilterByType DEFLATE application/javascript application/json
+    AddOutputFilterByType DEFLATE application/xml application/rss+xml
+    AddOutputFilterByType DEFLATE application/font-woff application/font-woff2
+</IfModule>

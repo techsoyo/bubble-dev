@@ -21,10 +21,10 @@ if (!file_exists($filePath)) {
 
 $content = file_get_contents($filePath);
 
-// 4. Obtener el prompt base de OllamaService
-require_once __DIR__ . '/../../src/Services/OllamaService.php';
+// // 4. Obtener el prompt base de OllamaService
+// require_once __DIR__ . '/../../src/Services/OllamaService.php';
 
-use Backend\Services\OllamaService;
+// use Backend\Services\OllamaService;
 
 // Construir el prompt exactamente como en analyzeCV, pero solo hasta el armado del prompt
 $prompt = "Analiza el siguiente CV en texto plano y extrae la información en formato JSON estructurado con los siguientes campos:aunque algunos estén vacíos):\n\n" .

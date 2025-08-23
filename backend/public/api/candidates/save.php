@@ -6,7 +6,7 @@
  * Guarda toda la información estructurada del candidato en las tablas correspondientes
  */
 
-require_once __DIR__ . '/../../../config/bootstrap.php';
+require_once dirname(__DIR__, 4) . '/config/bootstrap.php';
 
 use Utils\ResponseHelper;
 use Utils\Database;

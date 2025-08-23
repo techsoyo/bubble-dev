@@ -9,18 +9,19 @@ import { toast } from '../../components/ui/use-toast';
 import { useFormErrors } from '../../hooks/useFormErrors';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../lib/i18n/LanguageContext';
+import { saveCandidateFromAI } from '../../lib/apiService';
 
 // Definir configuración de API internamente
 const API_CONFIG = {
-  BASE_URL: '/api',
+  BASE_URL: 'http://localhost:8000', // URL completa del backend
   ENDPOINTS: {
     login: '/auth/login',
-    register: '/auth/register',
+    register: '/candidates/login',
     forgotPassword: '/auth/forgot-password',
     resetPassword: '/auth/reset-password',
     userProfile: '/user/profile',
     updateProfile: '/user/update-profile',
-    PDF_PARSE: '/parse-cv'
+    PDF_PARSE: '/api/analyze_cv.php' // Endpoint correcto
   },
   timeout: 10000
 };
@@ -40,6 +41,7 @@ export default function RegisterPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [processedCVData, setProcessedCVData] = useState<Record<string, unknown> | null>(null);
   const { errors, setError, clearError, clearAllErrors, hasError } = useFormErrors();
   // Usamos solo el refreshSession del nuevo contexto de autenticación
   const { refreshSession } = useAuth();
@@ -110,6 +112,9 @@ export default function RegisterPage() {
     if (!form.cv) {
       setError('cv', 'Debes subir tu CV en formato PDF');
       isValid = false;
+    } else if (!processedCVData) {
+      setError('cv', 'Debes procesar el CV antes de completar el registro');
+      isValid = false;
     }
 
     return isValid;
@@ -126,7 +131,7 @@ export default function RegisterPage() {
 
     try {
       const formData = new FormData();
-      formData.append('pdf_file', form.cv);
+      formData.append('cv_file', form.cv); // Cambiar por cv_file para coincidir con backend
 
       // Mostrar un mensaje de que se está procesando el CV
       toast({
@@ -149,46 +154,28 @@ export default function RegisterPage() {
       }
 
       if (response.ok && data && data.success) {
+        console.log('[Register] CV procesado exitosamente. Datos recibidos:', data);
+        console.log('[Register] structured_data:', data.structured_data);
+
+        // Guardar los datos procesados para usar en el registro
+        setProcessedCVData(data.structured_data || {});
+
         toast({
           title: 'CV procesado correctamente',
-          description: 'El archivo se ha subido y analizado con éxito. Por favor revisa y confirma la información extraída.',
+          description: 'El archivo se ha subido y analizado con éxito. Ahora puedes proceder con el registro.',
           variant: 'default'
         });
 
-        // Intentar mostrar el modal directamente usando UploadCV como componente independiente
-        // Crear un contenedor modal en el DOM
-        const modalContainer = document.createElement('div');
-        modalContainer.id = 'cv-modal-container';
-        document.body.appendChild(modalContainer);
-
-        // Importar dinámicamente el componente UploadCV
-        import('../../components/UploadCV').then((UploadCVModule) => {
-          const UploadCV = UploadCVModule.default;
-
-          // Importamos React y ReactDOM de manera dinámica también
-          import('react').then((ReactModule) => {
-            import('react-dom/client').then((ReactDOMModule) => {
-              // Crear un root con createRoot (React 18+)
-              const root = ReactDOMModule.createRoot(modalContainer);
-
-              // Renderizar el componente UploadCV con las propiedades correctas
-              root.render(
-                ReactModule.createElement(UploadCV, {
-                  jobId: 'new',
-                  onSuccess: (candidate) => {
-                    console.log('Candidato procesado:', candidate);
-                    // Cerrar el modal después de procesar
-                    root.unmount();
-                    document.body.removeChild(modalContainer);
-                  }
-                })
-              );
-            });
-          });
-        }).catch(err => {
-          console.error('Error cargando el componente UploadCV:', err);
-          setError('cv', 'Error mostrando el modal de confirmación');
-        });
+        // Llenar automáticamente algunos campos del formulario si están disponibles
+        if (data.structured_data) {
+          const cvData = data.structured_data as any;
+          if (cvData.email && !form.email) {
+            setForm(prev => ({ ...prev, email: cvData.email }));
+          }
+          if (cvData.nombre && !form.username) {
+            setForm(prev => ({ ...prev, username: cvData.nombre }));
+          }
+        }
       } else if (data && data.message) {
         setError('cv', data.message);
       } else {
@@ -212,31 +199,42 @@ export default function RegisterPage() {
     clearAllErrors();
 
     try {
-      // TODO: Reemplazar con API real cuando esté disponible
-      // Por ahora, simulamos un registro exitoso
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Si tenemos datos del CV procesado, usarlos para crear el candidato
+      if (processedCVData) {
+        console.log('[Register] Guardando candidato con datos del CV:', processedCVData);
 
-      // Para compatibilidad temporal durante la migración
-      // Estos valores serán eliminados una vez que el backend esté implementado
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userEmail', form.email);
-      localStorage.setItem('userRole', 'candidate');
+        // Enviar los datos del CV procesado directamente al endpoint save_v2.php
+        const result = await saveCandidateFromAI(processedCVData);
 
-      // NOTA: En la implementación final, la siguiente línea se reemplazará
-      // por el registro real a través de SecureAuthManager.register()
-      // que usará cookies HTTP-only para autenticación
+        console.log('[Register] Respuesta del guardado:', result);
 
-      // Refrescar el estado de autenticación para reflejar el nuevo usuario
-      await refreshSession();
+        if (result.success) {
+          toast({
+            title: 'Registro completado',
+            description: `Tu cuenta ha sido creada exitosamente. ID: ${result.data?.candidate_id || 'N/A'}`,
+            variant: 'default'
+          });
 
-      setSuccess(true);
-      toast({
-        title: 'Registro completado',
-        description: 'Tu cuenta ha sido creada exitosamente.',
-        variant: 'default'
-      });
+          // Para compatibilidad temporal durante la migración
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('userEmail', form.email);
+          localStorage.setItem('userRole', 'candidate');
+          localStorage.setItem('candidateId', result.data?.candidate_id || '');
+
+          // Refrescar el estado de autenticación
+          await refreshSession();
+          setSuccess(true);
+        } else {
+          throw new Error(result.message || 'Error al guardar los datos del candidato');
+        }
+      } else {
+        // Si no hay datos del CV, mostrar error
+        setError('general', 'Debes procesar tu CV antes de completar el registro.');
+        return;
+      }
     } catch (error) {
-      setError('general', 'Error en el registro. Inténtalo nuevamente.');
+      console.error('[Register] Error:', error);
+      setError('general', error instanceof Error ? error.message : 'Error en el registro. Inténtalo nuevamente.');
     } finally {
       setIsRegistering(false);
     }

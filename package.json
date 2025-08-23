@@ -4,7 +4,9 @@
 	"scripts": {
 		"dev": "concurrently -n \"FE,BE\" -c \"bgBlue.bold,bgGreen.bold\" \"pnpm dev:fe\" \"pnpm dev:be\"",
 		"dev:fe": "cd frontend && pnpm dev",
-		"dev:be": "php -S localhost:8000 -t backend/public"
+		"dev:be": "cd backend && php -S localhost:8000 -t public router.php",
+		"cors:check": "node scripts/cors-check.mjs",
+		"test:cors": "node scripts/cors-check.mjs"
 	},
 	"devDependencies": {
 		"concurrently": "^9.2.0",

@@ -5,7 +5,7 @@
  * Obtiene las aplicaciones de un candidato específico
  */
 
-require_once dirname(__DIR__) . '/bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 
 // Content Type header (CORS ya configurado en bootstrap.php via api/bootstrap.php)
 header('Content-Type: application/json');

@@ -18,7 +18,7 @@ class ChatbotAnalytics extends BaseModel
     /**
      * Crear nuevo registro de analytics
      */
-    public function create($data)
+    public function store($data)
     {
         try {
             $sql = "INSERT INTO {$this->table} (conversation_id, event_name, event_data, node_id, option_id, user_ip, user_agent, session_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";

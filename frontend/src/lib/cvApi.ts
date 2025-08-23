@@ -8,10 +8,10 @@ import { CvFormData } from '../domain/cvSchema';
  */
 export async function parseCv(file: File) {
   const fd = new FormData();
-  fd.append('file', file);
+  fd.append('cv_file', file); // Cambiar 'file' por 'cv_file' para que coincida con el backend
 
   try {
-    const res = await fetch(new URL('/api/ai/analyze-cv.php', env.API_BASE_URL), {
+    const res = await fetch(new URL('/api/analyze_cv.php', env.API_BASE_URL), {
       method: 'POST',
       body: fd
     });
@@ -19,17 +19,20 @@ export async function parseCv(file: File) {
     const json = await res.json().catch(() => ({}));
 
     // Si el análisis fue exitoso, devolver los datos estructurados
-    if (res.status === 200 && json.structured_data) {
+    if (res.status === 200 && json.ok && json.data?.structured_data) {
       return {
         status: res.status,
-        json: json.structured_data,
-        processing_info: json.processing_info
+        json: {
+          success: true,
+          data: json.data.structured_data
+        },
+        processing_info: json.data.processing_info
       };
     } else {
       return {
         status: res.status,
         json: {},
-        error: json.error || 'Error procesando CV'
+        error: json.message || json.error || 'Error procesando CV'
       };
     }
   } catch (error) {

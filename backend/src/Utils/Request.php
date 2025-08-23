@@ -4,111 +4,84 @@ namespace Utils;
 
 class Request
 {
-    /** Devuelve el cuerpo JSON como array; lanza si es inválido */
-    public static function json(): array
+    private array $query;
+    private array $body;
+    public  array $files;
+    private array $headers;
+    private array $cookies;
+    private string $method;
+    private string $uri;
+
+    public function __construct(
+        array $query = [],
+        array $body = [],
+        array $files = [],
+        array $headers = [],
+        array $cookies = [],
+        string $method = 'GET',
+        string $uri = '/'
+    ) {
+        $this->query   = $query;
+        $this->body    = $body;
+        $this->files   = $files;
+        $this->headers = $headers;
+        $this->cookies = $cookies;
+        $this->method  = $method;
+        $this->uri     = $uri;
+    }
+
+    public function getMethod(): string
     {
-        $raw = file_get_contents('php://input') ?: '';
-        $data = json_decode($raw, true);
-        if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
-            throw new \InvalidArgumentException('JSON inválido en el cuerpo de la petición');
+        return $this->method;
+    }
+    public function getUri(): string
+    {
+        return $this->uri;
+    }
+
+    public function getQuery(?string $key = null, $default = null)
+    {
+        if ($key === null) return $this->query;
+        return $this->query[$key] ?? $default;
+    }
+
+    public function getBody(): array
+    {
+        return $this->body;
+    }
+
+    public function input(string $key, $default = null)
+    {
+        if (array_key_exists($key, $this->body))  return $this->body[$key];
+        if (array_key_exists($key, $this->query)) return $this->query[$key];
+        return $default;
+    }
+
+    public function all(): array
+    {
+        return array_merge($this->query, $this->body);
+    }
+
+    public function file(string $key): ?array
+    {
+        return $this->files[$key] ?? null;
+    }
+
+    public function header(string $name, $default = null)
+    {
+        $name = strtolower($name);
+        foreach ($this->headers as $k => $v) {
+            if (strtolower($k) === $name) return $v;
         }
-        return is_array($data) ? $data : [];
+        return $default;
     }
 
-    public static function query(string $key, $default = null)
+    public function bearerToken(): ?string
     {
-        return $_GET[$key] ?? $default;
-    }
-
-    public static function header(string $name, $default = null)
-    {
-        $key = 'HTTP_' . strtoupper(str_replace('-', '_', $name));
-        return $_SERVER[$key] ?? $default;
-    }
-
-    /** Solo el token Bearer (sin verificar) */
-    public static function bearer(): ?string
-    {
-        $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['Authorization'] ?? null;
-        if (!$auth && function_exists('getallheaders')) {
-            $headers = getallheaders();
-            if (isset($headers['Authorization'])) {
-                $auth = $headers['Authorization'];
-            }
-        }
-        if ($auth && preg_match('/^Bearer\s+(.+)$/i', $auth, $m)) {
-            return trim($m[1]);
+        $auth = $this->header('Authorization');
+        if ($auth && stripos($auth, 'Bearer ') === 0) {
+            return trim(substr($auth, 7));
         }
         return null;
-    }
-
-    /** Verifica el token y devuelve payload (lanza 401 si no es válido) */
-    public static function authUser(array $options = []): array
-    {
-        $token = self::bearer();
-        if (!$token) {
-            throw new \RuntimeException('Authorization Bearer token requerido');
-        }
-
-        $defaults = [
-          'issuer'         => config('JWT_ISSUER', 'bubble-talents-api'),
-          'audience'       => config('JWT_AUDIENCE', 'bubble-talents-app'),
-          'time_tolerance' => 300,
-        ];
-        $opts = array_replace($defaults, $options);
-
-        $payload = \Utils\JWT::verify($token, $opts);
-        if ($payload === false) {
-            throw new \RuntimeException('Token inválido o expirado');
-        }
-        return $payload;
-    }
-
-    /* ==== Versión OO, por si la usas en endpoints ==== */
-
-    public function getUser(): ?array
-    {
-        $token = $this->getAuthToken();
-        if (!$token) {
-            return null;
-        }
-
-        $opts = [
-          'issuer'         => config('JWT_ISSUER', 'bubble-talents-api'),
-          'audience'       => config('JWT_AUDIENCE', 'bubble-talents-app'),
-          'time_tolerance' => 300,
-        ];
-        try {
-            $payload = \Utils\JWT::verify($token, $opts);
-            return $payload === false ? null : $payload;
-        } catch (\Throwable $e) {
-            return null;
-        }
-    }
-
-    public function getUserOrFail(array $options = []): array
-    {
-        $token = $this->getAuthToken();
-        if (!$token) {
-            throw new \RuntimeException('Authorization Bearer token requerido');
-        }
-
-        $defaults = [
-          'issuer'         => config('JWT_ISSUER', 'bubble-talents-api'),
-          'audience'       => config('JWT_AUDIENCE', 'bubble-talents-app'),
-          'time_tolerance' => 300,
-        ];
-        $opts = array_replace($defaults, $options);
-
-        $payload = \Utils\JWT::verify($token, $opts);
-        if ($payload === false) {
-            throw new \RuntimeException('Token inválido o expirado');
-        }
-        return $payload;
-    }
-
-    private function getAuthToken(): ?string
-    {
-        return self::bearer();
     }
 }

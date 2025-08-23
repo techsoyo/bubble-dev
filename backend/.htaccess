@@ -1,16 +1,44 @@
-# CORS Configuration
+# ================================================================
+# BUBBLE OF TALENTS - APACHE/LARAGON CONFIGURATION
+# ================================================================
+
+# CORS Configuration para desarrollo
 <IfModule mod_headers.c>
     # Allow CORS for development frontend
-    Header always set Access-Control-Allow-Origin "http://localhost:3002"
+    Header always set Access-Control-Allow-Origin "*"
     Header always set Access-Control-Allow-Credentials "true"
-    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, X-CSRF-Token"
     Header always set Access-Control-Max-Age "86400"
 </IfModule>
 
-# Handle preflight OPTIONS requests
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    
+    # ===== PASO 1: MANEJO DE OPCIONES PREFLIGHT =====
     RewriteCond %{REQUEST_METHOD} OPTIONS
-    RewriteRule .* - [R=200,L]
+    RewriteRule .* - [R=204,L]
+    
+    # ===== PASO 2: ARCHIVOS ESTÁTICOS - SERVIR DIRECTAMENTE =====
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteCond %{REQUEST_FILENAME} \.(js|css|png|jpg|gif|ico|pdf|woff|woff2|ttf|eot|svg)$ [NC]
+    RewriteRule .* - [L]
+    
+    # ===== PASO 3: TODAS LAS REQUESTS → public/index.php =====
+    # Esto garantiza que TODO pase por el flujo correcto:
+    # Apache → public/index.php → AppRouter → Controllers
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/index.php [QSA,L]
+    
+    # ===== PASO 4: SI YA ESTAMOS EN /public/, usar index.php =====
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^public/(.*)$ public/index.php [QSA,L]
+</IfModule>
+
+# Seguridad adicional
+<Files ~ "^\.">
+    Order allow,deny
+    Deny from all
+</Files>
 </IfModule>

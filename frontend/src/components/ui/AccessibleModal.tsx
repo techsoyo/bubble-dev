@@ -103,7 +103,8 @@ export const AccessibleModal: React.FC<AccessibleModalProps> = ({
 
     const modalContent = (
         <div
-            className="fixed inset-0 z-50 overflow-y-auto"
+            className="fixed inset-0 overflow-y-auto"
+            style={{ zIndex: 'var(--z-modal)' }}
             role="presentation"
         >
             {/* Backdrop */}

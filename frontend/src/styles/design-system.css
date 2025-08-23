@@ -4,6 +4,10 @@
   --color-primary: #FF4785;
   --color-primary-hover: #FF3575;
   --color-primary-light: #ffcadc;
+  --color-primary-opacity-5: rgba(255, 71, 133, 0.05);
+  --color-primary-opacity-20: rgba(255, 71, 133, 0.20);
+  --color-primary-opacity-30: rgba(255, 71, 133, 0.30);
+  --color-primary-opacity-90: rgba(255, 71, 133, 0.90);
   --color-secondary: #2F2F2F;
   --color-white: #FFFFFF;
   --color-gray-50: #f8f9fa;
@@ -28,22 +32,36 @@
   --color-info-light: #d1ecf1;
 
   /* Espaciado */
-  --spacing-xs: 0.25rem;   /* 4px */
-  --spacing-sm: 0.5rem;    /* 8px */
-  --spacing-md: 1rem;      /* 16px */
-  --spacing-lg: 1.5rem;    /* 24px */
-  --spacing-xl: 2rem;      /* 32px */
-  --spacing-2xl: 3rem;     /* 48px */
-  --spacing-3xl: 4rem;     /* 64px */
-  --spacing-4xl: 5rem;     /* 80px */
-  --spacing-5xl: 6rem;     /* 96px */
+  --spacing-xs: 0.25rem;
+  /* 4px */
+  --spacing-sm: 0.5rem;
+  /* 8px */
+  --spacing-md: 1rem;
+  /* 16px */
+  --spacing-lg: 1.5rem;
+  /* 24px */
+  --spacing-xl: 2rem;
+  /* 32px */
+  --spacing-2xl: 3rem;
+  /* 48px */
+  --spacing-3xl: 4rem;
+  /* 64px */
+  --spacing-4xl: 5rem;
+  /* 80px */
+  --spacing-5xl: 6rem;
+  /* 96px */
 
   /* Bordes y radios */
-  --border-radius-sm: 0.25rem;  /* 4px */
-  --border-radius-md: 0.5rem;   /* 8px */
-  --border-radius-lg: 1rem;     /* 16px */
-  --border-radius-xl: 1.5rem;   /* 24px */
-  --border-radius-2xl: 2rem;    /* 32px */
+  --border-radius-sm: 0.25rem;
+  /* 4px */
+  --border-radius-md: 0.5rem;
+  /* 8px */
+  --border-radius-lg: 1rem;
+  /* 16px */
+  --border-radius-xl: 1.5rem;
+  /* 24px */
+  --border-radius-2xl: 2rem;
+  /* 32px */
   --border-radius-full: 9999px;
 
   /* Sombras */
@@ -52,18 +70,43 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+  --shadow-toast: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+  /* Breakpoints para responsive */
+  --breakpoint-sm: 640px;
+  /* Small devices (mobile landscape) */
+  --breakpoint-md: 768px;
+  /* Medium devices (tablet) */
+  --breakpoint-lg: 1024px;
+  /* Large devices (desktop) */
+  --breakpoint-xl: 1280px;
+  /* Extra large devices (large desktop) */
+  --breakpoint-2xl: 1536px;
+  /* 2X large devices (larger desktop) */
 
   /* Tipografía */
-  --font-size-xs: 0.75rem;    /* 12px */
-  --font-size-sm: 0.875rem;   /* 14px */
-  --font-size-base: 1rem;     /* 16px */
-  --font-size-lg: 1.125rem;   /* 18px */
-  --font-size-xl: 1.25rem;    /* 20px */
-  --font-size-2xl: 1.5rem;    /* 24px */
-  --font-size-3xl: 1.875rem;  /* 30px */
-  --font-size-4xl: 2.25rem;   /* 36px */
-  --font-size-5xl: 3rem;      /* 48px */
-  --font-size-6xl: 3.75rem;   /* 60px */
+  --font-size-xs: 0.75rem;
+  /* 12px */
+  --font-size-sm: 0.875rem;
+  /* 14px */
+  --font-size-base: 1rem;
+  /* 16px */
+  --font-size-lg: 1.125rem;
+  /* 18px */
+  --font-size-xl: 1.25rem;
+  /* 20px */
+  --font-size-2xl: 1.5rem;
+  /* 24px */
+  --font-size-3xl: 1.875rem;
+  /* 30px */
+  --font-size-4xl: 2.25rem;
+  /* 36px */
+  --font-size-5xl: 3rem;
+  /* 48px */
+  --font-size-6xl: 3.75rem;
+  /* 60px */
 
   --font-weight-normal: 400;
   --font-weight-medium: 500;
@@ -82,14 +125,28 @@
   --transition-normal: 300ms ease-in-out;
   --transition-slow: 500ms ease-in-out;
 
-  /* Z-index */
+  /* Z-index - Sistema unificado de capas */
+  /* Jerarquía: Base (1000) → Interactivos → Overlays → Críticos */
   --z-dropdown: 1000;
+  /* Menús desplegables */
   --z-sticky: 1020;
+  /* Headers pegajosos */
   --z-fixed: 1030;
+  /* Elementos fijos normales */
   --z-modal-backdrop: 1040;
+  /* Fondos de modales */
   --z-modal: 1050;
+  /* Contenido de modales */
   --z-popover: 1060;
+  /* Popovers y hints */
   --z-tooltip: 1070;
+  /* Tooltips */
+  --z-toast: 1080;
+  /* Notificaciones toast */
+  --z-chatbot: 1090;
+  /* Chatbot flotante */
+  --z-debug: 1095;
+  /* Elementos de debug */
 }
 
 /* Clases utilitarias personalizadas */
@@ -101,8 +158,28 @@
   background-color: var(--color-primary-hover);
 }
 
+.bg-primary-hover {
+  background-color: var(--color-primary-hover);
+}
+
+.bg-primary-opacity-5 {
+  background-color: var(--color-primary-opacity-5);
+}
+
+.bg-primary-opacity-90 {
+  background-color: var(--color-primary-opacity-90);
+}
+
 .text-primary {
   color: var(--color-primary);
+}
+
+.border-primary {
+  border-color: var(--color-primary);
+}
+
+.border-primary:hover {
+  border-color: var(--color-primary-hover);
 }
 
 .text-secondary {
@@ -155,6 +232,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -165,9 +243,12 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }
@@ -180,7 +261,8 @@
 /* Responsive breakpoints */
 @media (max-width: 640px) {
   :root {
-    --font-size-4xl: 1.875rem; /* Reducir en móvil */
+    --font-size-4xl: 1.875rem;
+    /* Reducir en móvil */
     --font-size-5xl: 2.25rem;
   }
 }
@@ -200,5 +282,253 @@
     --color-primary: #FF0066;
     --color-secondary: #000000;
     --color-gray-600: #000000;
+  }
+}
+
+/* === Clases de utilidad para sombras === */
+.shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+
+.shadow-md {
+  box-shadow: var(--shadow-md);
+}
+
+.shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+.shadow-xl {
+  box-shadow: var(--shadow-xl);
+}
+
+.shadow-2xl {
+  box-shadow: var(--shadow-2xl);
+}
+
+.shadow-inner {
+  box-shadow: var(--shadow-inner);
+}
+
+.shadow-glass {
+  box-shadow: var(--shadow-glass);
+}
+
+.shadow-toast {
+  box-shadow: var(--shadow-toast);
+}
+
+.shadow-none {
+  box-shadow: none;
+}
+
+/* Hover states para sombras */
+.hover\:shadow-sm:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.hover\:shadow-md:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.hover\:shadow-lg:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.hover\:shadow-xl:hover {
+  box-shadow: var(--shadow-xl);
+}
+
+/* === Breakpoints responsive estandarizados === */
+/* Small devices (640px and up) */
+@media (min-width: 640px) {
+  .sm\:block {
+    display: block;
+  }
+
+  .sm\:hidden {
+    display: none;
+  }
+
+  .sm\:flex {
+    display: flex;
+  }
+
+  .sm\:grid {
+    display: grid;
+  }
+
+  .sm\:px-6 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .sm\:py-4 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .sm\:text-sm {
+    font-size: var(--font-size-sm);
+  }
+
+  .sm\:text-base {
+    font-size: var(--font-size-base);
+  }
+
+  .sm\:shadow-md {
+    box-shadow: var(--shadow-md);
+  }
+}
+
+/* Medium devices (768px and up) */
+@media (min-width: 768px) {
+  .md\:block {
+    display: block;
+  }
+
+  .md\:hidden {
+    display: none;
+  }
+
+  .md\:flex {
+    display: flex;
+  }
+
+  .md\:grid {
+    display: grid;
+  }
+
+  .md\:px-8 {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .md\:py-6 {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .md\:text-base {
+    font-size: var(--font-size-base);
+  }
+
+  .md\:text-lg {
+    font-size: var(--font-size-lg);
+  }
+
+  .md\:max-w-md {
+    max-width: 28rem;
+  }
+
+  .md\:max-w-lg {
+    max-width: 32rem;
+  }
+
+  .md\:shadow-lg {
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+/* Large devices (1024px and up) */
+@media (min-width: 1024px) {
+  .lg\:block {
+    display: block;
+  }
+
+  .lg\:hidden {
+    display: none;
+  }
+
+  .lg\:flex {
+    display: flex;
+  }
+
+  .lg\:grid {
+    display: grid;
+  }
+
+  .lg\:px-8 {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .lg\:py-8 {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+
+  .lg\:text-lg {
+    font-size: var(--font-size-lg);
+  }
+
+  .lg\:text-xl {
+    font-size: var(--font-size-xl);
+  }
+
+  .lg\:max-w-4xl {
+    max-width: 56rem;
+  }
+
+  .lg\:shadow-xl {
+    box-shadow: var(--shadow-xl);
+  }
+}
+
+/* Extra large devices (1280px and up) */
+@media (min-width: 1280px) {
+  .xl\:block {
+    display: block;
+  }
+
+  .xl\:hidden {
+    display: none;
+  }
+
+  .xl\:flex {
+    display: flex;
+  }
+
+  .xl\:px-12 {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+
+  .xl\:py-12 {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+
+  .xl\:text-xl {
+    font-size: var(--font-size-xl);
+  }
+
+  .xl\:text-2xl {
+    font-size: var(--font-size-2xl);
+  }
+
+  .xl\:max-w-6xl {
+    max-width: 72rem;
+  }
+}
+
+/* 2X large devices (1536px and up) */
+@media (min-width: 1536px) {
+  .\32xl\:px-16 {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+
+  .\32xl\:py-16 {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+
+  .\32xl\:text-2xl {
+    font-size: var(--font-size-2xl);
+  }
+
+  .\32xl\:text-3xl {
+    font-size: var(--font-size-3xl);
   }
 }

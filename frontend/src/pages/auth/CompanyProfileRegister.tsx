@@ -1,23 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import ApiService from '@/services/ApiService';
 
-// Definir perfiles de empresa internamente
-const MOCK_PROFILES_COMPANY = [
-    { id: 1, nombre: 'Admin Principal', email: 'admin@example.com', perfil: 'Admin' },
-    { id: 2, nombre: 'Responsable RRHH', email: 'rrhh@example.com', perfil: 'RRHH' },
-    { id: 3, nombre: 'Reclutador 1', email: 'recruiter1@example.com', perfil: 'Reclutador' },
-    { id: 4, nombre: 'Reclutador 2', email: 'recruiter2@example.com', perfil: 'Reclutador' },
-    { id: 5, nombre: 'Team Lead', email: 'teamlead@example.com', perfil: 'Manager/Team Lead' }
-];
-
-
-// Ocultar 'Admin' si ya existe un admin en el mock
-const adminExists = MOCK_PROFILES_COMPANY.some(u => u.perfil === 'Admin');
-const perfiles = [
-    ...(!adminExists ? ['Admin'] : []),
+// Definir perfiles disponibles para empresa
+const DEFAULT_COMPANY_PROFILES = [
+    'Admin',
     'RRHH',
     'Manager/Team Lead',
     'Reclutador',
@@ -36,18 +26,80 @@ export default function CompanyProfileRegister() {
     });
     const [passwordError, setPasswordError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [availableProfiles, setAvailableProfiles] = useState<string[]>(DEFAULT_COMPANY_PROFILES);
+    const [error, setError] = useState('');
+
+    // Cargar perfiles disponibles desde la API
+    useEffect(() => {
+        const loadAvailableProfiles = async () => {
+            try {
+                const response = await ApiService.get('company/available-profiles');
+                if (response.success && response.data?.profiles) {
+                    setAvailableProfiles(response.data.profiles);
+                } else {
+                    setAvailableProfiles(DEFAULT_COMPANY_PROFILES);
+                }
+            } catch (error) {
+                console.warn('Error loading available profiles, using defaults:', error);
+                setAvailableProfiles(DEFAULT_COMPANY_PROFILES);
+            }
+        };
+
+        loadAvailableProfiles();
+    }, []);
 
     const handleChange = (field: string, value: string) => setForm(f => ({ ...f, [field]: value }));
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
         if (form.password !== form.confirmPassword) {
             setPasswordError('Las contraseñas no coinciden');
             return;
         }
+
+        if (!form.nombre || !form.email || !form.password || !form.perfil) {
+            setError('Todos los campos requeridos deben estar completos');
+            return;
+        }
+
         setPasswordError('');
-        setSuccess(true);
-        // Aquí iría la lógica de registro real o mock
+        setError('');
+        setIsLoading(true);
+
+        try {
+            const response = await ApiService.post('company/register-user', {
+                name: form.nombre,
+                email: form.email,
+                password: form.password,
+                profile: form.perfil,
+                phone: form.telefono,
+                avatar: form.avatar,
+                notes: form.notas,
+            });
+
+            if (response.success) {
+                setSuccess(true);
+                setForm({
+                    nombre: '',
+                    email: '',
+                    password: '',
+                    confirmPassword: '',
+                    perfil: '',
+                    telefono: '',
+                    avatar: '',
+                    notas: '',
+                });
+            } else {
+                setError(response.message || 'Error al registrar usuario');
+            }
+        } catch (error) {
+            console.error('Error registering company user:', error);
+            setError('Error al registrar usuario. Por favor, intenta de nuevo.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -75,11 +127,12 @@ export default function CompanyProfileRegister() {
                             <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
                             <Input id="confirmPassword" name="confirmPassword" type="password" value={form.confirmPassword} onChange={e => handleChange('confirmPassword', e.target.value)} required placeholder="Repite la contraseña" autoComplete="new-password" />
                             {passwordError && <div className="text-red-500 text-sm">{passwordError}</div>}
+                            {error && <div className="text-red-500 text-sm">{error}</div>}
 
                             <Label htmlFor="perfil">Perfil</Label>
                             <select id="perfil" name="perfil" value={form.perfil} onChange={e => handleChange('perfil', e.target.value)} required className="w-full border rounded px-3 py-2">
                                 <option value="">Selecciona un perfil</option>
-                                {perfiles.map(p => <option key={p} value={p}>{p}</option>)}
+                                {availableProfiles.map(p => <option key={p} value={p}>{p}</option>)}
                             </select>
 
                             <Label htmlFor="telefono">Teléfono</Label>
@@ -91,7 +144,9 @@ export default function CompanyProfileRegister() {
                             <Label htmlFor="notas">Notas</Label>
                             <Input id="notas" name="notas" value={form.notas} onChange={e => handleChange('notas', e.target.value)} placeholder="Notas internas (opcional)" />
 
-                            <Button type="submit" className="bg-[#FF4785] w-full">Registrar</Button>
+                            <Button type="submit" className="bg-[#FF4785] w-full" disabled={isLoading}>
+                                {isLoading ? 'Registrando...' : 'Registrar'}
+                            </Button>
                         </form>
                     )}
                 </CardContent>

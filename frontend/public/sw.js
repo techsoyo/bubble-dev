@@ -19,11 +19,11 @@ const API_CACHE = 'bubble-talents-api-v1';
 // Static assets to cache immediately
 const STATIC_ASSETS = [
     '/',
-    '/static/js/main.js',
-    '/static/css/main.css',
+    '/assets/index-zPkeikH6.js',
+    '/assets/index-BLSAxj3v.css',
     '/manifest.json',
     '/favicon.ico',
-    '/static/media/logo.svg'
+    '/favicon.svg'
 ];
 
 // API endpoints to cache
@@ -122,11 +122,15 @@ self.addEventListener('fetch', (event) => {
  * Check if request is for static asset
  */
 function isStaticAsset(url) {
-    return url.pathname.startsWith('/static/') ||
+    return url.pathname.startsWith('/assets/') ||
         url.pathname.includes('.js') ||
         url.pathname.includes('.css') ||
         url.pathname.includes('.woff') ||
-        url.pathname.includes('.ttf');
+        url.pathname.includes('.woff2') ||
+        url.pathname.includes('.ttf') ||
+        url.pathname === '/manifest.json' ||
+        url.pathname === '/favicon.ico' ||
+        url.pathname === '/favicon.svg';
 }
 
 /**

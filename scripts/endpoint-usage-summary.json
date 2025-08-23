@@ -1,0 +1,184 @@
+[
+  {
+    "legacy": "api/health.php",
+    "rest": "/api/health",
+    "files": []
+  },
+  {
+    "legacy": "test.php",
+    "rest": "/api/test",
+    "files": []
+  },
+  {
+    "legacy": "api/departments.php",
+    "rest": "/api/departments",
+    "files": []
+  },
+  {
+    "legacy": "api/culture.php",
+    "rest": "/api/culture",
+    "files": []
+  },
+  {
+    "legacy": "api/news.php",
+    "rest": "/api/news",
+    "files": []
+  },
+  {
+    "legacy": "api/notifications.php",
+    "rest": "/api/notifications",
+    "files": []
+  },
+  {
+    "legacy": "api/social_logins.php",
+    "rest": "/api/social-logins",
+    "files": []
+  },
+  {
+    "legacy": "api/interviews.php",
+    "rest": "/api/interviews",
+    "files": []
+  },
+  {
+    "legacy": "api/job_benefits.php",
+    "rest": "/api/jobs/benefits",
+    "files": []
+  },
+  {
+    "legacy": "api/job_requirements.php",
+    "rest": "/api/jobs/requirements",
+    "files": []
+  },
+  {
+    "legacy": "api/job_skills.php",
+    "rest": "/api/jobs/skills",
+    "files": []
+  },
+  {
+    "legacy": "api/candidates.php",
+    "rest": "/api/candidates",
+    "files": []
+  },
+  {
+    "legacy": "api/save-candidate.php",
+    "rest": "/api/candidates/save",
+    "files": [
+      "C:\\laragon\\www\\bubble_of_talents_1.0\\frontend\\src\\pages\\auth\\CandidateAuthPage.tsx"
+    ]
+  },
+  {
+    "legacy": "api/candidate-experiences.php",
+    "rest": "/api/candidates/experiences",
+    "files": [
+      "C:\\laragon\\www\\bubble_of_talents_1.0\\frontend\\src\\pages\\dashboard\\CDDashboard.tsx"
+    ]
+  },
+  {
+    "legacy": "api/candidate_skills.php",
+    "rest": "/api/candidates/skills",
+    "files": []
+  },
+  {
+    "legacy": "api/candidate-applications.php",
+    "rest": "/api/candidates/applications",
+    "files": []
+  },
+  {
+    "legacy": "api/candidate-notifications.php",
+    "rest": "/api/candidates/notifications",
+    "files": [
+      "C:\\laragon\\www\\bubble_of_talents_1.0\\frontend\\src\\pages\\dashboard\\CDDashboard.tsx"
+    ]
+  },
+  {
+    "legacy": "api/chatbot.php",
+    "rest": "/api/ai/chatbot",
+    "files": []
+  },
+  {
+    "legacy": "test_chatbot_crud.php",
+    "rest": "/api/ai/chatbot-test",
+    "files": [
+      "C:\\laragon\\www\\bubble_of_talents_1.0\\frontend\\src\\components\\ChatBotManage.tsx"
+    ]
+  },
+  {
+    "legacy": "api/chatbot_decision_tree.php",
+    "rest": "/api/ai/chatbot-decision-tree",
+    "files": []
+  },
+  {
+    "legacy": "api/chatbot_analytics.php",
+    "rest": "/api/ai/chatbot-analytics",
+    "files": []
+  },
+  {
+    "legacy": "api/change-password.php",
+    "rest": "/api/users/change-password",
+    "files": [
+      "C:\\laragon\\www\\bubble_of_talents_1.0\\frontend\\src\\lib\\apiService.ts"
+    ]
+  },
+  {
+    "legacy": "api/get-notification-preferences.php",
+    "rest": "/api/notifications/preferences",
+    "files": [
+      "C:\\laragon\\www\\bubble_of_talents_1.0\\frontend\\src\\pages\\dashboard\\CDDashboard.tsx"
+    ]
+  },
+  {
+    "legacy": "api/save-notification-preferences.php",
+    "rest": "/api/notifications/preferences/save",
+    "files": [
+      "C:\\laragon\\www\\bubble_of_talents_1.0\\frontend\\src\\pages\\dashboard\\CDDashboard.tsx"
+    ]
+  },
+  {
+    "legacy": "auth/candidate-login.php",
+    "rest": "/api/auth/candidate-login",
+    "files": []
+  },
+  {
+    "legacy": "auth/staff-login.php",
+    "rest": "/api/auth/staff-login",
+    "files": []
+  },
+  {
+    "legacy": "auth/verify-session.php",
+    "rest": "/api/auth/verify-session",
+    "files": []
+  },
+  {
+    "legacy": "auth/logout.php",
+    "rest": "/api/auth/logout",
+    "files": [
+      "C:\\laragon\\www\\bubble_of_talents_1.0\\frontend\\src\\lib\\auth\\secureAuthManager.ts"
+    ]
+  },
+  {
+    "legacy": "auth/oauth/start.php",
+    "rest": "/api/auth/oauth/start",
+    "files": [
+      "C:\\laragon\\www\\bubble_of_talents_1.0\\frontend\\src\\pages\\auth\\CandidateAuthPage.tsx"
+    ]
+  },
+  {
+    "legacy": "api/auth/csrf-token.php",
+    "rest": "/api/auth/csrf-token",
+    "files": [
+      "C:\\laragon\\www\\bubble_of_talents_1.0\\frontend\\src\\lib\\auth\\csrfProtection.ts"
+    ]
+  },
+  {
+    "legacy": "api/auth/validate-csrf.php",
+    "rest": "/api/auth/validate-csrf",
+    "files": [
+      "C:\\laragon\\www\\bubble_of_talents_1.0\\frontend\\src\\lib\\auth\\csrfProtection.ts"
+    ]
+  },
+  {
+    "legacy": "api/auth/social-callback.php",
+    "rest": "/api/auth/social-callback",
+    "files": []
+  }
+]

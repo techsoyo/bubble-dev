@@ -169,7 +169,7 @@ export default function LoginPage() {
                 <Label htmlFor="password">Contraseña</Label>
                 <Link
                   to="#"
-                  className="text-sm text-[#FF4785] hover:underline"
+                  className="text-sm text-primary hover:underline"
                   onClick={(e) => {
                     e.preventDefault();
                     alert('¿Olvidaste tu contraseña? Esta funcionalidad estará disponible próximamente.');
@@ -201,7 +201,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full bg-[#FF4785] hover:bg-[#FF3575]"
+              className="w-full bg-primary hover:bg-primary-hover"
               disabled={isLoading}
               aria-describedby={isLoading ? 'loading-message' : undefined}
             >
@@ -252,7 +252,7 @@ export default function LoginPage() {
         <CardFooter className="flex-col">
           <div className="text-center">
             <span className="text-sm text-gray-500">¿No tienes una cuenta? </span>
-            <Link to="/candidates/login" className="text-sm text-[#FF4785] hover:underline">
+            <Link to="/candidates/login" className="text-sm text-primary hover:underline">
               Regístrate
             </Link>
           </div>

@@ -1,5 +1,5 @@
 // src/components/auth/SocialLoginButtons.tsx
-import React from 'react';
+import * as React from 'react';
 import { FaGoogle, FaLinkedin, FaApple } from 'react-icons/fa';
 import { socialLogin } from '../../lib/apiService';
 
@@ -14,22 +14,43 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({
   onLoginError,
   className = '',
 }) => {
-  // Esta es una función simulada para el MVP, en la implementación real
-  // utilizaríamos las SDKs de autenticación reales de cada proveedor
+  // Implementación real de OAuth para proveedores sociales
   const handleSocialLogin = async (provider: 'google' | 'linkedin' | 'apple') => {
     try {
-      // En la implementación real, aquí va el código de autenticación con el proveedor
-      // que nos dará un token de acceso
-      const mockToken = `mock_${provider}_token_${Date.now()}`;
+      let authUrl = '';
 
-      // Luego enviamos ese token a nuestro backend
-      const response = await socialLogin(provider, mockToken);
+      // Configurar URLs de OAuth para cada proveedor
+      switch (provider) {
+        case 'google':
+          authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+            `client_id=${import.meta.env.VITE_GOOGLE_CLIENT_ID}&` +
+            `redirect_uri=${encodeURIComponent(window.location.origin + '/auth/callback/google')}&` +
+            `response_type=code&` +
+            `scope=openid email profile&` +
+            `state=google`;
+          break;
 
-      if (response.success) {
-        onLoginSuccess && onLoginSuccess(response.data);
-      } else {
-        onLoginError && onLoginError(response.error);
+        case 'linkedin':
+          authUrl = `https://www.linkedin.com/oauth/v2/authorization?` +
+            `client_id=${import.meta.env.VITE_LINKEDIN_CLIENT_ID}&` +
+            `redirect_uri=${encodeURIComponent(window.location.origin + '/auth/callback/linkedin')}&` +
+            `response_type=code&` +
+            `scope=r_liteprofile r_emailaddress&` +
+            `state=linkedin`;
+          break;
+
+        case 'apple':
+          // Apple Sign-In requiere configuración más compleja
+          // Para el MVP, mantenemos una implementación básica
+          console.warn('Apple Sign-In requiere configuración adicional del dominio');
+          throw new Error('Apple Sign-In no está disponible en esta versión');
       }
+
+      if (authUrl) {
+        // Redirigir al usuario a la página de OAuth del proveedor
+        window.location.href = authUrl;
+      }
+
     } catch (error) {
       onLoginError && onLoginError(error);
       console.error(`Error en login con ${provider}:`, error);

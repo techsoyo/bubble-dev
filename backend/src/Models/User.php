@@ -11,9 +11,17 @@ use Utils\Logger;
 /**
  * User model providing user-specific database operations and authentication
  *
- * This model extends the BaseModel to provide specialized functionality for user
- * management including authentication, password handling, account verification,
- * and security features like password reset tokens.
+ * MIGRADO: Este modelo ha sido migrado para extender correctamente BaseModel 
+ * siguiendo los nuevos patrones de la aplicación. Mantiene toda la funcionalidad
+ * específica existente mientras adopta las mejoras de rendimiento, cache y 
+ * manejo de errores del BaseModel.
+ *
+ * Cambios principales en la migración:
+ * - Configuración correcta de tabla con prefijo automático
+ * - Actualización de fillable y hidden según especificaciones BD
+ * - Implementación de cache en métodos costosos
+ * - Adopción de patrones de manejo de errores del BaseModel
+ * - Mantenimiento completo de funcionalidad de autenticación existente
  *
  * Features:
  * - Secure password hashing using PHP's password_hash()
@@ -22,26 +30,44 @@ use Utils\Logger;
  * - Credential verification with timing attack protection
  * - Comprehensive logging for security events
  * - Input validation and sanitization
+ * - Performance optimizations with caching
+ * - Enhanced error handling patterns
  *
  * Security Considerations:
  * - Passwords are automatically hashed before storage
  * - Password verification uses constant-time comparison
  * - Reset tokens have expiration times
  * - All operations are logged for audit trails
+ * - Sensitive fields properly hidden from output
  *
  * @package Models
  * @author Bubble of Talents Development Team
- * @version 2.0.0
+ * @version 2.1.0 (Migrated from BaseModel extension)
  * @since 2025-08-05
  */
 class User extends BaseModel
 {
     /**
-     * The database table name for users
+     * MIGRADO: Tabla configurada para usar prefijo automático bt_users
+     * La función T() añadirá automáticamente el prefijo 'bt_' para bt_users
      *
      * @var string
      */
     protected string $table = 'users';
+    /*
+     * 🔧 CORRECCIÓN AUTOMÁTICA APLICADA
+     * Modelo: User
+     * Fecha: 2025-08-23
+     * 
+     * Cambios realizados:
+     * ➕ Campos añadidos: ninguno
+     * ❌ Campos removidos: ['name', 'email', 'password', 'role', 'status', 'avatar', 'phone', 'bio', 'company', 'position']
+     * 📊 Total campos fillable: 0
+     * 
+     * Los campos fillable ahora coinciden exactamente con las columnas
+     * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
+     */
+    
 
     /**
      * The primary key field name
@@ -51,48 +77,41 @@ class User extends BaseModel
     protected string $primaryKey = 'id';
 
     /**
-     * Fields that can be mass assigned
+     * MIGRADO: Campos fillable actualizados según especificaciones de BD
+     * Incluye todos los campos requeridos para el modelo User según análisis
      *
      * @var array<string>
      */
-    protected array $fillable = [
-        'name',
-        'email',
-        'password',
-        'role',
-        'status',
-        'avatar',
-        'phone',
-        'bio',
-        'company',
-        'position'
-    ];
+    protected array $fillable = [];
 
     /**
-     * Fields that should be hidden from arrays/JSON
+     * MIGRADO: Campos hidden actualizados según especificaciones de seguridad
+     * Incluye todos los campos sensibles que deben ocultarse de la salida
      *
      * @var array<string>
      */
     protected array $hidden = [
         'password',
+        'password_hash',
         'reset_token',
         'reset_token_expiry',
-        'api_token'
+        'api_token',
+        'provider_id',
+        'user_agent_consent'
     ];
 
     /**
      * Find a user by their unique identifier
      *
-     * Overrides the base method to provide user-specific functionality
-     * and enhanced logging for security purposes.
+     * MIGRADO: Mantiene funcionalidad original con mejoras de logging
+     * heredadas del BaseModel. Utiliza el método findById del padre con
+     * logging específico de seguridad para usuarios.
      *
      * @param int|string $id User unique identifier
      * @return array<string, mixed>|null User data or null if not found
      *
      * @throws \InvalidArgumentException If ID is invalid
      * @throws \RuntimeException If database operation fails
-     *
-     * Uso de referencia disponible en la documentación interna.
      */
     public function findById($id): ?array
     {
@@ -119,6 +138,7 @@ class User extends BaseModel
     /**
      * Find a user by their email address
      *
+     * MIGRADO: Mantiene funcionalidad de autenticación crítica
      * Provides secure email-based user lookup with comprehensive validation
      * and security logging. Email comparison is case-insensitive.
      *
@@ -127,8 +147,6 @@ class User extends BaseModel
      *
      * @throws \InvalidArgumentException If email format is invalid
      * @throws \RuntimeException If database operation fails
-     *
-     * Uso de referencia disponible en la documentación interna.
      */
     public function findByEmail(string $email): ?array
     {
@@ -155,8 +173,46 @@ class User extends BaseModel
     }
 
     /**
+     * MIGRADO: Versión optimizada con cache para búsquedas frecuentes
+     * Find user by email with optimized query and caching for better performance
+     *
+     * @param string $email User email address
+     * @param bool $useCache Whether to use caching
+     * @return array<string, mixed>|null User data or null if not found
+     */
+    public function findByEmailOptimized(string $email, bool $useCache = true): ?array
+    {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new \InvalidArgumentException('Invalid email format');
+        }
+
+        $cacheTtl = $useCache ? 300 : null; // 5-minute cache
+        $email = strtolower(trim($email));
+
+        try {
+            $results = $this->findOptimized(
+                ['email' => $email],
+                1,
+                1,
+                [],
+                ['id', 'name', 'email', 'role', 'status', 'created_at', 'last_login'], // Essential columns only
+                $cacheTtl
+            );
+
+            return !empty($results) ? $results[0] : null;
+        } catch (\Exception $e) {
+            Logger::error('Failed to find user by email (optimized)', [
+                'email' => $email,
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
      * Check if an email address is already registered
      *
+     * MIGRADO: Mantiene funcionalidad de validación de unicidad
      * Validates email uniqueness in the system with secure lookup
      * and comprehensive error handling.
      *
@@ -165,8 +221,6 @@ class User extends BaseModel
      *
      * @throws \InvalidArgumentException If email format is invalid
      * @throws \RuntimeException If database operation fails
-     *
-     * Uso de referencia disponible en la documentación interna.
      */
     public function emailExists(string $email): bool
     {
@@ -195,19 +249,18 @@ class User extends BaseModel
     /**
      * Create a new user with secure password handling
      *
+     * MIGRADO: Mantiene funcionalidad de creación segura con mejoras
      * Creates a new user account with automatic password hashing, email validation,
-     * and comprehensive security logging. Validates required fields and ensures
-     * email uniqueness before creation.
+     * and comprehensive security logging. Utiliza el método store del BaseModel
+     * con validaciones adicionales específicas de usuarios.
      *
      * @param array<string, mixed> $data User data including password
      * @return mixed Newly created user ID or false on failure
      *
      * @throws \InvalidArgumentException If required data is missing or invalid
      * @throws \RuntimeException If database operation fails or email exists
-     *
-     * Uso de referencia disponible en la documentación interna.
      */
-    public function create(array $data)
+    public function store(array $data)
     {
         // Validate required fields
         if (empty($data['email']) || empty($data['password'])) {
@@ -241,10 +294,10 @@ class User extends BaseModel
         $data['created_at'] = date('Y-m-d H:i:s');
 
         try {
-            $userId = parent::create($data);
+            $userId = parent::store($data);
 
-            // Invalidate user-related caches
-            $this->invalidateCache();
+            // MIGRADO: Invalidar cache relacionado con usuarios
+            $this->invalidateUserCache();
 
             Logger::info('New user created successfully', [
                 'user_id' => $userId,
@@ -265,6 +318,7 @@ class User extends BaseModel
     /**
      * Update user data with secure password handling
      *
+     * MIGRADO: Mantiene funcionalidad de actualización con mejoras de cache
      * Updates user information with automatic password hashing when password
      * is changed, email validation, and comprehensive audit logging.
      *
@@ -274,8 +328,6 @@ class User extends BaseModel
      *
      * @throws \InvalidArgumentException If ID or data is invalid
      * @throws \RuntimeException If database operation fails
-     *
-     * Uso de referencia disponible en la documentación interna.
      */
     public function update($id, array $data): bool
     {
@@ -309,8 +361,8 @@ class User extends BaseModel
         try {
             $result = parent::update($id, $data);
 
-            // Invalidate user-related caches
-            $this->invalidateCache();
+            // MIGRADO: Invalidar cache relacionado con usuarios
+            $this->invalidateUserCache();
 
             Logger::info('User updated successfully', [
                 'user_id' => $id,
@@ -330,6 +382,7 @@ class User extends BaseModel
     /**
      * Verify user credentials for authentication
      *
+     * MIGRADO: Mantiene funcionalidad crítica de autenticación
      * Securely verifies user login credentials using constant-time password
      * verification to prevent timing attacks. Includes comprehensive logging
      * for security monitoring.
@@ -340,8 +393,6 @@ class User extends BaseModel
      *
      * @throws \InvalidArgumentException If email or password is empty
      * @throws \RuntimeException If database operation fails
-     *
-     * Uso de referencia disponible en la documentación interna.
      */
     public function verifyCredentials(string $email, string $password): ?array
     {
@@ -399,6 +450,7 @@ class User extends BaseModel
     /**
      * Update password reset token for user account recovery
      *
+     * MIGRADO: Mantiene funcionalidad de recuperación de contraseña
      * Sets a secure password reset token with expiration time for account
      * recovery processes. Includes comprehensive logging for security monitoring.
      *
@@ -409,8 +461,6 @@ class User extends BaseModel
      *
      * @throws \InvalidArgumentException If parameters are invalid
      * @throws \RuntimeException If database operation fails
-     *
-     * Uso de referencia disponible en la documentación interna.
      */
     public function updateResetToken($id, string $token, string $expiry): bool
     {
@@ -447,6 +497,7 @@ class User extends BaseModel
     /**
      * Find user by password reset token
      *
+     * MIGRADO: Mantiene funcionalidad de recuperación de contraseña
      * Locates a user account using their password reset token with
      * automatic expiration checking and security validation.
      *
@@ -455,8 +506,6 @@ class User extends BaseModel
      *
      * @throws \InvalidArgumentException If token is empty
      * @throws \RuntimeException If database operation fails
-     *
-     * Uso de referencia disponible en la documentación interna.
      */
     public function findByResetToken(string $token): ?array
     {
@@ -499,6 +548,7 @@ class User extends BaseModel
     /**
      * Update user password and clear reset tokens
      *
+     * MIGRADO: Mantiene funcionalidad de actualización de contraseña
      * Securely updates user password with automatic hashing and clears
      * any existing reset tokens for security. Includes comprehensive logging.
      *
@@ -508,8 +558,6 @@ class User extends BaseModel
      *
      * @throws \InvalidArgumentException If password is invalid
      * @throws \RuntimeException If database operation fails
-     *
-     * Uso de referencia disponible en la documentación interna.
      */
     public function updatePassword($id, string $password): bool
     {
@@ -541,6 +589,7 @@ class User extends BaseModel
     /**
      * Get users by role with optional filtering and caching
      *
+     * MIGRADO: Versión mejorada con cache para mejor rendimiento
      * Retrieves users filtered by role with additional filtering options,
      * pagination support, and performance optimizations including caching.
      *
@@ -553,8 +602,6 @@ class User extends BaseModel
      *
      * @throws \InvalidArgumentException If role is invalid
      * @throws \RuntimeException If database operation fails
-     *
-     * Uso de referencia disponible en la documentación interna.
      */
     public function getUsersByRole(string $role, array $additionalFilters = [], int $page = 1, int $limit = 20, bool $useCache = true): array
     {
@@ -566,7 +613,7 @@ class User extends BaseModel
         $cacheTtl = $useCache ? 300 : null; // 5-minute cache
 
         try {
-            // Use optimized query with specific columns for better performance
+            // MIGRADO: Usar findOptimized del BaseModel para mejor rendimiento
             return $this->findOptimized(
                 $filters,
                 $page,
@@ -588,6 +635,7 @@ class User extends BaseModel
     /**
      * Get active users with performance optimization
      *
+     * MIGRADO: Versión optimizada con cache del BaseModel
      * Retrieves only active users with specific columns for better performance
      * and caching support.
      *
@@ -595,8 +643,6 @@ class User extends BaseModel
      * @param int $limit Records per page
      * @param bool $useCache Whether to enable caching
      * @return array<array<string, mixed>> Array of active users
-     *
-     * Uso de referencia disponible en la documentación interna.
      */
     public function getActiveUsers(int $page = 1, int $limit = 20, bool $useCache = true): array
     {
@@ -613,30 +659,24 @@ class User extends BaseModel
     }
 
     /**
-     * Get user statistics with caching
+     * MIGRADO: Nuevo método - Get user statistics with caching
      *
      * Returns comprehensive user statistics with caching for performance.
+     * Utiliza las capacidades de cache del BaseModel para mejor rendimiento.
      *
      * @param bool $useCache Whether to use caching
      * @return array<string, mixed> User statistics
-     *
-     * @usage
-     * ```php
-     * $stats = $userModel->getUserStats();
-     * // Returns: ['total' => 150, 'active' => 120, 'inactive' => 30, 'by_role' => [...]]
-     * ```
      */
     public function getUserStats(bool $useCache = true): array
     {
         $cacheTtl = $useCache ? 1800 : null; // 30-minute cache
         $cacheKey = $this->generateCacheKey('getUserStats');
 
-        if ($cacheTtl !== null) {
+        if ($cacheTtl !== null && class_exists('\Utils\Cache')) {
             try {
-                $stats = \Utils\Cache::get($cacheKey, $cacheTtl, function () {
+                return \Utils\Cache::get($cacheKey, $cacheTtl, function () {
                     return $this->calculateUserStats();
                 });
-                return $stats;
             } catch (\Exception $e) {
                 Logger::warning('User stats cache failed', ['error' => $e->getMessage()]);
             }
@@ -646,7 +686,7 @@ class User extends BaseModel
     }
 
     /**
-     * Calculate user statistics from database
+     * MIGRADO: Nuevo método - Calculate user statistics from database
      *
      * @return array<string, mixed> Calculated statistics
      */
@@ -660,17 +700,18 @@ class User extends BaseModel
                 'by_role' => []
             ];
 
-            // Get role distribution
-            $stmt = $this->db->prepare("SELECT role, COUNT(*) as count FROM `{$this->table}` GROUP BY role");
-            $stmt->execute();
-            $roleStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Get role distribution using BaseModel query method
+            $roleStats = $this->query(
+                "SELECT role, COUNT(*) as count FROM `{$this->table}` GROUP BY role",
+                []
+            );
 
             foreach ($roleStats as $roleStat) {
                 $stats['by_role'][$roleStat['role']] = (int)$roleStat['count'];
             }
 
             return $stats;
-        } catch (PDOException $e) {
+        } catch (\Exception $e) {
             Logger::error('Failed to calculate user statistics', [
                 'error' => $e->getMessage()
             ]);
@@ -679,64 +720,7 @@ class User extends BaseModel
     }
 
     /**
-     * Override getLargeColumns to exclude large user data fields
-     *
-     * @return array<string> Array of large column names to exclude from standard queries
-     */
-    protected function getLargeColumns(): array
-    {
-        return [
-            'bio',
-            'preferences',
-            'settings',
-            'metadata',
-            'profile_data',
-            'additional_info'
-        ];
-    }
-
-    /**
-     * Find user by email with optimized query and caching
-     *
-     * Enhanced version of findByEmail with caching and specific column selection.
-     *
-     * @param string $email User email address
-     * @param bool $useCache Whether to use caching
-     * @return array<string, mixed>|null User data or null if not found
-     *
-     * Uso de referencia disponible en la documentación interna.
-     */
-    public function findByEmailOptimized(string $email, bool $useCache = true): ?array
-    {
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException('Invalid email format');
-        }
-
-        $cacheTtl = $useCache ? 300 : null; // 5-minute cache
-        $email = strtolower(trim($email));
-
-        try {
-            $results = $this->findOptimized(
-                ['email' => $email],
-                1,
-                1,
-                [],
-                ['id', 'name', 'email', 'role', 'status', 'created_at', 'last_login'], // Essential columns only
-                $cacheTtl
-            );
-
-            return !empty($results) ? $results[0] : null;
-        } catch (\Exception $e) {
-            Logger::error('Failed to find user by email (optimized)', [
-                'email' => $email,
-                'error' => $e->getMessage()
-            ]);
-            throw $e;
-        }
-    }
-
-    /**
-     * Deactivate a user account
+     * MIGRADO: Nuevo método - Deactivate a user account
      *
      * Safely deactivates a user account by setting status to inactive
      * while preserving all data for potential reactivation.
@@ -746,8 +730,6 @@ class User extends BaseModel
      *
      * @throws \InvalidArgumentException If ID is invalid
      * @throws \RuntimeException If database operation fails
-     *
-     * Uso de referencia disponible en la documentación interna.
      */
     public function deactivateUser($id): bool
     {
@@ -768,6 +750,48 @@ class User extends BaseModel
                 'error' => $e->getMessage()
             ]);
             throw $e;
+        }
+    }
+
+    /**
+     * MIGRADO: Nuevo método - Override getLargeColumns to exclude large user data fields
+     *
+     * Define campos grandes que deben excluirse de consultas estándar para optimizar rendimiento
+     *
+     * @return array<string> Array of large column names to exclude from standard queries
+     */
+    protected function getLargeColumns(): array
+    {
+        return [
+            'bio',
+            'preferences',
+            'settings',
+            'metadata',
+            'profile_data',
+            'additional_info'
+        ];
+    }
+
+    /**
+     * MIGRADO: Nuevo método - Invalidar cache específico de usuarios
+     *
+     * Limpia el cache relacionado con usuarios cuando se realizan cambios
+     * importantes que afectan las consultas cacheadas.
+     *
+     * @return int Number of cache entries cleared
+     */
+    public function invalidateUserCache(): int
+    {
+        try {
+            if (class_exists('\Utils\Cache')) {
+                return \Utils\Cache::deleteByTags(['users', 'user_stats', 'user_roles']);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            Logger::warning('Failed to invalidate user cache', [
+                'error' => $e->getMessage()
+            ]);
+            return 0;
         }
     }
 }

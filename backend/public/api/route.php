@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/bootstrap.php';
+
 // Sube 1 nivel: api → backend/
 $ROOT = dirname(__DIR__, 1);
 $BOOT = $ROOT . '/config/bootstrap.php';
@@ -115,7 +117,7 @@ try {
   $pdo = new PDO(
     'mysql:host=' . getenv('DB_HOST') . ';dbname=' . getenv('DB_NAME'),
     getenv('DB_USER'),
-    getenv('DB_PASS'),
+    getenv('DB_PASSWORD'),
     [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
   );
 

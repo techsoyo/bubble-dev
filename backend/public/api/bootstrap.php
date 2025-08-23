@@ -1,22 +1,25 @@
 <?php
 
 declare(strict_types=1);
-$ROOT = dirname(__DIR__, 1);
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
+
+/**
+ * Bootstrap puente para endpoints bajo public/api/*
+ * Asegura que el bootstrap principal con CORS se cargue para todos los endpoints API
+ */
+
+// Ruta al bootstrap principal con configuración CORS
+$mainBootstrap = __DIR__ . '/../../config/bootstrap.php';
+
+if (!file_exists($mainBootstrap)) {
     http_response_code(500);
-    exit('Bootstrap no encontrado');
+    header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode([
+        'success' => false,
+        'message' => 'Bootstrap principal no encontrado',
+        'data' => null
+    ]);
+    exit;
 }
-require_once $BOOT;
 
-
-// Bootstrap puente para endpoints bajo public/api/*
-// Redirige a config/bootstrap.php real
-$real = __DIR__ . '/../../../config/bootstrap.php';
-if (file_exists($real)) {
-    require_once $real;
-}
-// Inicializar RequestId temprano
-if (class_exists('Utils\\RequestId')) {
-    Utils\RequestId::init();
-}
+// Incluir bootstrap principal - esto activa CORS, autoloader, configuración, etc.
+require_once $mainBootstrap;

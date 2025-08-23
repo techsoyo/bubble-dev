@@ -117,11 +117,11 @@ if (!class_exists('Utils\\Log')) {
     }
 }
 
-// 🤖 Servicio principal: Ollama para IA
-$ollamaPath = __DIR__ . '/../../../src/Services/OllamaService.php';
-if (file_exists($ollamaPath)) {
-    require_once $ollamaPath;
-}
+// // 🤖 Servicio principal: Ollama para IA
+// $ollamaPath = __DIR__ . '/../../../src/Services/OllamaService.php';
+// if (file_exists($ollamaPath)) {
+//     require_once $ollamaPath;
+// }
 
 // 📄 Servicio PDF: Para validación y extracción
 $pdfTextPath = __DIR__ . '/../../../src/Services/PdfTextService.php';
@@ -136,7 +136,7 @@ if (file_exists($aiExceptionPath)) {
 }
 
 use Services\InfectedFileException;
-use Services\OllamaService;
+// use Services\OllamaService;
 use Services\PdfSecurityException;
 use Services\PdfTextEmptyException;
 use Services\PdfTextService;
@@ -264,16 +264,16 @@ try {
     });
 
     // 📊 LOG: Preparación para crear servicios de procesamiento
-    error_log("[CV_DEBUG] Intentando crear OllamaService y PdfTextService...");
-    file_put_contents(__DIR__ . '/../../../logs/cv_debug.log', "[" . date('Y-m-d H:i:s') . "] Intentando crear servicios\n", FILE_APPEND);
+    // error_log("[CV_DEBUG] Intentando crear OllamaService y PdfTextService...");
+    // file_put_contents(__DIR__ . '/../../../logs/cv_debug.log', "[" . date('Y-m-d H:i:s') . "] Intentando crear servicios\n", FILE_APPEND);
 
     // 🏗️ PASO 8: INSTANCIACIÓN DE SERVICIOS
     try {
         // 🤖 Servicio principal: Ollama para procesamiento IA
-        file_put_contents(__DIR__ . '/../../../logs/cv_debug.log', "[" . date('Y-m-d H:i:s') . "] Creando OllamaService (MIGRADO)...\n", FILE_APPEND);
-        $ollama = new OllamaService();
-        error_log("[CV_DEBUG] OllamaService (MIGRADO) creado exitosamente");
-        file_put_contents(__DIR__ . '/../../../logs/cv_debug.log', "[" . date('Y-m-d H:i:s') . "] OllamaService (MIGRADO) OK\n", FILE_APPEND);
+        // file_put_contents(__DIR__ . '/../../../logs/cv_debug.log', "[" . date('Y-m-d H:i:s') . "] Creando OllamaService (MIGRADO)...\n", FILE_APPEND);
+        // $ollama = new OllamaService();
+        // error_log("[CV_DEBUG] OllamaService (MIGRADO) creado exitosamente");
+        // file_put_contents(__DIR__ . '/../../../logs/cv_debug.log', "[" . date('Y-m-d H:i:s') . "] OllamaService (MIGRADO) OK\n", FILE_APPEND);
 
         // 📄 Servicio PDF: Para validación y procesamiento
         $pdfTextService = new PdfTextService();

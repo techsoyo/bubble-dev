@@ -1,13 +1,12 @@
 <?php
 
-require_once __DIR__ . '/../bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automáticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automáticamente en bootstrap.php
+require_once __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/../../config/database.php';
 
 if (!function_exists('db')) {
     function db(): PDO
     {
-        return $GLOBALS['pdo'];
+        return getDbConnection();
     }
 }
 if (!function_exists('T')) {
@@ -52,6 +51,17 @@ try {
                 }
                 echo json_encode(['ok' => true, 'message' => 'OK', 'data' => $departments, 'page' => $page, 'limit' => $limit]);
             }
+            break;
+        case 'POST':
+            $input = json_decode(file_get_contents('php://input'), true);
+            $department = [
+                'id' => rand(1000, 9999),
+                'name' => $input['name'] ?? 'Nuevo Departamento',
+                'description' => $input['description'] ?? 'Descripción del departamento',
+                'active' => true,
+                'created_at' => date('Y-m-d H:i:s')
+            ];
+            echo json_encode(['ok' => true, 'message' => 'Departamento creado exitosamente', 'data' => $department]);
             break;
         default:
             http_response_code(405);

@@ -1,8 +1,8 @@
 /**
- * Email Service Mock
+ * Email Service - Production Implementation
  * 
- * This file simulates email sending functionality that would be implemented
- * with PHPMailer in production. For this MVP, we're creating a mock implementation.
+ * This service integrates with the backend email endpoint that uses PHPMailer.
+ * Replaces the previous mock implementation for production use.
  */
 
 interface EmailOptions {
@@ -13,43 +13,37 @@ interface EmailOptions {
 }
 
 /**
- * Sends an email notification (mock implementation for MVP)
- * In production, this would integrate with PHPMailer on the backend
+ * Sends an email using the backend PHPMailer implementation
  */
-export const sendEmail = async (options: EmailOptions): Promise<{success: boolean, message: string}> => {
-  // In production, this would be an API call to a PHP backend that uses PHPMailer
-  console.log('📧 MOCK EMAIL SERVICE');
-  console.log('---------------------');
-  console.log(`To: ${options.to}`);
-  console.log(`Subject: ${options.subject}`);
-  console.log('Body:');
-  console.log(options.body);
-  console.log('---------------------');
-  
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Simulate success (or random failures to test error handling)
-  const success = Math.random() > 0.1; // 10% failure rate for testing
-  
-  // Log to localStorage for history/demo purposes
-  const emailHistory = JSON.parse(localStorage.getItem('emailHistory') || '[]');
-  emailHistory.push({
-    timestamp: new Date().toISOString(),
-    ...options,
-    success
-  });
-  localStorage.setItem('emailHistory', JSON.stringify(emailHistory));
-  
-  if (success) {
+export const sendEmail = async (options: EmailOptions): Promise<{ success: boolean, message: string }> => {
+  try {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost/bubble_of_talents_1.0/backend/public';
+
+    const response = await fetch(`${apiUrl}/api/send-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify(options)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
     return {
-      success: true,
-      message: 'Email sent successfully'
+      success: result.success,
+      message: result.message || (result.success ? 'Email sent successfully' : 'Failed to send email')
     };
-  } else {
+
+  } catch (error) {
+    console.error('Error sending email:', error);
     return {
       success: false,
-      message: 'Failed to send email. Server error.'
+      message: error instanceof Error ? error.message : 'Failed to send email. Network error.'
     };
   }
 };
@@ -63,9 +57,9 @@ export const sendRecruiterAssignmentNotification = async (
   candidateName: string,
   candidateEmail: string,
   departmentName: string
-): Promise<{success: boolean, message: string}> => {
+): Promise<{ success: boolean, message: string }> => {
   const subject = `New Candidate Assignment - ${candidateName}`;
-  
+
   // Create HTML email body
   const htmlBody = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -102,7 +96,7 @@ export const sendRecruiterAssignmentNotification = async (
       </div>
     </div>
   `;
-  
+
   return sendEmail({
     to: recruiterEmail,
     subject,
@@ -123,9 +117,9 @@ export const sendCandidateStatusUpdateNotification = async (
   recruiterName: string,
   recruiterEmail: string,
   notes?: string
-): Promise<{success: boolean, message: string}> => {
+): Promise<{ success: boolean, message: string }> => {
   const subject = `Your Application Status Update - ${jobTitle}`;
-  
+
   // Define status-specific messages
   const statusMessages: Record<string, string> = {
     'Received': 'We have received your application and will be reviewing it shortly.',
@@ -136,11 +130,11 @@ export const sendCandidateStatusUpdateNotification = async (
     'Hired': 'Congratulations! You have been hired for the position.',
     'Rejected': 'We appreciate your interest in our company, but we have decided to proceed with other candidates.'
   };
-  
+
   // Get appropriate message based on status, or use a default message
-  const statusMessage = statusMessages[newStatus] || 
+  const statusMessage = statusMessages[newStatus] ||
     `Your application status has been updated from ${previousStatus} to ${newStatus}.`;
-  
+
   // Create HTML email body
   const htmlBody = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -186,7 +180,7 @@ export const sendCandidateStatusUpdateNotification = async (
       </div>
     </div>
   `;
-  
+
   return sendEmail({
     to: candidateEmail,
     subject,

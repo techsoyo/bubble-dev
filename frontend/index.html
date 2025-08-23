@@ -23,8 +23,8 @@
   <link rel="dns-prefetch" href="https://fonts.googleapis.com">
 
   <!-- Preload de recursos críticos -->
-  <link rel="preload" href="/assets/css/critical.css?v=1.0.0" as="style">
-  <link rel="stylesheet" href="/assets/css/critical.css?v=1.0.0">
+  <link rel="preload" href="/assets/css/critical.css" as="style">
+  <link rel="stylesheet" href="/assets/css/critical.css">
 
   <!-- Optimización de carga de fuentes -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"
@@ -63,8 +63,8 @@
   </style>
 
   <!-- Favicon con security considerations -->
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=1.0.0" />
-  <link rel="alternate icon" href="/favicon.ico?v=1.0.0" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="alternate icon" href="/favicon.ico" />
 
   <!-- Script para prevenir FOUC -->
   <script>
@@ -128,7 +128,7 @@
 
   <!-- Mensaje offline (visible solo cuando no hay conexión) -->
   <div class="offline-only"
-    style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 10px 20px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 9999;">
+    style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 10px 20px; border-radius: 4px; box-shadow: var(--shadow-toast); z-index: var(--z-toast);">
     Modo sin conexión activo. Algunas funciones pueden no estar disponibles.
   </div>
 </body>

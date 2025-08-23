@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { formSubmissionLimiter, generateClientFingerprint } from '../../security/xss';
 
 interface LoginFormProps {
   onLoginSuccess?: (data: any) => void;
@@ -23,6 +24,14 @@ const LoginForm: React.FC<LoginFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Rate limiting protection
+    const fingerprint = generateClientFingerprint();
+    if (!formSubmissionLimiter.isAllowed(fingerprint)) {
+      setError('Demasiados intentos de inicio de sesión. Espera 1 minuto antes de intentarlo de nuevo.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {

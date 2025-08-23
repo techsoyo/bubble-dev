@@ -6,7 +6,7 @@
  * Reemplaza la funcionalidad del módulo IA con implementación en PHP puro
  */
 
-require_once __DIR__ . '/../../config/bootstrap.php';
+require_once dirname(__DIR__, 3) . '/config/bootstrap.php';
 
 use Services\Matching\JobMatchingService;
 use Utils\ResponseHelper;
@@ -49,8 +49,8 @@ try {
 
     // Añadir metadatos del proceso
     $matchResult['processing_info'] = [
-      'method' => 'php-matching',
-      'processing_time' => $processingTime
+        'method' => 'php-matching',
+        'processing_time' => $processingTime
     ];
 
     // Responder con el resultado

@@ -198,7 +198,7 @@ export default function JobListingsPage() {
             Register in our database to be considered for future opportunities that match your
             profile.
           </p>
-          <Link to="/auth/register">
+          <Link to="/candidates/login">
             <Button size="lg" className="bg-[#FF4785] hover:bg-[#FF3575]">
               Register my profile
             </Button>

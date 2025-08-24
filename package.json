@@ -10,7 +10,8 @@
 	},
 	"devDependencies": {
 		"concurrently": "^9.2.0",
-		"cssnano": "^7.1.0"
+		"cssnano": "^7.1.0",
+		"cypress": "^15.0.0"
 	},
 	"dependencies": {
 		"@playwright/test": "^1.54.2"

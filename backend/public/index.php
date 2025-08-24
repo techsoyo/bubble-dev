@@ -51,8 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // ===== DESPACHAR ROUTER =====
 try {
-  // Crear el enrutador (sin necesidad de routes.php)
-  $router = new AppRouter();
+  // Cargar archivo de rutas centralizado
+  $router = require_once BACKEND_ROOT . '/src/Router/routes.php';
   $router->dispatch();
 } catch (Exception $e) {
   error_log('Router Error: ' . $e->getMessage());

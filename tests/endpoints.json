@@ -1,0 +1,249 @@
+[
+  {
+    "name": "health",
+    "method": "GET",
+    "url": "http://localhost:8000/api/health",
+    "expectStatus": 200,
+    "forbidSubstrings": [
+      "mock",
+      "fixture",
+      "lorem"
+    ]
+  },
+    {
+    
+    "bodyJson": {
+      "name": "AutoTest",
+      "email": "autotest+register@example.com",
+      "password": "Passw0rd!"
+    },
+    "expectStatus": 200,
+    "expectJson": true,
+    "expectKeysAny": [
+      "id",
+      "user",
+      "token",
+      "created_at"
+    ],
+    "forbidSubstrings": [
+      "mock",
+      "fixture",
+      "lorem"
+    ]
+  },
+  {
+    "name": "auth.login",
+    "method": "POST",
+    "url": "http://localhost:8000/api/auth/login",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyJson": {
+      "email": "autotest@example.com",
+      "password": "Passw0rd!"
+    },
+    "expectStatus": 200,
+    "expectJson": true,
+    "expectKeysAny": [
+      "token",
+      "user",
+      "expires_in"
+    ],
+    "forbidSubstrings": [
+      "mock",
+      "fixture",
+      "lorem"
+    ]
+  },
+   
+  {
+    "name": "candidates.list",
+    "method": "GET",
+    "url": "http://localhost:8000/api/candidates",
+    "expectStatus": 200,
+    "expectJson": true,
+    "expectKeysAny": [
+      "data",
+      "items",
+      "results"
+    ],
+    "forbidSubstrings": [
+      "mock",
+      "fixture",
+      "lorem"
+    ]
+  },
+ 
+  {
+    "name": "candidates.create",
+    "method": "POST",
+    "url": "http://localhost:8000/api/candidates",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyJson": {
+      "name": "Auto Candidate",
+      "email": "autotest+candidate@example.com"
+    },
+    "expectStatus": 200,
+    "expectJson": true,
+    "expectKeysAny": [
+      "id",
+      "created_at"
+    ],
+    "forbidSubstrings": [
+      "mock",
+      "fixture",
+      "lorem"
+    ]
+  },
+    {
+    "name": "jobs.list",
+    "method": "GET",
+    "url": "http://localhost:8000/api/jobs",
+    "expectStatus": 200,
+    "expectJson": true,
+    "expectKeysAny": [
+      "data",
+      "items",
+      "results"
+    ],
+    "forbidSubstrings": [
+      "mock",
+      "fixture",
+      "lorem"
+    ]
+  },
+  
+  {
+    "name": "jobs.create",
+    "method": "POST",
+    "url": "http://localhost:8000/api/jobs",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyJson": {
+      "title": "QA AutoTest",
+      "description": "Smoke test",
+      "status": "open"
+    },
+   "expectStatus": 200,
+    "expectJson": true,
+    "expectKeysAny": [
+      "id",
+      "created_at"
+    ],
+    "forbidSubstrings": [
+      "mock",
+      "fixture",
+      "lorem"
+    ]
+  },
+  
+  {
+    "name": "applications.list",
+    "method": "GET",
+    "url": "http://localhost:8000/api/applications",
+    "expectStatus": 200,
+    "expectJson": true,
+    "expectKeysAny": [
+      "data",
+      "items",
+      "results"
+    ],
+    "forbidSubstrings": [
+      "mock",
+      "fixture",
+      "lorem"
+    ]
+  },
+
+  {
+    "name": "applications.create",
+    "method": "POST",
+    "url": "http://localhost:8000/api/applications",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyJson": {
+      "candidate_id": 1,
+      "job_id": 1,
+      "cover_letter": "AutoTest"
+    },
+    "expectStatus": 200,
+    "expectJson": true,
+    "expectKeysAny": [
+      "id",
+      "created_at"
+    ],
+    "forbidSubstrings": [
+      "mock",
+      "fixture",
+      "lorem"
+    ]
+  },
+
+  
+
+  
+  
+  {
+    "name": "notifications.list",
+    "method": "GET",
+    "url": "http://localhost:8000/api/notifications",
+    "expectStatus": 200,
+    "expectJson": true,
+    "expectKeysAny": [
+      "data",
+      "items",
+      "results"
+    ],
+    "forbidSubstrings": [
+      "mock",
+      "fixture",
+      "lorem"
+    ]
+  },
+  
+  {
+    "name": "cv.parse.pdf",
+    "method": "POST",
+    "url": "http://localhost:8000/api/cv/parse",
+    "expectStatus": 200,
+    "expectJson": true,
+    "expectKeysAny": [
+      "success",
+      "data",
+      "meta"
+    ],
+    "forbidSubstrings": [
+      "mock",
+      "fixture",
+      "lorem"
+    ]
+  },
+  {
+    "name": "cv.confirm",
+    "method": "POST",
+    "url": "http://localhost:8000/api/cv/confirm",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyJson": {
+      "nombre": "Auto",
+      "email": "autotest+cv@example.com"
+    },
+    "expectStatus": 200,
+    "expectJson": true,
+    "expectKeysAny": [
+      "success",
+      "data",
+      "id"
+    ],
+    "forbidSubstrings": [
+      "mock",
+      "fixture",
+      "lorem"
+    ]
+  }
+]

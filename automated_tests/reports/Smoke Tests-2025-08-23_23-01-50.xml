@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="C:\laragon\www\bubble_of_talents_1.0\automated_tests\phpunit.xml" tests="11" assertions="84" errors="0" failures="5" skipped="0" time="105.570894">
+    <testsuite name="Smoke Tests" tests="11" assertions="84" errors="0" failures="5" skipped="0" time="105.570894">
+      <testsuite name="SmokeTest" file="C:\laragon\www\bubble_of_talents_1.0\automated_tests\tests\Smoke\SmokeTest.php" tests="11" assertions="84" errors="0" failures="5" skipped="0" time="105.570894">
+        <testcase name="test_ping_endpoint_responds" file="C:\laragon\www\bubble_of_talents_1.0\automated_tests\tests\Smoke\SmokeTest.php" line="45" class="SmokeTest" classname="SmokeTest" assertions="1" time="0.020867">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">SmokeTest::test_ping_endpoint_responds&#13;
+Failed asserting that 404 matches expected 200.
+&#13;
+C:\laragon\www\bubble_of_talents_1.0\automated_tests\tests\Smoke\SmokeTest.php:51</failure>
+        </testcase>
+        <testcase name="test_database_connectivity" file="C:\laragon\www\bubble_of_talents_1.0\automated_tests\tests\Smoke\SmokeTest.php" line="143" class="SmokeTest" classname="SmokeTest" assertions="1" time="0.005193"/>
+        <testcase name="test_authentication_flow_works" file="C:\laragon\www\bubble_of_talents_1.0\automated_tests\tests\Smoke\SmokeTest.php" line="167" class="SmokeTest" classname="SmokeTest" assertions="1" time="0.006592"/>
+        <testcase name="test_all_critical_endpoints_respond" file="C:\laragon\www\bubble_of_talents_1.0\automated_tests\tests\Smoke\SmokeTest.php" line="65" class="SmokeTest" classname="SmokeTest" assertions="35" time="21.150033">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">SmokeTest::test_all_critical_endpoints_respond&#13;
+CRITICAL ENDPOINTS FAILED: /change-password.php (AUTH_FAILED), /candidates/save_v2.php (AUTH_FAILED), /candidate-experiences.php (AUTH_FAILED), /candidate-notifications.php (AUTH_FAILED), /jobs/123/apply (AUTH_FAILED), GET /jobs/123/related (SERVER_ERROR), /jobs/123/bookmark (AUTH_FAILED), /jobs/123/bookmark (AUTH_FAILED), POST /analyze_cv.php (SERVER_ERROR), /ai/insights (AUTH_FAILED), /ai/predictions (AUTH_FAILED), /ai/trends (AUTH_FAILED), /get-notification-preferences.php (AUTH_FAILED), /save-notification-preferences.php (AUTH_FAILED), /calendar/integrations (AUTH_FAILED), /calendar/connect (AUTH_FAILED), /calendar/events (AUTH_FAILED), /hr/dashboard-stats (AUTH_FAILED), /recruiter/1/dashboard-stats (AUTH_FAILED). These endpoints are required for basic functionality.
+Failed asserting that an array is empty.
+&#13;
+C:\laragon\www\bubble_of_talents_1.0\automated_tests\tests\Smoke\SmokeTest.php:131</failure>
+        </testcase>
+        <testcase name="test_response_times_acceptable" file="C:\laragon\www\bubble_of_talents_1.0\automated_tests\tests\Smoke\SmokeTest.php" line="288" class="SmokeTest" classname="SmokeTest" assertions="2" time="42.123213"/>
+        <testcase name="test_job_endpoints_accessible" file="C:\laragon\www\bubble_of_talents_1.0\automated_tests\tests\Smoke\SmokeTest.php" line="228" class="SmokeTest" classname="SmokeTest" assertions="2" time="21.051165">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">SmokeTest::test_job_endpoints_accessible&#13;
+CRITICAL: Job endpoint has server error: GET /jobs/123/related
+Failed asserting that 500 is not equal to 500.
+&#13;
+C:\laragon\www\bubble_of_talents_1.0\automated_tests\tests\Smoke\SmokeTest.php:244</failure>
+        </testcase>
+        <testcase name="test_ai_processing_accessible" file="C:\laragon\www\bubble_of_talents_1.0\automated_tests\tests\Smoke\SmokeTest.php" line="195" class="SmokeTest" classname="SmokeTest" assertions="2" time="0.036410">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">SmokeTest::test_ai_processing_accessible&#13;
+CRITICAL: CV analysis endpoint has server error
+Failed asserting that 500 is not equal to 500.
+&#13;
+C:\laragon\www\bubble_of_talents_1.0\automated_tests\tests\Smoke\SmokeTest.php:209</failure>
+        </testcase>
+        <testcase name="test_no_system_information_leakage" file="C:\laragon\www\bubble_of_talents_1.0\automated_tests\tests\Smoke\SmokeTest.php" line="320" class="SmokeTest" classname="SmokeTest" assertions="33" time="0.046694"/>
+        <testcase name="test_health_endpoint_responds" file="C:\laragon\www\bubble_of_talents_1.0\automated_tests\tests\Smoke\SmokeTest.php" line="19" class="SmokeTest" classname="SmokeTest" assertions="2" time="0.006247">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">SmokeTest::test_health_endpoint_responds&#13;
+Missing key 'status' in response. 
+Failed asserting that an array has the key 'status'.
+&#13;
+C:\laragon\www\bubble_of_talents_1.0\automated_tests\TestCase.php:178
+C:\laragon\www\bubble_of_talents_1.0\automated_tests\tests\Smoke\SmokeTest.php:31</failure>
+        </testcase>
+        <testcase name="test_json_response_structure" file="C:\laragon\www\bubble_of_talents_1.0\automated_tests\tests\Smoke\SmokeTest.php" line="362" class="SmokeTest" classname="SmokeTest" assertions="4" time="21.089796"/>
+        <testcase name="test_no_debug_endpoints_exposed" file="C:\laragon\www\bubble_of_talents_1.0\automated_tests\tests\Smoke\SmokeTest.php" line="257" class="SmokeTest" classname="SmokeTest" assertions="1" time="0.034684"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

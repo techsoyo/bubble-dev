@@ -3,6 +3,8 @@
 namespace Middleware;
 
 use Utils\Request;
+use Utils\JWT;
+use Utils\ResponseHelper;
 
 /**
  * Middleware de autenticación para rutas protegidas
@@ -10,54 +12,95 @@ use Utils\Request;
 class AuthMiddleware
 {
   /**
-   * Manejar la autenticación de la request
+   * Manejar la autenticación y autorización de la request
    * 
-   * @param Request $request
-   * @return void
-   * @throws \Exception Si no hay autenticación válida
+   * @param Request $request La solicitud actual
+   * @param array $roles Roles permitidos para acceder al recurso
+   * @return ?\Closure Función de middleware o null si la autenticación es exitosa
    */
-  public static function handle(Request $request)
+  public static function handle(Request $request, array $roles = []): ?\Closure
   {
-    // Intentar obtener el usuario usando el método existente
-    try {
-      $user = $request->getUser();
+    // Intentar obtener token del encabezado Authorization (Bearer)
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    $token = '';
 
-      // Si no hay usuario, es posible que no haya token
-      if (!$user) {
-        self::respondUnauthorized('No authentication token provided or token invalid');
-        return;
+    if (!empty($authHeader) && str_starts_with($authHeader, 'Bearer ')) {
+      $token = substr($authHeader, 7); // Eliminar "Bearer "
+    }
+
+    // Si no hay token en encabezado, intentar obtenerlo de cookies
+    if (empty($token)) {
+      $token = $_COOKIE['auth_token'] ?? '';
+    }
+
+    // Si no hay token en ninguna parte, responder con 401
+    if (empty($token)) {
+      return function () {
+        return self::respondUnauthorized('No authentication token provided');
+      };
+    }
+
+    try {
+      // Verificar el token JWT
+      $user = JWT::verify($token);
+
+      // Verificar que el token tenga la información mínima esperada
+      if (!$user || !isset($user['user_id'])) {
+        return function () {
+          return self::respondUnauthorized('Invalid token payload');
+        };
       }
 
-      // Si llegamos aquí, el usuario está autenticado correctamente
+      // Guardar usuario en el objeto Request para acceso posterior
+      $request->setUser($user);
 
-    } catch (\RuntimeException $e) {
-      // Token inválido o error de autenticación
-      self::respondUnauthorized($e->getMessage());
-      return;
+      // Si se especificaron roles, verificar que el usuario tenga alguno de ellos
+      if (!empty($roles)) {
+        $userRole = $user['role'] ?? 'guest';
+
+        // Verificar si el rol del usuario está en la lista de roles permitidos
+        // También permitir acceso a administradores globales
+        $hasAccess = in_array($userRole, $roles, true) ||
+          in_array($userRole, ['admin', 'superadmin'], true);
+
+        if (!$hasAccess) {
+          return function () {
+            return self::respondForbidden('Insufficient privileges');
+          };
+        }
+      }
+
+      // Autenticación y autorización exitosas
+      return null;
     } catch (\Exception $e) {
-      // Otro tipo de error
-      self::respondUnauthorized('Authentication error: ' . $e->getMessage());
-      return;
+      // Error al verificar el token
+      return function () use ($e) {
+        return self::respondUnauthorized('Authentication error: ' . $e->getMessage());
+      };
     }
   }
 
   /**
-   * Responder con error 401 y terminar ejecución
+   * Responder con error 401 Unauthorized
    * 
-   * @param string $message
+   * @param string $message Mensaje de error
+   * @return array Respuesta formateada
    */
   private static function respondUnauthorized($message = 'Unauthorized')
   {
     http_response_code(401);
-    header('Content-Type: application/json');
-    echo json_encode([
-      'success' => false,
-      'error' => $message,
-      'code' => 401,
-      'timestamp' => date('c'),
-      'path' => $_SERVER['REQUEST_URI'] ?? '',
-      'method' => $_SERVER['REQUEST_METHOD'] ?? ''
-    ]);
-    exit;
+    return ResponseHelper::error($message, null, 401);
+  }
+
+  /**
+   * Responder con error 403 Forbidden
+   * 
+   * @param string $message Mensaje de error
+   * @return array Respuesta formateada
+   */
+  private static function respondForbidden($message = 'Forbidden')
+  {
+    http_response_code(403);
+    return ResponseHelper::error($message, null, 403);
   }
 }

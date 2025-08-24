@@ -1,13 +1,6 @@
 <?php
 
 declare(strict_types=1);
-$ROOT = dirname(dirname(dirname(dirname(__DIR__)))); // Corregido: auth -> api -> public -> backend -> raiz
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-  http_response_code(500);
-  exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 use Utils\Database;
 use Utils\Logger;
@@ -19,7 +12,7 @@ use Firebase\JWT\Key;
 // Solo aceptar POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   http_response_code(405);
-  echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+  echo json_encode(['success' => false, 'message' => 'MÃƒÂ©todo no permitido']);
   exit;
 }
 
@@ -28,19 +21,19 @@ try {
   $input = json_decode(file_get_contents('php://input'), true);
 
   if (!$input || !isset($input['action']) || $input['action'] !== 'staff_login') {
-    throw new Exception('Acción no válida');
+    throw new Exception('AcciÃƒÂ³n no vÃƒÂ¡lida');
   }
 
   $email = trim($input['email'] ?? '');
   $password = trim($input['password'] ?? '');
 
-  // Validaciones básicas
+  // Validaciones bÃƒÂ¡sicas
   if (empty($email) || empty($password)) {
-    throw new Exception('Email y contraseña son requeridos');
+    throw new Exception('Email y contraseÃƒÂ±a son requeridos');
   }
 
   if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    throw new Exception('Email no válido');
+    throw new Exception('Email no vÃƒÂ¡lido');
   }
 
   // Verificar que sea email corporativo
@@ -64,7 +57,7 @@ try {
     throw new Exception('Usuario no encontrado o inactivo');
   }
 
-  // Verificar contraseña
+  // Verificar contraseÃƒÂ±a
   if (!password_verify($password, $user['password_hash'])) {
     throw new Exception('Credenciales incorrectas');
   }
@@ -78,11 +71,11 @@ try {
     'exp' => time() + (24 * 60 * 60) // 24 horas
   ];
 
-  // Usa tu clave secreta JWT (ajusta la ruta o variable según tu configuración)
+  // Usa tu clave secreta JWT (ajusta la ruta o variable segÃƒÂºn tu configuraciÃƒÂ³n)
   $jwt_secret = $_ENV['JWT_SECRET'] ?? 'tu_clave_secreta_super_segura';
   $token = JWT::encode($payload, $jwt_secret, 'HS256');
 
-  // Crear sesión en BD
+  // Crear sesiÃƒÂ³n en BD
   $session_token = bin2hex(random_bytes(32));
   $session_id = bin2hex(random_bytes(16));
 

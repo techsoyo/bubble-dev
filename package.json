@@ -9,9 +9,11 @@
 		"test:cors": "node scripts/cors-check.mjs"
 	},
 	"devDependencies": {
+		"@testing-library/cypress": "^10.0.3",
 		"concurrently": "^9.2.0",
 		"cssnano": "^7.1.0",
-		"cypress": "^15.0.0"
+		"cypress": "^15.0.0",
+		"start-server-and-test": "^2.0.13"
 	},
 	"dependencies": {
 		"@playwright/test": "^1.54.2"

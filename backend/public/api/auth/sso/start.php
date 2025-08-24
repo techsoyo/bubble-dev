@@ -1,13 +1,6 @@
 <?php
 
 declare(strict_types=1);
-$ROOT = dirname(__DIR__, 2);             // sso -> auth -> backend/
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-  http_response_code(500);
-  exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
   session_start();
@@ -19,7 +12,7 @@ $scope = 'openid email profile';
 $state = bin2hex(random_bytes(16));
 $_SESSION['oidc_state'] = $state;
 
-// Redirige a Google (con restricción de dominio)
+// Redirige a Google (con restricciÃƒÂ³n de dominio)
 header('Location: https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query([
   'client_id' => $client_id,
   'redirect_uri' => $redirect_uri,

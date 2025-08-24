@@ -3,8 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
-require_once dirname(__DIR__, 2) . '/src/Utils/JWTMiddleware.php';
-require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
+
 
 // Headers de seguridad
 header('Content-Type: application/json; charset=utf-8');
@@ -18,10 +17,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
   exit();
 }
 
-// ✅ REQUERIR AUTENTICACIÓN JWT SIEMPRE
+// Ã¢Å“â€¦ REQUERIR AUTENTICACIÃƒâ€œN JWT SIEMPRE
 $userPayload = JWTMiddleware::requireAuth();
 if (!$userPayload) {
-  // JWTMiddleware ya envió la respuesta de error
+  // JWTMiddleware ya enviÃƒÂ³ la respuesta de error
   exit;
 }
 
@@ -41,7 +40,7 @@ try {
     exit;
   }
 
-  // ✅ CONTROL DE ACCESO: Solo el propio candidato o admin/hr pueden ver aplicaciones
+  // Ã¢Å“â€¦ CONTROL DE ACCESO: Solo el propio candidato o admin/hr pueden ver aplicaciones
   $userRole = $userPayload['role'] ?? 'candidate';
   $currentUserId = $userPayload['user_id'];
 
@@ -63,7 +62,7 @@ try {
     exit;
   }
 
-  // ✅ QUERY SEGURA CON PREPARED STATEMENTS
+  // Ã¢Å“â€¦ QUERY SEGURA CON PREPARED STATEMENTS
   $sql = "
         SELECT 
             a.id as application_id,
@@ -94,7 +93,7 @@ try {
   $stmt->execute([$requestedCandidateId]);
   $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-  // ✅ FORMATEAR Y LIMPIAR DATOS
+  // Ã¢Å“â€¦ FORMATEAR Y LIMPIAR DATOS
   foreach ($applications as &$app) {
     // Formatear fechas
     if ($app['applied_date']) {
@@ -108,7 +107,7 @@ try {
     $app['score'] = $app['score'] ?? 0;
     $app['cover_letter'] = $app['cover_letter'] ?? '';
 
-    // Añadir información adicional
+    // AÃƒÂ±adir informaciÃƒÂ³n adicional
     $app['can_withdraw'] = in_array($app['status'], ['pending', 'in_review']);
   }
 
@@ -136,3 +135,4 @@ try {
     'error_code' => 'INTERNAL_ERROR'
   ]);
 }
+

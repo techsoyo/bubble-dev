@@ -3,8 +3,8 @@
 /**
  * Communication Automation API Endpoint
  *
- * Endpoint para generación automática de emails, comunicación
- * personalizada y automatización de respuestas.
+ * Endpoint para generaciÃƒÂ³n automÃƒÂ¡tica de emails, comunicaciÃƒÂ³n
+ * personalizada y automatizaciÃƒÂ³n de respuestas.
  *
  * @package Backend\API\AI
  * @version 1.0.0
@@ -12,13 +12,6 @@
  */
 
 declare(strict_types=1);
-$ROOT = dirname(__DIR__, 2);             // ai -> api -> backend/
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-    http_response_code(500);
-    exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 require_once __DIR__ . '/../../src/Services/CommunicationService.php';
 
@@ -41,7 +34,7 @@ use Services\CommunicationService;
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['error' => 'Método no permitido']);
+    echo json_encode(['error' => 'MÃƒÂ©todo no permitido']);
     exit;
 }
 
@@ -50,7 +43,7 @@ try {
 
     if (!$input) {
         http_response_code(400);
-        echo json_encode(['error' => 'Datos JSON inválidos']);
+        echo json_encode(['error' => 'Datos JSON invÃƒÂ¡lidos']);
         exit;
     }
 
@@ -83,7 +76,7 @@ try {
             break;
 
         case 'application_response':
-            // Respuesta automática a aplicación
+            // Respuesta automÃƒÂ¡tica a aplicaciÃƒÂ³n
             if (!isset($input['candidate_data']) || !isset($input['job_data'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Faltan candidate_data o job_data']);
@@ -129,7 +122,7 @@ try {
             break;
 
         case 'interview_invitation':
-            // Invitación a entrevista
+            // InvitaciÃƒÂ³n a entrevista
             if (!isset($input['candidate_data']) || !isset($input['job_data'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Faltan candidate_data o job_data']);
@@ -177,7 +170,7 @@ try {
             break;
 
         case 'status_update':
-            // Actualización de estado
+            // ActualizaciÃƒÂ³n de estado
             if (!isset($input['candidate_data']) || !isset($input['job_data']) || !isset($input['new_status'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Faltan candidate_data, job_data o new_status']);
@@ -221,7 +214,7 @@ try {
             break;
 
         case 'schedule_emails':
-            // Programar emails automáticos
+            // Programar emails automÃƒÂ¡ticos
             if (!isset($input['candidate_data']) || !isset($input['job_data']) || !isset($input['triggers'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Faltan candidate_data, job_data o triggers']);
@@ -279,7 +272,7 @@ try {
         default:
             http_response_code(400);
             echo json_encode([
-                'error' => 'Acción no válida',
+                'error' => 'AcciÃƒÂ³n no vÃƒÂ¡lida',
                 'valid_actions' => [
                     'generate_email',
                     'application_response',

@@ -3,13 +3,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
-$ROOT = dirname(dirname(dirname(__DIR__))); // Corregido: api -> public -> backend -> raiz
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-  http_response_code(500);
-  exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 // Content Type header (CORS ya configurado en bootstrap.php)
 header('Content-Type: application/json');
@@ -24,7 +17,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 try {
-  // Verificar si hay sesión activa
+  // Verificar si hay sesiÃƒÂ³n activa
   if (empty($_SESSION['candidate_id'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'No authenticated']);
@@ -87,4 +80,5 @@ try {
     'message' => 'Error interno del servidor'
   ]);
 }
+
 

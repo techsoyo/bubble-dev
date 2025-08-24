@@ -4,14 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
-// Sube 1 nivel: api → backend/
-$ROOT = dirname(__DIR__, 1);
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-  http_response_code(500);
-  exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
+// Sube 1 nivel: api Ã¢â€ â€™ backend/
 
 /**
  * Endpoint: POST /api/match
@@ -111,7 +104,7 @@ try {
     $rankedCandidates = $matchingService->rankCandidates($data['candidates'], $data['job']);
     $provider = 'ai';
   } else {
-    // Matching básico (fallback) - usando createFallbackScore para cada candidato
+    // Matching bÃƒÂ¡sico (fallback) - usando createFallbackScore para cada candidato
     $rankedCandidates = [];
     foreach ($data['candidates'] as $candidate) {
       $fallbackScore = $matchingService->createFallbackScore($candidate, $data['job']);
@@ -154,7 +147,7 @@ try {
     ]
   ];
 
-  // Log éxito
+  // Log ÃƒÂ©xito
   Log::json('info', [
     'endpoint' => '/api/match',
     'req_id' => RequestId::get(),
@@ -182,3 +175,4 @@ try {
     'debug' => APP_ENV === 'development' ? $e->getMessage() : null
   ]);
 }
+

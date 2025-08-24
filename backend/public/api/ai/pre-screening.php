@@ -3,8 +3,8 @@
 /**
  * Pre-Screening API Endpoint
  *
- * Endpoint para screening automático, generación de preguntas
- * y detección de red flags usando IA.
+ * Endpoint para screening automÃƒÂ¡tico, generaciÃƒÂ³n de preguntas
+ * y detecciÃƒÂ³n de red flags usando IA.
  *
  * @package Backend\API\AI
  * @version 1.0.0
@@ -12,13 +12,6 @@
  */
 
 declare(strict_types=1);
-$ROOT = dirname(__DIR__, 2);             // ai -> api -> backend/
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-    http_response_code(500);
-    exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 require_once __DIR__ . '/../../src/Services/PreScreeningService.php';
 
@@ -26,7 +19,7 @@ use Services\PreScreeningService;
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['error' => 'Método no permitido']);
+    echo json_encode(['error' => 'MÃƒÂ©todo no permitido']);
     exit;
 }
 
@@ -35,7 +28,7 @@ try {
 
     if (!$input) {
         http_response_code(400);
-        echo json_encode(['error' => 'Datos JSON inválidos']);
+        echo json_encode(['error' => 'Datos JSON invÃƒÂ¡lidos']);
         exit;
     }
 
@@ -85,7 +78,7 @@ try {
             break;
 
         case 'validate_requirements':
-            // Validar requisitos mínimos
+            // Validar requisitos mÃƒÂ­nimos
             if (!isset($input['candidate_data']) || !isset($input['job_requirements'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Faltan candidate_data o job_requirements']);
@@ -135,7 +128,7 @@ try {
         default:
             http_response_code(400);
             echo json_encode([
-                'error' => 'Acción no válida',
+                'error' => 'AcciÃƒÂ³n no vÃƒÂ¡lida',
                 'valid_actions' => ['generate_questions', 'detect_red_flags', 'validate_requirements', 'complete_screening']
             ]);
             break;

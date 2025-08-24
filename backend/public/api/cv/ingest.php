@@ -2,20 +2,13 @@
 
 declare(strict_types=1);
 
-$ROOT = dirname(__DIR__, 2);
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-  http_response_code(500);
-  exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 /**
  * Endpoint: POST /api/cv/ingest
- * Pipeline completo: CV Upload → Parse → Match → Route
+ * Pipeline completo: CV Upload Ã¢â€ â€™ Parse Ã¢â€ â€™ Match Ã¢â€ â€™ Route
  * 
  * Input: multipart/form-data con archivo 'cv' + metadata JSON
- * Output: candidato procesado, score, y ruteo automático
+ * Output: candidato procesado, score, y ruteo automÃƒÂ¡tico
  */
 
 use Services\CV\AdvancedCVParser;
@@ -64,7 +57,7 @@ try {
   // PASO 3: Guardar candidato (mock)
   $candidateId = 'cand_' . uniqid();
 
-  // PASO 4: Ruteo automático (mock)
+  // PASO 4: Ruteo automÃƒÂ¡tico (mock)
   $assignedRecruiter = $candidateData['categoria'] === 'Frontend Developer' ? 'recruiter_frontend' : 'recruiter_general';
 
   // Response

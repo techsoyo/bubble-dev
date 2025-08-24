@@ -1,13 +1,6 @@
 <?php
 
 declare(strict_types=1);
-$ROOT = dirname(dirname(dirname(__DIR__))); // auth -> api -> public -> backend  
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-  http_response_code(500);
-  exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 // Content Type header (CORS ya configurado en bootstrap.php)
 header('Content-Type: application/json');
@@ -17,10 +10,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
   exit;
 }
 
-// Permitir tanto GET como POST para verificación de sesión
+// Permitir tanto GET como POST para verificaciÃƒÂ³n de sesiÃƒÂ³n
 if (!in_array($_SERVER['REQUEST_METHOD'], ['GET', 'POST'])) {
   http_response_code(405);
-  echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+  echo json_encode(['success' => false, 'message' => 'MÃƒÂ©todo no permitido']);
   exit;
 }
 
@@ -29,7 +22,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 try {
-  // Verificar si hay sesión activa
+  // Verificar si hay sesiÃƒÂ³n activa
   if (empty($_SESSION['candidate_id'])) {
     http_response_code(200);
     echo json_encode([
@@ -46,7 +39,7 @@ try {
   $candidate = $stmt->fetch(PDO::FETCH_ASSOC);
 
   if (!$candidate) {
-    // Limpiar sesión si el candidato no existe
+    // Limpiar sesiÃƒÂ³n si el candidato no existe
     session_destroy();
     http_response_code(200);
     echo json_encode([

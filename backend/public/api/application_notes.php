@@ -1,12 +1,8 @@
 <?php
 
 require_once __DIR__ . '/bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automáticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automáticamente en bootstrap.php
-require_once __DIR__ . '/../../src/Utils/ResponseHelper.php';
-require_once __DIR__ . '/../../src/Utils/Validator.php';
-require_once __DIR__ . '/../../src/Utils/Request.php';
-require_once __DIR__ . '/../../src/Utils/JWT.php';
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
 require_once __DIR__ . '/../../src/Middleware/SecurityMiddleware.php';
 
 use Models\ApplicationNote;
@@ -33,9 +29,9 @@ try {
                     'application_id' => 'required|string:1,36'
                 ]);
                 if (!$ok) {
-                    Res::error('Validación fallida', 422, ['errors' => $errs]);
+                    Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
                 }
-                // Ownership: aquí podrías validar que el usuario tiene acceso a la aplicación
+                // Ownership: aquÃƒÂ­ podrÃƒÂ­as validar que el usuario tiene acceso a la aplicaciÃƒÂ³n
                 $notes = $noteModel->findByApplicationId($applicationId);
                 Res::success('OK', ['items' => $notes]);
                 break;
@@ -47,9 +43,9 @@ try {
                     'note'           => 'required|string:1,1000'
                 ]);
                 if (!$ok) {
-                    Res::error('Validación fallida', 422, ['errors' => $errs]);
+                    Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
                 }
-                // Ownership: aquí podrías validar que el usuario tiene acceso a la aplicación
+                // Ownership: aquÃƒÂ­ podrÃƒÂ­as validar que el usuario tiene acceso a la aplicaciÃƒÂ³n
                 $existingNotes = $noteModel->findByApplicationId($input['application_id']);
                 $nextIdx = 0;
                 foreach ($existingNotes as $n) {
@@ -67,8 +63,9 @@ try {
                 break;
             }
         default:
-            Res::error('Método no permitido', 405);
+            Res::error('MÃƒÂ©todo no permitido', 405);
     }
 } catch (\Throwable $e) {
     Res::error('Error interno del servidor', 500, ['detail' => $e->getMessage()]);
 }
+

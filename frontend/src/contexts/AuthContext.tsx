@@ -1,8 +1,16 @@
-import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { SecureAuthManager, User, LoginCredentials } from '../lib/auth/secureAuthManager';
-import { InputSanitizer } from '../lib/auth/secureInputValidator';
 
-// Interfaz para datos de autenticación social
+/**
+ * Auth Context - UPDATED WITH NEW ENDPOINTS
+ * ✅ ACTUALIZADO: Integración con endpoints actualizados
+ * - Candidatos: /auth/register (login y registro)
+ * - Staff: /staff/login
+ */
+
+import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import { SecureAuthManager, User, LoginCredentials, AuthResponse } from '../lib/auth/secureAuthManager';
+import { InputSanitizer } from '../lib/auth/secureInputValidator';
+import { TokenManager } from '../lib/auth/tokenManager';
+
 interface SocialAuthData {
     token?: string;
     access_token?: string;
@@ -13,23 +21,41 @@ interface SocialAuthData {
     picture?: string;
 }
 
-// Extendemos la interfaz User importada para mantener compatibilidad
+interface RegistrationData {
+    email: string;
+    password: string;
+    first_name?: string;
+    last_name?: string;
+    name?: string;
+}
+
 interface AuthContextType {
+    // Estado
     isLoggedIn: boolean;
     user: User | null;
     isLoading: boolean;
-    login: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>;
-    candidateLogin: (email: string, password: string) => Promise<boolean>;
-    staffLogin: (email: string, password: string) => Promise<boolean>;
-    loginWithSocial: (provider: string, userData: SocialAuthData) => Promise<boolean>;
+    isInitialized: boolean;
+    error: string | null;
+    userType: 'candidate' | 'staff' | 'unknown';
+
+    // Acciones de Login
+    login: (email: string, password: string, rememberMe?: boolean) => Promise<AuthResponse>;
+    candidateLogin: (email: string, password: string) => Promise<AuthResponse>;
+    staffLogin: (email: string, password: string) => Promise<AuthResponse>;
+    loginWithSocial: (provider: string, userData: SocialAuthData) => Promise<AuthResponse>;
+
+    // ✅ NUEVO: Registro
+    registerCandidate: (registrationData: RegistrationData) => Promise<AuthResponse>;
+
+    // Otras acciones
     logout: () => Promise<void>;
     refreshSession: () => Promise<void>;
-    isInitialized: boolean;
+    changePassword: (currentPassword: string, newPassword: string) => Promise<AuthResponse>;
+    clearError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Exportar el contexto explícitamente
 export { AuthContext };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -37,110 +63,83 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isInitialized, setIsInitialized] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
+    const [userType, setUserType] = useState<'candidate' | 'staff' | 'unknown'>('unknown');
 
     useEffect(() => {
         initializeAuth();
     }, []);
 
+    /**
+     * ✅ ACTUALIZADO: Inicialización con determinación de tipo de usuario
+     */
     const initializeAuth = async () => {
         try {
             setIsLoading(true);
+            setError(null);
 
-            // Limpiar cualquier dato de localStorage (migración a producción)
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('userEmail');
-            localStorage.removeItem('userId');
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('userName');
-            localStorage.removeItem('userFirstName');
-            localStorage.removeItem('userLastName');
+            console.log('🔄 Inicializando autenticación...');
 
-            // Intentar verificar sesión con cookies HTTP-only
+            // ✅ LIMPIAR DATOS DE LOCALSTORAGE LEGACY
+            const legacyKeys = [
+                'isLoggedIn', 'userEmail', 'userId', 'userRole',
+                'userName', 'userFirstName', 'userLastName'
+            ];
+            legacyKeys.forEach(key => localStorage.removeItem(key));
+
+            // ✅ VERIFICAR SESIÓN
             const { isValid, user: sessionUser } = await SecureAuthManager.verifySession();
 
             if (isValid && sessionUser) {
                 setUser(sessionUser);
                 setIsLoggedIn(true);
-                console.log('Session restored from secure cookies');
+                setUserType(SecureAuthManager.getUserType());
+                console.log('✅ Sesión restaurada:', sessionUser.email, 'Tipo:', SecureAuthManager.getUserType());
             } else {
                 setUser(null);
                 setIsLoggedIn(false);
-                console.log('No valid session found');
+                setUserType('unknown');
+                console.log('ℹ️ No hay sesión válida');
             }
 
             setIsInitialized(true);
-        } catch (error) {
-            console.error('Auth initialization error:', error);
+        } catch (err) {
+            console.error('❌ Error inicializando auth:', err);
+            setError('Error inicializando autenticación');
             setUser(null);
             setIsLoggedIn(false);
+            setUserType('unknown');
             setIsInitialized(true);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const login = async (email: string, password: string, rememberMe = false): Promise<boolean> => {
-        try {
-            setIsLoading(true);
-
-            // Sanitizar email
-            const sanitizedEmail = InputSanitizer.sanitizeEmail(email);
-            if (!sanitizedEmail) {
-                console.error('Login failed: invalid email format');
-                return false;
-            }
-
-            // Intentar login seguro
-            const credentials: LoginCredentials = {
-                email: sanitizedEmail,
-                password, // No sanitizamos la contraseña
-                rememberMe
-            };
-
-            const authResponse = await SecureAuthManager.login(credentials);
-
-            if (authResponse.success && authResponse.user) {
-                setUser(authResponse.user);
-                setIsLoggedIn(true);
-
-                // Limpiar localStorage completamente
-                localStorage.removeItem('isLoggedIn');
-                localStorage.removeItem('userEmail');
-                localStorage.removeItem('userId');
-                localStorage.removeItem('userRole');
-                localStorage.removeItem('userName');
-                localStorage.removeItem('userFirstName');
-                localStorage.removeItem('userLastName');
-
-                console.log('Secure login successful');
-                return true;
-            } else {
-                console.error('Login failed:', authResponse.message);
-                return false;
-            }
-        } catch (error) {
-            console.error('Login error:', error);
-            return false;
-        } finally {
-            setIsLoading(false);
-        }
+    /**
+     * ✅ ACTUALIZADO: Login genérico (usa candidateLogin por defecto)
+     */
+    const login = async (email: string, password: string, rememberMe = false): Promise<AuthResponse> => {
+        return candidateLogin(email, password);
     };
 
-    const candidateLogin = async (email: string, password: string): Promise<boolean> => {
+    /**
+     * ✅ ACTUALIZADO: Candidate login con endpoint actualizado
+     */
+    const candidateLogin = async (email: string, password: string): Promise<AuthResponse> => {
         try {
             setIsLoading(true);
+            setError(null);
 
-            // Sanitizar email
             const sanitizedEmail = InputSanitizer.sanitizeEmail(email);
             if (!sanitizedEmail) {
-                console.error('Candidate login failed: invalid email format');
-                return false;
+                const errorResponse = { success: false, message: 'Email inválido' };
+                setError(errorResponse.message);
+                return errorResponse;
             }
 
-            // Intentar candidate login usando endpoint específico
             const credentials: LoginCredentials = {
                 email: sanitizedEmail,
-                password, // No sanitizamos la contraseña
+                password,
                 rememberMe: false
             };
 
@@ -149,36 +148,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (authResponse.success && authResponse.user) {
                 setUser(authResponse.user);
                 setIsLoggedIn(true);
-
-                console.log('Secure candidate login successful');
-                return true;
+                setUserType('candidate');
+                console.log('✅ Candidate login exitoso');
             } else {
-                console.error('Candidate login failed:', authResponse.message);
-                return false;
+                setError(authResponse.message || 'Candidate login falló');
             }
-        } catch (error) {
-            console.error('Candidate login error:', error);
-            return false;
+
+            return authResponse;
+        } catch (err) {
+            const errorMessage = 'Error en candidate login';
+            setError(errorMessage);
+            console.error('❌ Error candidate login:', err);
+            return { success: false, message: errorMessage };
         } finally {
             setIsLoading(false);
         }
     };
 
-    const staffLogin = async (email: string, password: string): Promise<boolean> => {
+    /**
+     * ✅ ACTUALIZADO: Staff login con endpoint actualizado
+     */
+    const staffLogin = async (email: string, password: string): Promise<AuthResponse> => {
         try {
             setIsLoading(true);
+            setError(null);
 
-            // Sanitizar email
             const sanitizedEmail = InputSanitizer.sanitizeEmail(email);
             if (!sanitizedEmail) {
-                console.error('Staff login failed: invalid email format');
-                return false;
+                const errorResponse = { success: false, message: 'Email inválido' };
+                setError(errorResponse.message);
+                return errorResponse;
             }
 
-            // Intentar staff login usando endpoint específico
             const credentials: LoginCredentials = {
                 email: sanitizedEmail,
-                password, // No sanitizamos la contraseña
+                password,
                 rememberMe: false
             };
 
@@ -187,98 +191,200 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (authResponse.success && authResponse.user) {
                 setUser(authResponse.user);
                 setIsLoggedIn(true);
-
-                console.log('Secure staff login successful');
-                return true;
+                setUserType('staff');
+                console.log('✅ Staff login exitoso');
             } else {
-                console.error('Staff login failed:', authResponse.message);
-                return false;
+                setError(authResponse.message || 'Staff login falló');
             }
-        } catch (error) {
-            console.error('Staff login error:', error);
-            return false;
+
+            return authResponse;
+        } catch (err) {
+            const errorMessage = 'Error en staff login';
+            setError(errorMessage);
+            console.error('❌ Error staff login:', err);
+            return { success: false, message: errorMessage };
         } finally {
             setIsLoading(false);
         }
     };
 
-    const loginWithSocial = async (provider: string, userData: SocialAuthData): Promise<boolean> => {
+    /**
+     * ✅ NUEVO: Registro de candidatos
+     */
+    const registerCandidate = async (registrationData: RegistrationData): Promise<AuthResponse> => {
         try {
             setIsLoading(true);
+            setError(null);
 
-            // Por ahora, social login no está implementado en producción
-            console.log('Social login not implemented yet');
-            return false;
+            const sanitizedEmail = InputSanitizer.sanitizeEmail(registrationData.email);
+            if (!sanitizedEmail) {
+                const errorResponse = { success: false, message: 'Email inválido' };
+                setError(errorResponse.message);
+                return errorResponse;
+            }
 
-        } catch (error) {
-            console.error('Social login error:', error);
-            return false;
+            const sanitizedData = {
+                ...registrationData,
+                email: sanitizedEmail,
+                first_name: registrationData.first_name ? InputSanitizer.sanitizeName(registrationData.first_name) : undefined,
+                last_name: registrationData.last_name ? InputSanitizer.sanitizeName(registrationData.last_name) : undefined,
+                name: registrationData.name ? InputSanitizer.sanitizeName(registrationData.name) : undefined,
+            };
+
+            const authResponse = await SecureAuthManager.registerCandidate(sanitizedData);
+
+            if (authResponse.success && authResponse.user) {
+                setUser(authResponse.user);
+                setIsLoggedIn(true);
+                setUserType('candidate');
+                console.log('✅ Registro de candidato exitoso');
+            } else {
+                setError(authResponse.message || 'Registro falló');
+            }
+
+            return authResponse;
+        } catch (err) {
+            const errorMessage = 'Error en registro';
+            setError(errorMessage);
+            console.error('❌ Error registro:', err);
+            return { success: false, message: errorMessage };
         } finally {
             setIsLoading(false);
         }
     };
 
+    /**
+     * ✅ PLACEHOLDER: Social login 
+     */
+    const loginWithSocial = async (provider: string, userData: SocialAuthData): Promise<AuthResponse> => {
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            console.log('ℹ️ Social login no implementado:', provider);
+
+            const errorResponse = { success: false, message: 'Social login no disponible' };
+            setError(errorResponse.message);
+            return errorResponse;
+        } catch (err) {
+            const errorMessage = 'Error en social login';
+            setError(errorMessage);
+            return { success: false, message: errorMessage };
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    /**
+     * ✅ ACTUALIZADO: Logout con endpoints actualizados
+     */
     const logout = async (): Promise<void> => {
         try {
             setIsLoading(true);
+            setError(null);
 
-            // Usar método seguro de logout
-            await SecureAuthManager.logout();
+            console.log('🔄 Cerrando sesión...');
 
-            // Limpiar estado local
+            const success = await SecureAuthManager.logout();
+
+            // ✅ LIMPIAR ESTADO LOCAL SIEMPRE
             setUser(null);
             setIsLoggedIn(false);
+            setUserType('unknown');
 
-            // Asegurar que localStorage también esté limpio
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('userEmail');
-            localStorage.removeItem('userId');
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('userName');
-
-            console.log('Secure logout successful');
-        } catch (error) {
-            console.error('Logout error:', error);
-            // Forzar limpieza local incluso si hay error
+            if (success) {
+                console.log('✅ Logout exitoso');
+            } else {
+                console.log('⚠️ Logout con errores, pero estado limpiado');
+            }
+        } catch (err) {
+            console.error('❌ Error en logout:', err);
+            // ✅ FORZAR LIMPIEZA INCLUSO CON ERROR
             setUser(null);
             setIsLoggedIn(false);
+            setUserType('unknown');
+            SecureAuthManager.clearSession();
         } finally {
             setIsLoading(false);
         }
     };
 
+    /**
+     * ✅ ACTUALIZADO: Refresh session con tipo de usuario
+     */
     const refreshSession = async (): Promise<void> => {
         try {
-            console.log('Refreshing session...');
+            setError(null);
+            console.log('🔄 Actualizando sesión...');
 
-            // Verificar sesión actual
             const { isValid, user: sessionUser } = await SecureAuthManager.verifySession();
 
             if (isValid && sessionUser) {
                 setUser(sessionUser);
                 setIsLoggedIn(true);
-                console.log('Session refreshed successfully');
+                setUserType(SecureAuthManager.getUserType());
+                console.log('✅ Sesión actualizada');
             } else {
-                console.log('Session refresh failed, logging out');
+                console.log('ℹ️ Sesión inválida, cerrando');
                 await logout();
             }
-        } catch (error) {
-            console.error('Session refresh error:', error);
+        } catch (err) {
+            console.error('❌ Error actualizando sesión:', err);
+            setError('Error actualizando sesión');
             await logout();
         }
     };
 
+    /**
+     * ✅ ACTUALIZADO: Change password 
+     */
+    const changePassword = async (currentPassword: string, newPassword: string): Promise<AuthResponse> => {
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            const response = await SecureAuthManager.changePassword(currentPassword, newPassword);
+
+            if (!response.success) {
+                setError(response.message || 'Error cambiando contraseña');
+            }
+
+            return response;
+        } catch (err) {
+            const errorMessage = 'Error cambiando contraseña';
+            setError(errorMessage);
+            return { success: false, message: errorMessage };
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    /**
+     * ✅ Clear error
+     */
+    const clearError = () => {
+        setError(null);
+    };
+
     const value: AuthContextType = {
+        // Estado
         isLoggedIn,
         user,
         isLoading,
+        isInitialized,
+        error,
+        userType,
+
+        // Acciones
         login,
         candidateLogin,
         staffLogin,
         loginWithSocial,
+        registerCandidate,
         logout,
         refreshSession,
-        isInitialized
+        changePassword,
+        clearError
     };
 
     return (
@@ -288,14 +394,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 }
 
-// Hook personalizado para usar el contexto
+// ✅ Hook mejorado con validación
 export function useAuth() {
     const context = useContext(AuthContext);
     if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
+        throw new Error('useAuth debe usarse dentro de AuthProvider');
     }
     return context;
 }
 
-// Export por defecto
 export default AuthContext;

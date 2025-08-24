@@ -5,7 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/bootstrap.php';
 
 if (!isset($_SERVER['REQUEST_METHOD'])) {
-    $_SERVER['REQUEST_METHOD'] = 'GET'; // Para ejecución directa
+    $_SERVER['REQUEST_METHOD'] = 'GET'; // Para ejecuciÃƒÂ³n directa
 }
 
 
@@ -13,13 +13,6 @@ if (!isset($_SERVER['REQUEST_METHOD'])) {
 require_once __DIR__ . '/../autoload.php';
 
 
-$ROOT = dirname(__DIR__, 1);             // ajusta salto de nivel según carpeta
-$BOOT = $ROOT . '/config/bootstrap.php'; // si estás en /backend/public, sube 1 nivel; si estás en /backend/api, también 1
-if (!is_file($BOOT)) {
-    http_response_code(500);
-    exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 // Fallback si el autoload no funciona
 if (!class_exists('Domain\\CvSchema')) {
@@ -28,7 +21,7 @@ if (!class_exists('Domain\\CvSchema')) {
 
 use Domain\CvSchema;
 
-// Bloquear en producción
+// Bloquear en producciÃƒÂ³n
 if ((getenv('APP_ENV') ?: 'production') === 'production') {
     http_response_code(404);
     exit;
@@ -78,14 +71,14 @@ try {
             if ($input === null) {
                 sendJsonResponse(false, null, [
                   'code' => 'INVALID_JSON',
-                  'message' => 'El JSON enviado no es válido'
+                  'message' => 'El JSON enviado no es vÃƒÂ¡lido'
                 ]);
             }
 
             // Normalizar datos
             $normalizedData = CvSchema::normalize($input);
 
-            // Validar datos mínimos
+            // Validar datos mÃƒÂ­nimos
             $validationErrors = CvSchema::validateMinimumData($normalizedData);
 
             if (!empty($validationErrors)) {
@@ -93,7 +86,7 @@ try {
                   'normalized_data' => $normalizedData
                 ], [
                   'code' => 'VALIDATION_FAILED',
-                  'message' => 'Los datos no cumplen con los requisitos mínimos',
+                  'message' => 'Los datos no cumplen con los requisitos mÃƒÂ­nimos',
                   'details' => $validationErrors
                 ]);
             }
@@ -109,7 +102,7 @@ try {
         default:
             sendJsonResponse(false, null, [
               'code' => 'METHOD_NOT_ALLOWED',
-              'message' => 'Método HTTP no permitido. Use GET o POST.'
+              'message' => 'MÃƒÂ©todo HTTP no permitido. Use GET o POST.'
             ]);
     }
 } catch (Exception $e) {
@@ -119,3 +112,4 @@ try {
       'details' => $e->getMessage()
     ]);
 }
+

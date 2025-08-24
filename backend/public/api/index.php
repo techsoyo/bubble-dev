@@ -1,13 +1,12 @@
 <?php
 
 require_once __DIR__ . '/bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automáticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automáticamente en bootstrap.php
-require_once __DIR__ . '/../../src/Utils/ResponseHelper.php';
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
 
 use Utils\ResponseHelper as Res;
 
-// Cargar configuración
+// Cargar configuraciÃƒÂ³n
 require_once __DIR__ . '/../../config/config.php';
 
 spl_autoload_register(function ($class) {
@@ -18,11 +17,9 @@ spl_autoload_register(function ($class) {
         }
     }
 });
-
 $request_uri = $_SERVER['REQUEST_URI'];
 $request_method = $_SERVER['REQUEST_METHOD'];
 $path = parse_url($request_uri, PHP_URL_PATH);
-
 try {
     switch ($path) {
         case '/api/notification':
@@ -34,12 +31,54 @@ try {
         case '/api/chatbot':
             require_once __DIR__ . '/chatbot.php';
             break;
+
+        case '/api/auth/register':
+            if ($request_method === 'POST') {
+                require_once __DIR__ . '/endpoints/auth_register.php';
+            } else {
+                http_response_code(405);
+                Res::error('MÃƒÂ©todo no permitido', null, 405);
+            }
+            break;
+        case '/api/staff/login':
+            if ($request_method === 'POST') {
+                require_once __DIR__ . '/endpoints/staff_login.php';
+            } else {
+                http_response_code(405);
+                Res::error('MÃƒÂ©todo no permitido', null, 405);
+            }
+            break;
+
+        case '/api/auth/logout':
+        case '/api/staff/logout':
+            if ($request_method === 'POST') {
+                require_once __DIR__ . '/endpoints/auth_logout.php';
+            } else {
+                http_response_code(405);
+                Res::error('MÃƒÂ©todo no permitido', null, 405);
+            }
+            break;
+        case '/api/auth/verify':
+        case '/api/auth/session':
+            if ($request_method === 'POST' || $request_method === 'GET') {
+                require_once __DIR__ . '/endpoints/auth_verify.php';
+            } else {
+                http_response_code(405);
+                Res::error('MÃƒÂ©todo no permitido', null, 405);
+            }
+            break;
+        // Ã¢ÂÅ’ ENDPOINT DEPRECADO
+        case '/api/auth/login':
+            http_response_code(410);
+            Res::error('Este endpoint estÃƒÂ¡ deprecado. Los candidatos deben usar /api/auth/register', null, 410);
+            break;
+
         case '/ai/analyze-cv':
             if ($request_method === 'POST') {
                 require_once __DIR__ . '/analyze_cv.php';
             } else {
                 http_response_code(405);
-                Res::error('Método no permitido', 405);
+                Res::error('MÃƒÂ©todo no permitido', null, 405);
             }
             break;
         case '/ai/extract-skills':
@@ -47,7 +86,7 @@ try {
                 require_once __DIR__ . '/endpoints/extract_skills.php';
             } else {
                 http_response_code(405);
-                Res::error('Método no permitido', 405);
+                Res::error('MÃƒÂ©todo no permitido', null, 405);
             }
             break;
         case '/ai/calculate-matching':
@@ -55,7 +94,7 @@ try {
                 require_once __DIR__ . '/endpoints/calculate_matching.php';
             } else {
                 http_response_code(405);
-                Res::error('Método no permitido', 405);
+                Res::error('MÃƒÂ©todo no permitido', null, 405);
             }
             break;
         case '/ai/health':
@@ -68,18 +107,10 @@ try {
             break;
         default:
             http_response_code(404);
-            Res::error('Endpoint no encontrado', 404, [
-                'path' => $path,
-                'available_endpoints' => [
-                    '/ai/analyze-cv',
-                    '/ai/extract-skills',
-                    '/ai/calculate-matching',
-                    '/ai/health'
-                ]
-            ]);
+            Res::error('Endpoint no encontrado', null, 404);
     }
 } catch (Throwable $e) {
     http_response_code(500);
-
-    Res::error('Error interno', 500);
+    Res::error('Error interno', $e, 500);
 }
+

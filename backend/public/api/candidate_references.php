@@ -3,15 +3,9 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
 
-require_once __DIR__ . '/bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automáticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automáticamente en bootstrap.php
-
-require_once __DIR__ . '/../../src/Utils/ResponseHelper.php';
-require_once __DIR__ . '/../../src/Utils/Validator.php';
-require_once __DIR__ . '/../../src/Utils/Request.php';
-require_once __DIR__ . '/../../src/Utils/JWT.php';
 require_once __DIR__ . '/../../src/Middleware/SecurityMiddleware.php';
 
 use Middleware\SecurityMiddleware as Sec;
@@ -54,7 +48,7 @@ try {
                 'candidate_id' => 'required|string:1,36|regex:/^cnd-\d+$/'
             ]);
             if (!$ok) {
-                Res::error('Validación fallida', 422, ['errors' => $errs]);
+                Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
             }
 
             Sec::assertReadAccessForCandidate((string)$candidateId, $authUser);
@@ -81,7 +75,7 @@ try {
                 'notes'        => 'string:0,1000'
             ]);
             if (!$ok) {
-                Res::error('Validación fallida', 422, ['errors' => $errs]);
+                Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
             }
 
             Sec::assertWriteAccessForCandidate((string)$payload['candidate_id'], $authUser);
@@ -102,8 +96,9 @@ try {
         }
 
         default:
-            Res::error('Método no permitido', 405);
+            Res::error('MÃƒÂ©todo no permitido', 405);
     }
 } catch (\Throwable $e) {
     Res::error('Error', 500, ['detail' => $e->getMessage()]);
 }
+

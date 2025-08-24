@@ -6,12 +6,11 @@ header('Content-Type: application/json; charset=UTF-8');
 try {
     if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
         http_response_code(405);
-        echo json_encode(['ok' => false, 'message' => 'Método no permitido', 'data' => null]);
+        echo json_encode(['ok' => false, 'message' => 'MÃƒÂ©todo no permitido', 'data' => null]);
         exit;
     }
 
     // Usar Database singleton para consistencia
-    require_once __DIR__ . '/../../src/Utils/Database.php';
     $database = \Utils\Database::getInstance();
     $db = $database->getConnection();
     $jobId = $_GET['jobId'] ?? null;
@@ -20,10 +19,10 @@ try {
     $offset = ($page - 1) * $limit;
     // Mock data ya que la tabla real puede no existir o tener estructura diferente
     $mockData = [
-        ['id' => 1, 'job_id' => 'job-101', 'requirement' => 'Experiencia mínima 3 años'],
+        ['id' => 1, 'job_id' => 'job-101', 'requirement' => 'Experiencia mÃƒÂ­nima 3 aÃƒÂ±os'],
         ['id' => 2, 'job_id' => 'job-101', 'requirement' => 'Dominio de JavaScript'],
-        ['id' => 3, 'job_id' => 'job-102', 'requirement' => 'Título universitario'],
-        ['id' => 4, 'job_id' => 'job-103', 'requirement' => 'Inglés nivel B2'],
+        ['id' => 3, 'job_id' => 'job-102', 'requirement' => 'TÃƒÂ­tulo universitario'],
+        ['id' => 4, 'job_id' => 'job-103', 'requirement' => 'InglÃƒÂ©s nivel B2'],
         ['id' => 5, 'job_id' => 'job-104', 'requirement' => 'Conocimientos en React'],
         ['id' => 6, 'job_id' => 'job-105', 'requirement' => 'Portfolio actualizado']
     ];
@@ -41,3 +40,4 @@ try {
     http_response_code(500);
     echo json_encode(['ok' => false, 'message' => 'Error', 'data' => ['error' => $e->getMessage()]]);
 }
+

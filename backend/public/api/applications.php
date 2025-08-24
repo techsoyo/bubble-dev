@@ -3,8 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
-require_once dirname(__DIR__, 2) . '/src/Utils/JWTMiddleware.php';
-require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
+ 
 
 // Configurar CORS y headers de seguridad
 header('Content-Type: application/json; charset=utf-8');
@@ -24,26 +23,26 @@ function jsend($ok, $message, $data = null, $code = 200): void
     echo json_encode(['success' => $ok, 'message' => $message, 'data' => $data], JSON_UNESCAPED_UNICODE);
     exit;
 }
-// ===== GET: AHORA CON AUTENTICACIÓN JWT =====
+// ===== GET: AHORA CON AUTENTICACIÃƒâ€œN JWT =====
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // ✅ REQUERIR AUTENTICACIÓN JWT
+    // Ã¢Å“â€¦ REQUERIR AUTENTICACIÃƒâ€œN JWT
     $userPayload = JWTMiddleware::requireAuth();
     if (!$userPayload) {
-        // JWTMiddleware ya envió la respuesta de error
+        // JWTMiddleware ya enviÃƒÂ³ la respuesta de error
         exit;
     }
 
     try {
         $db = getDbConnection();
 
-        // Obtener parámetros de query
+        // Obtener parÃƒÂ¡metros de query
         $candidateId = $_GET['candidate_id'] ?? null;
         $jobId = $_GET['job_id'] ?? null;
         $status = $_GET['status'] ?? null;
-        $limit = min((int)($_GET['limit'] ?? 20), 100); // Máximo 100
+        $limit = min((int)($_GET['limit'] ?? 20), 100); // MÃƒÂ¡ximo 100
         $offset = (int)($_GET['offset'] ?? 0);
 
-        // ✅ CONTROL DE ACCESO: Solo admins o el propio candidato puede ver aplicaciones
+        // Ã¢Å“â€¦ CONTROL DE ACCESO: Solo admins o el propio candidato puede ver aplicaciones
         $userRole = $userPayload['role'] ?? 'candidate';
         $userId = $userPayload['user_id'];
 
@@ -74,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         $whereSQL = !empty($whereClauses) ? 'WHERE ' . implode(' AND ', $whereClauses) : '';
 
-        // ✅ QUERY SEGURA CON JOINS Y PREPARED STATEMENTS
+        // Ã¢Å“â€¦ QUERY SEGURA CON JOINS Y PREPARED STATEMENTS
         $sql = "
             SELECT 
                 a.id,
@@ -105,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $stmt->execute($params);
         $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // ✅ SANITIZAR DATOS SENSIBLES SEGÚN ROL
+        // Ã¢Å“â€¦ SANITIZAR DATOS SENSIBLES SEGÃƒÅ¡N ROL
         foreach ($applications as &$app) {
             if ($userRole === 'candidate') {
                 // Los candidatos no deben ver emails de otros candidatos
@@ -118,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             }
         }
 
-        // Obtener count total para paginación
+        // Obtener count total para paginaciÃƒÂ³n
         $countSQL = "SELECT COUNT(*) FROM bt_applications a $whereSQL";
         $countStmt = $db->prepare($countSQL);
         $countStmt->execute(array_slice($params, 0, -2)); // Excluir LIMIT y OFFSET
@@ -145,9 +144,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit;
 }
 
-// ===== POST: TAMBIÉN REQUIERE AUTENTICACIÓN =====
+// ===== POST: TAMBIÃƒâ€°N REQUIERE AUTENTICACIÃƒâ€œN =====
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // ✅ REQUERIR AUTENTICACIÓN JWT
+    // Ã¢Å“â€¦ REQUERIR AUTENTICACIÃƒâ€œN JWT
     $userPayload = JWTMiddleware::requireAuth();
     if (!$userPayload) {
         exit;
@@ -167,17 +166,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $db = getDbConnection();
 
-        // ✅ VERIFICAR QUE EL TRABAJO EXISTE Y ESTÁ ACTIVO
+        // Ã¢Å“â€¦ VERIFICAR QUE EL TRABAJO EXISTE Y ESTÃƒÂ ACTIVO
         $jobStmt = $db->prepare('SELECT id, title FROM bt_jobs WHERE id = ? AND status = "open"');
         $jobStmt->execute([$jobId]);
         $job = $jobStmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$job) {
-            jsend(false, 'El trabajo no existe o no está disponible', null, 404);
+            jsend(false, 'El trabajo no existe o no estÃƒÂ¡ disponible', null, 404);
             exit;
         }
 
-        // ✅ VERIFICAR QUE NO HAYA APLICACIÓN DUPLICADA
+        // Ã¢Å“â€¦ VERIFICAR QUE NO HAYA APLICACIÃƒâ€œN DUPLICADA
         $existingStmt = $db->prepare('SELECT id FROM bt_applications WHERE candidate_id = ? AND job_id = ?');
         $existingStmt->execute([$candidateId, $jobId]);
 
@@ -186,22 +185,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // ✅ CREAR APLICACIÓN CON PREPARED STATEMENTS
+        // Ã¢Å“â€¦ CREAR APLICACIÃƒâ€œN CON PREPARED STATEMENTS
         $insertSQL = "INSERT INTO bt_applications (candidate_id, job_id, status, cover_letter, created_at, updated_at) VALUES (?, ?, 'pending', ?, NOW(), NOW())";
 
         $insertStmt = $db->prepare($insertSQL);
         $success = $insertStmt->execute([$candidateId, $jobId, $coverLetter]);
 
         if (!$success) {
-            throw new Exception('Error al insertar aplicación');
+            throw new Exception('Error al insertar aplicaciÃƒÂ³n');
         }
 
         $applicationId = $db->lastInsertId();
 
-        // Log de auditoría
+        // Log de auditorÃƒÂ­a
         error_log("APPLICATION CREATED: ID $applicationId - Candidate: $candidateId - Job: $jobId");
 
-        jsend(true, 'Aplicación creada exitosamente', [
+        jsend(true, 'AplicaciÃƒÂ³n creada exitosamente', [
             'id' => $applicationId,
             'candidate_id' => $candidateId,
             'job_id' => $jobId,
@@ -211,10 +210,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ], 201);
     } catch (Exception $e) {
         error_log("CREATE APPLICATION ERROR: " . $e->getMessage());
-        jsend(false, 'Error al crear la aplicación', null, 500);
+        jsend(false, 'Error al crear la aplicaciÃƒÂ³n', null, 500);
     }
     exit;
 }
 
-// Método no permitido
-jsend(false, 'Método no permitido', null, 405);
+// MÃƒÂ©todo no permitido
+jsend(false, 'MÃƒÂ©todo no permitido', null, 405);
+

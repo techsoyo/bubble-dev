@@ -1391,43 +1391,6 @@ export async function bulkUpdateApplications(applications: Array<{
     }
 }
 
-// CONTENIDO DE CULTURA EMPRESARIAL
-// Obtiene los valores de cultura corporativa desde el endpoint real.  El
-// backend devuelve objetos con id, title, description, image y sort_order.
-// Esta función los transforma a la estructura usada por la interfaz de
-// CultureCard (title, desc y un icono opcional).
-export async function getCultureContent() {
-    try {
-        const url = `${API_BASE_URL}/culture.php`;
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const result = await response.json();
-        if (!result.success) {
-            throw new Error(result.error || 'Error al obtener contenido de cultura');
-        }
-        const items = result.data?.items || [];
-        // Transformar cada elemento en la estructura esperada y asignar iconos
-        return items.map((item: any) => ({
-            id: item.id,
-            title: item.title,
-            desc: item.description,
-            // Elegir el icono según el título. Si no existe, se deja como null
-            iconName: cultureIconMap[item.title] ?? null,
-        }));
-    } catch (error) {
-        console.error('Error en getCultureContent:', error);
-        return [];
-    }
-}
-
 // NOTICIAS/BLOG
 // Obtiene las noticias desde el nuevo endpoint real y las adapta a la
 // estructura utilizada por BlogCard (id, title, date, excerpt y to).

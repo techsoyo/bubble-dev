@@ -3,8 +3,8 @@
 /**
  * API Endpoint: Content Generation & Predictive Analysis
  *
- * Endpoint unificado para generación automática de contenido y análisis predictivo.
- * Incluye job descriptions, preguntas de entrevista, análisis de éxito, tiempo de contratación.
+ * Endpoint unificado para generaciÃƒÂ³n automÃƒÂ¡tica de contenido y anÃƒÂ¡lisis predictivo.
+ * Incluye job descriptions, preguntas de entrevista, anÃƒÂ¡lisis de ÃƒÂ©xito, tiempo de contrataciÃƒÂ³n.
  *
  * @package Backend\API\AI
  * @version 1.0.0
@@ -12,13 +12,6 @@
  */
 
 declare(strict_types=1);
-$ROOT = dirname(__DIR__, 2);             // ai -> api -> backend/
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-    http_response_code(500);
-    exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 require_once __DIR__ . '/../../src/Services/ContentGenerationService.php';
 
@@ -27,7 +20,7 @@ header('Content-Type: application/json; charset=utf-8');
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode([
-        'error' => 'Método no permitido',
+        'error' => 'MÃƒÂ©todo no permitido',
         'message' => 'Este endpoint solo acepta POST requests'
     ]);
     exit();
@@ -38,10 +31,10 @@ try {
     $inputData = json_decode(file_get_contents('php://input'), true);
 
     if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('JSON inválido en request body');
+        throw new Exception('JSON invÃƒÂ¡lido en request body');
     }
 
-    // Validar acción requerida
+    // Validar acciÃƒÂ³n requerida
     if (!isset($inputData['action'])) {
         throw new Exception('Campo "action" es requerido');
     }
@@ -50,7 +43,7 @@ try {
     $contentService = new \Services\ContentGenerationService();
     $action = $inputData['action'];
 
-    // Enrutamiento por acción
+    // Enrutamiento por acciÃƒÂ³n
     switch ($action) {
         case 'generate_job_description':
             $result = handleJobDescriptionGeneration($contentService, $inputData);
@@ -81,7 +74,7 @@ try {
             break;
 
         default:
-            throw new Exception("Acción no válida: {$action}");
+            throw new Exception("AcciÃƒÂ³n no vÃƒÂ¡lida: {$action}");
     }
 
     // Respuesta exitosa
@@ -98,14 +91,14 @@ try {
 
     http_response_code(400);
     echo json_encode([
-        'error' => 'Error en generación de contenido',
+        'error' => 'Error en generaciÃƒÂ³n de contenido',
         'message' => $e->getMessage(),
         'timestamp' => date('Y-m-d H:i:s')
     ]);
 }
 
 /**
- * Maneja generación de job description
+ * Maneja generaciÃƒÂ³n de job description
  */
 function handleJobDescriptionGeneration($service, $inputData)
 {
@@ -115,9 +108,9 @@ function handleJobDescriptionGeneration($service, $inputData)
 
     $jobInputs = $inputData['job_inputs'];
 
-    // Validaciones básicas
+    // Validaciones bÃƒÂ¡sicas
     if (empty($jobInputs['title'])) {
-        throw new Exception('Título del trabajo es requerido');
+        throw new Exception('TÃƒÂ­tulo del trabajo es requerido');
     }
 
     $result = $service->generateJobDescription($jobInputs);
@@ -130,7 +123,7 @@ function handleJobDescriptionGeneration($service, $inputData)
 }
 
 /**
- * Maneja generación de preguntas de entrevista
+ * Maneja generaciÃƒÂ³n de preguntas de entrevista
  */
 function handleInterviewQuestionsGeneration($service, $inputData)
 {
@@ -147,7 +140,7 @@ function handleInterviewQuestionsGeneration($service, $inputData)
     return [
         'interview_questions' => $result,
         'candidate_info' => [
-            'name' => $candidateData['nombre'] ?? 'Anónimo',
+            'name' => $candidateData['nombre'] ?? 'AnÃƒÂ³nimo',
             'experience_years' => count($candidateData['puestos_anteriores'] ?? [])
         ],
         'job_info' => [
@@ -159,7 +152,7 @@ function handleInterviewQuestionsGeneration($service, $inputData)
 }
 
 /**
- * Maneja predicción de éxito laboral
+ * Maneja predicciÃƒÂ³n de ÃƒÂ©xito laboral
  */
 function handleJobSuccessPrediction($service, $inputData)
 {
@@ -186,7 +179,7 @@ function handleJobSuccessPrediction($service, $inputData)
 }
 
 /**
- * Maneja estimación de tiempo de contratación
+ * Maneja estimaciÃƒÂ³n de tiempo de contrataciÃƒÂ³n
  */
 function handleTimeToFillEstimation($service, $inputData)
 {
@@ -211,7 +204,7 @@ function handleTimeToFillEstimation($service, $inputData)
 }
 
 /**
- * Maneja generación de templates de sourcing
+ * Maneja generaciÃƒÂ³n de templates de sourcing
  */
 function handleSourcingTemplatesGeneration($service, $inputData)
 {
@@ -233,7 +226,7 @@ function handleSourcingTemplatesGeneration($service, $inputData)
 }
 
 /**
- * Maneja análisis de diversidad
+ * Maneja anÃƒÂ¡lisis de diversidad
  */
 function handleDiversityAnalysis($service, $inputData)
 {
@@ -245,7 +238,7 @@ function handleDiversityAnalysis($service, $inputData)
     $diversityMetrics = $inputData['diversity_metrics'] ?? ['experience', 'education', 'background'];
 
     if (!is_array($candidatesData) || empty($candidatesData)) {
-        throw new Exception('Se requiere al menos un candidato para el análisis');
+        throw new Exception('Se requiere al menos un candidato para el anÃƒÂ¡lisis');
     }
 
     $result = $service->analyzeDiversity($candidatesData, $diversityMetrics);
@@ -259,7 +252,7 @@ function handleDiversityAnalysis($service, $inputData)
 }
 
 /**
- * Maneja generación masiva de contenido
+ * Maneja generaciÃƒÂ³n masiva de contenido
  */
 function handleBulkContentGeneration($service, $inputData)
 {
@@ -299,7 +292,7 @@ function handleBulkContentGeneration($service, $inputData)
                     break;
 
                 default:
-                    throw new Exception("Tipo no válido: {$request['type']}");
+                    throw new Exception("Tipo no vÃƒÂ¡lido: {$request['type']}");
             }
         } catch (Exception $e) {
             $errors[$index] = $e->getMessage();

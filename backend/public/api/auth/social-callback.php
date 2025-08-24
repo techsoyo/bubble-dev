@@ -1,31 +1,24 @@
 <?php
 
 /**
- * Endpoint para manejar callbacks de autenticación social (Google y LinkedIn)
+ * Endpoint para manejar callbacks de autenticaciÃƒÂ³n social (Google y LinkedIn)
  *
- * Este archivo procesa los códigos de autorización OAuth2 y crea o actualiza
- * cuentas de usuario basadas en la información del proveedor social.
+ * Este archivo procesa los cÃƒÂ³digos de autorizaciÃƒÂ³n OAuth2 y crea o actualiza
+ * cuentas de usuario basadas en la informaciÃƒÂ³n del proveedor social.
  */
 
 declare(strict_types=1);
-$ROOT = dirname(__DIR__, 2);             // auth -> api -> backend/
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-    http_response_code(500);
-    exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 
 try {
     // Solo permitir GET y POST para callbacks OAuth
     if (!in_array($_SERVER['REQUEST_METHOD'], ['GET', 'POST'])) {
         http_response_code(405);
-        echo json_encode(['error' => 'Método no permitido']);
+        echo json_encode(['error' => 'MÃƒÂ©todo no permitido']);
         exit;
     }
 
-    // Obtener parámetros del callback
+    // Obtener parÃƒÂ¡metros del callback
     $code = $_GET['code'] ?? null;
     $state = $_GET['state'] ?? null;
     $error = $_GET['error'] ?? null;
@@ -34,18 +27,18 @@ try {
     if ($error) {
         http_response_code(400);
         echo json_encode([
-          'error' => 'Error de autenticación',
-          'message' => 'El usuario canceló la autenticación o hubo un error: ' . $error
+          'error' => 'Error de autenticaciÃƒÂ³n',
+          'message' => 'El usuario cancelÃƒÂ³ la autenticaciÃƒÂ³n o hubo un error: ' . $error
         ]);
         exit;
     }
 
-    // Verificar que se recibió el código de autorización
+    // Verificar que se recibiÃƒÂ³ el cÃƒÂ³digo de autorizaciÃƒÂ³n
     if (!$code) {
         http_response_code(400);
         echo json_encode([
-          'error' => 'Código de autorización faltante',
-          'message' => 'No se recibió el código de autorización del proveedor'
+          'error' => 'CÃƒÂ³digo de autorizaciÃƒÂ³n faltante',
+          'message' => 'No se recibiÃƒÂ³ el cÃƒÂ³digo de autorizaciÃƒÂ³n del proveedor'
         ]);
         exit;
     }
@@ -60,7 +53,7 @@ try {
         }
     }
 
-    // Procesar según el proveedor
+    // Procesar segÃƒÂºn el proveedor
     switch ($provider) {
         case 'google':
             $userInfo = handleGoogleCallback($code);
@@ -69,20 +62,20 @@ try {
             $userInfo = handleLinkedInCallback($code);
             break;
         default:
-            throw new Exception('Proveedor de autenticación no soportado');
+            throw new Exception('Proveedor de autenticaciÃƒÂ³n no soportado');
     }
 
     // Crear o actualizar usuario en la base de datos
     $user = createOrUpdateSocialUser($userInfo, $provider);
 
-    // Establecer sesión
+    // Establecer sesiÃƒÂ³n
     session_start();
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['user_email'] = $user['email'];
     $_SESSION['user_role'] = 'candidate';
     $_SESSION['login_method'] = 'social_' . $provider;
 
-    // Verificar si hay un job ID en el state para redirección
+    // Verificar si hay un job ID en el state para redirecciÃƒÂ³n
     $jobId = null;
     if ($state && strpos($state, '&job=') !== false) {
         $parts = explode('&job=', $state);
@@ -104,14 +97,14 @@ try {
         'provider' => $provider
       ],
       'redirect_url' => $redirectUrl,
-      'message' => 'Autenticación exitosa'
+      'message' => 'AutenticaciÃƒÂ³n exitosa'
     ]);
 } catch (Exception $e) {
     error_log('Error en social callback: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode([
       'error' => 'Error interno del servidor',
-      'message' => 'No se pudo completar la autenticación. Inténtalo nuevamente.'
+      'message' => 'No se pudo completar la autenticaciÃƒÂ³n. IntÃƒÂ©ntalo nuevamente.'
     ]);
 }
 
@@ -120,15 +113,15 @@ try {
  */
 function handleGoogleCallback($code)
 {
-    // Configuración de Google OAuth
+    // ConfiguraciÃƒÂ³n de Google OAuth
     $clientId = $_ENV['GOOGLE_CLIENT_ID'] ?? 'YOUR_GOOGLE_CLIENT_ID';
     $clientSecret = $_ENV['GOOGLE_CLIENT_SECRET'] ?? 'YOUR_GOOGLE_CLIENT_SECRET';
     $redirectUri = $_ENV['APP_URL'] . '/auth/callback';
 
-    // Intercambiar código por token de acceso
+    // Intercambiar cÃƒÂ³digo por token de acceso
     $tokenData = exchangeCodeForToken('google', $code, $clientId, $clientSecret, $redirectUri);
 
-    // Obtener información del usuario
+    // Obtener informaciÃƒÂ³n del usuario
     $userInfo = getUserInfoFromGoogle($tokenData['access_token']);
 
     return [
@@ -146,15 +139,15 @@ function handleGoogleCallback($code)
  */
 function handleLinkedInCallback($code)
 {
-    // Configuración de LinkedIn OAuth
+    // ConfiguraciÃƒÂ³n de LinkedIn OAuth
     $clientId = $_ENV['LINKEDIN_CLIENT_ID'] ?? 'YOUR_LINKEDIN_CLIENT_ID';
     $clientSecret = $_ENV['LINKEDIN_CLIENT_SECRET'] ?? 'YOUR_LINKEDIN_CLIENT_SECRET';
     $redirectUri = $_ENV['APP_URL'] . '/auth/callback';
 
-    // Intercambiar código por token de acceso
+    // Intercambiar cÃƒÂ³digo por token de acceso
     $tokenData = exchangeCodeForToken('linkedin', $code, $clientId, $clientSecret, $redirectUri);
 
-    // Obtener información del usuario
+    // Obtener informaciÃƒÂ³n del usuario
     $userInfo = getUserInfoFromLinkedIn($tokenData['access_token']);
 
     return [
@@ -168,7 +161,7 @@ function handleLinkedInCallback($code)
 }
 
 /**
- * Intercambia el código de autorización por un token de acceso
+ * Intercambia el cÃƒÂ³digo de autorizaciÃƒÂ³n por un token de acceso
  */
 function exchangeCodeForToken($provider, $code, $clientId, $clientSecret, $redirectUri)
 {
@@ -205,14 +198,14 @@ function exchangeCodeForToken($provider, $code, $clientId, $clientSecret, $redir
 
     $tokenData = json_decode($response, true);
     if (!$tokenData || !isset($tokenData['access_token'])) {
-        throw new Exception('Token de acceso no válido');
+        throw new Exception('Token de acceso no vÃƒÂ¡lido');
     }
 
     return $tokenData;
 }
 
 /**
- * Obtiene información del usuario desde Google
+ * Obtiene informaciÃƒÂ³n del usuario desde Google
  */
 function getUserInfoFromGoogle($accessToken)
 {
@@ -229,18 +222,18 @@ function getUserInfoFromGoogle($accessToken)
     curl_close($ch);
 
     if ($httpCode !== 200) {
-        throw new Exception("Error al obtener información del usuario de Google: HTTP $httpCode");
+        throw new Exception("Error al obtener informaciÃƒÂ³n del usuario de Google: HTTP $httpCode");
     }
 
     return json_decode($response, true);
 }
 
 /**
- * Obtiene información del usuario desde LinkedIn
+ * Obtiene informaciÃƒÂ³n del usuario desde LinkedIn
  */
 function getUserInfoFromLinkedIn($accessToken)
 {
-    // Obtener perfil básico
+    // Obtener perfil bÃƒÂ¡sico
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, 'https://api.linkedin.com/v2/me');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -279,7 +272,7 @@ function getUserInfoFromLinkedIn($accessToken)
 }
 
 /**
- * Crea o actualiza un usuario desde autenticación social
+ * Crea o actualiza un usuario desde autenticaciÃƒÂ³n social
  */
 function createOrUpdateSocialUser($userInfo, $provider)
 {

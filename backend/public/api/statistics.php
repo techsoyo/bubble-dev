@@ -1,21 +1,20 @@
 <?php
 
 require_once __DIR__ . '/bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automáticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automáticamente en bootstrap.php
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
 header('Content-Type: application/json; charset=UTF-8');
-require_once __DIR__ . '/../../src/Utils/ResponseHelper.php';
 
 use Utils\ResponseHelper as Res;
 
 try {
     if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
         http_response_code(405);
-        Res::error('Método no permitido', 405);
+        Res::error('MÃƒÂ©todo no permitido', 405);
     }
     $pdo = $GLOBALS['pdo'] ?? null;
     if (!$pdo) {
-        throw new Exception('No hay conexión PDO');
+        throw new Exception('No hay conexiÃƒÂ³n PDO');
     }
     $totalUsers = $pdo->query('SELECT COUNT(*) FROM bt_users')->fetchColumn();
     $totalJobs = $pdo->query('SELECT COUNT(*) FROM bt_jobs')->fetchColumn();
@@ -30,3 +29,4 @@ try {
     http_response_code(500);
     Res::error('Error', 500);
 }
+

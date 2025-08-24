@@ -11,6 +11,7 @@ class Request
     private array $cookies;
     private string $method;
     private string $uri;
+    private ?array $user = null;
 
     public function __construct(
         array $query = [],
@@ -83,5 +84,35 @@ class Request
             return trim(substr($auth, 7));
         }
         return null;
+    }
+
+    /**
+     * Establecer la información del usuario autenticado
+     */
+    public function setUser(?array $user): void
+    {
+        $this->user = $user;
+    }
+
+    /**
+     * Obtener la información del usuario autenticado
+     */
+    public function getUser(): ?array
+    {
+        return $this->user;
+    }
+
+    /**
+     * Método estático para obtener datos JSON del cuerpo de la petición
+     */
+    public static function json(): array
+    {
+        $input = file_get_contents('php://input');
+        if (empty($input)) {
+            return [];
+        }
+
+        $decoded = json_decode($input, true);
+        return is_array($decoded) ? $decoded : [];
     }
 }

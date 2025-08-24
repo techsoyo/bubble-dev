@@ -4,17 +4,17 @@ if ((getenv('APP_ENV') ?: 'production') === 'production') {
     http_response_code(404);
     exit;
 }
-// Proteger endpoint de pruebas en entornos de producción.
+// Proteger endpoint de pruebas en entornos de producciÃ³n.
 require_once dirname(__DIR__, 2) . '/config/config.php';
 if (function_exists('isProduction') && isProduction()) {
     http_response_code(403);
     echo json_encode(['error' => 'Endpoint disabled in production']);
     exit;
 }
-// Script de debug para ver exactamente qué se envía a Ollama
+// Script de debug para ver exactamente quÃ© se envÃ­a a Ollama
 $_POST['filename'] = 'Ejemplo1_CV_2025-07-27_12-13-23.txt';
 
-echo "🔍 DEBUG: ¿QUÉ SE ENVÍA A OLLAMA?\n";
+echo "ðŸ” DEBUG: Â¿QUÃ‰ SE ENVÃA A OLLAMA?\n";
 echo "==================================\n\n";
 
 // Ejecutar los primeros pasos localmente sin enviar a Ollama
@@ -22,14 +22,14 @@ $filename = $_POST['filename'] ?? '';
 $filePath = __DIR__ . '/../../uploads/textos/' . basename($filename);
 
 if (!file_exists($filePath)) {
-    echo "❌ Archivo no encontrado: $filePath\n";
+    echo "âŒ Archivo no encontrado: $filePath\n";
     exit;
 }
 
 $content = file_get_contents($filePath);
 
 // Construir el prompt exactamente como en el archivo original
-$prompt = "Analiza el siguiente CV en texto plano y extrae la información en formato JSON estructurado con los siguientes campos:aunque algunos estén vacíos):\n\n" .
+$prompt = "Analiza el siguiente CV en texto plano y extrae la informaciÃ³n en formato JSON estructurado con los siguientes campos:aunque algunos estÃ©n vacÃ­os):\n\n" .
     "{\n" .
     "  \"nombre\": \"\",\n" .
     "  \"email\": \"\",\n" .
@@ -74,7 +74,7 @@ $prompt = "Analiza el siguiente CV en texto plano y extrae la información en fo
     "  \"subcategoria\": \"\",\n" .
     "  \"otros\": \"\"\n" .
     "}\n\n" .
-    "Asocia el perfil a una de las siguientes categorías y subcategorías según la experiencia y habilidades detectadas:\n\n" .
+    "Asocia el perfil a una de las siguientes categorÃ­as y subcategorÃ­as segÃºn la experiencia y habilidades detectadas:\n\n" .
     "[\n" .
     "  { categoria: 'Management', subcategorias: ['Account Manager', 'Account Director', 'Medical Strategist/Planner', 'Scientific Account Executive'] },\n" .
     "  { categoria: 'Creativity (Art & Design)', subcategorias: ['Copywriter (health)', 'Art Director', 'Graphic Designer', 'Content Creator/Content Strategist'] },\n" .
@@ -87,13 +87,13 @@ $prompt = "Analiza el siguiente CV en texto plano y extrae la información en fo
     "]\n\n" .
     "Texto del CV:\n---\n" . $content . "\n---";
 
-echo "📊 INFORMACIÓN DEL PROMPT:\n";
+echo "ðŸ“Š INFORMACIÃ“N DEL PROMPT:\n";
 echo "==========================\n";
-echo '📏 Longitud total: ' . strlen($prompt) . " caracteres\n";
-echo "📄 Archivo CV: $filename\n";
-echo '💾 Tamaño del contenido del CV: ' . strlen($content) . " caracteres\n\n";
+echo 'ðŸ“ Longitud total: ' . strlen($prompt) . " caracteres\n";
+echo "ðŸ“„ Archivo CV: $filename\n";
+echo 'ðŸ’¾ TamaÃ±o del contenido del CV: ' . strlen($content) . " caracteres\n\n";
 
-echo "🚀 PAYLOAD QUE SE ENVÍA A OLLAMA:\n";
+echo "ðŸš€ PAYLOAD QUE SE ENVÃA A OLLAMA:\n";
 echo "=================================\n";
 
 $payload = json_encode([
@@ -104,12 +104,12 @@ $payload = json_encode([
 
 echo $payload . "\n\n";
 
-echo "🔍 PRIMEROS 500 CARACTERES DEL PROMPT:\n";
+echo "ðŸ” PRIMEROS 500 CARACTERES DEL PROMPT:\n";
 echo "======================================\n";
 echo substr($prompt, 0, 500) . "...\n\n";
 
-echo "🔍 ÚLTIMOS 300 CARACTERES DEL PROMPT:\n";
+echo "ðŸ” ÃšLTIMOS 300 CARACTERES DEL PROMPT:\n";
 echo "====================================\n";
 echo '...' . substr($prompt, -300) . "\n\n";
 
-echo "✅ DEBUG COMPLETADO - READY PARA ENVIAR A OLLAMA\n";
+echo "âœ… DEBUG COMPLETADO - READY PARA ENVIAR A OLLAMA\n";

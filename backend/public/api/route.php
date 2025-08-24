@@ -4,18 +4,11 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
-// Sube 1 nivel: api → backend/
-$ROOT = dirname(__DIR__, 1);
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-  http_response_code(500);
-  exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
+// Sube 1 nivel: api Ã¢â€ â€™ backend/
 
 /**
  * Endpoint: POST /api/route
- * Objetivo: Ruteo automático de candidatos a reclutadores según reglas configurables
+ * Objetivo: Ruteo automÃƒÂ¡tico de candidatos a reclutadores segÃƒÂºn reglas configurables
  *
  * Input: {
  *   "candidate_id": "string",
@@ -157,7 +150,7 @@ try {
     $candidateSkills = $candidateData['hard_skills'] ?? [];
 
     if (!empty($candidateSkills)) {
-      // Buscar mapeo skills → departamento
+      // Buscar mapeo skills Ã¢â€ â€™ departamento
       $skillsStr = "'" . implode("', '", array_map(function ($skill) use ($pdo) {
         return $pdo->quote($skill);
       }, $candidateSkills)) . "'";
@@ -182,11 +175,11 @@ try {
     }
   }
 
-  // Estrategia 2: Departamento por defecto basado en categoría
+  // Estrategia 2: Departamento por defecto basado en categorÃƒÂ­a
   if (!$departmentId && isset($candidateData['categoria'])) {
     $categoria = strtolower($candidateData['categoria']);
 
-    // Mapeo básico categoría → departamento
+    // Mapeo bÃƒÂ¡sico categorÃƒÂ­a Ã¢â€ â€™ departamento
     $categoryMapping = [
       'frontend developer' => 2, // Engineering
       'backend developer' => 2,  // Engineering  
@@ -285,7 +278,7 @@ try {
     try {
       $notificationService = new NotificationService();
       $subject = "Nuevo candidato asignado - " . ($candidateData['name'] ?? $candidateId);
-      $body = "Se ha asignado un nuevo candidato a tu cartera.\n\nCandidato: " . ($candidateData['name'] ?? $candidateId) . "\nDepartamento: $departmentName\nRazón: $routingReason";
+      $body = "Se ha asignado un nuevo candidato a tu cartera.\n\nCandidato: " . ($candidateData['name'] ?? $candidateId) . "\nDepartamento: $departmentName\nRazÃƒÂ³n: $routingReason";
 
       $notificationService->sendEmail($recruiterData['email'], $subject, $body);
       $rulesApplied[] = 'notification_sent';
@@ -324,7 +317,7 @@ try {
     ]
   ];
 
-  // Log éxito
+  // Log ÃƒÂ©xito
   Log::json('info', [
     'endpoint' => '/api/route',
     'req_id' => RequestId::get(),
@@ -354,3 +347,4 @@ try {
     'debug' => (defined('APP_ENV') && APP_ENV === 'development') ? $e->getMessage() : null
   ]);
 }
+

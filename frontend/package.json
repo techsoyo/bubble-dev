@@ -10,7 +10,12 @@
     "build": "pnpm typecheck && vite build",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
-    "preview": "vite preview"
+    "preview": "vite preview",
+
+    "cy:open": "cypress open --e2e",
+    "cy:run": "cypress run --e2e",
+    "e2e": "start-server-and-test dev http://localhost:3002 'cypress run --e2e'",
+    "e2e:open": "start-server-and-test dev http://localhost:3002 'cypress open --e2e'"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

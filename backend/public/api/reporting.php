@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Reporting para dashboard con 4 métricas.
+ * Reporting para dashboard con 4 mÃƒÂ©tricas.
  * Rutas:
  *  - GET /api/reporting/candidates-by-department
  *  - GET /api/reporting/applications-by-job
@@ -12,13 +12,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
-$ROOT = dirname(__DIR__, 2);             // endpoints -> api -> backend/
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-    http_response_code(500);
-    exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 
 /* ========= Helpers ========= */
@@ -54,7 +47,7 @@ function dates(): array
     // Permite ?from=YYYY-MM-DD&to=YYYY-MM-DD o ?created_at[from]=...&created_at[to]=...
     $from = $_GET['from'] ?? ($_GET['created_at']['from'] ?? null);
     $to   = $_GET['to']   ?? ($_GET['created_at']['to']   ?? null);
-    // Normaliza a límites del día si vienen
+    // Normaliza a lÃƒÂ­mites del dÃƒÂ­a si vienen
     if ($from && preg_match('/^\d{4}-\d{2}-\d{2}$/', $from)) {
         $from .= ' 00:00:00';
     }
@@ -82,12 +75,12 @@ function whereCreated(string $alias, ?string $from, ?string $to): array
 /* ========= KPI queries ========= */
 
 /**
- * KPI 1: Total candidatos por departamento (usa el routing más reciente por candidato)
+ * KPI 1: Total candidatos por departamento (usa el routing mÃƒÂ¡s reciente por candidato)
  * Devuelve: { labels: [depName...], series: [count...] }
  */
 function kpi_candidates_by_department(PDO $db, ?string $from, ?string $to): array
 {
-    // Subconsulta para último routing por candidato
+    // Subconsulta para ÃƒÂºltimo routing por candidato
     $sub = 'SELECT candidate_id, MAX(assigned_at) AS max_assigned
           FROM ' . T('candidate_routing') . '
           GROUP BY candidate_id';
@@ -238,13 +231,13 @@ function kpi_cv_validated_percentage(PDO $db, ?string $from, ?string $to): array
 
 try {
     if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-        jsend(false, 'Método no permitido', null, 405);
+        jsend(false, 'MÃƒÂ©todo no permitido', null, 405);
     }
 
     $db = pdo();
     [$from, $to] = dates();
 
-    // Determina acción por path
+    // Determina acciÃƒÂ³n por path
     $uri = $_SERVER['REQUEST_URI'] ?? '/';
     $path = parse_url($uri, PHP_URL_PATH) ?: '/';
     $segments = array_values(array_filter(explode('/', $path)));
@@ -267,12 +260,13 @@ try {
         default:
             jsend(false, 'Ruta no encontrada', ['path' => $path], 404);
     }
-    // Validación de formato de salida
+    // ValidaciÃƒÂ³n de formato de salida
     if (!is_array($result) || !isset($result['labels'], $result['series'])) {
-        jsend(false, 'Formato de salida inválido', $result, 500);
+        jsend(false, 'Formato de salida invÃƒÂ¡lido', $result, 500);
     }
     jsend(true, 'OK', $result, 200);
 } catch (Throwable $e) {
     $code = ($e instanceof PDOException) ? 400 : 500;
     jsend(false, 'Error', ['error' => $e->getMessage()], $code);
 }
+

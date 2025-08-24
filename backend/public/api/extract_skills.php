@@ -1,16 +1,15 @@
 <?php
 
 require_once __DIR__ . '/bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automáticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automáticamente en bootstrap.php
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
 
 /**
- * Endpoint: Extracción de habilidades
+ * Endpoint: ExtracciÃƒÂ³n de habilidades
  * POST /ai/extract-skills
  */
 
 require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../src/Utils/ResponseHelper.php';
 require_once __DIR__ . '/../../src/Services/AIIntegrationService.php';
 
 use Services\AIIntegrationService;
@@ -49,14 +48,15 @@ try {
     ]);
 
 
-    // Crear servicio de integración IA (OpenAI-ready)
+    // Crear servicio de integraciÃƒÂ³n IA (OpenAI-ready)
     $aiService = new AIIntegrationService();
 
     // Extraer habilidades usando IA
     $result = $aiService->extractSkills($cvText);
 
-    ResponseHelper::success('Habilidades extraídas correctamente', $result);
+    ResponseHelper::success('Habilidades extraÃƒÂ­das correctamente', $result);
 } catch (Exception $e) {
     ResponseHelper::log('error', 'Error extrayendo habilidades: ' . $e->getMessage());
     ResponseHelper::error('Error al extraer habilidades: ' . $e->getMessage(), 500);
 }
+

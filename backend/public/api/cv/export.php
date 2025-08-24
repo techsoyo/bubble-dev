@@ -7,13 +7,6 @@
  */
 
 declare(strict_types=1);
-$ROOT = dirname(__DIR__, 3);             // cv -> api -> public -> backend/
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-    http_response_code(500);
-    exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 use Utils\Auth;
 use Utils\Cors;
@@ -31,12 +24,12 @@ if (class_exists('Utils\\Cors')) {
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if ($method !== 'GET') {
-    jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'Método no permitido']]);
+    jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'MÃƒÂ©todo no permitido']]);
 }
 
 $allow = (getenv('CV_ALLOW_EXPORT_JSON') === 'true') || (($_ENV['CV_ALLOW_EXPORT_JSON'] ?? '') === 'true');
 if (!$allow) {
-    jsonResponse(403, ['success' => false, 'error' => ['code' => 'EXPORT_DISABLED', 'message' => 'Exportación deshabilitada']]);
+    jsonResponse(403, ['success' => false, 'error' => ['code' => 'EXPORT_DISABLED', 'message' => 'ExportaciÃƒÂ³n deshabilitada']]);
 }
 
 if (class_exists('Utils\\Auth')) {
@@ -48,7 +41,7 @@ $pdo = getDbConnection();
 // Extraer candidate_id de la URL (router simple)
 $uri = $_SERVER['REQUEST_URI'] ?? '';
 if (!preg_match('#/api/cv/export/(\d+)#', $uri, $m)) {
-    jsonResponse(400, ['success' => false, 'error' => ['code' => 'INVALID_ID', 'message' => 'ID inválido']]);
+    jsonResponse(400, ['success' => false, 'error' => ['code' => 'INVALID_ID', 'message' => 'ID invÃƒÂ¡lido']]);
 }
 $id = (int)$m[1];
 

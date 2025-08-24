@@ -6,13 +6,6 @@
  */
 
 declare(strict_types=1);
-$ROOT = dirname(__DIR__, 3);             // cv -> api -> public -> backend/
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-    http_response_code(500);
-    exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 use Utils\Auth;
 use Utils\Cors;
@@ -28,7 +21,7 @@ if (class_exists('Utils\\Cors')) {
 }
 $method = $_SERVER['REQUEST_METHOD'] ?? 'DELETE';
 if ($method !== 'DELETE') {
-    jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'Método no permitido']]);
+    jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'MÃƒÂ©todo no permitido']]);
 }
 
 $allow = (getenv('CV_ALLOW_DELETE_REQUEST') === 'true') || (($_ENV['CV_ALLOW_DELETE_REQUEST'] ?? '') === 'true');
@@ -43,7 +36,7 @@ if (class_exists('Utils\\Auth')) {
 $pdo = getDbConnection();
 $uri = $_SERVER['REQUEST_URI'] ?? '';
 if (!preg_match('#/api/cv/(\d+)$#', $uri, $m)) {
-    jsonResponse(400, ['success' => false, 'error' => ['code' => 'INVALID_ID', 'message' => 'ID inválido']]);
+    jsonResponse(400, ['success' => false, 'error' => ['code' => 'INVALID_ID', 'message' => 'ID invÃƒÂ¡lido']]);
 }
 $id = (int)$m[1];
 try {

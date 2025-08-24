@@ -2,23 +2,19 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
+
 
 require_once __DIR__ . '/bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automáticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automáticamente en bootstrap.php
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
 
-require_once __DIR__ . '/../../src/Utils/ResponseHelper.php';
-require_once __DIR__ . '/../../src/Utils/Validator.php';
-require_once __DIR__ . '/../../src/Utils/Request.php';
-require_once __DIR__ . '/../../src/Utils/JWT.php';
 
 use Utils\JWT;
 use Utils\Request;
 use Utils\ResponseHelper as Res;
 use Utils\Validator as Val;
 
-// helpers mínimos si tu bootstrap no los define
+// helpers mÃƒÂ­nimos si tu bootstrap no los define
 if (!function_exists('db')) {
     function db(): PDO
     {
@@ -33,18 +29,18 @@ if (!function_exists('T')) {
 }
 
 try {
-    // exige token válido (recruiter/sistema)
+    // exige token vÃƒÂ¡lido (recruiter/sistema)
     JWT::requireAuth();
 
     $payload = Request::json();
 
-    // Validación fuerte con tu Validator (sin Val::int inexistente)
+    // ValidaciÃƒÂ³n fuerte con tu Validator (sin Val::int inexistente)
     ['ok' => $ok, 'errors' => $errors] = Val::validate($payload, [
         'candidate_id' => 'required|string:1,36|regex:/^cnd-\d+$/',
         'skills'       => 'required|array',
     ]);
     if (!$ok) {
-        Res::error('Validación fallida', 422, ['errors' => $errors]);
+        Res::error('Validación fallida', null, 422);
     }
 
     // Normaliza skills
@@ -53,7 +49,7 @@ try {
     }, $payload['skills'])));
 
     if (!$skills) {
-        Res::error('skills debe ser array no vacío', 422);
+        Res::error('skills debe ser array no vacío', null, 422);
     }
 
     $pdo = db();
@@ -84,9 +80,9 @@ try {
         // si no existe la tabla o falla la query, seguimos con fallback
     }
 
-    // Fallback simple (ajústalo a tu dominio)
+    // Fallback simple (ajÃƒÂºstalo a tu dominio)
     if (!$categoryId || !$departmentId) {
-        // ejemplo de heurística mínima
+        // ejemplo de heurÃƒÂ­stica mÃƒÂ­nima
         $skillMap = [
             'javascript' => ['category_id' => 1, 'department_id' => 10],
             'php'        => ['category_id' => 1, 'department_id' => 11],
@@ -105,7 +101,7 @@ try {
         }
     }
 
-    // 2) Selección automática de recruiter (si tienes vista/tabla de carga, úsala)
+    // 2) SelecciÃƒÂ³n automÃƒÂ¡tica de recruiter (si tienes vista/tabla de carga, ÃƒÂºsala)
     $recruiterId = null;
     try {
         $st = $pdo->prepare('SELECT recruiter_id
@@ -141,7 +137,7 @@ try {
 
     $pdo->commit();
 
-    Res::success('Asignación realizada', [
+    Res::success('AsignaciÃƒÂ³n realizada', [
         'category_id'   => $categoryId,
         'department_id' => $departmentId,
         'recruiter_id'  => $recruiterId

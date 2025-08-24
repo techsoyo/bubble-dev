@@ -4,13 +4,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
-$ROOT = dirname(__DIR__, 2); // api -> public -> backend/
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-    http_response_code(500);
-    exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 use Utils\Cors;
 
@@ -58,3 +51,4 @@ jsonResponse(200, [
   'success' => true,
   'data' => $status
 ]);
+

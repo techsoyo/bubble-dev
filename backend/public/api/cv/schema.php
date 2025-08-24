@@ -1,15 +1,8 @@
 <?php
 
 declare(strict_types=1);
-
+require_once dirname(__DIR__) . '/bootstrap.php';
 // Sube 3 niveles: cv -> api -> public -> backend/
-$ROOT = dirname(__DIR__, 3);
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-    http_response_code(500);
-    exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 use Domain\CvSchema;
 use Utils\Cors;
@@ -52,7 +45,7 @@ switch ($method) {
         $raw = file_get_contents('php://input');
         $in = json_decode($raw, true);
         if (!is_array($in)) {
-            jsonResponse(400, ['success' => false, 'error' => ['code' => 'INVALID_JSON', 'message' => 'JSON inválido']]);
+            jsonResponse(400, ['success' => false, 'error' => ['code' => 'INVALID_JSON', 'message' => 'JSON invÃƒÂ¡lido']]);
         }
         $normalized = CvSchema::normalize($in);
         $errors = CvSchema::validate($normalized);
@@ -61,7 +54,7 @@ switch ($method) {
               'success' => false,
               'error' => [
                 'code' => 'VALIDATION_FAILED',
-                'message' => 'Violaciones de validación',
+                'message' => 'Violaciones de validaciÃƒÂ³n',
                 'details' => $errors
               ],
               'data' => $normalized
@@ -74,5 +67,5 @@ switch ($method) {
         ]);
         break;
     default:
-        jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'Método no permitido']]);
+        jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'MÃƒÂ©todo no permitido']]);
 }

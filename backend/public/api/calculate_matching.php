@@ -1,16 +1,15 @@
 <?php
 
 require_once __DIR__ . '/bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automáticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automáticamente en bootstrap.php
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
 
 /**
- * Endpoint: Cálculo de matching
+ * Endpoint: CÃƒÂ¡lculo de matching
  * POST /ai/calculate-matching
  */
 
 require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../src/Utils/ResponseHelper.php';
 require_once __DIR__ . '/../../src/Services/OllamaService.php';
 
 use Services\OllamaService;
@@ -50,3 +49,4 @@ try {
   ResponseHelper::log('error', 'Error calculando matching: ' . $e->getMessage());
   ResponseHelper::error('Error al calcular matching: ' . $e->getMessage(), 500);
 }
+

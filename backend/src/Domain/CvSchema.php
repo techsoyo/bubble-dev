@@ -491,4 +491,30 @@ class CvSchema
     }
     return (bool)preg_match('/^\d{4}-\d{2}$/', $date);
   }
+
+  /**
+   * Validación de datos mínimos requeridos para un CV
+   */
+  public static function validateMinimumData(array $data): array
+  {
+    $errors = [];
+
+    // Validar campos mínimos obligatorios
+    if (empty($data['nombre'])) {
+      $errors['nombre'] = 'El nombre es obligatorio';
+    }
+
+    if (empty($data['email'])) {
+      $errors['email'] = 'El email es obligatorio';
+    } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+      $errors['email'] = 'Formato de email inválido';
+    }
+
+    // Validar que tenga al menos una forma de contacto
+    if (empty($data['telefono']) && empty($data['email'])) {
+      $errors['contacto'] = 'Debe proporcionar al menos email o teléfono';
+    }
+
+    return $errors;
+  }
 }

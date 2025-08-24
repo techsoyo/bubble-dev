@@ -4,15 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
-$ROOT = dirname(dirname(dirname(__DIR__))); // Corregido: api -> public -> backend -> raiz
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-  http_response_code(500);
-  echo json_encode(['success' => false, 'message' => 'Bootstrap no encontrado']);
-  exit;
-}
 
-require_once $BOOT;
 
 // Content Type header (CORS ya configurado en bootstrap.php)
 header('Content-Type: application/json');
@@ -26,10 +18,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 error_log("Change password endpoint called with method: " . $_SERVER['REQUEST_METHOD']);
 
 try {
-  // Solo permitir método POST
+  // Solo permitir mÃƒÂ©todo POST
   if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+    echo json_encode(['success' => false, 'message' => 'MÃƒÂ©todo no permitido']);
     exit;
   }
 
@@ -42,7 +34,7 @@ try {
   if (!$input) {
     error_log("JSON decode error: " . json_last_error_msg());
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Datos inválidos: ' . json_last_error_msg()]);
+    echo json_encode(['success' => false, 'message' => 'Datos invÃƒÂ¡lidos: ' . json_last_error_msg()]);
     exit;
   }
 
@@ -61,17 +53,17 @@ try {
   $newPassword = $input['new_password'];
   $newPasswordConfirmation = $input['new_password_confirmation'];
 
-  // Validar que las nuevas contraseñas coincidan
+  // Validar que las nuevas contraseÃƒÂ±as coincidan
   if ($newPassword !== $newPasswordConfirmation) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Las contraseñas nuevas no coinciden']);
+    echo json_encode(['success' => false, 'message' => 'Las contraseÃƒÂ±as nuevas no coinciden']);
     exit;
   }
 
-  // Validar longitud mínima de la nueva contraseña
+  // Validar longitud mÃƒÂ­nima de la nueva contraseÃƒÂ±a
   if (strlen($newPassword) < 6) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'La nueva contraseña debe tener al menos 6 caracteres']);
+    echo json_encode(['success' => false, 'message' => 'La nueva contraseÃƒÂ±a debe tener al menos 6 caracteres']);
     exit;
   }
 
@@ -89,24 +81,24 @@ try {
     exit;
   }
 
-  // Verificar contraseña actual
+  // Verificar contraseÃƒÂ±a actual
   if (!password_verify($currentPassword, $candidate['password_hash'])) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'La contraseña actual es incorrecta']);
+    echo json_encode(['success' => false, 'message' => 'La contraseÃƒÂ±a actual es incorrecta']);
     exit;
   }
 
-  // Generar hash para la nueva contraseña
+  // Generar hash para la nueva contraseÃƒÂ±a
   $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
 
-  // Actualizar la contraseña
+  // Actualizar la contraseÃƒÂ±a
   $updateStmt = $db->prepare("UPDATE bt_candidates SET password_hash = ? WHERE id = ?");
   $result = $updateStmt->execute([$newPasswordHash, $candidateId]);
 
   if ($result) {
     echo json_encode([
       'success' => true,
-      'message' => 'Contraseña actualizada correctamente',
+      'message' => 'ContraseÃƒÂ±a actualizada correctamente',
       'data' => [
         'candidate_id' => $candidateId,
         'candidate_name' => $candidate['first_name'] . ' ' . $candidate['last_name'],
@@ -115,11 +107,12 @@ try {
     ]);
   } else {
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Error al actualizar la contraseña']);
+    echo json_encode(['success' => false, 'message' => 'Error al actualizar la contraseÃƒÂ±a']);
   }
 } catch (Exception $e) {
   error_log("Error en change-password.php: " . $e->getMessage());
   http_response_code(500);
   echo json_encode(['success' => false, 'message' => 'Error interno del servidor']);
 }
+
 

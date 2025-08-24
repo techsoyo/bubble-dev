@@ -18,6 +18,7 @@ import { Layout } from './components/layout/Layout';
 import { LanguageProvider } from './lib/i18n/LanguageContext';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import AuthForm from './components/auth/AuthForm';
 import Login from './components/Login';
 import TalentLogin from './pages/TalentLogin';
 import StaffLogin from './pages/StaffLogin';
@@ -236,13 +237,21 @@ const App = () => {
                           <JobListingsPage />
                         </OfflineAwareSuspense>
                       } />
-                      <Route path="/talent/login" element={<TalentLogin />} />
-                      <Route path="/candidates/login" element={
-                        <Suspense fallback={<LoadingSpinner size="large" />}>
-                          <CandidateAuthPage />
-                        </Suspense>
+                      {/* Rutas legacy - mantener compatibilidad con redirecciones */}
+                      <Route path="/talent/login" element={<Navigate to="/auth/login" replace />} />
+                      <Route path="/candidates/login" element={<Navigate to="/auth/register" replace />} />
+                      <Route path="/staff/login" element={<Navigate to="/staff/auth" replace />} />
+
+                      {/* Nuevas rutas unificadas con AuthForm */}
+                      <Route path="/auth/login" element={
+                        <AuthForm userType="candidate" mode="login" />
                       } />
-                      <Route path="/staff/login" element={<StaffLogin />} />
+                      <Route path="/auth/register" element={
+                        <AuthForm userType="candidate" mode="register" />
+                      } />
+                      <Route path="/staff/auth" element={
+                        <AuthForm userType="staff" mode="login" />
+                      } />
                       <Route path="jobs/:id" element={
                         <OfflineAwareSuspense
                           fallback={<LoadingSpinner size="large" />}
@@ -261,17 +270,11 @@ const App = () => {
                           <ProfileSummary />
                         </Suspense>
                       } />
-                      <Route path="auth/login" element={<Login />} />
                       {/* Redirección de /login a /auth/login para mayor comodidad */}
                       <Route path="login" element={<Navigate to="/auth/login" replace />} />
                       <Route path="test-chatbot" element={
                         <Suspense fallback={<LoadingSpinner size="large" />}>
                           <ChatBotManage />
-                        </Suspense>
-                      } />
-                      <Route path="candidates/login" element={
-                        <Suspense fallback={<LoadingSpinner size="large" />}>
-                          <CandidateAuthPage />
                         </Suspense>
                       } />
                       <Route path="candidates/login-old" element={

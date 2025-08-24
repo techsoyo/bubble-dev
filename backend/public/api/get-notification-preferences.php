@@ -3,13 +3,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
-$ROOT = dirname(dirname(dirname(__DIR__))); // Corregido: api -> public -> backend -> raiz
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-  http_response_code(500);
-  exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 // Content Type header (CORS ya configurado en bootstrap.php)
 header('Content-Type: application/json');
@@ -24,7 +17,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 try {
-  // Verificar si hay sesión activa
+  // Verificar si hay sesiÃƒÂ³n activa
   if (empty($_SESSION['candidate_id'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'No authenticated']);
@@ -36,13 +29,13 @@ try {
   // Conectar a la base de datos
   $db = getDBConnection();
 
-  // Obtener las preferencias de notificación del candidato
+  // Obtener las preferencias de notificaciÃƒÂ³n del candidato
   $stmt = $db->prepare("SELECT application_updates, new_jobs, reminders FROM bt_notification_preferences WHERE candidate_id = ?");
   $stmt->execute([$candidateId]);
   $preferences = $stmt->fetch(PDO::FETCH_ASSOC);
 
   if ($preferences) {
-    // Convertir valores numéricos a booleanos
+    // Convertir valores numÃƒÂ©ricos a booleanos
     $preferences['application_updates'] = (bool)$preferences['application_updates'];
     $preferences['new_jobs'] = (bool)$preferences['new_jobs'];
     $preferences['reminders'] = (bool)$preferences['reminders'];
@@ -72,4 +65,5 @@ try {
     'message' => 'Error interno del servidor'
   ]);
 }
+
 

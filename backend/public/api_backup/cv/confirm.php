@@ -1,0 +1,360 @@
+<?php
+
+declare(strict_types=1);
+
+// Sube 3 niveles: cv → api → public → backend/
+$ROOT = dirname(__DIR__, 3);
+$BOOT = $ROOT . '/config/bootstrap.php';
+if (!is_file($BOOT)) {
+    http_response_code(500);
+    exit('Bootstrap no encontrado');
+}
+require_once $BOOT;
+
+/**
+ * Endpoint: POST /api/cv/confirm
+ * Persiste un CV normalizado (fuente IA o manual) en tablas relacionales.
+ * Flujo:
+ *  - Lee JSON -> decode -> CvSchema::normalize
+ *  - Validaciones servidor (formato email, longitudes, fechas, tamaños listas)
+ *  - Transacción PDO:
+ *      * upsert bt_candidates por email
+ *      * limpia e inserta tablas hijas: experiencias, educación, certificaciones (simple), proyectos
+ *  - Commit y respuesta
+ * Errores controlados:
+ *  - 400 INVALID_JSON
+ *  - 422 VALIDATION_FAILED (details por campo)
+ *  - 500 DB_ERROR (rollback)
+ */
+
+$isCli = (php_sapi_name() === 'cli');
+
+use Utils\Auth;
+use Utils\Cors;
+use Utils\Log;
+use Utils\RateLimiter;
+use Utils\RequestId;
+
+$__cv_confirm_start = microtime(true);
+$__cv_confirm_sub = ['db_tx_ms' => 0];
+if (!$isCli) {
+    if (class_exists('Utils\\Cors')) {
+        Cors::enforce(['POST', 'OPTIONS']);
+    }
+    // REMOVED: header('Content-Type: application/json; charset=utf-8'); // Use jsonResponse() helper
+    $method = $_SERVER['REQUEST_METHOD'] ?? 'CLI';
+    if ($method !== 'POST') {
+        jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'Método no permitido', 'details' => (object)[]]]);
+    }
+    if (class_exists('Utils\\RateLimiter')) {
+        RateLimiter::enforceForRoute('/api/cv/confirm');
+    }
+    if (class_exists('Utils\\Auth')) {
+        Auth::enforceConfirmAuth();
+    }
+}
+
+$autoloadPath = __DIR__ . '/../../../vendor/autoload.php';
+if (file_exists($autoloadPath)) {
+    require_once $autoloadPath;
+}
+if (class_exists('Utils\\RequestId')) {
+    RequestId::init();
+}
+if (!class_exists('Domain\\CvSchema')) {
+    $cvSchemaPath = __DIR__ . '/../../../src/Domain/CvSchema.php';
+    if (file_exists($cvSchemaPath)) {
+        require_once $cvSchemaPath;
+    }
+}
+
+use Domain\CvSchema;
+
+function respondJson(int $status, bool $ok, array $data)
+{
+    // Si error, log dentro antes de exit en helpers
+    jsonResponse($status, $data);
+}
+function errorPayload(string $code, string $message, array $details = [])
+{
+    $durMs = (int)round((microtime(true) - $GLOBALS['__cv_confirm_start']) * 1000);
+    error_log('[CV_CONFIRM_ERROR] ' . json_encode([
+      'code' => $code,
+      'details_keys' => array_keys($details),
+      'duration_ms' => $durMs
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    return ['success' => false, 'error' => ['code' => $code, 'message' => $message, 'details' => empty($details) ? (object)[] : $details]];
+}
+
+function sanitizeValue($v)
+{
+    if (is_string($v)) {
+        $v = strip_tags($v);
+        $v = preg_replace('/\s+/u', ' ', $v);
+        $v = trim($v);
+    } elseif (is_array($v)) {
+        foreach ($v as $k => $sub) {
+            $v[$k] = sanitizeValue($sub);
+        }
+    }
+    return $v;
+}
+function deepSanitize(array $data): array
+{
+    foreach ($data as $k => $v) {
+        $data[$k] = sanitizeValue($v);
+    }
+    return $data;
+}
+function validateServer(array $data): array
+{
+    $errors = [];
+    $details = [];
+
+    // Email RFC razonable
+    if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'Email inválido';
+        $details['email'] = 'Formato no válido';
+    }
+
+    // Strings <= 2000
+    $stringFields = [
+      'nombre',
+      'telefono',
+      'ubicacion_actual',
+      'fecha_nacimiento',
+      'portfolio',
+      'linkedin',
+      'resumen_profesional',
+      'referencias',
+      'disponibilidad'
+    ];
+    foreach ($stringFields as $f) {
+        if (isset($data[$f]) && is_string($data[$f]) && mb_strlen($data[$f]) > 2000) {
+            $errors[] = "Campo $f excede 2000 caracteres";
+            $details[$f] = 'too_long';
+        }
+    }
+
+    // Listas tamaño <= 200
+    $listFields = ['otras_redes', 'soft_skills', 'hard_skills', 'idiomas', 'intereses', 'certificaciones', 'habilidades_adicionales', 'puestos_anteriores', 'educacion', 'proyectos'];
+    foreach ($listFields as $lf) {
+        if (isset($data[$lf]) && is_array($data[$lf]) && count($data[$lf]) > 200) {
+            $errors[] = "Lista $lf excede 200 items";
+            $details[$lf] = 'too_many_items';
+        }
+    }
+
+    // Fechas ISO (YYYY-MM o YYYY-MM-DD)
+    $datePattern = '/^\\d{4}-\\d{2}(-\\d{2})?$/';
+    $checkDate = function ($val) use ($datePattern) {
+        return !$val || preg_match($datePattern, $val);
+    };
+
+    foreach (($data['puestos_anteriores'] ?? []) as $i => $p) {
+        foreach (['fecha_inicio', 'fecha_fin'] as $df) {
+            if (!empty($p[$df]) && !$checkDate($p[$df])) {
+                $errors[] = "Experiencia[$i].$df formato inválido";
+                $details["puestos_anteriores.$i.$df"] = 'invalid_date';
+            }
+        }
+    }
+    foreach (($data['educacion'] ?? []) as $i => $e) {
+        foreach (['fecha_inicio', 'fecha_fin'] as $df) {
+            if (!empty($e[$df]) && !$checkDate($e[$df])) {
+                $errors[] = "Educacion[$i].$df formato inválido";
+                $details["educacion.$i.$df"] = 'invalid_date';
+            }
+        }
+    }
+    foreach (($data['proyectos'] ?? []) as $i => $p) {
+        foreach (['fecha_inicio', 'fecha_fin'] as $df) {
+            if (!empty($p[$df]) && !$checkDate($p[$df])) {
+                $errors[] = "Proyecto[$i].$df formato inválido";
+                $details["proyectos.$i.$df"] = 'invalid_date';
+            }
+        }
+    }
+
+    return [$errors, $details];
+}
+
+$raw = file_get_contents('php://input');
+$dataIn = json_decode($raw, true);
+if (!is_array($dataIn)) {
+    respondJson(400, false, errorPayload('INVALID_JSON', 'JSON inválido'));
+}
+
+$normalized = CvSchema::normalize($dataIn);
+$normalized = deepSanitize($normalized);
+$source = ($normalized['data_source'] ?? '') === 'ai_processing' ? 'ai' : 'manual';
+$candidateEmail = $normalized['email'] ?? null;
+if (class_exists('Utils\\Log')) {
+    Log::json('info', [
+      'event' => 'cv_confirm',
+      'tag' => 'START',
+      'source' => $source,
+      'email_hash' => $candidateEmail ? sha1($candidateEmail) : null,
+      'outcome' => 'in_progress'
+    ]);
+} else {
+    error_log('[CV_CONFIRM_START] ' . json_encode(['source' => $source, 'email_hash' => $candidateEmail ? sha1($candidateEmail) : null], JSON_UNESCAPED_UNICODE));
+}
+$minErrors = CvSchema::validateMinimumData($normalized);
+if (!empty($minErrors)) {
+    respondJson(422, false, errorPayload('VALIDATION_FAILED', 'Datos mínimos incompletos', $minErrors));
+}
+
+// Validaciones servidor adicionales
+[$vErrors, $vDetails] = validateServer($normalized);
+if ($vErrors) {
+    $aux = $vDetails ?: []; // mantener formato details
+    respondJson(422, false, errorPayload('VALIDATION_FAILED', 'Violaciones de validación', $aux));
+}
+
+try {
+    $pdo = getDbConnection();
+    $tx0 = microtime(true);
+    $pdo->beginTransaction();
+
+    // Upsert candidato por email (si existe actualiza, si no inserta)
+    $email = $normalized['email'];
+    $stmt = $pdo->prepare('SELECT id FROM bt_candidates WHERE email = ? FOR UPDATE');
+    $stmt->execute([$email]);
+    $candidateId = $stmt->fetchColumn();
+
+    if ($candidateId) {
+        $upd = $pdo->prepare('UPDATE bt_candidates SET name = ?, phone = ?, location = ?, date_of_birth = ?, linkedin_url = ?, portfolio_url = ?, updated_at = NOW() WHERE id = ?');
+        $upd->execute([
+          $normalized['nombre'] ?: null,
+          $normalized['telefono'] ?: null,
+          $normalized['ubicacion_actual'] ?: null,
+          $normalized['fecha_nacimiento'] ?: null,
+          $normalized['linkedin'] ?: null,
+          $normalized['portfolio'] ?: null,
+          $candidateId
+        ]);
+    } else {
+        $ins = $pdo->prepare('INSERT INTO bt_candidates (name, email, phone, location, date_of_birth, linkedin_url, portfolio_url, registration_source, created_at) VALUES (?,?,?,?,?,?,?,?,NOW())');
+        $ins->execute([
+          $normalized['nombre'] ?: null,
+          $normalized['email'],
+          $normalized['telefono'] ?: null,
+          $normalized['ubicacion_actual'] ?: null,
+          $normalized['fecha_nacimiento'] ?: null,
+          $normalized['linkedin'] ?: null,
+          $normalized['portfolio'] ?: null,
+          $normalized['data_source'] === 'ai_processing' ? 'ai' : 'manual'
+        ]);
+        $candidateId = $pdo->lastInsertId();
+    }
+
+    // Limpiar tablas hijas (estrategia replace completa)
+    $tables = [
+      'bt_candidate_experiences',
+      'bt_candidate_education',
+      'bt_candidate_projects'
+    ];
+    foreach ($tables as $t) {
+        $pdo->prepare("DELETE FROM $t WHERE candidate_id = ?")->execute([$candidateId]);
+    }
+
+    // Experiencias
+    if (!empty($normalized['puestos_anteriores'])) {
+        $iexp = $pdo->prepare('INSERT INTO bt_candidate_experiences (candidate_id, company, position, start_date, end_date, current, description, location, created_at) VALUES (?,?,?,?,?,?,?,?,NOW())');
+        foreach ($normalized['puestos_anteriores'] as $p) {
+            $iexp->execute([
+              $candidateId,
+              $p['empresa'] ?: null,
+              $p['puesto'] ?: null,
+              $p['fecha_inicio'] ?: null,
+              $p['fecha_fin'] ?: null,
+              $p['actual'] ? 1 : 0,
+              $p['descripcion'] ?: null,
+              $p['ubicacion'] ?: null
+            ]);
+        }
+    }
+
+    // Educación
+    if (!empty($normalized['educacion'])) {
+        $iedu = $pdo->prepare('INSERT INTO bt_candidate_education (candidate_id, institution_name, degree_title, start_date, end_date, description, created_at) VALUES (?,?,?,?,?,?,NOW())');
+        foreach ($normalized['educacion'] as $e) {
+            $iedu->execute([
+              $candidateId,
+              $e['institucion'] ?: null,
+              $e['titulo'] ?: null,
+              $e['fecha_inicio'] ?: null,
+              $e['fecha_fin'] ?: null,
+              $e['descripcion'] ?: null
+            ]);
+        }
+    }
+
+    // Proyectos
+    if (!empty($normalized['proyectos'])) {
+        $iproj = $pdo->prepare('INSERT INTO bt_candidate_projects (candidate_id, nombre, descripcion, tecnologias, created_at) VALUES (?,?,?,?,NOW())');
+        foreach ($normalized['proyectos'] as $p) {
+            $iproj->execute([
+              $candidateId,
+              $p['nombre'] ?: null,
+              $p['descripcion'] ?: null,
+              json_encode($p['tecnologias'] ?? [], JSON_UNESCAPED_UNICODE)
+            ]);
+        }
+    }
+
+    $pdo->commit();
+    $__cv_confirm_sub['db_tx_ms'] = (int)round((microtime(true) - $tx0) * 1000);
+    $durMs = (int)round((microtime(true) - $__cv_confirm_start) * 1000);
+    if (class_exists('Utils\\Log')) {
+        Log::json('info', [
+          'event' => 'cv_confirm',
+          'tag' => 'OK',
+          'duration_ms' => $durMs,
+          'subtimings_ms' => $__cv_confirm_sub,
+          'candidate_id' => (int)$candidateId,
+          'source' => $source,
+          'experiencias' => count($normalized['puestos_anteriores'] ?? []),
+          'educacion' => count($normalized['educacion'] ?? []),
+          'proyectos' => count($normalized['proyectos'] ?? []),
+          'outcome' => 'ok'
+        ]);
+    } else {
+        error_log('[CV_CONFIRM_OK] ' . json_encode([
+          'candidate_id' => (int)$candidateId,
+          'source' => $source,
+          'experiencias' => count($normalized['puestos_anteriores'] ?? []),
+          'educacion' => count($normalized['educacion'] ?? []),
+          'proyectos' => count($normalized['proyectos'] ?? []),
+          'duration_ms' => $durMs
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    }
+    respondJson(200, true, [
+      'success' => true,
+      'data' => ['candidate_id' => (int)$candidateId],
+      'meta' => ['source' => $source, 'duration_ms' => $durMs]
+    ]);
+} catch (\Throwable $e) {
+    if (isset($pdo) && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    $durMs = (int)round((microtime(true) - $__cv_confirm_start) * 1000);
+    if (class_exists('Utils\\Log')) {
+        Log::json('error', [
+          'event' => 'cv_confirm',
+          'tag' => 'DB_ERROR',
+          'duration_ms' => $durMs,
+          'subtimings_ms' => $__cv_confirm_sub,
+          'error_code' => 'DB_ERROR',
+          'error_msg' => substr($e->getMessage(), 0, 120),
+          'outcome' => 'error'
+        ]);
+    } else {
+        error_log('[CV_CONFIRM_DB_ERROR] ' . json_encode([
+          'message' => substr($e->getMessage(), 0, 150),
+          'duration_ms' => $durMs
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    }
+    respondJson(500, false, errorPayload('DB_ERROR', 'Error de base de datos'));
+}

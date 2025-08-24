@@ -1,12 +1,8 @@
 <?php
 
 require_once __DIR__ . '/bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automáticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automáticamente en bootstrap.php
-require_once __DIR__ . '/../../src/Utils/ResponseHelper.php';
-require_once __DIR__ . '/../../src/Utils/Validator.php';
-require_once __DIR__ . '/../../src/Utils/Request.php';
-require_once __DIR__ . '/../../src/Utils/JWT.php';
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
 require_once __DIR__ . '/../../src/Middleware/SecurityMiddleware.php';
 require_once __DIR__ . '/../../src/Services/ChatbotService.php';
 
@@ -19,7 +15,7 @@ use Utils\Validator as Val;
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 try {
     if ($method !== 'POST') {
-        Res::error('Método no permitido', 405);
+        Res::error('MÃƒÂ©todo no permitido', 405);
     }
     $authUser = JWT::requireAuth();
     $payload = Request::json();
@@ -28,7 +24,7 @@ try {
         'options' => 'array'
     ]);
     if (!$ok) {
-        Res::error('Validación fallida', 422, ['errors' => $errs]);
+        Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
     }
     $service = new ChatbotService();
     $response = $service->chat($payload['messages'], $payload['options'] ?? []);
@@ -36,3 +32,4 @@ try {
 } catch (\Throwable $e) {
     Res::exception($e);
 }
+

@@ -3,15 +3,8 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
-$ROOT = dirname(dirname(dirname(__DIR__))); // Corregido: api -> public -> backend -> raiz
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-    http_response_code(500);
-    exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
-// Recoger toda la información de la solicitud
+// Recoger toda la informaciÃƒÂ³n de la solicitud
 $headers = getallheaders();
 $headersList = [];
 foreach ($headers as $name => $value) {
@@ -21,7 +14,7 @@ foreach ($headers as $name => $value) {
 $result = [
   'timestamp' => date('Y-m-d H:i:s'),
   'success' => true,
-  'message' => 'Información de la solicitud recibida',
+  'message' => 'InformaciÃƒÂ³n de la solicitud recibida',
   'request_info' => [
     'method' => $_SERVER['REQUEST_METHOD'] ?? 'Unknown',
     'remote_addr' => $_SERVER['REMOTE_ADDR'] ?? 'Unknown',
@@ -37,4 +30,5 @@ $result = [
 ];
 
 echo json_encode($result, JSON_PRETTY_PRINT);
+
 

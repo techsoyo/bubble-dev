@@ -451,11 +451,12 @@ export class IntelligentMatching {
 
       const data = await response.json();
 
-      if (!data.success || !data.data) {
-        throw new Error('Datos de candidato no válidos');
+      // ✅ Estructura correcta
+      if (data && data.success && data.data) {
+        return this.transformCandidateData(data.data);
+      } else {
+        throw new Error(data?.message || 'Datos de candidato no válidos');
       }
-
-      return this.transformCandidateData(data.data);
     } catch (error) {
       console.error('Error fetching candidate:', error);
       throw new Error(`No se pudo obtener información del candidato ${candidateId}`);
@@ -478,11 +479,12 @@ export class IntelligentMatching {
 
       const data = await response.json();
 
-      if (!data.success || !data.data) {
-        throw new Error('Datos de trabajo no válidos');
+      // ✅ Estructura correcta
+      if (data && data.success && data.data) {
+        return this.transformJobData(data.data);
+      } else {
+        throw new Error(data?.message || 'Datos de trabajo no válidos');
       }
-
-      return this.transformJobData(data.data);
     } catch (error) {
       console.error('Error fetching job:', error);
       throw new Error(`No se pudo obtener información del trabajo ${jobId}`);

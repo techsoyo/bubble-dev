@@ -4,13 +4,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automáticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automáticamente en bootstrap.php
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
 header('Content-Type: application/json; charset=UTF-8');
-require_once __DIR__ . '/../../src/Utils/ResponseHelper.php';
-require_once __DIR__ . '/../../src/Utils/Validator.php';
-require_once __DIR__ . '/../../src/Utils/Request.php';
-require_once __DIR__ . '/../../src/Utils/JWT.php';
 require_once __DIR__ . '/../../src/Middleware/SecurityMiddleware.php';
 
 use Middleware\SecurityMiddleware as Sec;
@@ -52,7 +48,7 @@ try {
                     'id' => 'required|string:1,36|regex:/^rec-\w+$/'
                 ]);
                 if (!$ok) {
-                    Res::error('Validación fallida', 422, ['errors' => $errs]);
+                    Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
                 }
                 $st = $pdo->prepare('SELECT * FROM ' . T('staff_profiles') . ' WHERE id = ?');
                 $st->execute([$id]);
@@ -122,7 +118,7 @@ try {
                 'avatar' => 'string:0,255'
             ]);
             if (!$ok) {
-                Res::error('Validación fallida', 422, ['errors' => $errs]);
+                Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
             }
             Sec::assertAdmin($authUser); // Solo admin puede crear reclutadores
             $id = 'rec-' . uniqid();
@@ -153,7 +149,7 @@ try {
                 'id' => 'required|string:1,36|regex:/^rec-\w+$/'
             ]);
             if (!$ok) {
-                Res::error('ID inválido', 422, ['errors' => $errs]);
+                Res::error('ID invÃƒÂ¡lido', 422, ['errors' => $errs]);
             }
             Sec::assertAdmin($authUser); // Solo admin puede editar reclutadores
             $fields = ['first_name', 'last_name', 'email', 'phone', 'company', 'department', 'role', 'status', 'avatar'];
@@ -186,7 +182,7 @@ try {
                 'id' => 'required|string:1,36|regex:/^rec-\w+$/'
             ]);
             if (!$ok) {
-                Res::error('ID inválido', 422, ['errors' => $errs]);
+                Res::error('ID invÃƒÂ¡lido', 422, ['errors' => $errs]);
             }
             Sec::assertAdmin($authUser); // Solo admin puede eliminar reclutadores
             $st = $pdo->prepare('DELETE FROM ' . T('staff_profiles') . ' WHERE id = ?');
@@ -199,8 +195,9 @@ try {
             break;
         }
         default:
-            Res::error('Método no permitido', 405);
+            Res::error('MÃƒÂ©todo no permitido', 405);
     }
 } catch (\Throwable $e) {
     Res::exception($e);
 }
+

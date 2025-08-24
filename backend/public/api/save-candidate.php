@@ -3,13 +3,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
-$ROOT = dirname(__DIR__, 1);             // ajusta salto de nivel según carpeta
-$BOOT = $ROOT . '/config/bootstrap.php'; // si estás en /backend/public, sube 1 nivel; si estás en /backend/api, también 1
-if (!is_file($BOOT)) {
-    http_response_code(500);
-    exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 /**
  * API Endpoint: Save Candidate Data
@@ -25,7 +18,7 @@ require_once $BOOT;
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['error' => 'Método no permitido']);
+    echo json_encode(['error' => 'MÃƒÂ©todo no permitido']);
     exit();
 }
 
@@ -34,7 +27,7 @@ try {
     $inputData = json_decode(file_get_contents('php://input'), true);
 
     if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('JSON inválido en request body');
+        throw new Exception('JSON invÃƒÂ¡lido en request body');
     }
 
     // Validar datos requeridos
@@ -56,7 +49,7 @@ try {
 
     // Validar email
     if (!filter_var($candidateData['email'], FILTER_VALIDATE_EMAIL)) {
-        throw new Exception('Email no válido');
+        throw new Exception('Email no vÃƒÂ¡lido');
     }
 
     // Conectar a la base de datos
@@ -71,11 +64,11 @@ try {
         ]
     );
 
-    // Iniciar transacción
+    // Iniciar transacciÃƒÂ³n
     $pdo->beginTransaction();
 
     try {
-        // 1. Insertar o actualizar usuario en tabla de autenticación
+        // 1. Insertar o actualizar usuario en tabla de autenticaciÃƒÂ³n
         $userId = null;
         if (!empty($accountData['username']) && !empty($accountData['password'])) {
             $stmt = $pdo->prepare("
@@ -141,11 +134,11 @@ try {
                 data_retention_until = VALUES(data_retention_until)
         ');
 
-        // Capturar datos GDPR de auditoría
+        // Capturar datos GDPR de auditorÃƒÂ­a
         $userIP = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['HTTP_X_REAL_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
 
-        // Datos de propósitos del tratamiento GDPR
+        // Datos de propÃƒÂ³sitos del tratamiento GDPR
         $processingPurposes = [
             'cv_analysis' => true,
             'recruitment_process' => true,
@@ -155,7 +148,7 @@ try {
         ];
 
         $stmt->execute([
-            // Datos básicos del candidato
+            // Datos bÃƒÂ¡sicos del candidato
             $candidateData['nombre'],
             $candidateData['email'],
             $candidateData['telefono'],
@@ -175,14 +168,14 @@ try {
             $cvFiles['text'] ?? null,
             $cvFiles['json'] ?? null,
             $inputData['data_source'] ?? 'manual_entry',
-            // Datos GDPR - CRÍTICOS PARA CUMPLIMIENTO
-            true, // gdpr_consent_given - siempre true si llegó aquí
+            // Datos GDPR - CRÃƒÂTICOS PARA CUMPLIMIENTO
+            true, // gdpr_consent_given - siempre true si llegÃƒÂ³ aquÃƒÂ­
             true, // openai_processing_consent - true si data_source es ai_processing
             json_encode($processingPurposes, JSON_UNESCAPED_UNICODE), // data_processing_purposes
             '1.0', // consent_version
             $userIP, // ip_address_consent
             $userAgent // user_agent_consent
-            // data_retention_until se calcula automáticamente con DATE_ADD en SQL
+            // data_retention_until se calcula automÃƒÂ¡ticamente con DATE_ADD en SQL
         ]);
 
         $candidateId = $pdo->lastInsertId() ?: $pdo->query("SELECT id FROM bt_candidates WHERE email = '{$candidateData['email']}'")->fetchColumn();
@@ -211,9 +204,9 @@ try {
             }
         }
 
-        // 4. Insertar educación (usar tabla existente bt_candidate_education)
+        // 4. Insertar educaciÃƒÂ³n (usar tabla existente bt_candidate_education)
         if (!empty($candidateData['educacion'])) {
-            // Limpiar educación anterior
+            // Limpiar educaciÃƒÂ³n anterior
             $pdo->prepare('DELETE FROM bt_candidate_education WHERE candidate_id = ?')->execute([$candidateId]);
 
             $stmt = $pdo->prepare('
@@ -254,7 +247,7 @@ try {
             }
         }
 
-        // Confirmar transacción
+        // Confirmar transacciÃƒÂ³n
         $pdo->commit();
 
         // Respuesta exitosa
@@ -290,3 +283,4 @@ try {
         'timestamp' => date('Y-m-d H:i:s')
     ]);
 }
+

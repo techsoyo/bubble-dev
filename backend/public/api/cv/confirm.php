@@ -2,31 +2,24 @@
 
 declare(strict_types=1);
 
-// Sube 3 niveles: cv → api → public → backend/
-$ROOT = dirname(__DIR__, 3);
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-    http_response_code(500);
-    exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
+// Sube 3 niveles: cv Ã¢â€ â€™ api Ã¢â€ â€™ public Ã¢â€ â€™ backend/
 
 /**
  * Endpoint: POST /api/cv/confirm
  * Persiste un CV normalizado (fuente IA o manual) en tablas relacionales.
  * Flujo:
  *  - Lee JSON -> decode -> CvSchema::normalize
- *  - Validaciones servidor (formato email, longitudes, fechas, tamaños listas)
- *  - Transacción PDO:
+ *  - Validaciones servidor (formato email, longitudes, fechas, tamaÃƒÂ±os listas)
+ *  - TransacciÃƒÂ³n PDO:
  *      * upsert bt_candidates por email
- *      * limpia e inserta tablas hijas: experiencias, educación, certificaciones (simple), proyectos
+ *      * limpia e inserta tablas hijas: experiencias, educaciÃƒÂ³n, certificaciones (simple), proyectos
  *  - Commit y respuesta
  * Errores controlados:
  *  - 400 INVALID_JSON
  *  - 422 VALIDATION_FAILED (details por campo)
  *  - 500 DB_ERROR (rollback)
  */
-
+require_once dirname(__DIR__) . '/bootstrap.php';
 $isCli = (php_sapi_name() === 'cli');
 
 use Utils\Auth;
@@ -44,7 +37,7 @@ if (!$isCli) {
     // REMOVED: header('Content-Type: application/json; charset=utf-8'); // Use jsonResponse() helper
     $method = $_SERVER['REQUEST_METHOD'] ?? 'CLI';
     if ($method !== 'POST') {
-        jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'Método no permitido', 'details' => (object)[]]]);
+        jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'MÃƒÂ©todo no permitido', 'details' => (object)[]]]);
     }
     if (class_exists('Utils\\RateLimiter')) {
         RateLimiter::enforceForRoute('/api/cv/confirm');
@@ -113,8 +106,8 @@ function validateServer(array $data): array
 
     // Email RFC razonable
     if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-        $errors[] = 'Email inválido';
-        $details['email'] = 'Formato no válido';
+        $errors[] = 'Email invÃƒÂ¡lido';
+        $details['email'] = 'Formato no vÃƒÂ¡lido';
     }
 
     // Strings <= 2000
@@ -136,7 +129,7 @@ function validateServer(array $data): array
         }
     }
 
-    // Listas tamaño <= 200
+    // Listas tamaÃƒÂ±o <= 200
     $listFields = ['otras_redes', 'soft_skills', 'hard_skills', 'idiomas', 'intereses', 'certificaciones', 'habilidades_adicionales', 'puestos_anteriores', 'educacion', 'proyectos'];
     foreach ($listFields as $lf) {
         if (isset($data[$lf]) && is_array($data[$lf]) && count($data[$lf]) > 200) {
@@ -154,7 +147,7 @@ function validateServer(array $data): array
     foreach (($data['puestos_anteriores'] ?? []) as $i => $p) {
         foreach (['fecha_inicio', 'fecha_fin'] as $df) {
             if (!empty($p[$df]) && !$checkDate($p[$df])) {
-                $errors[] = "Experiencia[$i].$df formato inválido";
+                $errors[] = "Experiencia[$i].$df formato invÃƒÂ¡lido";
                 $details["puestos_anteriores.$i.$df"] = 'invalid_date';
             }
         }
@@ -162,7 +155,7 @@ function validateServer(array $data): array
     foreach (($data['educacion'] ?? []) as $i => $e) {
         foreach (['fecha_inicio', 'fecha_fin'] as $df) {
             if (!empty($e[$df]) && !$checkDate($e[$df])) {
-                $errors[] = "Educacion[$i].$df formato inválido";
+                $errors[] = "Educacion[$i].$df formato invÃƒÂ¡lido";
                 $details["educacion.$i.$df"] = 'invalid_date';
             }
         }
@@ -170,7 +163,7 @@ function validateServer(array $data): array
     foreach (($data['proyectos'] ?? []) as $i => $p) {
         foreach (['fecha_inicio', 'fecha_fin'] as $df) {
             if (!empty($p[$df]) && !$checkDate($p[$df])) {
-                $errors[] = "Proyecto[$i].$df formato inválido";
+                $errors[] = "Proyecto[$i].$df formato invÃƒÂ¡lido";
                 $details["proyectos.$i.$df"] = 'invalid_date';
             }
         }
@@ -182,7 +175,7 @@ function validateServer(array $data): array
 $raw = file_get_contents('php://input');
 $dataIn = json_decode($raw, true);
 if (!is_array($dataIn)) {
-    respondJson(400, false, errorPayload('INVALID_JSON', 'JSON inválido'));
+    respondJson(400, false, errorPayload('INVALID_JSON', 'JSON invÃƒÂ¡lido'));
 }
 
 $normalized = CvSchema::normalize($dataIn);
@@ -202,14 +195,14 @@ if (class_exists('Utils\\Log')) {
 }
 $minErrors = CvSchema::validateMinimumData($normalized);
 if (!empty($minErrors)) {
-    respondJson(422, false, errorPayload('VALIDATION_FAILED', 'Datos mínimos incompletos', $minErrors));
+    respondJson(422, false, errorPayload('VALIDATION_FAILED', 'Datos mÃƒÂ­nimos incompletos', $minErrors));
 }
 
 // Validaciones servidor adicionales
 [$vErrors, $vDetails] = validateServer($normalized);
 if ($vErrors) {
     $aux = $vDetails ?: []; // mantener formato details
-    respondJson(422, false, errorPayload('VALIDATION_FAILED', 'Violaciones de validación', $aux));
+    respondJson(422, false, errorPayload('VALIDATION_FAILED', 'Violaciones de validaciÃƒÂ³n', $aux));
 }
 
 try {
@@ -276,7 +269,7 @@ try {
         }
     }
 
-    // Educación
+    // EducaciÃƒÂ³n
     if (!empty($normalized['educacion'])) {
         $iedu = $pdo->prepare('INSERT INTO bt_candidate_education (candidate_id, institution_name, degree_title, start_date, end_date, description, created_at) VALUES (?,?,?,?,?,?,NOW())');
         foreach ($normalized['educacion'] as $e) {

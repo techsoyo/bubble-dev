@@ -35,10 +35,22 @@ const LoginPage: React.FC = () => {
       const data = res.data;
 
       // REST response structure validation
-      if (!data.success || !data.token) {
-        setError(data.error || data.message || 'Credenciales incorrectas');
-        setLoading(false);
-        return;
+      if (res.data && res.data.success) {
+        const { token, user, expires_in } = res.data.data;
+
+        // Guardar token si es necesario
+        if (token) {
+          localStorage.setItem('auth_token', token);
+        }
+
+
+        // ✅ Redirección inteligente por rol
+        const redirectPath = user.role === 'admin' ? '/admin' :
+          user.role === 'recruiter' ? '/recruiter' :
+            '/dashboard';
+        navigate(redirectPath, { replace: true });
+      } else {
+        setError(res.data?.message || 'Credenciales incorrectas');
       }
 
       // El backend REST debe establecer cookie JWT httpOnly si corresponde

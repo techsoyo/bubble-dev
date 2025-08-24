@@ -1,13 +1,6 @@
 <?php
 
 declare(strict_types=1);
-$ROOT = dirname(dirname(dirname(dirname(__DIR__)))); // Corregido: auth -> api -> public -> backend -> raiz
-$BOOT = $ROOT . '/config/bootstrap.php';
-if (!is_file($BOOT)) {
-  http_response_code(500);
-  exit('Bootstrap no encontrado');
-}
-require_once $BOOT;
 
 // Content Type header (CORS ya configurado en bootstrap.php)
 header('Content-Type: application/json');
@@ -22,10 +15,10 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 try {
-  // Solo permitir método POST
+  // Solo permitir mÃƒÂ©todo POST
   if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+    echo json_encode(['success' => false, 'message' => 'MÃƒÂ©todo no permitido']);
     exit;
   }
 
@@ -34,7 +27,7 @@ try {
 
   if (!$input) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Datos inválidos']);
+    echo json_encode(['success' => false, 'message' => 'Datos invÃƒÂ¡lidos']);
     exit;
   }
 
@@ -43,7 +36,7 @@ try {
 
   if (!$email || empty($password)) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Email y contraseña son requeridos']);
+    echo json_encode(['success' => false, 'message' => 'Email y contraseÃƒÂ±a son requeridos']);
     exit;
   }
 
@@ -57,18 +50,18 @@ try {
 
   if (!$candidate) {
     http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Credenciales inválidas']);
+    echo json_encode(['success' => false, 'message' => 'Credenciales invÃƒÂ¡lidas']);
     exit;
   }
 
-  // Verificar contraseña
+  // Verificar contraseÃƒÂ±a
   if (!password_verify($password, $candidate['password_hash'])) {
     http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Credenciales inválidas']);
+    echo json_encode(['success' => false, 'message' => 'Credenciales invÃƒÂ¡lidas']);
     exit;
   }
 
-  // Crear sesión
+  // Crear sesiÃƒÂ³n
   $_SESSION['candidate_id'] = $candidate['id'];
   $_SESSION['candidate_email'] = $candidate['email'];
   $_SESSION['candidate_name'] = $candidate['first_name'] . ' ' . $candidate['last_name'];

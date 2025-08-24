@@ -1,12 +1,8 @@
 <?php
 
 require_once __DIR__ . '/bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automáticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automáticamente en bootstrap.php
-require_once __DIR__ . '/../../src/Utils/ResponseHelper.php';
-require_once __DIR__ . '/../../src/Utils/Validator.php';
-require_once __DIR__ . '/../../src/Utils/Request.php';
-require_once __DIR__ . '/../../src/Utils/JWT.php';
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
 
 use Utils\JWT;
 use Utils\Request;
@@ -82,7 +78,7 @@ try {
                 'meeting_link' => 'string:0,255'
             ]);
             if (!$ok) {
-                Res::error('Validación fallida', 422, ['errors' => $errs]);
+                Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
             }
             $id = 'int-' . uniqid();
             $st = $pdo->prepare('INSERT INTO ' . T('interviews') . ' (id, application_id, recruiter_id, scheduled_at, duration_minutes, location, type, status, notes, meeting_link, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())');
@@ -145,8 +141,9 @@ try {
             break;
         }
         default:
-            Res::error('Método no permitido', 405);
+            Res::error('MÃƒÂ©todo no permitido', 405);
     }
 } catch (\Throwable $e) {
     Res::exception($e);
 }
+

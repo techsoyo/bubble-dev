@@ -1,12 +1,8 @@
 <?php
 
 require_once __DIR__ . '/bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automáticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automáticamente en bootstrap.php
-require_once __DIR__ . '/../../src/Utils/ResponseHelper.php';
-require_once __DIR__ . '/../../src/Utils/Validator.php';
-require_once __DIR__ . '/../../src/Utils/Request.php';
-require_once __DIR__ . '/../../src/Utils/JWT.php';
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
 require_once __DIR__ . '/../../src/Middleware/SecurityMiddleware.php';
 
 use Middleware\SecurityMiddleware as Sec;
@@ -47,7 +43,7 @@ try {
                 'candidate_id' => 'required|string:1,36|regex:/^cnd-\d+$/'
             ]);
             if (!$ok) {
-                Res::error('Validación fallida', 422, ['errors' => $errs]);
+                Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
             }
             Sec::assertReadAccessForCandidate((string)$candidateId, $authUser);
             $st = $pdo->prepare('SELECT id, candidate_id, skill, created_at FROM ' . T('candidate_skills') . ' WHERE candidate_id = ? ORDER BY created_at DESC');
@@ -63,7 +59,7 @@ try {
                 'skill'        => 'required|string:1,255'
             ]);
             if (!$ok) {
-                Res::error('Validación fallida', 422, ['errors' => $errs]);
+                Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
             }
             Sec::assertWriteAccessForCandidate((string)$payload['candidate_id'], $authUser);
             $st = $pdo->prepare('INSERT INTO ' . T('candidate_skills') . ' (id, candidate_id, skill, created_at) VALUES (UUID(), ?, ?, NOW())');
@@ -75,8 +71,9 @@ try {
             break;
         }
         default:
-            Res::error('Método no permitido', 405);
+            Res::error('MÃƒÂ©todo no permitido', 405);
     }
 } catch (\Throwable $e) {
     Res::exception($e);
 }
+

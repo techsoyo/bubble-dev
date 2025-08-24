@@ -49,4 +49,16 @@ class ResponseHelper
         echo json_encode($payload, JSON_UNESCAPED_UNICODE);
         return false;
     }
+
+    /**
+     * Manejo de excepciones con logging y respuesta de error
+     */
+    public static function exception(\Throwable $e, int $status = 500)
+    {
+        // Log de la excepción
+        error_log('[EXCEPTION] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+
+        // Responder con error
+        return self::error('Error interno del servidor', $e, $status);
+    }
 }

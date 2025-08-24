@@ -223,17 +223,6 @@ export class ApiService {
     });
   }
 
-  static patch<T = any>(
-    endpoint: string,
-    data: any,
-    options: Omit<ApiRequestOptions, 'method'> = {}
-  ): Promise<T> {
-    return this.request<T>(endpoint, {
-      ...options,
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
-  }
   /**
    * DELETE request con autenticación automática
    * - Si tu backend acepta body en DELETE, envíalo; si no, quítalo.
@@ -455,9 +444,9 @@ export async function submitApplication(data: any) {
   return await ApiService.post('applications.php', safe);
 
 }
-// Mantén POST (tu backend no soporta PATCH)
+// Usar POST para actualizaciones en lote (backend no soporta PATCH)
 export async function bulkUpdateApplications(applications: Array<any>) {
-  // Tu backend no soporta PATCH → usamos POST
+  // Usar POST para operaciones en lote
   return await ApiService.post('applications.php', { bulk_update: applications });
 }
 

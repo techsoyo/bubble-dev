@@ -58,7 +58,7 @@ export async function changeCandidateStatus(data: {
     // Se espera que data contenga candidato_id y nuevo_estado
     const { candidato_id, nuevo_estado, motivo } = data;
     const response = await fetch(`/api/applications/${candidato_id}/status`, {
-        method: "PATCH",
+        method: "PUT",
         headers: {
             "Content-Type": "application/json",
         },
@@ -1366,7 +1366,7 @@ export async function bulkUpdateApplications(applications: Array<{
 }>) {
     try {
         const response = await fetch(`${API_BASE_URL}/applications`, {
-            method: 'PATCH',
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',

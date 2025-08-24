@@ -103,7 +103,6 @@ export default function ApiTester() {
             <option>GET</option>
             <option>POST</option>
             <option>PUT</option>
-            <option>PATCH</option>
             <option>DELETE</option>
             <option>HEAD</option>
             <option>OPTIONS</option>

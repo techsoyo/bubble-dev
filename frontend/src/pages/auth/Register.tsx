@@ -9,7 +9,7 @@ import { toast } from '../../components/ui/use-toast';
 import { useFormErrors } from '../../hooks/useFormErrors';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../lib/i18n/LanguageContext';
-import { saveCandidateFromAI } from '../../lib/apiService';
+import { saveCandidateFromAI } from '../../services/ApiService';
 
 // Definir configuración de API internamente
 const API_CONFIG = {

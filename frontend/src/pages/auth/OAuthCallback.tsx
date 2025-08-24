@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { socialLogin } from '../../lib/apiService';
+import { socialLogin } from '../../services/ApiService';
 import { useAuth } from '../../contexts/AuthContext';
 
 const OAuthCallback: React.FC = () => {

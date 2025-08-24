@@ -32,7 +32,7 @@ import {
   getRecruiters,
   getCandidateSkills,
   getCandidateExperiences,
-} from '../../lib/apiService';
+} from '../../services/ApiService';
 import { getCandidateDepartmentAssignment } from '../../lib/candidate-department-assignment';
 
 import { useNavigate } from 'react-router-dom';

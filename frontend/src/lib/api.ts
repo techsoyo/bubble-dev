@@ -6,7 +6,7 @@ import { env } from '../config/env';
 import { PROTECTED_ROUTES } from './protectedRoutes'; // rutas que sí requieren auth
 
 
-export const api = axios.store({
+export const api = axios.create({
   baseURL: env.API_BASE_URL,
   timeout: 10000,
   headers: {
@@ -21,14 +21,14 @@ export async function apiRequest(config: any, { signal, retries = 2 }: { signal?
   let lastError;
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      const source = axios.CancelToken.source();
+      const controller = new AbortController();
       if (signal) {
-        signal.addEventListener('abort', () => source.cancel('Aborted by user'));
+        signal.addEventListener('abort', () => controller.abort());
       }
-      return await api({ ...config, cancelToken: source.token });
+      return await api({ ...config, signal: controller.signal });
     } catch (err) {
       lastError = err;
-      if (axios.isCancel(err)) throw err;
+      if (err.name === 'AbortError') throw err;
       if (attempt < retries) {
         await new Promise(res => setTimeout(res, 300 * Math.pow(2, attempt)));
       }

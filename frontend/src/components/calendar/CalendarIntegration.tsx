@@ -5,7 +5,7 @@ import {
   connectCalendar,
   disconnectCalendar,
   getCalendarEvents
-} from '../../lib/apiService';
+} from '../../services/ApiService';
 
 interface CalendarIntegrationProps {
   userId: string;

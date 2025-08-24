@@ -1,6 +1,6 @@
 // src/components/dashboard/RecruiterDashboard.tsx
 import React, { useState, useEffect } from 'react';
-import { getRecruiterDashboardStats } from '../../lib/apiService';
+import { getRecruiterDashboardStats } from '../../services/ApiService';
 
 import { Link } from 'react-router-dom';
 

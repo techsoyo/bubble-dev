@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 /**
  * Endpoint único para análisis completo de CV
  * 
@@ -20,72 +21,184 @@
  */
 
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
+require_once dirname(__DIR__, 2) . '/src/Utils/JWTMiddleware.php';
+
+// ✅ HEADERS DE SEGURIDAD FIRST
+header('Content-Type: application/json; charset=utf-8');
+header('Access-Control-Allow-Origin: ' . ($_SERVER['HTTP_ORIGIN'] ?? '*'));
+header('Access-Control-Allow-Credentials: true');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+  http_response_code(200);
+  exit();
+}
 
 use Services\GroqApiService;
 use Services\Exceptions\AiUnavailableException;
 use Utils\ResponseHelper;
 
-// Configuración de seguridad
-define('MAX_FILE_SIZE', 10 * 1024 * 1024); // 10MB máximo para archivos
-define('MAX_TEXT_LENGTH', 1024 * 1024); // 1MB máximo para texto plano
-define('ALLOWED_EXTENSIONS', ['pdf', 'doc', 'docx', 'txt']); // Extensiones permitidas
-define('ALLOWED_PDF_TYPES', ['application/pdf']); // Solo PDFs
-define('ALLOWED_TEXT_TYPES', ['text/plain', 'application/json']); // Tipos de texto
-
-// Solo permitir método POST
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-  ResponseHelper::error('Método no permitido. Use POST.', 405);
+// ✅ REQUERIR AUTENTICACIÓN JWT SIEMPRE
+$userPayload = JWTMiddleware::requireAuth();
+if (!$userPayload) {
+  // JWTMiddleware ya envió la respuesta de error
   exit;
+}
+
+// ✅ CONFIGURACIÓN DE SEGURIDAD MEJORADA
+define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB máximo (reducido)
+define('MAX_TEXT_LENGTH', 512 * 1024); // 512KB máximo para texto
+define('ALLOWED_EXTENSIONS', ['pdf']); // Solo PDFs por seguridad
+define('ALLOWED_MIME_TYPES', ['application/pdf']);
+define('UPLOAD_DIR', dirname(__DIR__, 2) . '/uploads/cvs/');
+define('MAX_DAILY_UPLOADS', 10); // Límite diario por usuario
+
+// Solo POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+  http_response_code(405);
+  echo json_encode([
+    'success' => false,
+    'message' => 'Solo se permite método POST',
+    'error_code' => 'METHOD_NOT_ALLOWED'
+  ]);
+  exit;
+}
+
+// ✅ RATE LIMITING POR USUARIO
+$userId = $userPayload['user_id'];
+$rateLimitKey = "cv_upload_$userId";
+
+if (!checkUploadRateLimit($userId)) {
+  http_response_code(429);
+  echo json_encode([
+    'success' => false,
+    'message' => 'Has superado el límite diario de subidas de CV (10 por día)',
+    'error_code' => 'RATE_LIMIT_EXCEEDED'
+  ]);
+  exit;
+}
+
+/**
+ * Verificar límite de subidas por usuario
+ */
+function checkUploadRateLimit(string $userId): bool
+{
+  try {
+    $db = getDbConnection();
+
+    // Contar subidas del usuario hoy
+    $stmt = $db->prepare("
+            SELECT COUNT(*) 
+            FROM bt_cv_uploads 
+            WHERE user_id = ? AND DATE(created_at) = CURDATE()
+        ");
+    $stmt->execute([$userId]);
+    $todayUploads = (int)$stmt->fetchColumn();
+
+    return $todayUploads < MAX_DAILY_UPLOADS;
+  } catch (Exception $e) {
+    error_log("Rate limit check error: " . $e->getMessage());
+    return false; // Fallar seguro
+  }
 }
 
 /**
  * Valida archivo subido según su tipo
  */
-function validateUploadedFile($fileData)
+function validateUploadedFile($fileData, string $userId): array
 {
-  // Comprobar errores de subida
+  // Verificar errores de subida
   if ($fileData['error'] !== UPLOAD_ERR_OK) {
     $errors = [
-      UPLOAD_ERR_INI_SIZE => 'El archivo excede el tamaño máximo permitido por PHP.',
-      UPLOAD_ERR_FORM_SIZE => 'El archivo excede el tamaño máximo permitido.',
-      UPLOAD_ERR_PARTIAL => 'El archivo se subió parcialmente.',
-      UPLOAD_ERR_NO_FILE => 'No se subió ningún archivo.',
-      UPLOAD_ERR_NO_TMP_DIR => 'Falta la carpeta temporal.',
-      UPLOAD_ERR_CANT_WRITE => 'Error al escribir el archivo.',
-      UPLOAD_ERR_EXTENSION => 'Una extensión PHP detuvo la subida.',
+      UPLOAD_ERR_INI_SIZE => 'Archivo demasiado grande para PHP',
+      UPLOAD_ERR_FORM_SIZE => 'Archivo excede el límite permitido',
+      UPLOAD_ERR_PARTIAL => 'Archivo se subió parcialmente',
+      UPLOAD_ERR_NO_FILE => 'No se subió ningún archivo',
+      UPLOAD_ERR_NO_TMP_DIR => 'Error del servidor: carpeta temporal',
+      UPLOAD_ERR_CANT_WRITE => 'Error del servidor: no se puede escribir',
+      UPLOAD_ERR_EXTENSION => 'Archivo bloqueado por extensión'
     ];
-    return ['status' => false, 'message' => $errors[$fileData['error']] ?? 'Error desconocido en la subida.'];
+    return [
+      'success' => false,
+      'message' => $errors[$fileData['error']] ?? 'Error desconocido en subida'
+    ];
   }
 
-  // Validar tamaño
+  // ✅ VALIDACIÓN DE TAMAÑO ESTRICTA
   if ($fileData['size'] > MAX_FILE_SIZE) {
     return [
-      'status' => false,
-      'message' => 'El archivo excede el tamaño máximo permitido (' . (MAX_FILE_SIZE / 1024 / 1024) . 'MB).'
+      'success' => false,
+      'message' => 'Archivo demasiado grande. Máximo ' . (MAX_FILE_SIZE / 1024 / 1024) . 'MB'
     ];
   }
 
-  // Validar extensión
+  // ✅ VALIDACIÓN DE EXTENSIÓN Y MIME TYPE
   $extension = strtolower(pathinfo($fileData['name'], PATHINFO_EXTENSION));
   if (!in_array($extension, ALLOWED_EXTENSIONS)) {
-    return ['status' => false, 'message' => 'Extensión de archivo no permitida. Use: ' . implode(', ', ALLOWED_EXTENSIONS)];
+    return [
+      'success' => false,
+      'message' => 'Solo se permiten archivos PDF'
+    ];
   }
 
-  // Validar MIME type
-  $finfo = new finfo(FILEINFO_MIME_TYPE);
-  $mime = $finfo->file($fileData['tmp_name']);
+  // ✅ VALIDACIÓN DE MIME TYPE REAL (no confiar en $_FILES)
+  $finfo = finfo_open(FILEINFO_MIME_TYPE);
+  $mimeType = finfo_file($finfo, $fileData['tmp_name']);
+  finfo_close($finfo);
 
-  $allowedMimes = array_merge(ALLOWED_PDF_TYPES, ALLOWED_TEXT_TYPES, [
-    'application/msword', // .doc
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document' // .docx
-  ]);
-
-  if (!in_array($mime, $allowedMimes)) {
-    return ['status' => false, 'message' => 'Tipo de archivo no válido.'];
+  if (!in_array($mimeType, ALLOWED_MIME_TYPES)) {
+    return [
+      'success' => false,
+      'message' => "Tipo de archivo no permitido. Detectado: $mimeType"
+    ];
   }
 
-  // Crear directorio si no existe
-  $uploadDir = __DIR__ . '/../../uploads/cvs/';
+  // ✅ VALIDACIÓN DE CONTENIDO PDF
+  $fileContent = file_get_contents($fileData['tmp_name']);
+  if (substr($fileContent, 0, 4) !== '%PDF') {
+    return [
+      'success' => false,
+      'message' => 'El archivo no es un PDF válido'
+    ];
+  }
+
+  // ✅ SCAN DE VIRUS BÁSICO (buscar patrones sospechosos)
+  if (containsSuspiciousContent($fileContent)) {
+    return [
+      'success' => false,
+      'message' => 'Archivo rechazado por seguridad'
+    ];
+  }
+
+  return ['success' => true, 'message' => 'Archivo válido'];
+}
+
+/**
+ * Detectar contenido sospechoso básico
+ */
+function containsSuspiciousContent(string $content): bool
+{
+  $suspiciousPatterns = [
+    '/javascript:/i',
+    '/<script/i',
+    '/eval\s*\(/i',
+    '/exec\s*\(/i',
+    '/system\s*\(/i'
+  ];
+
+  foreach ($suspiciousPatterns as $pattern) {
+    if (preg_match($pattern, $content)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
+// Crear directorio si no existe
+$uploadDir = __DIR__ . '/../../uploads/cvs/';
   if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
   }
@@ -105,7 +218,7 @@ function validateUploadedFile($fileData)
     'mime' => $mime,
     'size' => $fileData['size']
   ];
-}
+
 
 /**
  * Extrae texto de diferentes tipos de archivo
@@ -144,16 +257,18 @@ try {
 
   // Si hay error en JSON pero también archivos subidos, continuar
   if (json_last_error() !== JSON_ERROR_NONE && empty($_FILES)) {
-    ResponseHelper::error('JSON inválido: ' . json_last_error_msg(), 400);
+    ResponseHelper::error('JSON inválido: ' . json_last_error_msg(), null);
+    http_response_code(400);
     exit;
   }
 
   // === OPCIÓN 1: Archivo subido ===
   if (isset($_FILES['cv_file']) && $_FILES['cv_file']['error'] !== UPLOAD_ERR_NO_FILE) {
-    $fileValidation = validateUploadedFile($_FILES['cv_file']);
+    $fileValidation = validateUploadedFile($_FILES['cv_file'], $userId);
 
     if (!$fileValidation['status']) {
-      ResponseHelper::error($fileValidation['message'], 400);
+      ResponseHelper::error($fileValidation['message'], null);
+      http_response_code(400);
       exit;
     }
 
@@ -177,7 +292,8 @@ try {
     $processingMethod = 'groq-text-direct';
 
     if (strlen($cvText) > MAX_TEXT_LENGTH) {
-      ResponseHelper::error('El texto del CV excede el tamaño máximo permitido.', 400);
+      ResponseHelper::error('El texto del CV excede el tamaño máximo permitido.', null);
+      http_response_code(400);
       exit;
     }
   }
@@ -186,7 +302,8 @@ try {
     $filePath = $data['text_file_path'];
 
     if (!file_exists($filePath)) {
-      ResponseHelper::error('Archivo no encontrado: ' . $filePath, 404);
+      ResponseHelper::error('Archivo no encontrado: ' . $filePath, null);
+      http_response_code(404);
       exit;
     }
 
@@ -198,9 +315,9 @@ try {
     } else {
       $cvText = $fileContent;
     }
-    $processingMethod = 'groq-text-from-path';
   } else {
-    ResponseHelper::error('No se proporcionó CV. Use cv_file, cv_text o text_file_path.', 400);
+    ResponseHelper::error('No se proporcionó CV. Use cv_file, cv_text o text_file_path.', null);
+    http_response_code(400);
     exit;
   }
 
@@ -214,13 +331,15 @@ try {
       $cvData = $groqService->analyzeCvFromPdf($filePath);
       $processingService = 'Groq API (Llama3) - PDF';
     } catch (Exception $e) {
-      ResponseHelper::error('Error en análisis PDF: ' . $e->getMessage(), 500);
+      ResponseHelper::error('Error en análisis PDF: ' . $e->getMessage(), $e);
+      http_response_code(500);
       exit;
     }
   } else {
     // Análisis de texto con Groq
     if (empty($cvText)) {
-      ResponseHelper::error('No se pudo extraer texto del CV', 400);
+      ResponseHelper::error('No se pudo extraer texto del CV', null);
+      http_response_code(400);
       exit;
     }
 
@@ -248,13 +367,16 @@ try {
       'total_fields' => count($cvData),
       'endpoint' => '/api/analyze_cv.php',
       'version' => '2.0.0'
-    ],
-    'success' => true
+    ]
   ]);
 } catch (AiUnavailableException $e) {
-  ResponseHelper::error('Servicio de IA no disponible: ' . $e->getMessage(), 503);
+} catch (AiUnavailableException $e) {
+  ResponseHelper::error('Servicio de IA no disponible: ' . $e->getMessage(), $e);
+  http_response_code(503);
 } catch (Exception $e) {
-  ResponseHelper::error('Error al analizar CV: ' . $e->getMessage(), 500);
+  ResponseHelper::error('Error al analizar CV: ' . $e->getMessage(), null);
+  http_response_code(500);
+  // Limpiar archivo temporal en caso de error
 
   // Limpiar archivo temporal en caso de error
   if (isset($filePath) && file_exists($filePath) && strpos($filePath, '/uploads/cvs/') !== false) {

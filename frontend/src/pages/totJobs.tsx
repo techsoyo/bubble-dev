@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { getJobs } from '../lib/apiService';
+import { getJobs } from '../services/ApiService';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '../components/ui/dialog';
 import { Button } from '../components/ui/button';
 import CandidateApplicationForm from '../components/CandidateApplicationForm';

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Upload, X, FileText, User, Briefcase, Heart, CheckCircle } from 'lucide-react';
-import { registerCandidate, uploadCV, saveCandidateFromAI } from '../lib/apiService';
+import { registerCandidate, uploadCV, saveCandidateFromAI } from '../services/ApiService';
 import { useLanguage } from '../lib/i18n/LanguageContext';
 
 // Lazy loading de PDF.js para evitar cargar 680KB al inicio

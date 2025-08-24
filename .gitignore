@@ -97,3 +97,67 @@ Thumbs.db
 *.zip
 *.tar.gz
 *.pdf
+
+# Scripts y archivos de testing temporales
+move_test_files*.ps1
+generate_csp_hashes.ps1
+validate_security.ps1
+check_routes.php
+CHECK-CORS.js
+cors-test-report.json
+
+# Análisis y documentación temporal
+analisis_endpoints.md
+localStorage_analysis_report.md
+memoria_proyecto.md  
+migracion-modelos.md
+INTEGRATION_COMPLETE.md
+resumen_actualizacion_endpoints.md
+ENDPOINTS_COMPLETOS.txt
+endpoints_completos_actualizados.csv
+todo_los_controller.csv
+todo_los_controller.xlsx
+xx-ref_a_datos_mocks.md
+
+# Base de datos
+bubble_talents_DB*.sql
+
+# Archivos del servidor AI
+ai_server_codespaces.py
+
+# Carpetas de testing
+/tests/
+/tests1/
+/automated_tests/
+/oauth_implementation/
+/templates/
+/scripts/
+
+# Archivos específicos del backend
+/backend/tree.txt
+/backend/database.zip
+/backend/start-*.bat
+/backend/start-*.ps1
+/backend/start-*.sh
+/backend/migrate.ps1
+/backend/setup_*.ps1
+/backend/setup_*.sh
+/backend/test_*.php
+/backend/create_*.php
+/backend/add_*.php
+/backend/assign_*.php
+/backend/*MIGRATION_GUIDE.md
+/backend/CRUD_COMPLETION_SUMMARY.md
+/backend/SERVIDOR_DESARROLLO.md
+
+# Archivos del frontend
+/frontend/cookies.txt
+/frontend/frontend.zip
+
+# Configuración del workspace
+pnpm-workspace.yaml
+playwright.config.ts
+postcss.config.js
+
+# Archivos específicos de VSCode
+.vscode/

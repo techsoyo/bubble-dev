@@ -5,7 +5,7 @@ export * from './auth/AuthContext';
 
 // API and services
 export * from './api';
-export * from './apiService';
+//export * from './apiService';
 
 // Data and constants
 // 🚫 DEPRECATED: Los siguientes archivos ya no se usan - ahora datos de DB

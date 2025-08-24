@@ -13,7 +13,7 @@ import {
     TableHeader,
     TableRow,
 } from '../ui/table';
-import { getJobs, createJob, updateJob, deleteJob } from '../../lib/apiService';
+import { getJobs, createJob, updateJob, deleteJob } from '../../services/ApiService';
 import { Pencil, Trash2, Plus, Search, Eye } from 'lucide-react';
 
 interface Job {

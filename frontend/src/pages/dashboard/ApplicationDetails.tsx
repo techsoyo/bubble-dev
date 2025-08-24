@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
 import { Layout } from '../../components/layout/Layout';
-import { getApplications, getJobs } from '../../lib/apiService';
+import { getApplications, getJobs } from '../../services/ApiService';
 import { ChevronLeft, Calendar, MapPin, Briefcase, Clock } from 'lucide-react';
 import StatusChangeForm from '../../components/StatusChangeForm';
 import { useAuth } from '../../contexts/AuthContextSimple';

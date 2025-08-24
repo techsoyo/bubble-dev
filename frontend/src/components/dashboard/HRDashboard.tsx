@@ -1,6 +1,6 @@
 // src/components/dashboard/HRDashboard.tsx
 import React, { useState, useEffect } from 'react';
-import { getHRDashboardStats } from '../../lib/apiService';
+import { getHRDashboardStats } from '../../services/ApiService';
 import { Link } from 'react-router-dom';
 
 interface DashboardStats {

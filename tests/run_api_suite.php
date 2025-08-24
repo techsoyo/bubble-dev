@@ -1,4 +1,5 @@
 <?php
+$headers[] = 'X-Test-Bypass: 1';
 
 /**
  * PHP 8+ - Smoke suite paralela para endpoints.

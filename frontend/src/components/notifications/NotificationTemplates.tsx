@@ -1,6 +1,6 @@
 // src/components/notifications/NotificationTemplates.tsx
 import React, { useState, useEffect } from 'react';
-import { getNotificationTemplates, sendNotification } from '../../lib/apiService';
+import { getNotificationTemplates, sendNotification } from '../../services/ApiService';
 
 interface NotificationTemplate {
   id: string;

@@ -3,7 +3,7 @@ import { HashLink } from '@xzar90/react-router-hash-link';
 import { useState, useEffect } from 'react';
 import { Button } from '../../components/ui/button';
 import { Separator } from '../../components/ui/separator';
-import { getJob, getJobRequirements, getJobBenefits, getJobSkills } from '../../lib/apiService';
+import { getJob, getJobRequirements, getJobBenefits, getJobSkills } from '../../services/ApiService';
 import { useLanguage } from '../../lib/i18n/LanguageContext';
 import { translateJobData } from '../../lib/googleTranslation';
 import {

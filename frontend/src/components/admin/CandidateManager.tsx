@@ -13,7 +13,7 @@ import {
     TableHeader,
     TableRow,
 } from '../ui/table';
-import { getCandidates, createCandidate, updateCandidate, deleteCandidate } from '../../lib/apiService';
+import { getCandidates, createCandidate, updateCandidate, deleteCandidate } from '../../services/ApiService';
 import { Pencil, Trash2, Plus, Search } from 'lucide-react';
 
 interface Candidate {

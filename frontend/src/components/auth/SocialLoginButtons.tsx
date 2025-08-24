@@ -1,7 +1,7 @@
 // src/components/auth/SocialLoginButtons.tsx
 import * as React from 'react';
 import { FaGoogle, FaLinkedin, FaApple } from 'react-icons/fa';
-import { socialLogin } from '../../lib/apiService';
+import { socialLogin } from '../../services/ApiService';
 
 interface SocialLoginButtonsProps {
   onLoginSuccess?: (data: any) => void;

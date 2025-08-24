@@ -35,7 +35,7 @@ try {
     'response_time_ms' => $durationMs,
   ]);
 } catch (\Throwable $e) {
-  Res::error('Error en health check: ' . $e->getMessage(), 500, [
-    'provider' => 'groq',
+  Res::error('Error en health check: ' . $e->getMessage(), $e, 500, [
+    'provider' => 'groq'
   ]);
 }

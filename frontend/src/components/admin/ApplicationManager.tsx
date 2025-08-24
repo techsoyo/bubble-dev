@@ -14,7 +14,7 @@ import {
     TableRow,
 } from '../ui/table';
 import { Badge } from '../ui/badge';
-import { getApplications, updateApplication, deleteApplication, bulkUpdateApplications, getCandidates, getJobs } from '../../lib/apiService';
+import { getApplications, updateApplication, deleteApplication, bulkUpdateApplications, getCandidates, getJobs } from '../../services/ApiService';
 import { APPLICATION_STATUS } from '../../lib/constants';
 import { Eye, Trash2, Search, CheckSquare, Square, Filter } from 'lucide-react';
 

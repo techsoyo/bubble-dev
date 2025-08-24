@@ -1,37 +1,69 @@
 <?php
 
-/**
- * GET /api/candidate-applications/{candidate_id}
- * Obtiene las aplicaciones de un candidato específico
- */
+declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
+require_once dirname(__DIR__, 2) . '/src/Utils/JWTMiddleware.php';
+require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
 
-// Content Type header (CORS ya configurado en bootstrap.php via api/bootstrap.php)
-header('Content-Type: application/json');
+// Headers de seguridad
+header('Content-Type: application/json; charset=utf-8');
+header('Access-Control-Allow-Origin: ' . ($_SERVER['HTTP_ORIGIN'] ?? '*'));
+header('Access-Control-Allow-Credentials: true');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
   http_response_code(200);
+  exit();
+}
+
+// ✅ REQUERIR AUTENTICACIÓN JWT SIEMPRE
+$userPayload = JWTMiddleware::requireAuth();
+if (!$userPayload) {
+  // JWTMiddleware ya envió la respuesta de error
   exit;
 }
 
 try {
-  $pdo = getDBConnection();
+  $db = getDbConnection();
 
-  // Obtener candidate_id de la URL
-  $candidateId = $_GET['candidate_id'] ?? null;
+  // Obtener candidate_id del query parameter
+  $requestedCandidateId = $_GET['candidate_id'] ?? null;
 
-  if (!$candidateId) {
+  if (!$requestedCandidateId) {
     http_response_code(400);
     echo json_encode([
       'success' => false,
       'message' => 'candidate_id es requerido',
-      'data' => null
+      'error_code' => 'MISSING_CANDIDATE_ID'
     ]);
     exit;
   }
 
-  // Consulta para obtener aplicaciones con detalles del trabajo
+  // ✅ CONTROL DE ACCESO: Solo el propio candidato o admin/hr pueden ver aplicaciones
+  $userRole = $userPayload['role'] ?? 'candidate';
+  $currentUserId = $userPayload['user_id'];
+
+  if ($userRole === 'candidate' && $currentUserId !== $requestedCandidateId) {
+    http_response_code(403);
+    echo json_encode([
+      'success' => false,
+      'message' => 'Solo puedes ver tus propias aplicaciones',
+      'error_code' => 'INSUFFICIENT_PERMISSIONS'
+    ]);
+    exit;
+  } elseif (!in_array($userRole, ['candidate', 'admin', 'hr', 'recruiter'])) {
+    http_response_code(403);
+    echo json_encode([
+      'success' => false,
+      'message' => 'Permisos insuficientes',
+      'error_code' => 'INSUFFICIENT_PERMISSIONS'
+    ]);
+    exit;
+  }
+
+  // ✅ QUERY SEGURA CON PREPARED STATEMENTS
   $sql = "
         SELECT 
             a.id as application_id,
@@ -41,58 +73,66 @@ try {
             a.score,
             a.created_at as applied_date,
             a.updated_at,
-            a.resume,
             a.cover_letter,
-            a.insights,
-            a.source,
             j.title as job_title,
             j.description as job_description,
             j.location as job_location,
-            j.type as job_type,
-            j.category as job_category,
-            j.level as job_level,
-            j.salary_min,
-            j.salary_max,
-            j.salary_currency,
-            j.salary_period,
+            j.job_type,
+            j.department,
+            j.experience_level,
+            j.salary_range,
             j.company_name,
-            j.status as job_status
+            j.status as job_status,
+            j.deadline
         FROM bt_applications a
         LEFT JOIN bt_jobs j ON a.job_id = j.id
         WHERE a.candidate_id = ?
         ORDER BY a.created_at DESC
     ";
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute([$candidateId]);
+
+  $stmt = $db->prepare($sql);
+  $stmt->execute([$requestedCandidateId]);
   $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-  // Procesar datos adicionales si es necesario
+  // ✅ FORMATEAR Y LIMPIAR DATOS
   foreach ($applications as &$app) {
-    // Formatear fecha de aplicación
+    // Formatear fechas
     if ($app['applied_date']) {
-      $app['applied_date'] = date('Y-m-d', strtotime($app['applied_date']));
+      $app['applied_date'] = date('Y-m-d H:i:s', strtotime($app['applied_date']));
+    }
+    if ($app['updated_at']) {
+      $app['updated_at'] = date('Y-m-d H:i:s', strtotime($app['updated_at']));
     }
 
-    // Construir rango de salario
-    if ($app['salary_min'] && $app['salary_max']) {
-      $app['salary_range'] = $app['salary_min'] . ' - ' . $app['salary_max'] . ' ' . ($app['salary_currency'] ?: 'EUR');
-    } elseif ($app['salary_min']) {
-      $app['salary_range'] = 'Desde ' . $app['salary_min'] . ' ' . ($app['salary_currency'] ?: 'EUR');
-    } else {
-      $app['salary_range'] = 'A negociar';
-    }
+    // Limpiar campos nulos
+    $app['score'] = $app['score'] ?? 0;
+    $app['cover_letter'] = $app['cover_letter'] ?? '';
+
+    // Añadir información adicional
+    $app['can_withdraw'] = in_array($app['status'], ['pending', 'in_review']);
   }
+
   echo json_encode([
     'success' => true,
-    'message' => 'Aplicaciones obtenidas exitosamente',
-    'data' => $applications,
-    'count' => count($applications)
+    'message' => 'Aplicaciones del candidato obtenidas exitosamente',
+    'data' => [
+      'applications' => $applications,
+      'candidate_id' => $requestedCandidateId,
+      'total_count' => count($applications),
+      'status_summary' => [
+        'pending' => count(array_filter($applications, fn($a) => $a['status'] === 'pending')),
+        'in_review' => count(array_filter($applications, fn($a) => $a['status'] === 'in_review')),
+        'accepted' => count(array_filter($applications, fn($a) => $a['status'] === 'accepted')),
+        'rejected' => count(array_filter($applications, fn($a) => $a['status'] === 'rejected'))
+      ]
+    ]
   ]);
 } catch (Exception $e) {
+  error_log("CANDIDATE APPLICATIONS ERROR: " . $e->getMessage());
   http_response_code(500);
   echo json_encode([
     'success' => false,
-    'message' => 'Error interno del servidor: ' . $e->getMessage(),
-    'data' => null
+    'message' => 'Error interno del servidor',
+    'error_code' => 'INTERNAL_ERROR'
   ]);
 }

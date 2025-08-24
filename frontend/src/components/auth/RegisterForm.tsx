@@ -1,7 +1,7 @@
 // src/components/auth/RegisterFormComplete.tsx
 import React, { useState } from 'react';
 import SocialLoginButtons from './SocialLoginButtons';
-import { registerCandidate } from '../../lib/apiService';
+import { registerCandidate } from '../../services/ApiService';
 
 // Definir categorías y funciones internamente
 const JOB_CATEGORIES = [

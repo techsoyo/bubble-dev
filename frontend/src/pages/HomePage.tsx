@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 // import { Layout } from '../components/layout/Layout';
-import { getJobs } from '../lib/apiService';
+import { getJobs } from '../services/ApiService';
 import JobCard from './JobCard';
 import { CultureCard } from '../components/CultureCard';
 import { BlogCard } from '../components/BlogCard';

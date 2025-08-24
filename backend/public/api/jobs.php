@@ -256,28 +256,105 @@ if ($method === 'GET') {
   }
 }
 
-// Manejo de POST para crear trabajos
+// Manejo de POST para crear trabajos - AHORA CON AUTENTICACIÓN
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  // REQUERIR AUTENTICACIÓN JWT
+  require_once dirname(__DIR__, 2) . '/src/Utils/JWTMiddleware.php';
+  $userPayload = JWTMiddleware::requireAuth();
+
+  if (!$userPayload) {
+    // JWTMiddleware ya envió la respuesta de error
+    exit;
+  }
+
+  // Solo usuarios con rol admin/hr pueden crear trabajos
+  $allowedRoles = ['admin', 'hr', 'recruiter'];
+  if (!in_array($userPayload['role'] ?? 'candidate', $allowedRoles)) {
+    http_response_code(403);
+    echo json_encode([
+      'success' => false,
+      'message' => 'Solo administradores y RRHH pueden crear trabajos',
+      'error_code' => 'INSUFFICIENT_PERMISSIONS'
+    ]);
+    exit;
+  }
+
   $input = json_decode(file_get_contents('php://input'), true);
 
-  $job = [
-    'id' => 'job-' . rand(1000, 9999),
-    'title' => $input['title'] ?? 'Nuevo trabajo',
-    'company' => 'Bubblegum.agency',
-    'location' => $input['location'] ?? 'Madrid',
-    'description' => $input['description'] ?? 'Descripción del trabajo',
-    'status' => 'active',
-    'created_at' => date('Y-m-d H:i:s')
-  ];
+  // VALIDACIÓN ROBUSTA DE INPUTS
+  if (!$input || empty($input['title'])) {
+    http_response_code(400);
+    echo json_encode([
+      'success' => false,
+      'message' => 'Título del trabajo es requerido',
+      'error_code' => 'MISSING_TITLE'
+    ]);
+    exit;
+  }
 
-  echo json_encode([
-    'success' => true,
-    'message' => 'Trabajo creado exitosamente',
-    'data' => $job
-  ]);
-  exit;
+  // Sanitizar y validar inputs
+  $title = trim($input['title']);
+  $description = trim($input['description'] ?? '');
+  $location = trim($input['location'] ?? '');
+  $salary_range = trim($input['salary_range'] ?? '');
+  $department = trim($input['department'] ?? '');
+
+  if (strlen($title) < 5 || strlen($title) > 100) {
+    http_response_code(400);
+    echo json_encode([
+      'success' => false,
+      'message' => 'Título debe tener entre 5 y 100 caracteres',
+      'error_code' => 'INVALID_TITLE_LENGTH'
+    ]);
+    exit;
+  }
+
+  try {
+    // USAR BASE DE DATOS REAL CON PREPARED STATEMENTS
+    $db = getDbConnection();
+
+    $sql = "INSERT INTO bt_jobs (title, description, location, salary_range, department, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, 'open', ?, NOW())";
+
+    $stmt = $db->prepare($sql);
+    $success = $stmt->execute([
+      $title,
+      $description,
+      $location,
+      $salary_range,
+      $department,
+      $userPayload['user_id']
+    ]);
+
+    if (!$success) {
+      throw new Exception('Error al insertar trabajo en la base de datos');
+    }
+
+    // Obtener ID del trabajo recién creado
+    $jobId = $db->lastInsertId();
+
+    // Log de auditoría
+    error_log("JOB CREATED: ID $jobId by user {$userPayload['user_id']} - Title: $title");
+
+    echo json_encode([
+      'success' => true,
+      'message' => 'Trabajo creado exitosamente',
+      'data' => [
+        'id' => $jobId,
+        'title' => $title,
+        'status' => 'open',
+        'created_at' => date('Y-m-d H:i:s'),
+        'created_by' => $userPayload['user_id']
+      ]
+    ]);
+    exit;
+  } catch (Exception $e) {
+    error_log("CREATE JOB ERROR: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode([
+      'success' => false,
+      'message' => 'Error al crear el trabajo',
+      'error_code' => 'DATABASE_ERROR'
+    ]);
+    exit;
+  }
 }
-
-// 4. Si no es GET o POST, devuelvo error
-http_response_code(405);
-echo json_encode(['success' => false, 'error' => 'Método no permitido']);

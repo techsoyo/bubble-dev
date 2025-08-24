@@ -5,7 +5,7 @@ import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Eye, EyeOff, Lock, CheckCircle, AlertTriangle } from 'lucide-react';
-import { changeCandidatePassword } from '../../lib/apiService';
+import { changeCandidatePassword } from '../../services/ApiService';
 
 interface ChangePasswordProps {
   candidateId: string;

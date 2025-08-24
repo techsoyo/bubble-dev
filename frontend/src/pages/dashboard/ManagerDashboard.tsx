@@ -23,7 +23,7 @@ import {
     Target,
     BarChart3
 } from 'lucide-react';
-import { getCandidates, getJobs, getInterviews, getRecruiters } from '../../lib/apiService';
+import { getCandidates, getJobs, getInterviews, getRecruiters } from '../../services/ApiService';
 import StatusChangeForm from '../../components/StatusChangeForm';
 
 interface ManagerDashboardProps { }

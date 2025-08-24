@@ -12,7 +12,7 @@ import { Filters } from '../../components/ui/filters';
 import { DashboardHeader } from '../../components/ui/dashboard-header';
 import StatusChangeForm from '../../components/StatusChangeForm';
 import { sendCandidateStatusUpdateNotification } from '../../lib/emailService';
-import { getAssignedCandidates, getRecruiterDashboardStats } from '../../lib/apiService';
+import { getAssignedCandidates, getRecruiterDashboardStats } from '../../services/ApiService';
 import { toast } from '../../components/ui/use-toast';
 
 interface Candidate {

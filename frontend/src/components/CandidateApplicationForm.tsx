@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { submitApplication } from "../lib/apiService";
+import { submitApplication } from "../services/ApiService";
 import DOMPurify from "dompurify";
 
 // Funciones de validación y sanitización

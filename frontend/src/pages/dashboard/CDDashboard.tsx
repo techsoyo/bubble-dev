@@ -5,7 +5,7 @@ import {
   getCandidateApplications,
   submitApplication,
   updateCandidateProfile,
-} from '../../lib/apiService';
+} from '../../services/ApiService';
 import { useLanguage } from '../../lib/i18n/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/button';

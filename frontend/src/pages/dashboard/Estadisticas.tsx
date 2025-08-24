@@ -1,7 +1,7 @@
 import { Layout } from '../../components/layout/Layout';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { getCandidates, getJobs, getHRDashboardStats } from '../../lib/apiService';
+import { getCandidates, getJobs, getHRDashboardStats } from '../../services/ApiService';
 import { Bar, Pie } from 'react-chartjs-2';
 import { Chart, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { useMemo, useState, useEffect } from 'react';

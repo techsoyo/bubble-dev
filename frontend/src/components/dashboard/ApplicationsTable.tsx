@@ -17,7 +17,7 @@ import {
 import { Button } from '../../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../../components/ui/dialog';
 import { Label } from '../../components/ui/label';
-import { getApplications, getJobs, getCandidates } from '../../lib/apiService';
+import { getApplications, getJobs, getCandidates } from '../../services/ApiService';
 import { useLanguage } from '../../lib/i18n/LanguageContext';
 
 // Define application status options

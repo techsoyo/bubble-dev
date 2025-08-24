@@ -61,8 +61,8 @@ export class SecureAuthManager {
   }
 
   /**
-   * Login específico para candidatos
-   */
+ * Login específico para candidatos con JWT integration
+ */
   static async candidateLogin(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
       const sanitizedCredentials = {
@@ -70,7 +70,8 @@ export class SecureAuthManager {
         password: credentials.password,
       };
 
-      const response = await fetch(`${this.API_BASE_URL}/auth/candidate-login.php`, {
+      // USAR ENDPOINT CORREGIDO auth.php en lugar de candidate-login.php
+      const response = await fetch(`${this.API_BASE_URL}/api/auth.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,14 +80,32 @@ export class SecureAuthManager {
         body: JSON.stringify(sanitizedCredentials)
       });
 
+
       const data = await response.json();
 
-      if (response.ok && data.success) {
-        this.currentUser = data.user;
+      if (response.ok && data.success && data.data) {
+        this.currentUser = data.data.user;
+        // ✅ INTEGRAR CON TOKENMANAGER - GUARDAR JWT TOKEN
+        if (data.data.token && data.data.expires_in) {
+          const tokenData = {
+            accessToken: data.data.token,
+            refreshToken: data.data.refresh_token || data.data.token, // Fallback si no hay refresh token
+            expiresAt: Date.now() + (data.data.expires_in * 1000),
+            tokenType: 'Bearer'
+          };
+
+          // Importar y usar TokenManager
+          const { TokenManager } = await import('./tokenManager');
+          TokenManager.setTokens(tokenData);
+
+          console.log('✅ JWT Token saved successfully');
+        } else {
+          console.warn('⚠️ No JWT token in response');
+        }
 
         return {
           success: true,
-          user: data.user,
+          user: data.data.user,
           message: data.message
         };
       }
@@ -106,7 +125,7 @@ export class SecureAuthManager {
   }
 
   /**
-   * Login genérico (usa candidateLogin por defecto)
+   * Login genérico actualizado
    */
   static async login(credentials: LoginCredentials): Promise<AuthResponse> {
     return this.candidateLogin(credentials);

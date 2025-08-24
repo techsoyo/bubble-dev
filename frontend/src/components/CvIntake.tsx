@@ -11,6 +11,14 @@ import { Label } from './ui/label';
 import { Separator } from './ui/separator';
 import { Upload, Loader2, AlertTriangle, CheckCircle2, Plus, X, Info } from 'lucide-react';
 
+// Tipo para la respuesta del backend
+type IntakeResponse = {
+  success: boolean;
+  data: any;
+  meta?: { mode?: string; reason?: string };
+  error?: { code?: string; message?: string };
+};
+
 /**
  * CvIntake
  * Componente orquestador: subida PDF -> parse AI -> pre-relleno -> edición manual -> confirmación.
@@ -118,7 +126,8 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
     try {
       console.log('[CvIntake] Iniciando parseo CV', { name: localFile.name, size: localFile.size, type: localFile.type });
       setFormState('parsing');
-      const { status, json: payload } = await parseCv(localFile);
+      const { status, json: rawPayload } = await parseCv(localFile);
+      const payload = rawPayload as IntakeResponse;
       console.log('[CvIntake] Respuesta parse', { status, payload });
 
       if (status === 200 && payload?.success) {
@@ -199,7 +208,8 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
     setSaving(true);
     setFormState('saving');
     try {
-      const { status, json: payload } = await confirmCv(formData);
+      const { status, json: rawPayload } = await confirmCv(formData);
+      const payload = rawPayload as IntakeResponse;
       if (status >= 200 && status < 300 && payload?.success !== false) {
         clearDraft();
         setModalOpen(false);

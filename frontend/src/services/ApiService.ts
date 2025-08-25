@@ -86,11 +86,10 @@ export class ApiService {
         }
       }
 
-      const token = TokenManager.getAccessToken();
-      if (token) {
-        requestHeaders['Authorization'] = `Bearer ${token}`;
-      } else if (requireAuth) {
-        throw new Error('No authentication token available');
+      // En producción, la autenticación se maneja completamente via cookies httpOnly
+      // No se envían Authorization headers para máxima seguridad
+      if (requireAuth) {
+        console.log('Using httpOnly cookies for authentication');
       }
     }
 
@@ -115,7 +114,7 @@ export class ApiService {
           const newToken = TokenManager.getAccessToken();
           const retryHeaders = {
             ...requestHeaders,
-            'Authorization': `Bearer ${newToken}`
+            // Note: In production, rely on cookies instead of Authorization header
           };
 
           const retryResponse = await fetch(url, {

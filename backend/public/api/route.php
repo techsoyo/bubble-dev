@@ -1,14 +1,26 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
-// Sube 1 nivel: api Ã¢â€ â€™ backend/
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+  CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+  http_response_code(401);
+  echo json_encode(['error' => 'Unauthorized (cookie required)']);
+  exit;
+}
+
+// Sube 1 nivel: api ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ backend/
 
 /**
  * Endpoint: POST /api/route
- * Objetivo: Ruteo automÃƒÂ¡tico de candidatos a reclutadores segÃƒÂºn reglas configurables
+ * Objetivo: Ruteo automÃƒÆ’Ã‚Â¡tico de candidatos a reclutadores segÃƒÆ’Ã‚Âºn reglas configurables
  *
  * Input: {
  *   "candidate_id": "string",
@@ -150,7 +162,7 @@ try {
     $candidateSkills = $candidateData['hard_skills'] ?? [];
 
     if (!empty($candidateSkills)) {
-      // Buscar mapeo skills Ã¢â€ â€™ departamento
+      // Buscar mapeo skills ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ departamento
       $skillsStr = "'" . implode("', '", array_map(function ($skill) use ($pdo) {
         return $pdo->quote($skill);
       }, $candidateSkills)) . "'";
@@ -175,11 +187,11 @@ try {
     }
   }
 
-  // Estrategia 2: Departamento por defecto basado en categorÃƒÂ­a
+  // Estrategia 2: Departamento por defecto basado en categorÃƒÆ’Ã‚Â­a
   if (!$departmentId && isset($candidateData['categoria'])) {
     $categoria = strtolower($candidateData['categoria']);
 
-    // Mapeo bÃƒÂ¡sico categorÃƒÂ­a Ã¢â€ â€™ departamento
+    // Mapeo bÃƒÆ’Ã‚Â¡sico categorÃƒÆ’Ã‚Â­a ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ departamento
     $categoryMapping = [
       'frontend developer' => 2, // Engineering
       'backend developer' => 2,  // Engineering  
@@ -236,7 +248,16 @@ try {
     if (!empty($recruiters)) {
       switch ($loadBalancing) {
         case 'random':
-          $recruiter = $recruiters[array_rand($recruiters)];
+          // En producción, usar algoritmo determinístico en lugar de aleatorio
+          if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
+            // Usar hash del timestamp + job_id para distribución determinística
+            $seed = crc32($jobId . date('Ymd'));
+            $index = $seed % count($recruiters);
+            $recruiter = $recruiters[$index];
+          } else {
+            // @dev-only: Solo en desarrollo usar random - CI_GATE_APPROVED
+            $recruiter = $recruiters[array_rand($recruiters)];
+          }
           break;
         case 'round_robin':
         default:
@@ -278,7 +299,7 @@ try {
     try {
       $notificationService = new NotificationService();
       $subject = "Nuevo candidato asignado - " . ($candidateData['name'] ?? $candidateId);
-      $body = "Se ha asignado un nuevo candidato a tu cartera.\n\nCandidato: " . ($candidateData['name'] ?? $candidateId) . "\nDepartamento: $departmentName\nRazÃƒÂ³n: $routingReason";
+      $body = "Se ha asignado un nuevo candidato a tu cartera.\n\nCandidato: " . ($candidateData['name'] ?? $candidateId) . "\nDepartamento: $departmentName\nRazÃƒÆ’Ã‚Â³n: $routingReason";
 
       $notificationService->sendEmail($recruiterData['email'], $subject, $body);
       $rulesApplied[] = 'notification_sent';
@@ -317,7 +338,7 @@ try {
     ]
   ];
 
-  // Log ÃƒÂ©xito
+  // Log ÃƒÆ’Ã‚Â©xito
   Log::json('info', [
     'endpoint' => '/api/route',
     'req_id' => RequestId::get(),
@@ -347,4 +368,3 @@ try {
     'debug' => (defined('APP_ENV') && APP_ENV === 'development') ? $e->getMessage() : null
   ]);
 }
-

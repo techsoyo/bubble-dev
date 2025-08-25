@@ -1,11 +1,26 @@
-<?php
+﻿<?php
 
-require_once __DIR__ . '/bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
+
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
 
 /**
- * Endpoint: CÃƒÂ¡lculo de matching
+ * Endpoint: CÃƒÆ’Ã‚Â¡lculo de matching
  * POST /ai/calculate-matching
  */
 
@@ -49,4 +64,5 @@ try {
   ResponseHelper::log('error', 'Error calculando matching: ' . $e->getMessage());
   ResponseHelper::error('Error al calcular matching: ' . $e->getMessage(), 500);
 }
+
 

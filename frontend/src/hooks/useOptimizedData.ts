@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { usePerformance } from '../contexts/PerformanceContext';
+import { safeGet, safeSet, safeRemove } from '../utils/safeStorage';
 
 interface UseOptimizedDataOptions<T> {
   fetchFunction: () => Promise<T>;
@@ -53,10 +54,10 @@ export function useOptimizedData<T>({
     if (!cacheKey) return null;
 
     try {
-      const cachedItem = localStorage.getItem(`data_cache_${cacheKey}`);
+      const cachedItem = safeGet<{ value: T, timestamp: number }>(`data_cache_${cacheKey}`, null);
       if (!cachedItem) return null;
 
-      const { value, timestamp } = JSON.parse(cachedItem);
+      const { value, timestamp } = cachedItem;
       const now = Date.now();
 
       if (now - timestamp < cacheDuration) {
@@ -64,7 +65,7 @@ export function useOptimizedData<T>({
       }
 
       // Caché expirado
-      localStorage.removeItem(`data_cache_${cacheKey}`);
+      safeRemove(`data_cache_${cacheKey}`);
       return null;
     } catch (e) {
       console.warn('Error al leer la caché:', e);
@@ -82,7 +83,7 @@ export function useOptimizedData<T>({
         timestamp: Date.now()
       };
 
-      localStorage.setItem(`data_cache_${cacheKey}`, JSON.stringify(cacheItem));
+      safeSet(`data_cache_${cacheKey}`, cacheItem);
     } catch (e) {
       console.warn('Error al guardar en caché:', e);
     }

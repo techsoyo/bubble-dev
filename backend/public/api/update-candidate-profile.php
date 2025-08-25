@@ -1,8 +1,42 @@
-<?php
-// update-candidate-profile.php - Actualizar perfil bÃ¡sico del candidato
+﻿<?php
+
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+// update-candidate-profile.php - Actualizar perfil bÃƒÂ¡sico del candidato
+
+// cookie HttpOnly obligatoria
+
+// Proteger solo mÃ©todos que cambian estado
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+  // double-submit cookie
+}
+
+// En producciÃ³n NO aceptar Authorization header (solo cookie)
+if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
+  if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+  }
+}
+
 session_start();
 
-// CORS headers
+// CORS headers (bootstrap ya las configura, pero mantenemos para compatibilidad)
 header('Access-Control-Allow-Origin: http://localhost:3002');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Accept');
@@ -114,7 +148,7 @@ try {
   if ($expectedSalary !== null) {
     if ($availability === null) {
       $updateFields[] = 'availability = ?';
-      $params[] = "Salario esperado: â‚¬" . trim($expectedSalary);
+      $params[] = "Salario esperado: Ã¢â€šÂ¬" . trim($expectedSalary);
     }
   }
 
@@ -148,7 +182,7 @@ try {
   } else {
     echo json_encode([
       'success' => false,
-      'message' => 'No hay campos vÃ¡lidos para actualizar'
+      'message' => 'No hay campos vÃƒÂ¡lidos para actualizar'
     ]);
   }
 } catch (Exception $e) {

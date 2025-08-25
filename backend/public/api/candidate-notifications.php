@@ -1,8 +1,22 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
+
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
 
 // Content Type header (CORS ya configurado en bootstrap.php)
 header('Content-Type: application/json');
@@ -17,7 +31,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 try {
-  // Verificar si hay sesiÃƒÂ³n activa
+  // Verificar si hay sesiÃƒÆ’Ã‚Â³n activa
   if (empty($_SESSION['candidate_id'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'No authenticated']);
@@ -53,5 +67,6 @@ try {
     'message' => 'Error interno del servidor'
   ]);
 }
+
 
 

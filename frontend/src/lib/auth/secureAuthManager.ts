@@ -1,8 +1,9 @@
 /**
- * Secure Authentication Manager - UPDATED WITH NEW ENDPOINTS
- * ✅ ACTUALIZADO: Nuevos endpoints según nueva estructura de API
- * - Candidatos: /auth/register (login y registro)  
- * - Staff/RRHH: /staff/login
+ * Secure Authentication Manager - DEPRECATED
+ * ⚠️  DEPRECATED: Este archivo usa Authorization headers en lugar de cookies httpOnly
+ * ✅ MIGRADO A: AuthContext.tsx con cookies httpOnly exclusivamente
+ * 🔒 PRODUCCIÓN: No usar este archivo en producción - usa AuthContext.tsx
+ * @deprecated Use AuthContext.tsx for production-ready httpOnly cookie authentication
  */
 
 import { InputSanitizer } from './secureInputValidator';
@@ -48,8 +49,7 @@ export class SecureAuthManager {
         const response = await fetch(`${this.API_BASE_URL}/api/auth/verify`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Content-Type': 'application/json'
           },
           credentials: 'include'
         });
@@ -321,7 +321,8 @@ export class SecureAuthManager {
       };
 
       if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        // DEPRECATED: Authorization headers disabled for production security
+        // headers['Authorization'] = `Bearer ${token}`;  // Comentado para producción
       }
 
       // Intentar con endpoint de logout general
@@ -383,7 +384,8 @@ export class SecureAuthManager {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          // DEPRECATED: Authorization header comentado para producción
+          // 'Authorization': `Bearer ${token}`
         },
         credentials: 'include',
         body: JSON.stringify({

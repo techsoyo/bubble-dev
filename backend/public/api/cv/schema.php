@@ -1,7 +1,22 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
-require_once dirname(__DIR__) . '/bootstrap.php';
+
+
+require_once __DIR__ . '/../bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
 // Sube 3 niveles: cv -> api -> public -> backend/
 
 use Domain\CvSchema;
@@ -45,7 +60,7 @@ switch ($method) {
         $raw = file_get_contents('php://input');
         $in = json_decode($raw, true);
         if (!is_array($in)) {
-            jsonResponse(400, ['success' => false, 'error' => ['code' => 'INVALID_JSON', 'message' => 'JSON invÃƒÂ¡lido']]);
+            jsonResponse(400, ['success' => false, 'error' => ['code' => 'INVALID_JSON', 'message' => 'JSON invÃƒÆ’Ã‚Â¡lido']]);
         }
         $normalized = CvSchema::normalize($in);
         $errors = CvSchema::validate($normalized);
@@ -54,7 +69,7 @@ switch ($method) {
               'success' => false,
               'error' => [
                 'code' => 'VALIDATION_FAILED',
-                'message' => 'Violaciones de validaciÃƒÂ³n',
+                'message' => 'Violaciones de validaciÃƒÆ’Ã‚Â³n',
                 'details' => $errors
               ],
               'data' => $normalized
@@ -67,5 +82,6 @@ switch ($method) {
         ]);
         break;
     default:
-        jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'MÃƒÂ©todo no permitido']]);
+        jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'MÃƒÆ’Ã‚Â©todo no permitido']]);
 }
+

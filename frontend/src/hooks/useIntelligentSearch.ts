@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { IntelligentMatching } from '../services/ai/IntelligentMatching';
 import ApiService from '@/services/ApiService';
 import { isProduction } from '@/config/env';
+import { safeGet, safeSet } from '../utils/safeStorage';
 
 // Interfaces para el hook
 interface UseIntelligentSearchProps {
@@ -490,9 +491,9 @@ const useIntelligentSearch = ({
     }
   }, [state.results]);
 
-  // Guardar búsqueda
+  // Guardar búsqueda (no-op en producción)
   const saveSearch = useCallback((name: string) => {
-    const savedSearches = JSON.parse(localStorage.getItem('intelligent-searches') || '[]');
+    const savedSearches = safeGet<any[]>('intelligent-searches', []);
     const newSearch = {
       name,
       query: state.lastQuery,
@@ -501,19 +502,19 @@ const useIntelligentSearch = ({
     };
 
     const updatedSearches = [...savedSearches.filter((s: any) => s.name !== name), newSearch];
-    localStorage.setItem('intelligent-searches', JSON.stringify(updatedSearches));
+    safeSet('intelligent-searches', updatedSearches);
   }, [state.lastQuery, filters]);
 
   // Obtener búsquedas guardadas
   const getSavedSearches = useCallback(() => {
-    return JSON.parse(localStorage.getItem('intelligent-searches') || '[]');
+    return safeGet<any[]>('intelligent-searches', []);
   }, []);
 
   // Eliminar búsqueda guardada
   const deleteSavedSearch = useCallback((name: string) => {
-    const savedSearches = JSON.parse(localStorage.getItem('intelligent-searches') || '[]');
+    const savedSearches = safeGet<any[]>('intelligent-searches', []);
     const updatedSearches = savedSearches.filter((s: any) => s.name !== name);
-    localStorage.setItem('intelligent-searches', JSON.stringify(updatedSearches));
+    safeSet('intelligent-searches', updatedSearches);
   }, []);
 
   // Obtener insights de búsqueda

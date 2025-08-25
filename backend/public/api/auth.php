@@ -1,12 +1,26 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
+
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
 
 // Importar JWT helper
 
-// Configurar headers CORS primera lÃƒÂ­nea
+// Configurar headers CORS primera lÃƒÆ’Ã‚Â­nea
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: ' . ($_SERVER['HTTP_ORIGIN'] ?? '*'));
 header('Access-Control-Allow-Credentials: true');
@@ -19,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-// Rate limiting bÃƒÂ¡sico por IP
+// Rate limiting bÃƒÆ’Ã‚Â¡sico por IP
 session_start();
 $clientIP = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 $attemptsKey = "login_attempts_$clientIP";
@@ -28,12 +42,12 @@ if (!isset($_SESSION[$attemptsKey])) {
     $_SESSION[$attemptsKey] = ['count' => 0, 'last_attempt' => time()];
 }
 
-// Resetear contador si han pasado mÃƒÂ¡s de 15 minutos
+// Resetear contador si han pasado mÃƒÆ’Ã‚Â¡s de 15 minutos
 if (time() - $_SESSION[$attemptsKey]['last_attempt'] > 900) {
     $_SESSION[$attemptsKey] = ['count' => 0, 'last_attempt' => time()];
 }
 
-// Bloquear si hay mÃƒÂ¡s de 5 intentos en 15 minutos
+// Bloquear si hay mÃƒÆ’Ã‚Â¡s de 5 intentos en 15 minutos
 if ($_SESSION[$attemptsKey]['count'] >= 5) {
     http_response_code(429);
     echo json_encode([
@@ -51,7 +65,7 @@ try {
     if ($method === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
 
-        // ValidaciÃƒÂ³n mÃƒÂ¡s robusta
+        // ValidaciÃƒÆ’Ã‚Â³n mÃƒÆ’Ã‚Â¡s robusta
         if (!$input || !isset($input['email']) || !isset($input['password'])) {
             $_SESSION[$attemptsKey]['count']++;
             $_SESSION[$attemptsKey]['last_attempt'] = time();
@@ -76,7 +90,7 @@ try {
             http_response_code(400);
             echo json_encode([
                 'success' => false,
-                'message' => 'Formato de email invÃƒÂ¡lido',
+                'message' => 'Formato de email invÃƒÆ’Ã‚Â¡lido',
                 'error_code' => 'INVALID_EMAIL_FORMAT'
             ]);
             exit;
@@ -96,7 +110,7 @@ try {
             exit;
         }
 
-        // Consulta a la base de datos con mÃƒÂ¡s campos necesarios
+        // Consulta a la base de datos con mÃƒÆ’Ã‚Â¡s campos necesarios
         $stmt = $db->prepare('SELECT id, email, name, password_hash, role, status, created_at FROM bt_candidates WHERE email = ? AND status = "active"');
         $stmt->execute([$email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -143,7 +157,7 @@ try {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
-                'message' => 'Credenciales invÃƒÂ¡lidas',
+                'message' => 'Credenciales invÃƒÆ’Ã‚Â¡lidas',
                 'error_code' => 'INVALID_CREDENTIALS'
             ]);
         }
@@ -151,7 +165,7 @@ try {
         http_response_code(405);
         echo json_encode([
             'success' => false,
-            'message' => 'MÃƒÂ©todo no permitido',
+            'message' => 'MÃƒÆ’Ã‚Â©todo no permitido',
             'error_code' => 'METHOD_NOT_ALLOWED'
         ]);
     }
@@ -164,4 +178,5 @@ try {
         'error_code' => 'INTERNAL_ERROR'
     ]);
 }
+
 

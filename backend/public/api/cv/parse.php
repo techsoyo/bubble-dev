@@ -1,6 +1,22 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
+
+
+
+require_once __DIR__ . '/../bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
 
 // ====================================================================
 // ENDPOINT: POST /api/cv/parse.php
@@ -8,7 +24,14 @@ declare(strict_types=1);
 //       -> llamar a Groq (OpenAI-compatible) -> normalizar -> responder
 // ====================================================================
 
-require_once dirname(__DIR__) . '/bootstrap.php';
+// POST/PUT/PATCH/DELETE
+
+// En prod, no aceptar Authorization
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
 
 use Utils\Cors;
 use Utils\RateLimiter;
@@ -16,13 +39,13 @@ use Utils\RequestId;
 use Utils\Log;
 use Domain\CvSchema;
 
-// Autoload (por si no lo cargó bootstrap)
+// Autoload (por si no lo cargÃ³ bootstrap)
 $autoload = BASE_PATH . '/vendor/autoload.php';
 if (is_file($autoload)) {
     require_once $autoload;
 }
 
-// ===== Métricas
+// ===== MÃ©tricas
 $__cv_parse_start = microtime(true);
 $__cv_parse_sub   = ['upload_ms' => 0, 'extract_ms' => 0, 'ai_ms' => 0];
 
@@ -55,14 +78,14 @@ function respondError(int $status, string $code, string $message, array $details
     ]);
 }
 
-// ===== CORS / Método / Rate limiting
+// ===== CORS / MÃ©todo / Rate limiting
 if (PHP_SAPI !== 'cli') {
     if (class_exists(Cors::class)) {
         Cors::enforce(['POST', 'OPTIONS']);
     }
     $method = $_SERVER['REQUEST_METHOD'] ?? 'CLI';
     if ($method !== 'POST') {
-        respondError(405, 'METHOD_NOT_ALLOWED', 'Método no permitido');
+        respondError(405, 'METHOD_NOT_ALLOWED', 'MÃ©todo no permitido');
     }
     if (class_exists(RateLimiter::class)) {
         RateLimiter::enforceForRoute('/api/cv/parse');
@@ -72,7 +95,7 @@ if (class_exists(RequestId::class)) {
     RequestId::init();
 }
 
-// ===== Política “solo manual”
+// ===== PolÃ­tica â€œsolo manualâ€
 $manualOnly = getenv('CV_ALLOW_MANUAL_ONLY') === 'true' || (($_ENV['CV_ALLOW_MANUAL_ONLY'] ?? '') === 'true');
 if ($manualOnly) {
     $normalized = class_exists(CvSchema::class) ? CvSchema::normalize(CvSchema::TEMPLATE) : [];
@@ -90,7 +113,7 @@ if ($manualOnly) {
     ]);
 }
 
-// ===== Validación subida
+// ===== ValidaciÃ³n subida
 if (!isset($_FILES['file'])) {
     respondError(400, 'MISSING_FILE', "Archivo requerido (campo 'file')");
 }
@@ -100,7 +123,7 @@ if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
 }
 $maxBytes = (int) (getenv('CV_MAX_UPLOAD_BYTES') ?: 5242880); // 5MB
 if (($file['size'] ?? 0) > $maxBytes) {
-    respondError(413, 'MAX_SIZE_EXCEEDED', 'Tamaño máximo ' . number_format($maxBytes / 1048576, 1) . 'MB');
+    respondError(413, 'MAX_SIZE_EXCEEDED', 'TamaÃ±o mÃ¡ximo ' . number_format($maxBytes / 1048576, 1) . 'MB');
 }
 $originalName = (string) ($file['name'] ?? '');
 $extension    = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
@@ -143,7 +166,7 @@ try {
     $pdfDoc = $parser->parseFile($safePath);
     $extractedText = trim((string) $pdfDoc->getText());
 
-    // limpieza básica
+    // limpieza bÃ¡sica
     $extractedText = preg_replace('/[^\PC\s]/u', ' ', $extractedText) ?? $extractedText;
     $extractedText = preg_replace('/[ \t]{2,}/', ' ', $extractedText) ?? $extractedText;
 } catch (\Throwable $e) {
@@ -187,7 +210,7 @@ if (!preg_match('~/openai/v1$~', $baseNorm)) {
 $url = $baseNorm . '/chat/completions';
 
 $system = <<<PROMPT
-Eres un extractor de CV. Devuelve SOLO JSON válido con la estructura:
+Eres un extractor de CV. Devuelve SOLO JSON vÃ¡lido con la estructura:
 {
   "name": string,
   "email": string,
@@ -206,12 +229,12 @@ $payload = json_encode([
         ['role' => 'system', 'content' => $system],
         ['role' => 'user',   'content' => $extractedText],
     ],
-    // 'response_format' => ['type' => 'json_object'], // Actívalo si tu endpoint lo soporta
+    // 'response_format' => ['type' => 'json_object'], // ActÃ­valo si tu endpoint lo soporta
 ], JSON_UNESCAPED_UNICODE);
 
 $tAi = microtime(true);
 
-// ——— Reintentos con timeout ———
+// â€”â€”â€” Reintentos con timeout â€”â€”â€”
 $raw = false;
 $lastErr = null;
 $lastHttp = 0;
@@ -233,7 +256,7 @@ for ($i = 1; $i <= $retries; $i++) {
     $lastHttp = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    // Salimos si respondió bien (código < 500 y sin error de cURL)
+    // Salimos si respondiÃ³ bien (cÃ³digo < 500 y sin error de cURL)
     if ($raw !== false && $lastHttp > 0 && $lastHttp < 500) {
         break;
     }
@@ -267,7 +290,7 @@ if ($raw === false || !$lastHttp) {
     ]);
 }
 
-// ——— Parseo de respuesta Groq ———
+// â€”â€”â€” Parseo de respuesta Groq â€”â€”â€”
 $resp = json_decode($raw, true);
 if (!is_array($resp) || $lastHttp >= 400) {
     respondError(422, 'UPSTREAM_ERROR', 'Error del proveedor LLM', ['status' => $lastHttp, 'body' => $resp]);
@@ -282,5 +305,6 @@ if ($parsed === null) {
     }
 }
 if (!is_array($parsed)) {
-    respondError(422, 'INVALID_LLM_JSON', 'El LLM no devolvió JSON válido', ['raw' => $content]);
+    respondError(422, 'INVALID_LLM_JSON', 'El LLM no devolviÃ³ JSON vÃ¡lido', ['raw' => $content]);
 }
+

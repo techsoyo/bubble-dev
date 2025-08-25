@@ -17,7 +17,6 @@ try {
   $tablesToCheck = [
     'bt_jobs' => 'Ofertas de trabajo',
     'bt_news' => 'Noticias',
-    'bt_culture' => 'Cultura empresarial',
     'bt_companies' => 'Empresas',
     'bt_candidates' => 'Candidatos'
   ];
@@ -64,20 +63,8 @@ try {
       echo "   - {$col['Field']} ({$col['Type']})\n";
     }
   }
-
-  // Verificar estructura de bt_culture si existe
-  $stmt = $pdo->prepare("SHOW TABLES LIKE 'bt_culture'");
-  $stmt->execute();
-  if ($stmt->fetch()) {
-    echo "\n📋 Estructura de bt_culture:\n";
-    $cols = $pdo->query("DESCRIBE bt_culture")->fetchAll(PDO::FETCH_ASSOC);
-    foreach ($cols as $col) {
-      echo "   - {$col['Field']} ({$col['Type']})\n";
-    }
-  }
 } catch (Exception $e) {
-  echo "❌ Error: " . $e->getMessage() . "\n";
-  exit(1);
+  echo "\n❌ Error: " . $e->getMessage() . "\n";
 }
 
 echo "\n🏁 Verificación completada.\n";

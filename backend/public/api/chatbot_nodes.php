@@ -1,8 +1,39 @@
-<?php
+﻿<?php
 
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+// cookie HttpOnly obligatoria
+
+// Proteger solo mÃ©todos que cambian estado
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    // double-submit cookie
+}
+
+// En producciÃ³n NO aceptar Authorization header (solo cookie)
+if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
+    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Unauthorized (cookie required)']);
+        exit;
+    }
+}
+
+// ORIGINAL CODE BELOW
 // backend/api/endpoints/chatbot_nodes.php
-require_once __DIR__ . '/bootstrap.php';
-
 use Utils\Database;
 
 header('Content-Type: application/json');
@@ -62,6 +93,7 @@ switch ($method) {
         break;
     default:
         http_response_code(405);
-        echo json_encode(['error' => 'MÃ©todo no permitido']);
+        echo json_encode(['error' => 'MÃƒÂ©todo no permitido']);
 }
+
 

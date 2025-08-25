@@ -1,10 +1,24 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
 
-// Sube 1 nivel: api Ã¢â€ â€™ backend/
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+// Sube 1 nivel: api ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ backend/
 
 /**
  * Endpoint: POST /api/match
@@ -104,7 +118,7 @@ try {
     $rankedCandidates = $matchingService->rankCandidates($data['candidates'], $data['job']);
     $provider = 'ai';
   } else {
-    // Matching bÃƒÂ¡sico (fallback) - usando createFallbackScore para cada candidato
+    // Matching bÃƒÆ’Ã‚Â¡sico (fallback) - usando createFallbackScore para cada candidato
     $rankedCandidates = [];
     foreach ($data['candidates'] as $candidate) {
       $fallbackScore = $matchingService->createFallbackScore($candidate, $data['job']);
@@ -147,7 +161,7 @@ try {
     ]
   ];
 
-  // Log ÃƒÂ©xito
+  // Log ÃƒÆ’Ã‚Â©xito
   Log::json('info', [
     'endpoint' => '/api/match',
     'req_id' => RequestId::get(),
@@ -175,4 +189,5 @@ try {
     'debug' => APP_ENV === 'development' ? $e->getMessage() : null
   ]);
 }
+
 

@@ -1,8 +1,22 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
+
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
 
 // Content Type header (CORS ya configurado en bootstrap.php)
 header('Content-Type: application/json');
@@ -17,14 +31,14 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 try {
-  // Solo permitir mÃ©todo GET
+  // Solo permitir mÃƒÂ©todo GET
   if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'MÃ©todo no permitido']);
+    echo json_encode(['success' => false, 'message' => 'MÃƒÂ©todo no permitido']);
     exit;
   }
 
-  // Verificar sesiÃ³n activa
+  // Verificar sesiÃƒÂ³n activa
   if (empty($_SESSION['candidate_id'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'No authenticated']);
@@ -33,10 +47,10 @@ try {
 
   $candidateId = $_SESSION['candidate_id'];
 
-  // Obtener parÃ¡metro candidate_id desde la URL (opcional para validaciÃ³n)
+  // Obtener parÃƒÂ¡metro candidate_id desde la URL (opcional para validaciÃƒÂ³n)
   $requestedCandidateId = $_GET['candidate_id'] ?? null;
 
-  // Si se especifica un candidate_id, debe coincidir con la sesiÃ³n
+  // Si se especifica un candidate_id, debe coincidir con la sesiÃƒÂ³n
   if ($requestedCandidateId && $requestedCandidateId !== $candidateId) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Access denied']);
@@ -82,4 +96,5 @@ try {
   http_response_code(500);
   echo json_encode(['success' => false, 'message' => 'Error interno del servidor']);
 }
+
 

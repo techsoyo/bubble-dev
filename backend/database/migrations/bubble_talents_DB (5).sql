@@ -401,31 +401,7 @@ INSERT INTO `bt_chatbot_options` (`id`, `node_id`, `text`, `next_node_id`, `acti
 ('opt_5', 'job_search', '💼 Ver ofertas disponibles', NULL, 'navigate', '{\"url\": \"/jobs\", \"analytics_event\": \"chatbot_jobs_redirect\"}', 1, 1, '2025-08-09 15:46:44', '2025-08-09 15:46:44'),
 ('opt_6', 'job_search', '📋 Crear perfil de candidato', NULL, 'navigate', '{\"url\": \"/register\", \"analytics_event\": \"chatbot_register_redirect\"}', 2, 1, '2025-08-09 15:46:44', '2025-08-09 15:46:44'),
 ('opt_7', 'job_search', '🔙 Volver al inicio', 'welcome', 'restart', '{\"analytics_event\": \"chatbot_restart_from_jobs\"}', 3, 1, '2025-08-09 15:46:44', '2025-08-09 15:46:44'),
-('opt_8', 'company_info', '🌟 Cultura empresarial', NULL, 'navigate', '{\"url\": \"/#culture-heading\", \"analytics_event\": \"chatbot_culture_redirect\"}', 1, 1, '2025-08-09 15:46:44', '2025-08-09 15:46:44'),
-('opt_9', 'company_info', '📰 Noticias y blog', NULL, 'navigate', '{\"url\": \"/blog\", \"analytics_event\": \"chatbot_blog_redirect\"}', 2, 1, '2025-08-09 15:46:44', '2025-08-09 15:46:44');
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `bt_culture`
---
-
-CREATE TABLE `bt_culture` (
-  `id` int NOT NULL,
-  `title` varchar(200) NOT NULL,
-  `description` text NOT NULL,
-  `image` varchar(2083) DEFAULT NULL,
-  `sort_order` int NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Volcado de datos para la tabla `bt_culture`
---
-
-INSERT INTO `bt_culture` (`id`, `title`, `description`, `image`, `sort_order`) VALUES
-(1, 'Innovación Continua', 'Fomentamos la experimentación y el aprendizaje diario.', 'https://example.com/culture/innovacion.jpg', 1),
-(2, 'Trabajo en Equipo', 'Creemos que los mejores resultados surgen de la colaboración.', 'https://example.com/culture/equipo.jpg', 2),
-(3, 'Orientación al Cliente', 'El cliente es el centro de todo lo que hacemos.', 'https://example.com/culture/cliente.jpg', 3);
+('opt_8', 'company_info', '📰 Noticias y blog', NULL, 'navigate', '{\"url\": \"/blog\", \"analytics_event\": \"chatbot_blog_redirect\"}', 2, 1, '2025-08-09 15:46:44', '2025-08-09 15:46:44');
 
 -- --------------------------------------------------------
 
@@ -900,12 +876,7 @@ ALTER TABLE `bt_chatbot_options`
   ADD KEY `idx_active` (`is_active`);
 
 --
--- Indices de la tabla `bt_culture`
---
-ALTER TABLE `bt_culture`
-  ADD PRIMARY KEY (`id`);
 
---
 -- Indices de la tabla `bt_departments`
 --
 ALTER TABLE `bt_departments`
@@ -1017,11 +988,6 @@ ALTER TABLE `bt_chatbot_analytics`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de la tabla `bt_culture`
---
-ALTER TABLE `bt_culture`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
 --
 -- AUTO_INCREMENT de la tabla `bt_departments`
 --

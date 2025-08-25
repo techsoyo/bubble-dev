@@ -1,8 +1,32 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
+
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+  }
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+  http_response_code(401);
+  echo json_encode(['error' => 'Unauthorized (cookie required)']);
+  exit;
+}
 
 // 1. Cargo el bootstrap que pone los headers CORS
 
@@ -13,7 +37,7 @@ require_once __DIR__ . '/bootstrap.php';
 use Stichoza\GoogleTranslate\GoogleTranslate;
 
 /**
- * Clase JobTranslate - Maneja la traducciÃƒÂ³n de contenido de trabajos
+ * Clase JobTranslate - Maneja la traducciÃƒÆ’Ã‚Â³n de contenido de trabajos
  */
 class JobTranslate
 {
@@ -24,7 +48,7 @@ class JobTranslate
    * @param string $text Texto a traducir
    * @param string $targetLanguage Idioma objetivo (por defecto 'en')
    * @param string $sourceLanguage Idioma origen (por defecto 'es')
-   * @return array Resultado de la traducciÃƒÂ³n
+   * @return array Resultado de la traducciÃƒÆ’Ã‚Â³n
    */
   public static function translateText($text, $targetLanguage = 'en', $sourceLanguage = 'es')
   {
@@ -56,11 +80,11 @@ class JobTranslate
         'headers' => [
           'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         ],
-        'verify' => false, // Desactivar verificaciÃƒÂ³n SSL para desarrollo local
+        'verify' => false, // Desactivar verificaciÃƒÆ’Ã‚Â³n SSL para desarrollo local
         'http_errors' => false
       ]);
 
-      // Realizar la traducciÃƒÂ³n
+      // Realizar la traducciÃƒÆ’Ã‚Â³n
       $translation = $translator->translate($text);
 
       if (empty($translation)) {
@@ -93,7 +117,7 @@ class JobTranslate
   }
 
   /**
-   * Maneja las peticiones HTTP para traducciÃƒÂ³n
+   * Maneja las peticiones HTTP para traducciÃƒÆ’Ã‚Â³n
    */
   public static function handleTranslationRequest()
   {
@@ -106,7 +130,7 @@ class JobTranslate
       exit;
     }
 
-    // Obtener datos segÃƒÂºn el mÃƒÂ©todo
+    // Obtener datos segÃƒÆ’Ã‚Âºn el mÃƒÆ’Ã‚Â©todo
     if ($method === 'POST') {
       $input = json_decode(file_get_contents('php://input'), true);
       if (!$input) {
@@ -118,7 +142,7 @@ class JobTranslate
       $targetLanguage = $input['targetLanguage'] ?? 'en';
       $sourceLanguage = $input['sourceLanguage'] ?? 'es';
     } else {
-      // GET method - usar parÃƒÂ¡metros de consulta con valores por defecto para testing
+      // GET method - usar parÃƒÆ’Ã‚Â¡metros de consulta con valores por defecto para testing
       $text = $_GET['text'] ?? 'Hello World';
       $targetLanguage = $_GET['targetLanguage'] ?? 'es';
       $sourceLanguage = $_GET['sourceLanguage'] ?? 'en';
@@ -157,7 +181,7 @@ function db()
 $method = $_SERVER['REQUEST_METHOD'];
 $path = $_SERVER['REQUEST_URI'] ?? '';
 
-// Si es una peticiÃƒÂ³n para traducir
+// Si es una peticiÃƒÆ’Ã‚Â³n para traducir
 if (strpos($path, '/translate') !== false || isset($_GET['action']) && $_GET['action'] === 'translate') {
   JobTranslate::handleTranslationRequest();
   exit;
@@ -248,13 +272,11 @@ if ($method === 'GET') {
   }
 }
 
-// Manejo de POST para crear trabajos - AHORA CON AUTENTICACIÃƒâ€œN
+// Manejo de POST para crear trabajos - AHORA CON AUTENTICACIÃƒÆ’Ã¢â‚¬Å“N
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  // REQUERIR AUTENTICACIÃƒâ€œN JWT
-  $userPayload = JWTMiddleware::requireAuth();
-
-  if (!$userPayload) {
-    // JWTMiddleware ya enviÃƒÂ³ la respuesta de error
+  // REQUERIR AUTENTICACIÃƒÆ’Ã¢â‚¬Å“N JWT
+  $userPayload = if (!$userPayload) {
+    // JWTMiddleware ya enviÃƒÆ’Ã‚Â³ la respuesta de error
     exit;
   }
 
@@ -272,12 +294,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   $input = json_decode(file_get_contents('php://input'), true);
 
-  // VALIDACIÃƒâ€œN ROBUSTA DE INPUTS
+  // VALIDACIÃƒÆ’Ã¢â‚¬Å“N ROBUSTA DE INPUTS
   if (!$input || empty($input['title'])) {
     http_response_code(400);
     echo json_encode([
       'success' => false,
-      'message' => 'TÃƒÂ­tulo del trabajo es requerido',
+      'message' => 'TÃƒÆ’Ã‚Â­tulo del trabajo es requerido',
       'error_code' => 'MISSING_TITLE'
     ]);
     exit;
@@ -294,7 +316,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     http_response_code(400);
     echo json_encode([
       'success' => false,
-      'message' => 'TÃƒÂ­tulo debe tener entre 5 y 100 caracteres',
+      'message' => 'TÃƒÆ’Ã‚Â­tulo debe tener entre 5 y 100 caracteres',
       'error_code' => 'INVALID_TITLE_LENGTH'
     ]);
     exit;
@@ -320,10 +342,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       throw new Exception('Error al insertar trabajo en la base de datos');
     }
 
-    // Obtener ID del trabajo reciÃƒÂ©n creado
+    // Obtener ID del trabajo reciÃƒÆ’Ã‚Â©n creado
     $jobId = $db->lastInsertId();
 
-    // Log de auditorÃƒÂ­a
+    // Log de auditorÃƒÆ’Ã‚Â­a
     error_log("JOB CREATED: ID $jobId by user {$userPayload['user_id']} - Title: $title");
 
     echo json_encode([

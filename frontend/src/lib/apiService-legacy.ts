@@ -20,14 +20,15 @@ const cultureIconMap: Record<string, string> = {
 
 // Función para obtener los headers de autenticación
 function getAuthHeaders() {
-    // Obtener el token almacenado en localStorage o sessionStorage
-    const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+    // 🚨 DEPRECATED: Los tokens JWT ahora se manejan automáticamente via cookies httpOnly
+    // Esta función se mantiene solo para compatibilidad con sistemas legacy
+    // En producción, las cookies httpOnly son automáticas y más seguras
 
-    // Devolver los headers con el token si existe
+    // Devolver headers básicos - la autenticación es automática via cookies
     return {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        // Authorization header removido - ahora usa cookies httpOnly automáticamente
     };
 }
 

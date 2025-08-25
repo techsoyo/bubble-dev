@@ -1,8 +1,39 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
+
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+// cookie HttpOnly obligatoria
+
+// Proteger solo mÃ©todos que cambian estado
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+    // double-submit cookie
+}
+
+// En producciÃ³n NO aceptar Authorization header (solo cookie)
+if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
+    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Unauthorized (cookie required)']);
+        exit;
+    }
+}
 
 /**
  * API Endpoint: Save Candidate Data
@@ -18,7 +49,7 @@ require_once __DIR__ . '/bootstrap.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['error' => 'MÃƒÂ©todo no permitido']);
+    echo json_encode(['error' => 'MÃƒÆ’Ã‚Â©todo no permitido']);
     exit();
 }
 
@@ -27,7 +58,7 @@ try {
     $inputData = json_decode(file_get_contents('php://input'), true);
 
     if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('JSON invÃƒÂ¡lido en request body');
+        throw new Exception('JSON invÃƒÆ’Ã‚Â¡lido en request body');
     }
 
     // Validar datos requeridos
@@ -49,7 +80,7 @@ try {
 
     // Validar email
     if (!filter_var($candidateData['email'], FILTER_VALIDATE_EMAIL)) {
-        throw new Exception('Email no vÃƒÂ¡lido');
+        throw new Exception('Email no vÃƒÆ’Ã‚Â¡lido');
     }
 
     // Conectar a la base de datos
@@ -64,11 +95,11 @@ try {
         ]
     );
 
-    // Iniciar transacciÃƒÂ³n
+    // Iniciar transacciÃƒÆ’Ã‚Â³n
     $pdo->beginTransaction();
 
     try {
-        // 1. Insertar o actualizar usuario en tabla de autenticaciÃƒÂ³n
+        // 1. Insertar o actualizar usuario en tabla de autenticaciÃƒÆ’Ã‚Â³n
         $userId = null;
         if (!empty($accountData['username']) && !empty($accountData['password'])) {
             $stmt = $pdo->prepare("
@@ -134,11 +165,11 @@ try {
                 data_retention_until = VALUES(data_retention_until)
         ');
 
-        // Capturar datos GDPR de auditorÃƒÂ­a
+        // Capturar datos GDPR de auditorÃƒÆ’Ã‚Â­a
         $userIP = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['HTTP_X_REAL_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
 
-        // Datos de propÃƒÂ³sitos del tratamiento GDPR
+        // Datos de propÃƒÆ’Ã‚Â³sitos del tratamiento GDPR
         $processingPurposes = [
             'cv_analysis' => true,
             'recruitment_process' => true,
@@ -148,7 +179,7 @@ try {
         ];
 
         $stmt->execute([
-            // Datos bÃƒÂ¡sicos del candidato
+            // Datos bÃƒÆ’Ã‚Â¡sicos del candidato
             $candidateData['nombre'],
             $candidateData['email'],
             $candidateData['telefono'],
@@ -168,14 +199,14 @@ try {
             $cvFiles['text'] ?? null,
             $cvFiles['json'] ?? null,
             $inputData['data_source'] ?? 'manual_entry',
-            // Datos GDPR - CRÃƒÂTICOS PARA CUMPLIMIENTO
-            true, // gdpr_consent_given - siempre true si llegÃƒÂ³ aquÃƒÂ­
+            // Datos GDPR - CRÃƒÆ’Ã‚ÂTICOS PARA CUMPLIMIENTO
+            true, // gdpr_consent_given - siempre true si llegÃƒÆ’Ã‚Â³ aquÃƒÆ’Ã‚Â­
             true, // openai_processing_consent - true si data_source es ai_processing
             json_encode($processingPurposes, JSON_UNESCAPED_UNICODE), // data_processing_purposes
             '1.0', // consent_version
             $userIP, // ip_address_consent
             $userAgent // user_agent_consent
-            // data_retention_until se calcula automÃƒÂ¡ticamente con DATE_ADD en SQL
+            // data_retention_until se calcula automÃƒÆ’Ã‚Â¡ticamente con DATE_ADD en SQL
         ]);
 
         $candidateId = $pdo->lastInsertId() ?: $pdo->query("SELECT id FROM bt_candidates WHERE email = '{$candidateData['email']}'")->fetchColumn();
@@ -204,9 +235,9 @@ try {
             }
         }
 
-        // 4. Insertar educaciÃƒÂ³n (usar tabla existente bt_candidate_education)
+        // 4. Insertar educaciÃƒÆ’Ã‚Â³n (usar tabla existente bt_candidate_education)
         if (!empty($candidateData['educacion'])) {
-            // Limpiar educaciÃƒÂ³n anterior
+            // Limpiar educaciÃƒÆ’Ã‚Â³n anterior
             $pdo->prepare('DELETE FROM bt_candidate_education WHERE candidate_id = ?')->execute([$candidateId]);
 
             $stmt = $pdo->prepare('
@@ -247,7 +278,7 @@ try {
             }
         }
 
-        // Confirmar transacciÃƒÂ³n
+        // Confirmar transacciÃƒÆ’Ã‚Â³n
         $pdo->commit();
 
         // Respuesta exitosa

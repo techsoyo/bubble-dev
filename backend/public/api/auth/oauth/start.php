@@ -1,9 +1,13 @@
 <?php
-
+// @public  
 /**
  * OAuth Start Endpoint - Inicia el flujo OAuth
  * URL: /auth/oauth/start.php?provider=google&job=123
  */
+
+require_once __DIR__ . '/../../bootstrap.php';
+// NO JWTMiddleware::requireAuth() aquí - endpoint público
+// NO CsrfMiddleware::protect() aquí - inicia flujo OAuth (no modifica estado de usuario aún)
 
 require_once __DIR__ . '/OAuthHandler.php';
 

@@ -1,6 +1,10 @@
 <?php
-
+// @public
 declare(strict_types=1);
+
+require_once __DIR__ . '/../../bootstrap.php';
+// NO JWTMiddleware::requireAuth() aquí - endpoint público (callback OAuth)
+// NO CsrfMiddleware::protect() aquí - callback no modifica estado directamente
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
   session_start();

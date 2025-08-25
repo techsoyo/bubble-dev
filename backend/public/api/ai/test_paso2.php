@@ -1,13 +1,20 @@
-<?php
+﻿<?php
+// @deprecated - archivo de test, deshabilitar en producciÃ³n
+if ((\['APP_ENV'] ?? 'production') === 'production') {
+    http_response_code(404);
+    exit('Not found');
+}
+
+
 
 if ((getenv('APP_ENV') ?: 'production') === 'production') {
     http_response_code(404);
     exit;
 }
-// Script de prueba para el PASO 2 - EnvÃ­o a Ollama
+// Script de prueba para el PASO 2 - EnvÃƒÂ­o a Ollama
 $_POST['filename'] = 'Ejemplo1_CV_2025-07-27_12-13-23.txt';
 
-echo "ðŸš€ PRUEBA DEL PASO 2 - ENVÃO A OLLAMA\n";
+echo "Ã°Å¸Å¡â‚¬ PRUEBA DEL PASO 2 - ENVÃƒÂO A OLLAMA\n";
 echo "=====================================\n\n";
 
 // Incluir el archivo parse-cv-file.php
@@ -15,33 +22,34 @@ ob_start();
 include 'parse-cv-file.php';
 $output = ob_get_clean();
 
-echo "ðŸ“¤ RESPUESTA RECIBIDA:\n";
+echo "Ã°Å¸â€œÂ¤ RESPUESTA RECIBIDA:\n";
 echo "======================\n";
 echo $output . "\n\n";
 
-// Decodificar y mostrar informaciÃ³n estructurada
+// Decodificar y mostrar informaciÃƒÂ³n estructurada
 $response = json_decode($output, true);
 if ($response && isset($response['status'])) {
     if ($response['status'] === 'ok' && isset($response['ollama_response'])) {
-        echo "âœ… Ã‰XITO: Ollama respondiÃ³ correctamente\n";
-        echo 'ðŸ“‹ LONGITUD DE RESPUESTA: ' . strlen($response['ollama_response']) . " caracteres\n";
-        echo "ðŸ” PRIMEROS 200 CARACTERES:\n";
+        echo "Ã¢Å“â€¦ Ãƒâ€°XITO: Ollama respondiÃƒÂ³ correctamente\n";
+        echo 'Ã°Å¸â€œâ€¹ LONGITUD DE RESPUESTA: ' . strlen($response['ollama_response']) . " caracteres\n";
+        echo "Ã°Å¸â€Â PRIMEROS 200 CARACTERES:\n";
         echo substr($response['ollama_response'], 0, 200) . "...\n\n";
 
         // Intentar decodificar la respuesta de Ollama como JSON
         $ollamaJson = json_decode($response['ollama_response'], true);
         if ($ollamaJson) {
-            echo "âœ… La respuesta de Ollama es JSON vÃ¡lido\n";
-            echo "ðŸ“Š CAMPOS DETECTADOS:\n";
+            echo "Ã¢Å“â€¦ La respuesta de Ollama es JSON vÃƒÂ¡lido\n";
+            echo "Ã°Å¸â€œÅ  CAMPOS DETECTADOS:\n";
             foreach (array_keys($ollamaJson) as $key) {
                 echo "  - $key\n";
             }
         } else {
-            echo "âš ï¸  La respuesta de Ollama no es JSON vÃ¡lido (puede necesitar limpieza)\n";
+            echo "Ã¢Å¡Â Ã¯Â¸Â  La respuesta de Ollama no es JSON vÃƒÂ¡lido (puede necesitar limpieza)\n";
         }
     } else {
-        echo 'âŒ ERROR: ' . ($response['error'] ?? 'Error desconocido') . "\n";
+        echo 'Ã¢ÂÅ’ ERROR: ' . ($response['error'] ?? 'Error desconocido') . "\n";
     }
 } else {
-    echo "âŒ ERROR: Respuesta no vÃ¡lida del endpoint\n";
+    echo "Ã¢ÂÅ’ ERROR: Respuesta no vÃƒÂ¡lida del endpoint\n";
 }
+

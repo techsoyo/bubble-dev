@@ -1,12 +1,27 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
  
 
-require_once __DIR__ . '/bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
+
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
 
 require_once __DIR__ . '/../../src/Middleware/SecurityMiddleware.php';
 
@@ -50,7 +65,7 @@ try {
                 'candidate_id' => 'required|string:1,36|regex:/^cnd-\d+$/'
             ]);
             if (!$ok) {
-                Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
+                Res::error('ValidaciÃƒÆ’Ã‚Â³n fallida', 422, ['errors' => $errs]);
             }
 
             Sec::assertReadAccessForCandidate((string)$candidateId, $authUser);
@@ -78,7 +93,7 @@ try {
                 'education_level'  => 'string:0,100'
             ]);
             if (!$ok) {
-                Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
+                Res::error('ValidaciÃƒÆ’Ã‚Â³n fallida', 422, ['errors' => $errs]);
             }
             if (!empty($payload['end_date'])) {
                 \Utils\Validator::date($payload['end_date'], 'end_date');
@@ -100,12 +115,13 @@ try {
             break;
         }
 
-            // Si luego quieres PUT/DELETE, lo aÃƒÂ±adimos con las mismas validaciones
+            // Si luego quieres PUT/DELETE, lo aÃƒÆ’Ã‚Â±adimos con las mismas validaciones
 
         default:
-            Res::error('MÃƒÂ©todo no permitido', 405);
+            Res::error('MÃƒÆ’Ã‚Â©todo no permitido', 405);
     }
 } catch (\Throwable $e) {
     Res::exception($e);
 }
+
 

@@ -1,0 +1,115 @@
+<?php
+
+// TAREA 1: Resumir CV usando modelo Mistral
+header('Content-Type: application/json');
+
+// 1. Recoger el nombre del archivo del POST
+$filename = $_POST['filename'] ?? '';
+
+if (!$filename) {
+    echo json_encode(['error' => 'Falta el nombre del archivo']);
+    exit;
+}
+
+// 2. Construir ruta absoluta segura para leer el CV original
+$originalFilePath = __DIR__ . '/../../uploads/textos/' . basename($filename);
+
+// 3. Verificar que el archivo original existe
+if (!file_exists($originalFilePath)) {
+    echo json_encode(['error' => 'Archivo CV no encontrado']);
+    exit;
+}
+
+// 4. Leer el contenido del CV
+$cvContent = file_get_contents($originalFilePath);
+if ($cvContent === false) {
+    echo json_encode(['error' => 'No se pudo leer el archivo CV']);
+    exit;
+}
+
+// 5. Crear directorio de resÃºmenes si no existe
+$resumenesDir = __DIR__ . '/../../uploads/resumenes/';
+if (!is_dir($resumenesDir)) {
+    if (!mkdir($resumenesDir, 0755, true)) {
+        echo json_encode(['error' => 'No se pudo crear directorio de resÃºmenes']);
+        exit;
+    }
+}
+
+// 6. Construir el prompt para el modelo Mistral
+$prompt = "Eres un asistente que resume informaciÃ³n curricular para procesos de selecciÃ³n. Dado el siguiente CV en texto plano, genera un resumen claro y Ãºtil para un reclutador. Solo incluye:\n" .
+  "- Nombre completo\n" .
+  "- FormaciÃ³n acadÃ©mica principal\n" .
+  "- Idiomas con nivel\n" .
+  "- TecnologÃ­as o herramientas que domina\n" .
+  "- Experiencia profesional destacada (mÃ¡x. 5 lÃ­neas)\n" .
+  "- Soft skills mencionadas\n" .
+  "- Datos de contacto si existen\n" .
+  "- UbicaciÃ³n geogrÃ¡fica (ciudad y paÃ­s si se menciona)\n\n" .
+  "CV:\n" . $cvContent;
+
+// 7. Enviar al modelo Mistral de Ollama
+$ollamaHost = 'http://localhost:11434';
+$model = 'mistral';
+
+$curl = curl_init("$ollamaHost/api/generate");
+
+curl_setopt_array($curl, [
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_POST => true,
+  CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+  CURLOPT_POSTFIELDS => json_encode([
+    'model' => $model,
+    'prompt' => $prompt,
+    'stream' => false
+  ]),
+  CURLOPT_TIMEOUT => 120, // 2 minutos timeout
+  CURLOPT_CONNECTTIMEOUT => 10
+]);
+
+$response = curl_exec($curl);
+
+if (curl_errno($curl)) {
+    echo json_encode([
+      'error' => 'Error al conectar con Ollama (Mistral)',
+      'details' => curl_error($curl)
+    ]);
+    curl_close($curl);
+    exit;
+}
+
+curl_close($curl);
+
+// 8. Verificar respuesta de Ollama
+$data = json_decode($response, true);
+if (!isset($data['response'])) {
+    echo json_encode([
+      'error' => 'Respuesta invÃ¡lida de Ollama',
+      'raw' => substr($response, 0, 200)
+    ]);
+    exit;
+}
+
+$resumen = trim($data['response']);
+
+// 9. Generar nombre del archivo resumen
+$pathInfo = pathinfo($filename);
+$baseName = $pathInfo['filename'];
+$resumenFileName = $baseName . '-resumen.txt';
+$resumenFilePath = $resumenesDir . $resumenFileName;
+
+// 10. Guardar el resumen en archivo
+if (file_put_contents($resumenFilePath, $resumen) === false) {
+    echo json_encode(['error' => 'No se pudo guardar el archivo de resumen']);
+    exit;
+}
+
+// 11. Devolver respuesta exitosa
+echo json_encode([
+  'status' => 'ok',
+  'resumen_file' => $resumenFileName,
+  'original_size' => strlen($cvContent),
+  'resumen_size' => strlen($resumen),
+  'compression_ratio' => round((1 - strlen($resumen) / strlen($cvContent)) * 100, 1) . '%'
+]);
+exit;

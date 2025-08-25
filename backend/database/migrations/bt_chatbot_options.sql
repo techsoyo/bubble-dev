@@ -57,8 +57,7 @@ INSERT INTO `bt_chatbot_options` (`id`, `node_id`, `text`, `next_node_id`, `acti
 ('opt_5', 'job_search', '💼 Ver ofertas disponibles', NULL, 'navigate', '{\"url\": \"/jobs\", \"analytics_event\": \"chatbot_jobs_redirect\"}', 1, 1, '2025-08-09 15:46:44', '2025-08-09 15:46:44'),
 ('opt_6', 'job_search', '📋 Crear perfil de candidato', NULL, 'navigate', '{\"url\": \"/register\", \"analytics_event\": \"chatbot_register_redirect\"}', 2, 1, '2025-08-09 15:46:44', '2025-08-09 15:46:44'),
 ('opt_7', 'job_search', '🔙 Volver al inicio', 'welcome', 'restart', '{\"analytics_event\": \"chatbot_restart_from_jobs\"}', 3, 1, '2025-08-09 15:46:44', '2025-08-09 15:46:44'),
-('opt_8', 'company_info', '🌟 Cultura empresarial', NULL, 'navigate', '{\"url\": \"/#culture-heading\", \"analytics_event\": \"chatbot_culture_redirect\"}', 1, 1, '2025-08-09 15:46:44', '2025-08-09 15:46:44'),
-('opt_9', 'company_info', '📰 Noticias y blog', NULL, 'navigate', '{\"url\": \"/blog\", \"analytics_event\": \"chatbot_blog_redirect\"}', 2, 1, '2025-08-09 15:46:44', '2025-08-09 15:46:44');
+('opt_8', 'company_info', '📰 Noticias y blog', NULL, 'navigate', '{\"url\": \"/blog\", \"analytics_event\": \"chatbot_blog_redirect\"}', 2, 1, '2025-08-09 15:46:44', '2025-08-09 15:46:44');
 
 --
 -- Índices para tablas volcadas

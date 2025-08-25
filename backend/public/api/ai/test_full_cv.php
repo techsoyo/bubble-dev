@@ -1,4 +1,11 @@
-<?php
+﻿<?php
+// @deprecated - archivo de test, deshabilitar en producciÃ³n
+if ((\['APP_ENV'] ?? 'production') === 'production') {
+    http_response_code(404);
+    exit('Not found');
+}
+
+
 
 if ((getenv('APP_ENV') ?: 'production') === 'production') {
     http_response_code(404);
@@ -8,21 +15,21 @@ if ((getenv('APP_ENV') ?: 'production') === 'production') {
 // Test con prompt real del CV (pero con timeout adecuado)
 $_POST['filename'] = 'Ejemplo1_CV_2025-07-27_12-13-23.txt';
 
-echo "â±ï¸  PRUEBA CON PROMPT COMPLETO DEL CV\n";
+echo "Ã¢ÂÂ±Ã¯Â¸Â  PRUEBA CON PROMPT COMPLETO DEL CV\n";
 echo "=====================================\n\n";
 
 $filename = $_POST['filename'] ?? '';
 $filePath = __DIR__ . '/../../uploads/textos/' . basename($filename);
 
 if (!file_exists($filePath)) {
-    echo "âŒ Archivo no encontrado: $filePath\n";
+    echo "Ã¢ÂÅ’ Archivo no encontrado: $filePath\n";
     exit;
 }
 
 $content = file_get_contents($filePath);
 
 // Construir prompt completo (igual que en parse-cv-file.php)
-$prompt = "Analiza el siguiente CV en texto plano y extrae la informaciÃ³n en formato JSON estructurado con los siguientes campos:aunque algunos estÃ©n vacÃ­os):\n\n" .
+$prompt = "Analiza el siguiente CV en texto plano y extrae la informaciÃƒÂ³n en formato JSON estructurado con los siguientes campos:aunque algunos estÃƒÂ©n vacÃƒÂ­os):\n\n" .
     "{\n" .
     "  \"nombre\": \"\",\n" .
     "  \"email\": \"\",\n" .
@@ -67,7 +74,7 @@ $prompt = "Analiza el siguiente CV en texto plano y extrae la informaciÃ³n en 
     "  \"subcategoria\": \"\",\n" .
     "  \"otros\": \"\"\n" .
     "}\n\n" .
-    "Asocia el perfil a una de las siguientes categorÃ­as y subcategorÃ­as segÃºn la experiencia y habilidades detectadas:\n\n" .
+    "Asocia el perfil a una de las siguientes categorÃƒÂ­as y subcategorÃƒÂ­as segÃƒÂºn la experiencia y habilidades detectadas:\n\n" .
     "[\n" .
     "  { categoria: 'Management', subcategorias: ['Account Manager', 'Account Director', 'Medical Strategist/Planner', 'Scientific Account Executive'] },\n" .
     "  { categoria: 'Creativity (Art & Design)', subcategorias: ['Copywriter (health)', 'Art Director', 'Graphic Designer', 'Content Creator/Content Strategist'] },\n" .
@@ -80,8 +87,8 @@ $prompt = "Analiza el siguiente CV en texto plano y extrae la informaciÃ³n en 
     "]\n\n" .
     "Texto del CV:\n---\n" . $content . "\n---";
 
-echo 'ðŸ“ Longitud del prompt: ' . strlen($prompt) . " caracteres\n";
-echo "ðŸ“¤ Enviando a Ollama... (esto puede tardar 30-60 segundos)\n\n";
+echo 'Ã°Å¸â€œÂ Longitud del prompt: ' . strlen($prompt) . " caracteres\n";
+echo "Ã°Å¸â€œÂ¤ Enviando a Ollama... (esto puede tardar 30-60 segundos)\n\n";
 
 $start_time = microtime(true);
 
@@ -104,39 +111,40 @@ $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 $total_time = microtime(true) - $start_time;
 
 if (curl_errno($curl)) {
-    echo 'âŒ Error cURL: ' . curl_error($curl) . "\n";
-    echo 'â±ï¸  Tiempo transcurrido hasta error: ' . round($total_time, 2) . " segundos\n";
+    echo 'Ã¢ÂÅ’ Error cURL: ' . curl_error($curl) . "\n";
+    echo 'Ã¢ÂÂ±Ã¯Â¸Â  Tiempo transcurrido hasta error: ' . round($total_time, 2) . " segundos\n";
     curl_close($curl);
     exit;
 }
 
 curl_close($curl);
 
-echo 'âœ… Respuesta recibida en ' . round($total_time, 2) . " segundos\n";
-echo "ðŸ“Š HTTP Code: $httpCode\n\n";
+echo 'Ã¢Å“â€¦ Respuesta recibida en ' . round($total_time, 2) . " segundos\n";
+echo "Ã°Å¸â€œÅ  HTTP Code: $httpCode\n\n";
 
 $data = json_decode($response, true);
 if (!isset($data['response'])) {
-    echo "âŒ Respuesta invÃ¡lida de Ollama\n";
+    echo "Ã¢ÂÅ’ Respuesta invÃƒÂ¡lida de Ollama\n";
     echo 'Raw: ' . substr($response, 0, 200) . "...\n";
     exit;
 }
 
-echo "ðŸŽ‰ Â¡Ã‰XITO! CV procesado correctamente\n";
-echo 'ðŸ“ Longitud de respuesta: ' . strlen($data['response']) . " caracteres\n\n";
+echo "Ã°Å¸Å½â€° Ã‚Â¡Ãƒâ€°XITO! CV procesado correctamente\n";
+echo 'Ã°Å¸â€œÂ Longitud de respuesta: ' . strlen($data['response']) . " caracteres\n\n";
 
 // Intentar parsear como JSON
 $cvJson = json_decode($data['response'], true);
 if ($cvJson) {
-    echo "âœ… Respuesta es JSON vÃ¡lido\n";
-    echo 'ðŸŽ¯ NOMBRE: ' . ($cvJson['nombre'] ?? 'No detectado') . "\n";
-    echo 'ðŸŽ¯ CATEGORÃA: ' . ($cvJson['categoria'] ?? 'No detectada') . "\n";
-    echo 'ðŸŽ¯ SUBCATEGORÃA: ' . ($cvJson['subcategoria'] ?? 'No detectada') . "\n";
+    echo "Ã¢Å“â€¦ Respuesta es JSON vÃƒÂ¡lido\n";
+    echo 'Ã°Å¸Å½Â¯ NOMBRE: ' . ($cvJson['nombre'] ?? 'No detectado') . "\n";
+    echo 'Ã°Å¸Å½Â¯ CATEGORÃƒÂA: ' . ($cvJson['categoria'] ?? 'No detectada') . "\n";
+    echo 'Ã°Å¸Å½Â¯ SUBCATEGORÃƒÂA: ' . ($cvJson['subcategoria'] ?? 'No detectada') . "\n";
 } else {
-    echo "âš ï¸ Respuesta contiene texto adicional, necesita limpieza\n";
-    echo "ðŸ” Inicio de respuesta:\n";
+    echo "Ã¢Å¡Â Ã¯Â¸Â Respuesta contiene texto adicional, necesita limpieza\n";
+    echo "Ã°Å¸â€Â Inicio de respuesta:\n";
     echo substr($data['response'], 0, 300) . "...\n";
 }
 
-echo "\nâ±ï¸  TIEMPO TOTAL: " . round($total_time, 2) . " segundos\n";
-echo 'ðŸ’¡ NORMAL para un modelo 8B con prompt de ' . strlen($prompt) . " caracteres\n";
+echo "\nÃ¢ÂÂ±Ã¯Â¸Â  TIEMPO TOTAL: " . round($total_time, 2) . " segundos\n";
+echo 'Ã°Å¸â€™Â¡ NORMAL para un modelo 8B con prompt de ' . strlen($prompt) . " caracteres\n";
+

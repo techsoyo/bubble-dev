@@ -67,11 +67,20 @@ class AIController extends BaseController
             return ResponseHelper::error('Faltan parámetros candidate_id o job_id', null, 400);
         }
 
+        // Verificar si estamos en producción
+        if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
+            http_response_code(501);
+            echo json_encode(['error' => 'AI not configured']);
+            exit;
+        }
+
         // TODO: IA para calcular matching real
-        return ResponseHelper::success('Matching calculado', [
+        // En desarrollo, usar score fijo en lugar de aleatorio
+        return ResponseHelper::success('Matching calculado (dev)', [
             'candidate_id' => $candidateId,
             'job_id' => $jobId,
-            'score' => rand(50, 95) // mock
+            'score' => 75, // score fijo para desarrollo, reemplazar con IA real
+            'note' => 'Score mock para desarrollo - implementar IA en producción'
         ]);
     }
 

@@ -1,11 +1,27 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-require_once dirname(__DIR__) . '/bootstrap.php';
+
+
+require_once __DIR__ . '/../bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
 
 use Firebase\JWT\JWT;
 use Utils\Logger;
+use Security\Cookies;
+use Security\CsrfMiddleware;
 
 // Preflight CORS
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
@@ -16,7 +32,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
 // Solo POST
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
   http_response_code(405);
-  echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+  echo json_encode(['success' => false, 'message' => 'MÃ©todo no permitido']);
   exit;
 }
 
@@ -33,10 +49,10 @@ try {
   $password = trim($input['password'] ?? '');
 
   if ($email === '' || $password === '') {
-    throw new Exception('Email y contraseña son requeridos');
+    throw new Exception('Email y contraseÃ±a son requeridos');
   }
   if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    throw new Exception('Email no válido');
+    throw new Exception('Email no vÃ¡lido');
   }
 
   // (Opcional) forzar dominio por ENV
@@ -45,10 +61,8 @@ try {
     throw new Exception("Solo emails del dominio $reqDomain");
   }
 
-  // Conexión (función o clase, según tengas)
-  $db = function_exists('getDbConnection')
-    ? getDbConnection()
-    : (\Utils\Database::getConnection)();
+  // ConexiÃ³n a la base de datos
+  $db = getDbConnection();
 
   // Busca usuario activo
   $stmt = $db->prepare("
@@ -74,10 +88,34 @@ try {
   ];
   $token = JWT::encode($payload, $jwt_secret, 'HS256');
 
-  // (Opcional) registrar sesión en tabla si la usas
+  // (Opcional) registrar sesiÃ³n en tabla si la usas
   // ...
 
-  // OK
+  // Establecer cookie httpOnly usando clase centralizada
+  Cookies::setJwt($token);
+
+  // Generar y establecer token CSRF
+  $csrfToken = CsrfMiddleware::generateToken();
+
+  // En producciÃ³n, opcional: no devolver token en body por seguridad extra
+  if (($_ENV['APP_ENV'] ?? 'development') === 'production' && ($_ENV['HIDE_TOKEN_IN_RESPONSE'] ?? false)) {
+    echo json_encode([
+      'success' => true,
+      'message' => 'Login exitoso',
+      'user' => [
+        'id'   => $user['id'],
+        'email' => $user['email'],
+        'role' => $user['role'],
+        'name' => $user['name'],
+        'user_type' => 'staff',
+      ],
+      'csrf_token' => $csrfToken // Para inicializar clientes legacy
+      // token JWT omitido intencionalmente para mayor seguridad
+    ]);
+    exit;
+  }
+
+  // OK - respuesta completa con token (desarrollo y compatibilidad)
   echo json_encode([
     'success' => true,
     'message' => 'Login exitoso',
@@ -89,9 +127,11 @@ try {
       'user_type' => 'staff',
     ],
     'token' => $token,
+    'csrf_token' => $csrfToken // Para inicializar clientes legacy
   ]);
 } catch (Exception $e) {
   error_log("Error en staff login: " . $e->getMessage());
   http_response_code(400);
   echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
+

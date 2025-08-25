@@ -1,5 +1,10 @@
 <?php
+// @public
+require_once __DIR__ . '/bootstrap.php';
+// NO JWTMiddleware::requireAuth() aquí - endpoint público
+// NO CsrfMiddleware::protect() aquí - endpoint público
 
+// ORIGINAL CODE BELOW
 declare(strict_types=1);
 require_once dirname(__DIR__) . '/bootstrap.php';
 try {

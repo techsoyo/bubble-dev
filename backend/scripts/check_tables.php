@@ -33,7 +33,7 @@ try {
   }
 
   // Verificar tablas específicas que necesitamos
-  $neededTables = ['bt_jobs', 'bt_news', 'bt_culture'];
+  $neededTables = ['bt_jobs', 'bt_news'];
   echo "\n🎯 Verificando tablas necesarias:\n";
 
   foreach ($neededTables as $neededTable) {

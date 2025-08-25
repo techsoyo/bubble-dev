@@ -1,5 +1,38 @@
-<?php
+﻿<?php
 
+
+require_once __DIR__ . '/../bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+// cookie HttpOnly obligatoria
+
+// Proteger solo mÃ©todos que cambian estado
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    // double-submit cookie
+}
+
+// En producciÃ³n NO aceptar Authorization header (solo cookie)
+if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
+    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Unauthorized (cookie required)']);
+        exit;
+    }
+}
+
+// ORIGINAL CODE BELOW
 // TAREA 1: Resumir CV usando modelo Mistral
 header('Content-Type: application/json');
 
@@ -27,25 +60,25 @@ if ($cvContent === false) {
     exit;
 }
 
-// 5. Crear directorio de resÃºmenes si no existe
+// 5. Crear directorio de resÃƒÂºmenes si no existe
 $resumenesDir = __DIR__ . '/../../uploads/resumenes/';
 if (!is_dir($resumenesDir)) {
     if (!mkdir($resumenesDir, 0755, true)) {
-        echo json_encode(['error' => 'No se pudo crear directorio de resÃºmenes']);
+        echo json_encode(['error' => 'No se pudo crear directorio de resÃƒÂºmenes']);
         exit;
     }
 }
 
 // 6. Construir el prompt para el modelo Mistral
-$prompt = "Eres un asistente que resume informaciÃ³n curricular para procesos de selecciÃ³n. Dado el siguiente CV en texto plano, genera un resumen claro y Ãºtil para un reclutador. Solo incluye:\n" .
+$prompt = "Eres un asistente que resume informaciÃƒÂ³n curricular para procesos de selecciÃƒÂ³n. Dado el siguiente CV en texto plano, genera un resumen claro y ÃƒÂºtil para un reclutador. Solo incluye:\n" .
   "- Nombre completo\n" .
-  "- FormaciÃ³n acadÃ©mica principal\n" .
+  "- FormaciÃƒÂ³n acadÃƒÂ©mica principal\n" .
   "- Idiomas con nivel\n" .
-  "- TecnologÃ­as o herramientas que domina\n" .
-  "- Experiencia profesional destacada (mÃ¡x. 5 lÃ­neas)\n" .
+  "- TecnologÃƒÂ­as o herramientas que domina\n" .
+  "- Experiencia profesional destacada (mÃƒÂ¡x. 5 lÃƒÂ­neas)\n" .
   "- Soft skills mencionadas\n" .
   "- Datos de contacto si existen\n" .
-  "- UbicaciÃ³n geogrÃ¡fica (ciudad y paÃ­s si se menciona)\n\n" .
+  "- UbicaciÃƒÂ³n geogrÃƒÂ¡fica (ciudad y paÃƒÂ­s si se menciona)\n\n" .
   "CV:\n" . $cvContent;
 
 // 7. Enviar al modelo Mistral de Ollama
@@ -84,7 +117,7 @@ curl_close($curl);
 $data = json_decode($response, true);
 if (!isset($data['response'])) {
     echo json_encode([
-      'error' => 'Respuesta invÃ¡lida de Ollama',
+      'error' => 'Respuesta invÃƒÂ¡lida de Ollama',
       'raw' => substr($response, 0, 200)
     ]);
     exit;
@@ -113,3 +146,4 @@ echo json_encode([
   'compression_ratio' => round((1 - strlen($resumen) / strlen($cvContent)) * 100, 1) . '%'
 ]);
 exit;
+

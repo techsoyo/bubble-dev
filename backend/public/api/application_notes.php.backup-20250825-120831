@@ -1,0 +1,71 @@
+<?php
+
+require_once __DIR__ . '/bootstrap.php';
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
+require_once __DIR__ . '/../../src/Middleware/SecurityMiddleware.php';
+
+use Models\ApplicationNote;
+use Utils\JWT;
+use Utils\Request;
+use Utils\ResponseHelper as Res;
+use Utils\Validator as Val;
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+$authUser = null;
+try {
+    if (in_array($method, ['POST', 'PUT', 'DELETE'], true)) {
+        $authUser = JWT::requireAuth();
+    }
+} catch (\Throwable $e) {
+    Res::error('No autorizado', 401, ['detail' => $e->getMessage()]);
+}
+$noteModel = new ApplicationNote();
+try {
+    switch ($method) {
+        case 'GET': {
+                $applicationId = $_GET['application_id'] ?? $_GET['applicationId'] ?? null;
+                ['ok' => $ok, 'errors' => $errs] = Val::validate(['application_id' => $applicationId], [
+                    'application_id' => 'required|string:1,36'
+                ]);
+                if (!$ok) {
+                    Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
+                }
+                // Ownership: aquÃƒÂ­ podrÃƒÂ­as validar que el usuario tiene acceso a la aplicaciÃƒÂ³n
+                $notes = $noteModel->findByApplicationId($applicationId);
+                Res::success('OK', ['items' => $notes]);
+                break;
+            }
+        case 'POST': {
+                $input = Request::json();
+                ['ok' => $ok, 'errors' => $errs] = Val::validate($input, [
+                    'application_id' => 'required|string:1,36',
+                    'note'           => 'required|string:1,1000'
+                ]);
+                if (!$ok) {
+                    Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
+                }
+                // Ownership: aquÃƒÂ­ podrÃƒÂ­as validar que el usuario tiene acceso a la aplicaciÃƒÂ³n
+                $existingNotes = $noteModel->findByApplicationId($input['application_id']);
+                $nextIdx = 0;
+                foreach ($existingNotes as $n) {
+                    if ((int)$n['note_idx'] >= $nextIdx) {
+                        $nextIdx = (int)$n['note_idx'] + 1;
+                    }
+                }
+                $data = [
+                    'application_id' => $input['application_id'],
+                    'note_idx' => $nextIdx,
+                    'note' => $input['note']
+                ];
+                $noteModel->store($data);
+                Res::success('Nota agregada', null, 201);
+                break;
+            }
+        default:
+            Res::error('MÃƒÂ©todo no permitido', 405);
+    }
+} catch (\Throwable $e) {
+    Res::error('Error interno del servidor', 500, ['detail' => $e->getMessage()]);
+}
+

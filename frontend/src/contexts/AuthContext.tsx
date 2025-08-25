@@ -8,6 +8,7 @@
 
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { SecureAuthManager, User, LoginCredentials, AuthResponse } from '../lib/auth/secureAuthManager';
+import { safeRemove } from '../utils/safeStorage';
 import { InputSanitizer } from '../lib/auth/secureInputValidator';
 import { TokenManager } from '../lib/auth/tokenManager';
 
@@ -80,12 +81,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             console.log('🔄 Inicializando autenticación...');
 
-            // ✅ LIMPIAR DATOS DE LOCALSTORAGE LEGACY
+            // ✅ LIMPIAR DATOS DE LOCALSTORAGE LEGACY (no-op en producción)
             const legacyKeys = [
                 'isLoggedIn', 'userEmail', 'userId', 'userRole',
                 'userName', 'userFirstName', 'userLastName'
             ];
-            legacyKeys.forEach(key => localStorage.removeItem(key));
+            legacyKeys.forEach(key => safeRemove(key));
 
             // ✅ VERIFICAR SESIÓN
             const { isValid, user: sessionUser } = await SecureAuthManager.verifySession();

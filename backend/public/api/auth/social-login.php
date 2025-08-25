@@ -1,5 +1,8 @@
 <?php
+// @public
 // social-login.php - Manejo de autenticaciÃ³n OAuth con proveedores externos
+
+require_once dirname(__DIR__) . '/bootstrap.php';
 session_start();
 
 // CORS headers

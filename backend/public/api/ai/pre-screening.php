@@ -1,10 +1,43 @@
-<?php
+﻿<?php
 
+
+require_once __DIR__ . '/../bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+// cookie HttpOnly obligatoria
+
+// Proteger solo mÃ©todos que cambian estado
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    // double-submit cookie
+}
+
+// En producciÃ³n NO aceptar Authorization header (solo cookie)
+if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
+    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Unauthorized (cookie required)']);
+        exit;
+    }
+}
+
+// ORIGINAL CODE BELOW
 /**
  * Pre-Screening API Endpoint
  *
- * Endpoint para screening automÃƒÂ¡tico, generaciÃƒÂ³n de preguntas
- * y detecciÃƒÂ³n de red flags usando IA.
+ * Endpoint para screening automÃƒÆ’Ã‚Â¡tico, generaciÃƒÆ’Ã‚Â³n de preguntas
+ * y detecciÃƒÆ’Ã‚Â³n de red flags usando IA.
  *
  * @package Backend\API\AI
  * @version 1.0.0
@@ -19,7 +52,7 @@ use Services\PreScreeningService;
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['error' => 'MÃƒÂ©todo no permitido']);
+    echo json_encode(['error' => 'MÃƒÆ’Ã‚Â©todo no permitido']);
     exit;
 }
 
@@ -28,7 +61,7 @@ try {
 
     if (!$input) {
         http_response_code(400);
-        echo json_encode(['error' => 'Datos JSON invÃƒÂ¡lidos']);
+        echo json_encode(['error' => 'Datos JSON invÃƒÆ’Ã‚Â¡lidos']);
         exit;
     }
 
@@ -78,7 +111,7 @@ try {
             break;
 
         case 'validate_requirements':
-            // Validar requisitos mÃƒÂ­nimos
+            // Validar requisitos mÃƒÆ’Ã‚Â­nimos
             if (!isset($input['candidate_data']) || !isset($input['job_requirements'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Faltan candidate_data o job_requirements']);
@@ -128,7 +161,7 @@ try {
         default:
             http_response_code(400);
             echo json_encode([
-                'error' => 'AcciÃƒÂ³n no vÃƒÂ¡lida',
+                'error' => 'AcciÃƒÆ’Ã‚Â³n no vÃƒÆ’Ã‚Â¡lida',
                 'valid_actions' => ['generate_questions', 'detect_red_flags', 'validate_requirements', 'complete_screening']
             ]);
             break;
@@ -142,3 +175,4 @@ try {
         'timestamp' => date('Y-m-d H:i:s')
     ]);
 }
+

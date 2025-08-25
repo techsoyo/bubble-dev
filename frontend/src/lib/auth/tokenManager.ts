@@ -1,6 +1,9 @@
 /**
- * Token Refresh System
- * Implementa renovación automática de tokens de autenticación
+ * Token Refresh System - DEPRECATED
+ * ⚠️  DEPRECATED: Este archivo usa Authorization headers y localStorage
+ * ✅ MIGRADO A: AuthContext.tsx con cookies httpOnly exclusivamente
+ * 🔒 PRODUCCIÓN: No usar este archivo en producción
+ * @deprecated Use AuthContext.tsx for production-ready httpOnly cookie authentication
  */
 
 export interface TokenData {
@@ -172,10 +175,9 @@ export class TokenManager {
       }
     }
 
-    // Añadir token de autorización
+    // Añadir headers básicos
     const headers = {
       ...options.headers,
-      'Authorization': `Bearer ${this.accessToken}`,
     };
 
     // Realizar request
@@ -189,10 +191,9 @@ export class TokenManager {
     if (response.status === 401 && !this.isRefreshing) {
       const refreshed = await this.refreshAccessToken();
       if (refreshed) {
-        // Reintentar request con nuevo token
+        // Reintentar request con headers básicos
         const retryHeaders = {
           ...options.headers,
-          'Authorization': `Bearer ${this.accessToken}`,
         };
 
         return fetch(url, {

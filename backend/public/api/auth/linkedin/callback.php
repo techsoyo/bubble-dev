@@ -1,4 +1,20 @@
-<?php
+﻿<?php
+
+
+
+require_once __DIR__ . '/../../bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
 
 /**
  * OAuth Callback Endpoints - LinkedIn
@@ -17,14 +33,14 @@ try {
   }
 
   if (!$code) {
-    throw new Exception('CÃ³digo de autorizaciÃ³n no recibido');
+    throw new Exception('CÃƒÂ³digo de autorizaciÃƒÂ³n no recibido');
   }
 
   $oauth = new OAuthHandler();
   $result = $oauth->handleCallback('linkedin', $code, $state);
 
   if ($result['success']) {
-    // Crear sesiÃ³n de usuario
+    // Crear sesiÃƒÂ³n de usuario
     session_start();
     $_SESSION['user_id'] = $result['user']['id'];
     $_SESSION['user_email'] = $result['user']['email'];
@@ -36,7 +52,7 @@ try {
       $jobId = substr($state, 4);
     }
 
-    // Redirigir segÃºn el contexto
+    // Redirigir segÃƒÂºn el contexto
     if ($jobId) {
       $redirectUrl = "http://localhost:3002/jobs/$jobId?login=success";
     } else {
@@ -49,8 +65,9 @@ try {
     throw new Exception($result['error']);
   }
 } catch (Exception $e) {
-  // Redirigir a pÃ¡gina de error
+  // Redirigir a pÃƒÂ¡gina de error
   $errorUrl = "http://localhost:3002/auth/register?error=" . urlencode($e->getMessage());
   header("Location: $errorUrl");
   exit;
 }
+

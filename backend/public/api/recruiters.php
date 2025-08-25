@@ -1,11 +1,36 @@
-<?php
+﻿<?php
 
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+// cookie HttpOnly obligatoria
+
+// En producciÃ³n NO aceptar Authorization header (solo cookie)
+if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
+    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Unauthorized (cookie required)']);
+        exit;
+    }
+}
+
+// ORIGINAL CODE BELOW
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
-require_once __DIR__ . '/bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
 header('Content-Type: application/json; charset=UTF-8');
 require_once __DIR__ . '/../../src/Middleware/SecurityMiddleware.php';
 
@@ -48,7 +73,7 @@ try {
                     'id' => 'required|string:1,36|regex:/^rec-\w+$/'
                 ]);
                 if (!$ok) {
-                    Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
+                    Res::error('ValidaciÃƒÆ’Ã‚Â³n fallida', 422, ['errors' => $errs]);
                 }
                 $st = $pdo->prepare('SELECT * FROM ' . T('staff_profiles') . ' WHERE id = ?');
                 $st->execute([$id]);
@@ -118,7 +143,7 @@ try {
                 'avatar' => 'string:0,255'
             ]);
             if (!$ok) {
-                Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
+                Res::error('ValidaciÃƒÆ’Ã‚Â³n fallida', 422, ['errors' => $errs]);
             }
             Sec::assertAdmin($authUser); // Solo admin puede crear reclutadores
             $id = 'rec-' . uniqid();
@@ -149,7 +174,7 @@ try {
                 'id' => 'required|string:1,36|regex:/^rec-\w+$/'
             ]);
             if (!$ok) {
-                Res::error('ID invÃƒÂ¡lido', 422, ['errors' => $errs]);
+                Res::error('ID invÃƒÆ’Ã‚Â¡lido', 422, ['errors' => $errs]);
             }
             Sec::assertAdmin($authUser); // Solo admin puede editar reclutadores
             $fields = ['first_name', 'last_name', 'email', 'phone', 'company', 'department', 'role', 'status', 'avatar'];
@@ -182,7 +207,7 @@ try {
                 'id' => 'required|string:1,36|regex:/^rec-\w+$/'
             ]);
             if (!$ok) {
-                Res::error('ID invÃƒÂ¡lido', 422, ['errors' => $errs]);
+                Res::error('ID invÃƒÆ’Ã‚Â¡lido', 422, ['errors' => $errs]);
             }
             Sec::assertAdmin($authUser); // Solo admin puede eliminar reclutadores
             $st = $pdo->prepare('DELETE FROM ' . T('staff_profiles') . ' WHERE id = ?');
@@ -195,9 +220,10 @@ try {
             break;
         }
         default:
-            Res::error('MÃƒÂ©todo no permitido', 405);
+            Res::error('MÃƒÆ’Ã‚Â©todo no permitido', 405);
     }
 } catch (\Throwable $e) {
     Res::exception($e);
 }
+
 

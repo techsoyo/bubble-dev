@@ -1,9 +1,22 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
 
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
 
 // Headers de seguridad
 header('Content-Type: application/json; charset=utf-8');
@@ -17,10 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
   exit();
 }
 
-// Ã¢Å“â€¦ REQUERIR AUTENTICACIÃƒâ€œN JWT SIEMPRE
-$userPayload = JWTMiddleware::requireAuth();
-if (!$userPayload) {
-  // JWTMiddleware ya enviÃƒÂ³ la respuesta de error
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ REQUERIR AUTENTICACIÃƒÆ’Ã¢â‚¬Å“N JWT SIEMPRE
+$userPayload = if (!$userPayload) {
+  // JWTMiddleware ya enviÃƒÆ’Ã‚Â³ la respuesta de error
   exit;
 }
 
@@ -40,7 +52,7 @@ try {
     exit;
   }
 
-  // Ã¢Å“â€¦ CONTROL DE ACCESO: Solo el propio candidato o admin/hr pueden ver aplicaciones
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ CONTROL DE ACCESO: Solo el propio candidato o admin/hr pueden ver aplicaciones
   $userRole = $userPayload['role'] ?? 'candidate';
   $currentUserId = $userPayload['user_id'];
 
@@ -62,7 +74,7 @@ try {
     exit;
   }
 
-  // Ã¢Å“â€¦ QUERY SEGURA CON PREPARED STATEMENTS
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ QUERY SEGURA CON PREPARED STATEMENTS
   $sql = "
         SELECT 
             a.id as application_id,
@@ -93,7 +105,7 @@ try {
   $stmt->execute([$requestedCandidateId]);
   $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-  // Ã¢Å“â€¦ FORMATEAR Y LIMPIAR DATOS
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FORMATEAR Y LIMPIAR DATOS
   foreach ($applications as &$app) {
     // Formatear fechas
     if ($app['applied_date']) {
@@ -107,7 +119,7 @@ try {
     $app['score'] = $app['score'] ?? 0;
     $app['cover_letter'] = $app['cover_letter'] ?? '';
 
-    // AÃƒÂ±adir informaciÃƒÂ³n adicional
+    // AÃƒÆ’Ã‚Â±adir informaciÃƒÆ’Ã‚Â³n adicional
     $app['can_withdraw'] = in_array($app['status'], ['pending', 'in_review']);
   }
 
@@ -135,4 +147,5 @@ try {
     'error_code' => 'INTERNAL_ERROR'
   ]);
 }
+
 

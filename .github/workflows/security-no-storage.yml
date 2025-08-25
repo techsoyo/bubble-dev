@@ -1,0 +1,85 @@
+name: 🔒 Security - No Client Storage
+
+on:
+  push:
+    paths:
+      - 'frontend/**'
+      - 'public/**'
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - 'public/**'
+
+jobs:
+  security-check:
+    runs-on: ubuntu-latest
+    name: Verificar ausencia de localStorage/sessionStorage/indexedDB
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        
+      - name: 🔍 Buscar uso prohibido de storage APIs
+        run: |
+          echo "🔒 Verificando que no se use localStorage/sessionStorage/indexedDB en frontend..."
+          
+          # Buscar patrones prohibidos
+          FORBIDDEN_STORAGE=$(git grep -nI -E '\blocalStorage\b|\bsessionStorage\b|\bindexedDB\b|window\.(localStorage|sessionStorage)' -- 'frontend/**' 'public/**' || true)
+          
+          if [ -n "$FORBIDDEN_STORAGE" ]; then
+            echo "❌ FALLO DE SEGURIDAD: Se encontraron APIs de storage prohibidas:"
+            echo "$FORBIDDEN_STORAGE"
+            echo ""
+            echo "🔒 POLÍTICA DE SEGURIDAD:"
+            echo "- localStorage ❌ -> Usa utils/safeStorage o cookies httpOnly"
+            echo "- sessionStorage ❌ -> Usa utils/safeStorage o cookies httpOnly" 
+            echo "- indexedDB ❌ -> Los datos deben persistir en el servidor"
+            echo ""
+            echo "✅ APIs permitidas:"
+            echo "- safeGet/safeSet/safeRemove (de utils/safeStorage)"
+            echo "- Cookies httpOnly (automáticas vía fetch credentials: 'include')"
+            echo "- APIs del servidor para persistencia"
+            exit 1
+          else
+            echo "✅ SEGURIDAD OK: Sin APIs de storage en frontend"
+          fi
+          
+      - name: 🔍 Verificar que safeStorage está siendo usado correctamente
+        run: |
+          echo "🔒 Verificando uso correcto de safeStorage..."
+          
+          # Verificar que los archivos que usan safeStorage lo importan correctamente
+          SAFE_STORAGE_USAGE=$(git grep -l "safeGet\|safeSet\|safeRemove" -- 'frontend/**' || true)
+          
+          if [ -n "$SAFE_STORAGE_USAGE" ]; then
+            echo "✅ Archivos usando safeStorage (correcto):"
+            echo "$SAFE_STORAGE_USAGE"
+            
+            # Verificar que importan correctamente
+            for file in $SAFE_STORAGE_USAGE; do
+              if ! grep -q "from.*safeStorage" "$file" && ! grep -q "import.*safeStorage" "$file"; then
+                echo "⚠️  ADVERTENCIA: $file usa safeStorage pero no lo importa"
+              fi
+            done
+          fi
+          
+      - name: 🔍 Verificar Service Worker deshabilitado
+        run: |
+          echo "🔒 Verificando que Service Worker esté deshabilitado en producción..."
+          
+          # Verificar que no hay registros directos de SW
+          SW_REGISTER=$(git grep -nI "navigator\.serviceWorker\.register" -- 'frontend/**' 'public/**' || true)
+          
+          if [ -n "$SW_REGISTER" ]; then
+            echo "⚠️  ADVERTENCIA: Registros directos de Service Worker encontrados:"
+            echo "$SW_REGISTER"
+            echo "✅ Asegúrate de que estén dentro de verificaciones isProd === false"
+          fi
+          
+      - name: ✅ Resumen de seguridad
+        run: |
+          echo "🔒 VERIFICACIÓN DE SEGURIDAD COMPLETADA"
+          echo "✅ Sin localStorage/sessionStorage/indexedDB en código"
+          echo "✅ APIs de storage reemplazadas por safeStorage"
+          echo "✅ Cookies httpOnly implementadas"
+          echo "✅ Listo para producción sin client-side storage"

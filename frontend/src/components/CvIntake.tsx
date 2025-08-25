@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { safeGet, safeSet, safeRemove } from '../utils/safeStorage';
 import { env } from '../config/env';
 import { parseCv, confirmCv } from '../lib/cvApi';
 import { useCvForm } from '../contexts/CvFormContext';
@@ -84,9 +85,8 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
   useEffect(() => {
     if (flowState === 'idle') {
       try {
-        const raw = localStorage.getItem(storageKey);
-        if (raw) {
-          const draft = JSON.parse(raw) as CvFormData;
+        const draft = safeGet<CvFormData>(storageKey, cvTemplate);
+        if (draft && Object.keys(draft).length > Object.keys(cvTemplate).length) {
           setFormData({ ...cvTemplate, ...draft });
           setFormState('manual');
           setModalOpen(true);
@@ -180,20 +180,20 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
     setGlobalError(null);
     setAlertMsg(null);
     setFormData(cvTemplate);
-    try { localStorage.removeItem(storageKey); } catch { }
+    safeRemove(storageKey);
     setModalOpen(false);
     setLocalFile(null);
     setFormState('idle');
   };
 
   const closeModal = () => {
-    // Guardar borrador automático al cerrar
-    try { localStorage.setItem(storageKey, JSON.stringify(formData)); } catch { }
+    // Guardar borrador automático al cerrar (solo en desarrollo)
+    safeSet(storageKey, formData);
     setModalOpen(false);
   };
 
   const clearDraft = () => {
-    try { localStorage.removeItem(storageKey); } catch { }
+    safeRemove(storageKey);
   };
 
   const handleConfirm = async () => {
@@ -229,7 +229,7 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
   // Autosave continuo cuando se edita (manual o ready) y modal abierto
   useEffect(() => {
     if (modalOpen && (flowState === 'manual' || flowState === 'ready')) {
-      try { localStorage.setItem(storageKey, JSON.stringify(formData)); } catch { }
+      safeSet(storageKey, formData);
     }
   }, [formData, modalOpen, flowState, storageKey]);
 

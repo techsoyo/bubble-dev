@@ -1,4 +1,5 @@
 <?php
+// @public
 
 require_once __DIR__ . '/bootstrap.php';
 // preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
@@ -113,4 +114,3 @@ try {
     http_response_code(500);
     Res::error('Error interno', $e, 500);
 }
-

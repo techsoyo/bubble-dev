@@ -1,8 +1,40 @@
-<?php
+﻿<?php
 
-require_once __DIR__ . '/bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+// cookie HttpOnly obligatoria
+
+// Proteger solo mÃ©todos que cambian estado
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    // double-submit cookie
+}
+
+// En producciÃ³n NO aceptar Authorization header (solo cookie)
+if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
+    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Unauthorized (cookie required)']);
+        exit;
+    }
+}
+
+// ORIGINAL CODE BELOW
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
 require_once __DIR__ . '/../../src/Middleware/SecurityMiddleware.php';
 
 use Models\ApplicationNote;
@@ -29,9 +61,9 @@ try {
                     'application_id' => 'required|string:1,36'
                 ]);
                 if (!$ok) {
-                    Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
+                    Res::error('ValidaciÃƒÆ’Ã‚Â³n fallida', 422, ['errors' => $errs]);
                 }
-                // Ownership: aquÃƒÂ­ podrÃƒÂ­as validar que el usuario tiene acceso a la aplicaciÃƒÂ³n
+                // Ownership: aquÃƒÆ’Ã‚Â­ podrÃƒÆ’Ã‚Â­as validar que el usuario tiene acceso a la aplicaciÃƒÆ’Ã‚Â³n
                 $notes = $noteModel->findByApplicationId($applicationId);
                 Res::success('OK', ['items' => $notes]);
                 break;
@@ -43,9 +75,9 @@ try {
                     'note'           => 'required|string:1,1000'
                 ]);
                 if (!$ok) {
-                    Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
+                    Res::error('ValidaciÃƒÆ’Ã‚Â³n fallida', 422, ['errors' => $errs]);
                 }
-                // Ownership: aquÃƒÂ­ podrÃƒÂ­as validar que el usuario tiene acceso a la aplicaciÃƒÂ³n
+                // Ownership: aquÃƒÆ’Ã‚Â­ podrÃƒÆ’Ã‚Â­as validar que el usuario tiene acceso a la aplicaciÃƒÆ’Ã‚Â³n
                 $existingNotes = $noteModel->findByApplicationId($input['application_id']);
                 $nextIdx = 0;
                 foreach ($existingNotes as $n) {
@@ -63,9 +95,10 @@ try {
                 break;
             }
         default:
-            Res::error('MÃƒÂ©todo no permitido', 405);
+            Res::error('MÃƒÆ’Ã‚Â©todo no permitido', 405);
     }
 } catch (\Throwable $e) {
     Res::error('Error interno del servidor', 500, ['detail' => $e->getMessage()]);
 }
+
 

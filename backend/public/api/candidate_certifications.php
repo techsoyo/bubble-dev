@@ -1,11 +1,26 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
  
-require_once __DIR__ . '/bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
+
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
 require_once __DIR__ . '/../../src/Middleware/SecurityMiddleware.php';
 
 use Middleware\SecurityMiddleware as Sec;
@@ -46,7 +61,7 @@ try {
                 'candidate_id' => 'required|string:1,36|regex:/^cnd-\d+$/'
             ]);
             if (!$ok) {
-                Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
+                Res::error('ValidaciÃƒÆ’Ã‚Â³n fallida', 422, ['errors' => $errs]);
             }
             Sec::assertReadAccessForCandidate((string)$candidateId, $authUser);
             $st = $pdo->prepare('SELECT id, candidate_id, certification_name, issuer, issue_date, expiry_date, created_at
@@ -68,7 +83,7 @@ try {
                 'expiry_date'         => 'string:0,10' // opcional
             ]);
             if (!$ok) {
-                Res::error('ValidaciÃƒÂ³n fallida', 422, ['errors' => $errs]);
+                Res::error('ValidaciÃƒÆ’Ã‚Â³n fallida', 422, ['errors' => $errs]);
             }
             Sec::assertWriteAccessForCandidate((string)$payload['candidate_id'], $authUser);
             $st = $pdo->prepare('INSERT INTO ' . T('candidate_certifications') . '
@@ -81,13 +96,14 @@ try {
                 $payload['issue_date'],
                 $payload['expiry_date'] ?? null
             ]);
-            Res::success('CertificaciÃƒÂ³n agregada', null, 201);
+            Res::success('CertificaciÃƒÆ’Ã‚Â³n agregada', null, 201);
             break;
         }
         default:
-            Res::error('MÃƒÂ©todo no permitido', 405);
+            Res::error('MÃƒÆ’Ã‚Â©todo no permitido', 405);
     }
 } catch (\Throwable $e) {
     Res::exception($e);
 }
+
 

@@ -1,7 +1,33 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
-require_once dirname(__DIR__) . '/bootstrap.php';
+
+
+require_once __DIR__ . '/../bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+// cookie HttpOnly obligatoria
+
+// En producciÃ³n NO aceptar Authorization header (solo cookie)
+if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
+  if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+  }
+}
+
 // Content Type header (CORS ya configurado en bootstrap.php)
 header('Content-Type: application/json');
 
@@ -10,10 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
   exit;
 }
 
-// Permitir tanto GET como POST para verificaciÃƒÂ³n de sesiÃƒÂ³n
+// Permitir tanto GET como POST para verificaciÃƒÆ’Ã‚Â³n de sesiÃƒÆ’Ã‚Â³n
 if (!in_array($_SERVER['REQUEST_METHOD'], ['GET', 'POST'])) {
   http_response_code(405);
-  echo json_encode(['success' => false, 'message' => 'MÃƒÂ©todo no permitido']);
+  echo json_encode(['success' => false, 'message' => 'MÃƒÆ’Ã‚Â©todo no permitido']);
   exit;
 }
 
@@ -22,7 +48,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 try {
-  // Verificar si hay sesiÃƒÂ³n activa
+  // Verificar si hay sesiÃƒÆ’Ã‚Â³n activa
   if (empty($_SESSION['candidate_id'])) {
     http_response_code(200);
     echo json_encode([
@@ -39,7 +65,7 @@ try {
   $candidate = $stmt->fetch(PDO::FETCH_ASSOC);
 
   if (!$candidate) {
-    // Limpiar sesiÃƒÂ³n si el candidato no existe
+    // Limpiar sesiÃƒÆ’Ã‚Â³n si el candidato no existe
     session_destroy();
     http_response_code(200);
     echo json_encode([
@@ -68,3 +94,4 @@ try {
     'message' => 'Internal server error'
   ]);
 }
+

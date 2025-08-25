@@ -2,6 +2,7 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { en, es } from './translations';
 import { languageService } from './languageService';
+import { safeGet, safeSet } from '../../utils/safeStorage';
 
 type Language = 'en' | 'es';
 type Translations = typeof en | typeof es;
@@ -19,10 +20,10 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 // Create a provider component
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Try to get the language from localStorage, or use default
+  // Try to get the language from safe storage, or use default
   const [language, setLanguageState] = useState<Language>(() => {
-    const savedLanguage = localStorage.getItem('language') as Language;
-    return savedLanguage ? savedLanguage : defaultLanguage;
+    const savedLanguage = safeGet<Language>('language', defaultLanguage);
+    return savedLanguage;
   });
 
   // Efecto para cargar el idioma del backend al iniciar la aplicación
@@ -32,7 +33,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
         const backendLanguage = await languageService.getLanguage();
         if (backendLanguage !== language) {
           setLanguageState(backendLanguage);
-          localStorage.setItem('language', backendLanguage);
+          safeSet('language', backendLanguage);
         }
       } catch (error) {
         console.error('Error al obtener el idioma del backend:', error);
@@ -42,9 +43,9 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     fetchLanguage();
   }, []);
 
-  // Save language to localStorage when it changes
+  // Save language to safe storage when it changes (no-op in production)
   useEffect(() => {
-    localStorage.setItem('language', language);
+    safeSet('language', language);
   }, [language]);
 
   // Function to change the language

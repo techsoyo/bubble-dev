@@ -241,16 +241,6 @@ class AppRouter
     $this->protectedRoutes[] = 'news.update';
     $this->protectedRoutes[] = 'news.delete';
 
-    // === CULTURA ===
-    $this->router->map('GET',    '/api/culture',      'CultureController#index',  'culture.index');
-    $this->router->map('POST',   '/api/culture',      'CultureController#store',  'culture.store');
-    $this->router->map('GET',    '/api/culture/[i:id]', 'CultureController#show',  'culture.show');
-    $this->router->map('PUT',    '/api/culture/[i:id]', 'CultureController#update', 'culture.update');
-    $this->router->map('DELETE', '/api/culture/[i:id]', 'CultureController#delete', 'culture.delete');
-    $this->protectedRoutes[] = 'culture.store';
-    $this->protectedRoutes[] = 'culture.update';
-    $this->protectedRoutes[] = 'culture.delete';
-
     // === ENTREVISTAS ===
     $this->router->map('GET',    '/api/interviews',      'InterviewController#index',  'interviews.index');
     $this->router->map('POST',   '/api/interviews',      'InterviewController#store',  'interviews.store');

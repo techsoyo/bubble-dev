@@ -105,28 +105,24 @@ INSERT INTO bt_chatbot_options (id, node_id, text, next_node_id, action_type, ac
 ('opt_7', 'job_search', '🔙 Volver al inicio', 'welcome', 'restart', 
  JSON_OBJECT('analytics_event', 'chatbot_restart_from_jobs'), 3),
 
--- Opciones del nodo company_info
-('opt_8', 'company_info', '🌟 Cultura empresarial', NULL, 'navigate', 
- JSON_OBJECT('url', '/#culture-heading', 'analytics_event', 'chatbot_culture_redirect'), 1),
-
-('opt_9', 'company_info', '📰 Noticias y blog', NULL, 'navigate', 
+('opt_8', 'company_info', '📰 Noticias y blog', NULL, 'navigate', 
  JSON_OBJECT('url', '/blog', 'analytics_event', 'chatbot_blog_redirect'), 2),
 
-('opt_10', 'company_info', '🔙 Volver al inicio', 'welcome', 'restart', 
+('opt_9', 'company_info', '🔙 Volver al inicio', 'welcome', 'restart', 
  JSON_OBJECT('analytics_event', 'chatbot_restart_from_company'), 3),
 
 -- Opciones del nodo application_help
-('opt_11', 'application_help', '📝 Crear CV perfecto', NULL, 'navigate', 
+('opt_10', 'application_help', '📝 Crear CV perfecto', NULL, 'navigate', 
  JSON_OBJECT('url', '/cv-tips', 'analytics_event', 'chatbot_cv_tips_redirect'), 1),
 
-('opt_12', 'application_help', '💡 Consejos de entrevista', NULL, 'navigate', 
+('opt_11', 'application_help', '💡 Consejos de entrevista', NULL, 'navigate', 
  JSON_OBJECT('url', '/interview-tips', 'analytics_event', 'chatbot_interview_tips_redirect'), 2),
 
-('opt_13', 'application_help', '🔙 Volver al inicio', 'welcome', 'restart', 
+('opt_12', 'application_help', '🔙 Volver al inicio', 'welcome', 'restart', 
  JSON_OBJECT('analytics_event', 'chatbot_restart_from_help'), 3),
 
 -- Opciones del nodo contact_info
-('opt_14', 'contact_info', '🔙 Volver al inicio', 'welcome', 'restart', 
+('opt_13', 'contact_info', '🔙 Volver al inicio', 'welcome', 'restart', 
  JSON_OBJECT('analytics_event', 'chatbot_restart_from_contact'), 1);
 
 -- Verificar la estructura creada

@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/JWTHelper.php';
 
+use Security\Cookies;
+
 class JWTMiddleware
 {
   /**
@@ -19,22 +21,39 @@ class JWTMiddleware
    */
   public static function requireAuth(): ?array
   {
-    // Verificar header Authorization
-    $headers = getallheaders();
-    $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
+    $token = null;
 
-    if (!$authHeader) {
-      self::sendUnauthorized('Token de autorización requerido');
-      return null;
+    // En producción: solo cookies por seguridad
+    if (($_ENV['APP_ENV'] ?? 'development') === 'production') {
+      $token = Cookies::getJwt();
+
+      if (!$token) {
+        self::sendUnauthorized('Token de autorización requerido');
+        return null;
+      }
+    } else {
+      // En desarrollo/staging: mantener fallback para compatibilidad
+      // 1. Primero, intentar obtener token desde cookie (método preferido)
+      $token = Cookies::getJwt();
+
+      if (!$token) {
+        // 2. Fallback: verificar header Authorization
+        $headers = getallheaders();
+        $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
+
+        if ($authHeader) {
+          // Extraer token del header "Bearer TOKEN"
+          if (preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+            $token = $matches[1];
+          }
+        }
+      }
+
+      if (!$token) {
+        self::sendUnauthorized('Token de autorización requerido');
+        return null;
+      }
     }
-
-    // Extraer token del header "Bearer TOKEN"
-    if (!preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
-      self::sendUnauthorized('Formato de token inválido');
-      return null;
-    }
-
-    $token = $matches[1];
 
     // Validar token
     $payload = JWTHelper::validateToken($token);
@@ -60,11 +79,26 @@ class JWTMiddleware
   {
     try {
       $db = getDbConnection();
+
+      // Primero intentar en la tabla de candidatos
       $stmt = $db->prepare('SELECT status FROM bt_candidates WHERE id = ?');
       $stmt->execute([$userId]);
-      $user = $stmt->fetch(PDO::FETCH_ASSOC);
+      $candidate = $stmt->fetch(PDO::FETCH_ASSOC);
 
-      return $user && $user['status'] === 'active';
+      if ($candidate) {
+        return $candidate['status'] === 'active';
+      }
+
+      // Si no se encuentra como candidato, verificar en staff
+      $stmt = $db->prepare('SELECT active FROM bt_staff_profiles WHERE id = ?');
+      $stmt->execute([$userId]);
+      $staff = $stmt->fetch(PDO::FETCH_ASSOC);
+
+      if ($staff) {
+        return (bool) $staff['active'];
+      }
+
+      return false;
     } catch (Exception $e) {
       error_log("User verification error: " . $e->getMessage());
       return false;

@@ -1,4 +1,20 @@
-<?php
+﻿<?php
+
+
+
+require_once __DIR__ . '/../bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
 
 /**
  * GET /api/cv/export/{candidate_id}
@@ -24,12 +40,12 @@ if (class_exists('Utils\\Cors')) {
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if ($method !== 'GET') {
-    jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'MÃƒÂ©todo no permitido']]);
+    jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'MÃƒÆ’Ã‚Â©todo no permitido']]);
 }
 
 $allow = (getenv('CV_ALLOW_EXPORT_JSON') === 'true') || (($_ENV['CV_ALLOW_EXPORT_JSON'] ?? '') === 'true');
 if (!$allow) {
-    jsonResponse(403, ['success' => false, 'error' => ['code' => 'EXPORT_DISABLED', 'message' => 'ExportaciÃƒÂ³n deshabilitada']]);
+    jsonResponse(403, ['success' => false, 'error' => ['code' => 'EXPORT_DISABLED', 'message' => 'ExportaciÃƒÆ’Ã‚Â³n deshabilitada']]);
 }
 
 if (class_exists('Utils\\Auth')) {
@@ -41,7 +57,7 @@ $pdo = getDbConnection();
 // Extraer candidate_id de la URL (router simple)
 $uri = $_SERVER['REQUEST_URI'] ?? '';
 if (!preg_match('#/api/cv/export/(\d+)#', $uri, $m)) {
-    jsonResponse(400, ['success' => false, 'error' => ['code' => 'INVALID_ID', 'message' => 'ID invÃƒÂ¡lido']]);
+    jsonResponse(400, ['success' => false, 'error' => ['code' => 'INVALID_ID', 'message' => 'ID invÃƒÆ’Ã‚Â¡lido']]);
 }
 $id = (int)$m[1];
 
@@ -81,3 +97,4 @@ try {
     }
     jsonResponse(500, ['success' => false, 'error' => ['code' => 'EXPORT_ERROR', 'message' => 'Error exportando']]);
 }
+

@@ -1,10 +1,24 @@
-<?php
+﻿<?php
+
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
 /**
  * Endpoint: /api/auth/verify y /api/auth/session
- * Verifica sesiÃƒÂ³n y token JWT
+ * Verifica sesiÃƒÆ’Ã‚Â³n y token JWT
  */
-require_once __DIR__ . '/bootstrap.php';
-
 require_once __DIR__ . '/../../../src/Models/User.php';
 
 use Utils\ResponseHelper as Res;
@@ -21,7 +35,7 @@ try {
         }
     }
     
-    // TambiÃƒÂ©n verificar en cookies
+    // TambiÃƒÆ’Ã‚Â©n verificar en cookies
     if (!$token && isset($_COOKIE['auth_token'])) {
         $token = $_COOKIE['auth_token'];
     }
@@ -36,7 +50,7 @@ try {
     
     if (!$payload) {
         http_response_code(401);
-        Res::error('Token invÃƒÂ¡lido o expirado', 401);
+        Res::error('Token invÃƒÆ’Ã‚Â¡lido o expirado', 401);
         exit;
     }
     
@@ -49,7 +63,7 @@ try {
         exit;
     }
     
-    Res::success('SesiÃƒÂ³n vÃƒÂ¡lida', [
+    Res::success('SesiÃƒÆ’Ã‚Â³n vÃƒÆ’Ã‚Â¡lida', [
         'user' => [
             'id' => $user['id'],
             'email' => $user['email'],
@@ -61,6 +75,7 @@ try {
 } catch (Exception $e) {
     error_log("Session Verification Error: " . $e->getMessage());
     http_response_code(500);
-    Res::error('Error en verificaciÃƒÂ³n de sesiÃƒÂ³n', 500);
+    Res::error('Error en verificaciÃƒÆ’Ã‚Â³n de sesiÃƒÆ’Ã‚Â³n', 500);
 }
 ?>
+

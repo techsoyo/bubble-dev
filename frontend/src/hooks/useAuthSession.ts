@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { SecureAuthManager } from '../lib/auth/secureAuthManager';
 import { User } from '../lib/auth/secureAuthManager';
+import { safeGet, safeSet, safeRemove } from '../utils/safeStorage';
 
 /**
  * Hook personalizado para manejar la sesión de autenticación
@@ -31,42 +32,19 @@ export function useAuthSession() {
                     setIsLoggedIn(true);
                     setUser(res.data.data);
                 } else {
-                    // Como último recurso, verificamos localStorage (en fase de migración)
-                    const localIsLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-                    if (localIsLoggedIn) {
-                        // Si tenemos datos en localStorage pero la API falló, usamos los datos locales
-                        console.warn('Usando datos de autenticación legacy (localStorage). Actualice a cookies seguras.');
-                        setIsLoggedIn(true);
-                        setUser({
-                            id: localStorage.getItem('userId') ?? '',
-                            email: localStorage.getItem('userEmail') ?? '',
-                            role: localStorage.getItem('userRole') || undefined,
-                            ...(localStorage.getItem('userName') && { name: localStorage.getItem('userName') })
-                        } as User);
-                    } else {
-                        setIsLoggedIn(false);
-                        setUser(null);
-                    }
+                    // 🚨 PRODUCCIÓN: Solo cookies httpOnly, no localStorage
+                    // Los datos de autenticación están en cookies seguras automáticamente
+                    setIsLoggedIn(false);
+                    setUser(null);
                 }
             }
         } catch (err) {
             console.error('Error verificando sesión:', err);
 
-            // Verificar localStorage como último recurso
-            const localIsLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            if (localIsLoggedIn) {
-                console.warn('Usando datos de autenticación legacy (localStorage) debido a error. Actualice a cookies seguras.');
-                setIsLoggedIn(true);
-                setUser({
-                    id: localStorage.getItem('userId') ?? '',
-                    email: localStorage.getItem('userEmail') ?? '',
-                    role: localStorage.getItem('userRole') || undefined,
-                    ...(localStorage.getItem('userName') && { name: localStorage.getItem('userName') })
-                } as User);
-            } else {
-                setIsLoggedIn(false);
-                setUser(null);
-            }
+            // 🚨 PRODUCCIÓN: Eliminado localStorage fallback
+            // La autenticación solo se basa en cookies httpOnly seguras
+            setIsLoggedIn(false);
+            setUser(null);
         } finally {
             setIsLoading(false);
         }

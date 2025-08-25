@@ -1,4 +1,20 @@
-<?php
+﻿<?php
+
+
+require_once __DIR__ . '/../bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
 // assigned-candidates.php - Obtener candidatos asignados a un reclutador
 session_start();
 
@@ -89,17 +105,17 @@ try {
             c.created_at,
             c.status,
             
-            -- InformaciÃ³n de departamento del candidato
+            -- InformaciÃƒÂ³n de departamento del candidato
             cd.id as department_id,
             cd.name as candidateDepartment,
             cdc.name as department_category,
             
-            -- InformaciÃ³n de asignaciÃ³n
+            -- InformaciÃƒÂ³n de asignaciÃƒÂ³n
             ca.assigned_at,
             ca.status as assignment_status,
             ca.notes as assignment_notes,
             
-            -- InformaciÃ³n del reclutador
+            -- InformaciÃƒÂ³n del reclutador
             sp.name as recruiterName,
             sp.email as recruiterEmail,
             sp.department as recruiterDepartment
@@ -198,3 +214,4 @@ try {
     'error' => $e->getMessage()
   ]);
 }
+

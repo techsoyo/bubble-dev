@@ -1,7 +1,14 @@
-<?php
+﻿<?php
+// @deprecated - archivo de test, deshabilitar en producciÃ³n
+if ((\['APP_ENV'] ?? 'production') === 'production') {
+    http_response_code(404);
+    exit('Not found');
+}
+
+
 
 // Test simple para verificar que Mistral funciona con timeout largo
-echo "ðŸ” TEST DE MISTRAL CON TIMEOUT EXTENDIDO\n";
+echo "Ã°Å¸â€Â TEST DE MISTRAL CON TIMEOUT EXTENDIDO\n";
 echo "========================================\n\n";
 
 $start_time = microtime(true);
@@ -20,27 +27,28 @@ curl_setopt_array($curl, [
     CURLOPT_TIMEOUT => 120 // 2 minutos
 ]);
 
-echo "ðŸ“¤ Enviando peticiÃ³n a Mistral...\n";
+echo "Ã°Å¸â€œÂ¤ Enviando peticiÃƒÂ³n a Mistral...\n";
 
 $response = curl_exec($curl);
 $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 $time_taken = microtime(true) - $start_time;
 
-echo 'â±ï¸  Tiempo: ' . round($time_taken, 2) . " segundos\n";
+echo 'Ã¢ÂÂ±Ã¯Â¸Â  Tiempo: ' . round($time_taken, 2) . " segundos\n";
 
 if (curl_errno($curl)) {
-    echo 'âŒ Error cURL: ' . curl_error($curl) . "\n";
+    echo 'Ã¢ÂÅ’ Error cURL: ' . curl_error($curl) . "\n";
 } else {
-    echo "âœ… HTTP Code: $httpCode\n";
+    echo "Ã¢Å“â€¦ HTTP Code: $httpCode\n";
 
     $data = json_decode($response, true);
     if (isset($data['response'])) {
-        echo 'âœ… Respuesta de Mistral: ' . trim($data['response']) . "\n";
-        echo "âœ… MISTRAL FUNCIONA CORRECTAMENTE\n\n";
-        echo "ðŸŽ¯ READY PARA PROBAR EL SISTEMA DE RESUMEN\n";
+        echo 'Ã¢Å“â€¦ Respuesta de Mistral: ' . trim($data['response']) . "\n";
+        echo "Ã¢Å“â€¦ MISTRAL FUNCIONA CORRECTAMENTE\n\n";
+        echo "Ã°Å¸Å½Â¯ READY PARA PROBAR EL SISTEMA DE RESUMEN\n";
     } else {
-        echo 'âŒ Respuesta invÃ¡lida: ' . substr($response, 0, 200) . "\n";
+        echo 'Ã¢ÂÅ’ Respuesta invÃƒÂ¡lida: ' . substr($response, 0, 200) . "\n";
     }
 }
 
 curl_close($curl);
+

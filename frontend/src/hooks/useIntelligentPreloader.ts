@@ -24,27 +24,25 @@ export const useIntelligentPreloader = () => {
         import('../pages/dashboard/CDDashboard'),
         import('../pages/jobs/Index'),
 
-        // Precargar UploadCV solo si el user está logueado
-        localStorage.getItem('auth_token') ?
-          import('../components/UploadCV') :
-          Promise.resolve(),
+        // 🚨 PRODUCCIÓN: Preload deshabilitado - sin localStorage
+        // En producción, el preloading es automático por las cookies httpOnly
+        Promise.resolve(),
 
-        // Precargar Estadísticas solo para usuarios HR/Admin
-        shouldPreloadStats() ?
-          import('../pages/dashboard/EstadisticasOptimized') :
-          Promise.resolve(),
+        // 🚨 PRODUCCIÓN: Stats preload deshabilitado - sin localStorage
+        // El servidor determina permisos automáticamente via cookies
+        Promise.resolve(),
       ];
 
       await Promise.allSettled(preloadPromises);
-      console.log('🚀 Critical components preloaded');
+      console.log('🚀 Critical components preloaded (production mode)');
     } catch (error) {
       console.warn('⚠️ Preload failed:', error);
     }
   };
 
   const shouldPreloadStats = (): boolean => {
-    const userRole = localStorage.getItem('user_role');
-    return userRole === 'hr' || userRole === 'admin' || userRole === 'recruiter';
+    // 🚨 PRODUCCIÓN: Sin localStorage, el servidor maneja permisos automáticamente
+    return false;
   };
 };
 

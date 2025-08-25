@@ -72,14 +72,7 @@ return [
   ['DELETE', '/api/chatbot/option/{id}', 'ChatbotController@deleteOption'],
 
   // === CORS catch-all (si usas un CorsController) ===
-  ['OPTIONS', '/{any:.*}', 'CorsController@preflight'],
-
-  // === CultureController ===
-  ['GET', '/api/culture', 'CultureController@index'],
-  ['POST', '/api/culture', 'CultureController@store'],
-  ['GET', '/api/culture/{id}', 'CultureController@show'],
-  ['PUT', '/api/culture/{id}', 'CultureController@update'],
-  ['DELETE', '/api/culture/{id}', 'CultureController@delete'],
+  ['OPTIONS', '/{any:.*}', 'CorsController@preflight'], 
 
   // === CVController ===
   ['POST', '/api/cv/analyze-file', 'CVController@analyzeFile'],

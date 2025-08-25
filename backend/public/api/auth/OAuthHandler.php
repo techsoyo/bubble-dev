@@ -1,4 +1,5 @@
 <?php
+// @public
 
 /**
  * OAuth Handler - Google y LinkedIn

@@ -1,12 +1,28 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
+
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
 /**
- * Endpoint ÃƒÂºnico para anÃƒÂ¡lisis completo de CV
+ * Endpoint ÃƒÆ’Ã‚Âºnico para anÃƒÆ’Ã‚Â¡lisis completo de CV
  * 
- * Soporta anÃƒÂ¡lisis de:
+ * Soporta anÃƒÆ’Ã‚Â¡lisis de:
  * - Texto de CV (usando GroqApiService)  
- * - Archivos PDF (usando GroqApiService con extracciÃƒÂ³n de texto)
+ * - Archivos PDF (usando GroqApiService con extracciÃƒÆ’Ã‚Â³n de texto)
  * - Archivos de texto (TXT, JSON)
  * - Archivos de documentos (DOC, DOCX)
  * 
@@ -14,16 +30,13 @@ declare(strict_types=1);
  * - /api/analyze_cv.php (directo)
  * - /ai/analyze-cv (via index.php)
  * 
- * VersiÃƒÂ³n consolidada usando solo Groq (sin Ollama)
+ * VersiÃƒÆ’Ã‚Â³n consolidada usando solo Groq (sin Ollama)
  * 
  * @version 2.2.0 - Solo Groq API
  * @author Bubble of Talents Team
  */
 
-require_once __DIR__ . '/bootstrap.php';
-
-
-// Ã¢Å“â€¦ HEADERS DE SEGURIDAD FIRST
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ HEADERS DE SEGURIDAD FIRST
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: ' . ($_SERVER['HTTP_ORIGIN'] ?? '*'));
 header('Access-Control-Allow-Credentials: true');
@@ -39,33 +52,32 @@ use Services\GroqApiService;
 use Services\Exceptions\AiUnavailableException;
 use Utils\ResponseHelper;
 
-// Ã¢Å“â€¦ REQUERIR AUTENTICACIÃƒâ€œN JWT SIEMPRE
-$userPayload = JWTMiddleware::requireAuth();
-if (!$userPayload) {
-  // JWTMiddleware ya enviÃƒÂ³ la respuesta de error
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ REQUERIR AUTENTICACIÃƒÆ’Ã¢â‚¬Å“N JWT SIEMPRE
+$userPayload = if (!$userPayload) {
+  // JWTMiddleware ya enviÃƒÆ’Ã‚Â³ la respuesta de error
   exit;
 }
 
-// Ã¢Å“â€¦ CONFIGURACIÃƒâ€œN DE SEGURIDAD MEJORADA
-define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB mÃƒÂ¡ximo (reducido)
-define('MAX_TEXT_LENGTH', 512 * 1024); // 512KB mÃƒÂ¡ximo para texto
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ CONFIGURACIÃƒÆ’Ã¢â‚¬Å“N DE SEGURIDAD MEJORADA
+define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB mÃƒÆ’Ã‚Â¡ximo (reducido)
+define('MAX_TEXT_LENGTH', 512 * 1024); // 512KB mÃƒÆ’Ã‚Â¡ximo para texto
 define('ALLOWED_EXTENSIONS', ['pdf']); // Solo PDFs por seguridad
 define('ALLOWED_MIME_TYPES', ['application/pdf']);
 define('UPLOAD_DIR', dirname(__DIR__, 2) . '/uploads/cvs/');
-define('MAX_DAILY_UPLOADS', 10); // LÃƒÂ­mite diario por usuario
+define('MAX_DAILY_UPLOADS', 10); // LÃƒÆ’Ã‚Â­mite diario por usuario
 
 // Solo POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   http_response_code(405);
   echo json_encode([
     'success' => false,
-    'message' => 'Solo se permite mÃƒÂ©todo POST',
+    'message' => 'Solo se permite mÃƒÆ’Ã‚Â©todo POST',
     'error_code' => 'METHOD_NOT_ALLOWED'
   ]);
   exit;
 }
 
-// Ã¢Å“â€¦ RATE LIMITING POR USUARIO
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ RATE LIMITING POR USUARIO
 $userId = $userPayload['user_id'];
 $rateLimitKey = "cv_upload_$userId";
 
@@ -73,14 +85,14 @@ if (!checkUploadRateLimit($userId)) {
   http_response_code(429);
   echo json_encode([
     'success' => false,
-    'message' => 'Has superado el lÃƒÂ­mite diario de subidas de CV (10 por dÃƒÂ­a)',
+    'message' => 'Has superado el lÃƒÆ’Ã‚Â­mite diario de subidas de CV (10 por dÃƒÆ’Ã‚Â­a)',
     'error_code' => 'RATE_LIMIT_EXCEEDED'
   ]);
   exit;
 }
 
 /**
- * Verificar lÃƒÂ­mite de subidas por usuario
+ * Verificar lÃƒÆ’Ã‚Â­mite de subidas por usuario
  */
 function checkUploadRateLimit(string $userId): bool
 {
@@ -104,7 +116,7 @@ function checkUploadRateLimit(string $userId): bool
 }
 
 /**
- * Valida archivo subido segÃƒÂºn su tipo
+ * Valida archivo subido segÃƒÆ’Ã‚Âºn su tipo
  */
 function validateUploadedFile($fileData, string $userId): array
 {
@@ -112,12 +124,12 @@ function validateUploadedFile($fileData, string $userId): array
   if ($fileData['error'] !== UPLOAD_ERR_OK) {
     $errors = [
       UPLOAD_ERR_INI_SIZE => 'Archivo demasiado grande para PHP',
-      UPLOAD_ERR_FORM_SIZE => 'Archivo excede el lÃƒÂ­mite permitido',
-      UPLOAD_ERR_PARTIAL => 'Archivo se subiÃƒÂ³ parcialmente',
-      UPLOAD_ERR_NO_FILE => 'No se subiÃƒÂ³ ningÃƒÂºn archivo',
+      UPLOAD_ERR_FORM_SIZE => 'Archivo excede el lÃƒÆ’Ã‚Â­mite permitido',
+      UPLOAD_ERR_PARTIAL => 'Archivo se subiÃƒÆ’Ã‚Â³ parcialmente',
+      UPLOAD_ERR_NO_FILE => 'No se subiÃƒÆ’Ã‚Â³ ningÃƒÆ’Ã‚Âºn archivo',
       UPLOAD_ERR_NO_TMP_DIR => 'Error del servidor: carpeta temporal',
       UPLOAD_ERR_CANT_WRITE => 'Error del servidor: no se puede escribir',
-      UPLOAD_ERR_EXTENSION => 'Archivo bloqueado por extensiÃƒÂ³n'
+      UPLOAD_ERR_EXTENSION => 'Archivo bloqueado por extensiÃƒÆ’Ã‚Â³n'
     ];
     return [
       'success' => false,
@@ -125,15 +137,15 @@ function validateUploadedFile($fileData, string $userId): array
     ];
   }
 
-  // Ã¢Å“â€¦ VALIDACIÃƒâ€œN DE TAMAÃƒâ€˜O ESTRICTA
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ VALIDACIÃƒÆ’Ã¢â‚¬Å“N DE TAMAÃƒÆ’Ã¢â‚¬ËœO ESTRICTA
   if ($fileData['size'] > MAX_FILE_SIZE) {
     return [
       'success' => false,
-      'message' => 'Archivo demasiado grande. MÃƒÂ¡ximo ' . (MAX_FILE_SIZE / 1024 / 1024) . 'MB'
+      'message' => 'Archivo demasiado grande. MÃƒÆ’Ã‚Â¡ximo ' . (MAX_FILE_SIZE / 1024 / 1024) . 'MB'
     ];
   }
 
-  // Ã¢Å“â€¦ VALIDACIÃƒâ€œN DE EXTENSIÃƒâ€œN Y MIME TYPE
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ VALIDACIÃƒÆ’Ã¢â‚¬Å“N DE EXTENSIÃƒÆ’Ã¢â‚¬Å“N Y MIME TYPE
   $extension = strtolower(pathinfo($fileData['name'], PATHINFO_EXTENSION));
   if (!in_array($extension, ALLOWED_EXTENSIONS)) {
     return [
@@ -142,7 +154,7 @@ function validateUploadedFile($fileData, string $userId): array
     ];
   }
 
-  // Ã¢Å“â€¦ VALIDACIÃƒâ€œN DE MIME TYPE REAL (no confiar en $_FILES)
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ VALIDACIÃƒÆ’Ã¢â‚¬Å“N DE MIME TYPE REAL (no confiar en $_FILES)
   $finfo = finfo_open(FILEINFO_MIME_TYPE);
   $mimeType = finfo_file($finfo, $fileData['tmp_name']);
   finfo_close($finfo);
@@ -154,16 +166,16 @@ function validateUploadedFile($fileData, string $userId): array
     ];
   }
 
-  // Ã¢Å“â€¦ VALIDACIÃƒâ€œN DE CONTENIDO PDF
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ VALIDACIÃƒÆ’Ã¢â‚¬Å“N DE CONTENIDO PDF
   $fileContent = file_get_contents($fileData['tmp_name']);
   if (substr($fileContent, 0, 4) !== '%PDF') {
     return [
       'success' => false,
-      'message' => 'El archivo no es un PDF vÃƒÂ¡lido'
+      'message' => 'El archivo no es un PDF vÃƒÆ’Ã‚Â¡lido'
     ];
   }
 
-  // Ã¢Å“â€¦ SCAN DE VIRUS BÃƒÂSICO (buscar patrones sospechosos)
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ SCAN DE VIRUS BÃƒÆ’Ã‚ÂSICO (buscar patrones sospechosos)
   if (containsSuspiciousContent($fileContent)) {
     return [
       'success' => false,
@@ -171,11 +183,11 @@ function validateUploadedFile($fileData, string $userId): array
     ];
   }
 
-  return ['success' => true, 'message' => 'Archivo vÃƒÂ¡lido'];
+  return ['success' => true, 'message' => 'Archivo vÃƒÆ’Ã‚Â¡lido'];
 }
 
 /**
- * Detectar contenido sospechoso bÃƒÂ¡sico
+ * Detectar contenido sospechoso bÃƒÆ’Ã‚Â¡sico
  */
 function containsSuspiciousContent(string $content): bool
 {
@@ -230,13 +242,13 @@ function extractTextFromFile($filePath, $extension, $mime)
       return file_get_contents($filePath);
 
     case 'pdf':
-      // Para PDFs, retornar null para usar anÃƒÂ¡lisis directo con Vision
+      // Para PDFs, retornar null para usar anÃƒÆ’Ã‚Â¡lisis directo con Vision
       return null;
 
     case 'doc':
     case 'docx':
-      // TODO: Implementar extracciÃƒÂ³n de Word si es necesario
-      throw new Exception('AnÃƒÂ¡lisis de archivos Word no implementado aÃƒÂºn');
+      // TODO: Implementar extracciÃƒÆ’Ã‚Â³n de Word si es necesario
+      throw new Exception('AnÃƒÆ’Ã‚Â¡lisis de archivos Word no implementado aÃƒÆ’Ã‚Âºn');
 
     default:
       throw new Exception('Tipo de archivo no soportado: ' . $extension);
@@ -255,14 +267,14 @@ try {
   $input = file_get_contents('php://input');
   $data = json_decode($input, true);
 
-  // Si hay error en JSON pero tambiÃƒÂ©n archivos subidos, continuar
+  // Si hay error en JSON pero tambiÃƒÆ’Ã‚Â©n archivos subidos, continuar
   if (json_last_error() !== JSON_ERROR_NONE && empty($_FILES)) {
-    ResponseHelper::error('JSON invÃƒÂ¡lido: ' . json_last_error_msg(), null);
+    ResponseHelper::error('JSON invÃƒÆ’Ã‚Â¡lido: ' . json_last_error_msg(), null);
     http_response_code(400);
     exit;
   }
 
-  // === OPCIÃƒâ€œN 1: Archivo subido ===
+  // === OPCIÃƒÆ’Ã¢â‚¬Å“N 1: Archivo subido ===
   if (isset($_FILES['cv_file']) && $_FILES['cv_file']['error'] !== UPLOAD_ERR_NO_FILE) {
     $fileValidation = validateUploadedFile($_FILES['cv_file'], $userId);
 
@@ -277,7 +289,7 @@ try {
     $mime = $fileValidation['mime'];
 
     if ($extension === 'pdf') {
-      // AnÃƒÂ¡lisis directo de PDF con Vision
+      // AnÃƒÆ’Ã‚Â¡lisis directo de PDF con Vision
       $isPdfAnalysis = true;
       $processingMethod = 'ollama-vision';
     } else {
@@ -286,18 +298,18 @@ try {
       $processingMethod = 'groq-text-from-file';
     }
   }
-  // === OPCIÃƒâ€œN 2: Texto directo en JSON ===
+  // === OPCIÃƒÆ’Ã¢â‚¬Å“N 2: Texto directo en JSON ===
   elseif (isset($data['cv_text'])) {
     $cvText = $data['cv_text'];
     $processingMethod = 'groq-text-direct';
 
     if (strlen($cvText) > MAX_TEXT_LENGTH) {
-      ResponseHelper::error('El texto del CV excede el tamaÃƒÂ±o mÃƒÂ¡ximo permitido.', null);
+      ResponseHelper::error('El texto del CV excede el tamaÃƒÆ’Ã‚Â±o mÃƒÆ’Ã‚Â¡ximo permitido.', null);
       http_response_code(400);
       exit;
     }
   }
-  // === OPCIÃƒâ€œN 3: Archivo de texto por ruta ===
+  // === OPCIÃƒÆ’Ã¢â‚¬Å“N 3: Archivo de texto por ruta ===
   elseif (isset($data['text_file_path'])) {
     $filePath = $data['text_file_path'];
 
@@ -316,27 +328,27 @@ try {
       $cvText = $fileContent;
     }
   } else {
-    ResponseHelper::error('No se proporcionÃƒÂ³ CV. Use cv_file, cv_text o text_file_path.', null);
+    ResponseHelper::error('No se proporcionÃƒÆ’Ã‚Â³ CV. Use cv_file, cv_text o text_file_path.', null);
     http_response_code(400);
     exit;
   }
 
-  // === PROCESAMIENTO SEGÃƒÅ¡N TIPO ===
+  // === PROCESAMIENTO SEGÃƒÆ’Ã…Â¡N TIPO ===
 
   $groqService = new GroqApiService();
 
   if ($isPdfAnalysis) {
-    // AnÃƒÂ¡lisis de PDF con Groq (extrae texto del PDF internamente)
+    // AnÃƒÆ’Ã‚Â¡lisis de PDF con Groq (extrae texto del PDF internamente)
     try {
       $cvData = $groqService->analyzeCvFromPdf($filePath);
       $processingService = 'Groq API (Llama3) - PDF';
     } catch (Exception $e) {
-      ResponseHelper::error('Error en anÃƒÂ¡lisis PDF: ' . $e->getMessage(), $e);
+      ResponseHelper::error('Error en anÃƒÆ’Ã‚Â¡lisis PDF: ' . $e->getMessage(), $e);
       http_response_code(500);
       exit;
     }
   } else {
-    // AnÃƒÂ¡lisis de texto con Groq
+    // AnÃƒÆ’Ã‚Â¡lisis de texto con Groq
     if (empty($cvText)) {
       ResponseHelper::error('No se pudo extraer texto del CV', null);
       http_response_code(400);
@@ -383,4 +395,5 @@ try {
     unlink($filePath);
   }
 }
+
 

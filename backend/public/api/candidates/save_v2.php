@@ -1,18 +1,49 @@
-<?php
+﻿<?php
 
+
+require_once __DIR__ . '/../bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+// cookie HttpOnly obligatoria
+
+// Proteger solo mÃ©todos que cambian estado
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    // double-submit cookie
+}
+
+// En producciÃ³n NO aceptar Authorization header (solo cookie)
+if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
+    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Unauthorized (cookie required)']);
+        exit;
+    }
+}
+
+// ORIGINAL CODE BELOW
 /**
- * Endpoint para guardar datos de candidato extraÃ­dos por IA
- * VersiÃ³n actualizada con esquema de BD correcto
+ * Endpoint para guardar datos de candidato extraÃƒÂ­dos por IA
+ * VersiÃƒÂ³n actualizada con esquema de BD correcto
  */
-
-require_once dirname(__DIR__) . '/bootstrap.php';
 
 use Utils\ResponseHelper;
 use Utils\Database;
 
-// Solo permitir mÃ©todo POST
+// Solo permitir mÃƒÂ©todo POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-  ResponseHelper::error('MÃ©todo no permitido', 405);
+  ResponseHelper::error('MÃƒÂ©todo no permitido', 405);
   exit;
 }
 
@@ -22,11 +53,11 @@ try {
   $data = json_decode($input, true);
 
   if (json_last_error() !== JSON_ERROR_NONE) {
-    ResponseHelper::error('JSON invÃ¡lido: ' . json_last_error_msg(), 400);
+    ResponseHelper::error('JSON invÃƒÂ¡lido: ' . json_last_error_msg(), 400);
     exit;
   }
 
-  // Validar campos mÃ­nimos requeridos
+  // Validar campos mÃƒÂ­nimos requeridos
   if (empty($data['nombre']) || empty($data['email'])) {
     ResponseHelper::error('Faltan campos requeridos: nombre y email', 400);
     exit;
@@ -35,10 +66,10 @@ try {
   $db = Database::getInstance();
   $pdo = $db->getConnection();
 
-  // Iniciar transacciÃ³n
+  // Iniciar transacciÃƒÂ³n
   $pdo->beginTransaction();
 
-  // Generar ID Ãºnico para el candidato
+  // Generar ID ÃƒÂºnico para el candidato
   $candidateId = uniqid('cnd-');
 
   // Extraer nombre y apellido del nombre completo
@@ -105,7 +136,7 @@ try {
         ");
 
     foreach ($data['puestos_anteriores'] as $exp) {
-      // Validar y limpiar fechas vacÃ­as
+      // Validar y limpiar fechas vacÃƒÂ­as
       $startDate = (!empty($exp['fecha_inicio']) && $exp['fecha_inicio'] !== '') ? $exp['fecha_inicio'] : null;
       $endDate = (!empty($exp['fecha_fin']) && $exp['fecha_fin'] !== '') ? $exp['fecha_fin'] : null;
 
@@ -122,7 +153,7 @@ try {
     }
   }
 
-  // Insertar educaciÃ³n
+  // Insertar educaciÃƒÂ³n
   if (!empty($data['educacion']) && is_array($data['educacion'])) {
     $eduStmt = $pdo->prepare("
             INSERT INTO bt_candidate_education (
@@ -132,7 +163,7 @@ try {
         ");
 
     foreach ($data['educacion'] as $edu) {
-      // Validar y limpiar fechas vacÃ­as
+      // Validar y limpiar fechas vacÃƒÂ­as
       $startDate = (!empty($edu['fecha_inicio']) && $edu['fecha_inicio'] !== '') ? $edu['fecha_inicio'] : null;
       $endDate = (!empty($edu['fecha_fin']) && $edu['fecha_fin'] !== '') ? $edu['fecha_fin'] : null;
 
@@ -158,7 +189,7 @@ try {
         ");
 
     foreach ($data['certificaciones_detalle'] as $cert) {
-      // Validar y limpiar fechas vacÃ­as
+      // Validar y limpiar fechas vacÃƒÂ­as
       $issueDate = (!empty($cert['fecha_emision']) && $cert['fecha_emision'] !== '') ? $cert['fecha_emision'] : null;
       $expiryDate = (!empty($cert['fecha_expiracion']) && $cert['fecha_expiracion'] !== '') ? $cert['fecha_expiracion'] : null;
 
@@ -199,7 +230,7 @@ try {
         ");
 
     foreach ($data['proyectos'] as $proyecto) {
-      // Validar y limpiar fechas vacÃ­as
+      // Validar y limpiar fechas vacÃƒÂ­as
       $startDate = (!empty($proyecto['fecha_inicio']) && $proyecto['fecha_inicio'] !== '') ? $proyecto['fecha_inicio'] : null;
       $endDate = (!empty($proyecto['fecha_fin']) && $proyecto['fecha_fin'] !== '') ? $proyecto['fecha_fin'] : null;
 
@@ -235,7 +266,7 @@ try {
     }
   }
 
-  // Confirmar transacciÃ³n
+  // Confirmar transacciÃƒÂ³n
   $pdo->commit();
 
   ResponseHelper::success('Candidato creado exitosamente', [
@@ -243,7 +274,7 @@ try {
     'data_source' => $data['data_source'] ?? 'ai_processing'
   ], 201);
 } catch (Exception $e) {
-  // Revertir transacciÃ³n en caso de error
+  // Revertir transacciÃƒÂ³n en caso de error
   if (isset($pdo) && $pdo->inTransaction()) {
     $pdo->rollBack();
   }
@@ -251,3 +282,4 @@ try {
   error_log("Error guardando candidato: " . $e->getMessage());
   ResponseHelper::error('Error interno del servidor: ' . $e->getMessage(), 500);
 }
+

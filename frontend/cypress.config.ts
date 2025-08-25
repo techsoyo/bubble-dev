@@ -28,3 +28,5 @@ export default defineConfig({
       candidatePassword: fromEnv("CYPRESS_CANDIDATE_PASSWORD", ""),
       tokenStorageKey: fromEnv("CYPRESS_TOKEN_STORAGE_KEY", "auth_token"),
     }
+  }
+});

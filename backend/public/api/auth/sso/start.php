@@ -1,6 +1,10 @@
 <?php
-
+// @public
 declare(strict_types=1);
+
+require_once __DIR__ . '/../../bootstrap.php';
+// NO JWTMiddleware::requireAuth() aquí - endpoint público (start SSO)
+// NO CsrfMiddleware::protect() aquí - inicia flujo SSO (no modifica estado aún)
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
   session_start();

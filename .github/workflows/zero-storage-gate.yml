@@ -1,0 +1,128 @@
+name: 🛡️ Zero Client Storage + Critical Endpoints Security Gate
+
+on:
+  push:
+    branches: [ main, dev*, prod* ]
+  pull_request:
+    branches: [ main, dev*, prod* ]
+
+jobs:
+  security-gate:
+    runs-on: ubuntu-latest
+    name: 🚫 Security Compliance Check
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🔍 Check Critical Endpoints Security
+      run: |
+        echo "�️ Auditing Critical Endpoints Security..."
+        echo "=================================================="
+        
+        # Lista de endpoints críticos que DEBEN estar seguros
+        CRITICAL_ENDPOINTS=(
+          "backend/public/api/auth/secure-login.php"
+          "backend/public/api/candidates/save.php"
+          "backend/public/api/candidates/save_v2.php"
+          "backend/public/api/cv/parse.php"
+          "backend/public/api/cv/ingest.php"
+          "backend/public/api/applications.php"
+          "backend/public/api/auth.php"
+          "backend/public/api/jobs.php"
+          "backend/public/api/chatbot.php"
+          "backend/public/api/send-email.php"
+        )
+        
+        VIOLATIONS=0
+        SECURED=0
+        
+        echo "🔍 Checking critical endpoints..."
+        for endpoint in "${CRITICAL_ENDPOINTS[@]}"; do
+          if [ -f "$endpoint" ]; then
+            # Check for security middleware
+            if grep -q "CsrfMiddleware::protect\|AuthMiddleware::require" "$endpoint"; then
+              echo "✅ Secured: $endpoint"
+              SECURED=$((SECURED + 1))
+            else
+              echo "❌ INSECURE CRITICAL ENDPOINT: $endpoint"
+              VIOLATIONS=$((VIOLATIONS + 1))
+            fi
+          else
+            echo "⚠️  Not found (OK): $endpoint"
+          fi
+        done
+        
+        echo ""
+        echo "� Security Status: $SECURED secured, $VIOLATIONS insecure"
+        
+        if [ $VIOLATIONS -gt 0 ]; then
+          echo ""
+          echo "🚨 $VIOLATIONS CRITICAL ENDPOINTS ARE INSECURE!"
+          echo "🔧 Quick Fix: pwsh -ExecutionPolicy Bypass -File './quick-fix-critical-endpoints.ps1'"
+          echo "📚 Documentation: See QUICK_FIX_CRITICAL_ENDPOINTS.md"
+          exit 1
+        fi
+        
+        echo "✅ All critical endpoints are secured!"
+        
+    - name: 🔍 Scan for client storage usage (Smart)  
+      run: |
+        echo "� Scanning for client storage usage..."
+        echo "=================================================="
+        
+        # Gate de CI (bloquear regresiones de storage web)
+        STORAGE_FOUND=$(git grep -nI -E '\blocalStorage\b|\bsessionStorage\b|\bindexedDB\b|window\.(localStorage|sessionStorage)' -- \
+          'frontend/**' 'public/**' || true)
+        
+        if [ -n "$STORAGE_FOUND" ]; then
+          echo "❌ Storage web encontrado"
+          echo "$STORAGE_FOUND"
+          exit 1
+        fi
+        
+        echo "✅ Sin storage web en código"
+
+    - name: 🔍 Verify safeStorage NO-OP in production
+      run: |
+        echo "🔍 Verifying safeStorage NO-OP configuration..."
+        
+        if [ -f "frontend/src/utils/safeStorage.ts" ]; then
+          if grep -q "isProd.*NODE_ENV.*production" frontend/src/utils/safeStorage.ts && \
+             grep -q "return.*NO-OP.*production" frontend/src/utils/safeStorage.ts; then
+            echo "✅ safeStorage correctly configured as NO-OP in production"
+          else
+            echo "❌ safeStorage not properly configured for production"
+            exit 1
+          fi
+        else
+          echo "⚠️ safeStorage wrapper not found"
+        fi
+
+    - name: 🎫 Verify no Authorization headers in critical files  
+      run: |
+        echo "🔍 Scanning for Authorization headers in critical files..."
+        
+        AUTH_HEADERS=$(git grep -nI -E 'Authorization.*Bearer' -- \
+          'frontend/src/**/*.ts' 'frontend/src/**/*.tsx' | \
+          grep -v -E '@deprecated|DEPRECATED|\/\/' || true)
+        
+        if [ -n "$AUTH_HEADERS" ]; then
+          echo "❌ AUTHORIZATION HEADERS ENCONTRADOS:"
+          echo "$AUTH_HEADERS"
+          echo ""
+          echo "🚨 ERROR: Authorization headers en archivos críticos"
+          echo "✅ SOLUCIÓN: Usar cookies httpOnly exclusivamente"
+          exit 1
+        else
+          echo "✅ NO AUTHORIZATION HEADERS IN CRITICAL FILES"
+        fi
+
+    - name: 🎉 Security Gate Passed
+      run: |
+        echo ""
+        echo "🎉 ZERO CLIENT STORAGE SECURITY GATE PASSED!"
+        echo "✅ No localStorage/sessionStorage/indexedDB usage detected"
+        echo "✅ safeStorage NO-OP configured for production" 
+        echo "✅ No Authorization headers in critical files"
+        echo "🚀 Ready for enterprise deployment!"

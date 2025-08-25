@@ -4,6 +4,7 @@
  */
 
 import { onCLS, onINP, onFCP, onLCP, onTTFB } from 'web-vitals';
+import { safeGet, safeSet } from './safeStorage';
 
 interface WebVitalMetric {
   name: string;
@@ -106,9 +107,7 @@ class WebVitalsMonitor {
 
   private storeLocally(metric: WebVitalMetric): void {
     try {
-      const existingMetrics = JSON.parse(
-        localStorage.getItem('webVitals') || '[]'
-      );
+      const existingMetrics = safeGet<any[]>('webVitals', []);
 
       existingMetrics.push({
         ...metric,
@@ -116,9 +115,9 @@ class WebVitalsMonitor {
         url: location.href,
       });
 
-      // Mantener solo las últimas 50 métricas
+      // Mantener solo las últimas 50 métricas (no-op en producción)
       const recentMetrics = existingMetrics.slice(-50);
-      localStorage.setItem('webVitals', JSON.stringify(recentMetrics));
+      safeSet('webVitals', recentMetrics);
     } catch (error) {
       console.warn('Error storing web vital locally:', error);
     }

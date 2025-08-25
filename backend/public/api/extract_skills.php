@@ -1,11 +1,26 @@
-<?php
+﻿<?php
 
-require_once __DIR__ . '/bootstrap.php';
-// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÂ¡ticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÂ¡ticamente en bootstrap.php
+
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
 
 /**
- * Endpoint: ExtracciÃƒÂ³n de habilidades
+ * Endpoint: ExtracciÃƒÆ’Ã‚Â³n de habilidades
  * POST /ai/extract-skills
  */
 
@@ -48,15 +63,16 @@ try {
     ]);
 
 
-    // Crear servicio de integraciÃƒÂ³n IA (OpenAI-ready)
+    // Crear servicio de integraciÃƒÆ’Ã‚Â³n IA (OpenAI-ready)
     $aiService = new AIIntegrationService();
 
     // Extraer habilidades usando IA
     $result = $aiService->extractSkills($cvText);
 
-    ResponseHelper::success('Habilidades extraÃƒÂ­das correctamente', $result);
+    ResponseHelper::success('Habilidades extraÃƒÆ’Ã‚Â­das correctamente', $result);
 } catch (Exception $e) {
     ResponseHelper::log('error', 'Error extrayendo habilidades: ' . $e->getMessage());
     ResponseHelper::error('Error al extraer habilidades: ' . $e->getMessage(), 500);
 }
+
 

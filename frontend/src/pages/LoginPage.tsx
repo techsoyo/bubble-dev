@@ -38,9 +38,10 @@ const LoginPage: React.FC = () => {
       if (res.data && res.data.success) {
         const { token, user, expires_in } = res.data.data;
 
-        // Guardar token si es necesario
+        // 🚨 DEPRECATED: Token guardado en localStorage (ya no necesario)
+        // En producción, la autenticación es automática vía cookies httpOnly
         if (token) {
-          localStorage.setItem('auth_token', token);
+          console.warn('🔒 Token recibido pero no guardado - usando cookies httpOnly en producción');
         }
 
 

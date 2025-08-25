@@ -1,8 +1,33 @@
-<?php
+﻿<?php
 
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+// cookie HttpOnly obligatoria
+
+// En producciÃ³n NO aceptar Authorization header (solo cookie)
+if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
+    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Unauthorized (cookie required)']);
+        exit;
+    }
+}
+
+// ORIGINAL CODE BELOW
 declare(strict_types=1);
-
-require_once __DIR__ . '/bootstrap.php';
 
 // Content Type header (CORS ya configurado en bootstrap.php)
 header('Content-Type: application/json');
@@ -17,7 +42,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 try {
-  // Verificar si hay sesiÃƒÂ³n activa
+  // Verificar si hay sesiÃƒÆ’Ã‚Â³n activa
   if (empty($_SESSION['candidate_id'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'No authenticated']);
@@ -29,13 +54,13 @@ try {
   // Conectar a la base de datos
   $db = getDBConnection();
 
-  // Obtener las preferencias de notificaciÃƒÂ³n del candidato
+  // Obtener las preferencias de notificaciÃƒÆ’Ã‚Â³n del candidato
   $stmt = $db->prepare("SELECT application_updates, new_jobs, reminders FROM bt_notification_preferences WHERE candidate_id = ?");
   $stmt->execute([$candidateId]);
   $preferences = $stmt->fetch(PDO::FETCH_ASSOC);
 
   if ($preferences) {
-    // Convertir valores numÃƒÂ©ricos a booleanos
+    // Convertir valores numÃƒÆ’Ã‚Â©ricos a booleanos
     $preferences['application_updates'] = (bool)$preferences['application_updates'];
     $preferences['new_jobs'] = (bool)$preferences['new_jobs'];
     $preferences['reminders'] = (bool)$preferences['reminders'];
@@ -65,5 +90,6 @@ try {
     'message' => 'Error interno del servidor'
   ]);
 }
+
 
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { RecommendationEngine, RecommendationRequest, RecommendationResult, RecommendationFilters } from '../services/ai/RecommendationEngine';
+import { safeGet, safeSet } from '../utils/safeStorage';
 
 // Interfaces para el hook
 interface UseAIRecommendationsProps {
@@ -193,16 +194,14 @@ const useAIRecommendations = ({
       return newSet;
     });
 
-    // Persistir en localStorage
-    const bookmarks = JSON.parse(localStorage.getItem('ai-bookmarks') || '[]');
+    // Persistir en safe storage (no-op en producción)
+    const bookmarks = safeGet<string[]>('ai-bookmarks', []);
     const isBookmarked = bookmarks.includes(recommendationId);
 
     if (isBookmarked) {
-      localStorage.setItem('ai-bookmarks', JSON.stringify(
-        bookmarks.filter((id: string) => id !== recommendationId)
-      ));
+      safeSet('ai-bookmarks', bookmarks.filter((id: string) => id !== recommendationId));
     } else {
-      localStorage.setItem('ai-bookmarks', JSON.stringify([...bookmarks, recommendationId]));
+      safeSet('ai-bookmarks', [...bookmarks, recommendationId]);
     }
   }, []);
 
@@ -214,18 +213,18 @@ const useAIRecommendations = ({
       recommendations: prev.recommendations.filter(r => r.id !== recommendationId)
     }));
 
-    // Persistir en localStorage
-    const dismissed = JSON.parse(localStorage.getItem('ai-dismissed') || '[]');
-    localStorage.setItem('ai-dismissed', JSON.stringify([...dismissed, recommendationId]));
+    // Persistir en safe storage (no-op en producción)
+    const dismissed = safeGet<string[]>('ai-dismissed', []);
+    safeSet('ai-dismissed', [...dismissed, recommendationId]);
   }, []);
 
   // Función para aplicar a recomendación
   const applyToRecommendation = useCallback((recommendationId: string) => {
     setAppliedIds(prev => new Set([...prev, recommendationId]));
 
-    // Persistir en localStorage
-    const applied = JSON.parse(localStorage.getItem('ai-applied') || '[]');
-    localStorage.setItem('ai-applied', JSON.stringify([...applied, recommendationId]));
+    // Persistir en safe storage (no-op en producción)
+    const applied = safeGet<string[]>('ai-applied', []);
+    safeSet('ai-applied', [...applied, recommendationId]);
   }, []);
 
   // Función para obtener recomendaciones por categoría
@@ -327,9 +326,9 @@ const useAIRecommendations = ({
 
   // Cargar datos persistidos al inicializar
   useEffect(() => {
-    const bookmarks = JSON.parse(localStorage.getItem('ai-bookmarks') || '[]');
-    const dismissed = JSON.parse(localStorage.getItem('ai-dismissed') || '[]');
-    const applied = JSON.parse(localStorage.getItem('ai-applied') || '[]');
+    const bookmarks = safeGet<string[]>('ai-bookmarks', []);
+    const dismissed = safeGet<string[]>('ai-dismissed', []);
+    const applied = safeGet<string[]>('ai-applied', []);
 
     setBookmarkedIds(new Set(bookmarks));
     setDismissedIds(new Set(dismissed));

@@ -1,4 +1,5 @@
 import { Candidate, Job, Company } from './types';
+import { safeGet } from '../../utils/safeStorage';
 
 export interface MatchingRequest {
   candidateId?: string;
@@ -441,8 +442,10 @@ export class IntelligentMatching {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        }
+          // 🔒 PRODUCCIÓN: Autenticación automática vía cookies httpOnly
+          // Authorization header removido por seguridad
+        },
+        credentials: 'include' // Incluir cookies httpOnly automáticamente
       });
 
       if (!response.ok) {
@@ -469,8 +472,10 @@ export class IntelligentMatching {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        }
+          // 🔒 PRODUCCIÓN: Autenticación automática vía cookies httpOnly
+          // Authorization header removido por seguridad
+        },
+        credentials: 'include' // Incluir cookies httpOnly automáticamente
       });
 
       if (!response.ok) {

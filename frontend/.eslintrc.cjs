@@ -34,7 +34,42 @@ module.exports = {
     'no-control-regex': 'warn', // Cambio de error a warning
     'react/react-in-jsx-scope': 'off',
     'react-hooks/rules-of-hooks': 'error',
-    'react-hooks/exhaustive-deps': 'warn'
+    'react-hooks/exhaustive-deps': 'warn',
+
+    // 🚨 PRODUCCIÓN: Prohibir storage APIs por seguridad
+    'no-restricted-globals': [
+      'error',
+      {
+        'name': 'localStorage',
+        'message': '🔒 localStorage PROHIBIDO en producción. Usa safeStorage o cookies httpOnly'
+      },
+      {
+        'name': 'sessionStorage',
+        'message': '🔒 sessionStorage PROHIBIDO en producción. Usa safeStorage o cookies httpOnly'
+      },
+      {
+        'name': 'indexedDB',
+        'message': '🔒 indexedDB PROHIBIDO en producción. Los datos deben persistir en el servidor'
+      }
+    ],
+    'no-restricted-properties': [
+      'error',
+      {
+        'object': 'window',
+        'property': 'localStorage',
+        'message': '🔒 window.localStorage PROHIBIDO en producción. Usa utils/safeStorage'
+      },
+      {
+        'object': 'window',
+        'property': 'sessionStorage',
+        'message': '🔒 window.sessionStorage PROHIBIDO en producción. Usa utils/safeStorage'
+      },
+      {
+        'object': 'window',
+        'property': 'indexedDB',
+        'message': '🔒 window.indexedDB PROHIBIDO en producción. Los datos van al servidor'
+      }
+    ]
   },
   ignorePatterns: [
     'node_modules/',

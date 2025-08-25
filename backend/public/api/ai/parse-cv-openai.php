@@ -1,10 +1,43 @@
-<?php
+﻿<?php
 
+
+require_once __DIR__ . '/../bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+// cookie HttpOnly obligatoria
+
+// Proteger solo mÃ©todos que cambian estado
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+    // double-submit cookie
+}
+
+// En producciÃ³n NO aceptar Authorization header (solo cookie)
+if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
+    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Unauthorized (cookie required)']);
+        exit;
+    }
+}
+
+// ORIGINAL CODE BELOW
 /**
  * CV Parsing Service with OpenAI Integration
  *
  * Este endpoint reemplaza la funcionalidad del MVP para procesar CVs.
- * Ahora usa OpenAI para extraer informaciÃƒÂ³n de archivos PDF y DOCX.
+ * Ahora usa OpenAI para extraer informaciÃƒÆ’Ã‚Â³n de archivos PDF y DOCX.
  *
  * @package Backend\API\AI
  * @version 2.0.0
@@ -30,7 +63,7 @@ error_log('CV Parse Request - Origin: ' . ($_SERVER['HTTP_ORIGIN'] ?? 'No origin
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['error' => 'MÃƒÂ©todo no permitido']);
+    echo json_encode(['error' => 'MÃƒÆ’Ã‚Â©todo no permitido']);
     exit;
 }
 
@@ -38,7 +71,7 @@ try {
     // Verificar que se haya subido un archivo
     if (!isset($_FILES['cv_file'])) {
         http_response_code(400);
-        echo json_encode(['error' => 'No se encontrÃƒÂ³ el archivo CV']);
+        echo json_encode(['error' => 'No se encontrÃƒÆ’Ã‚Â³ el archivo CV']);
         exit;
     }
 
@@ -65,10 +98,10 @@ try {
         exit;
     }
 
-    // Verificar tamaÃƒÂ±o (10MB mÃƒÂ¡ximo)
+    // Verificar tamaÃƒÆ’Ã‚Â±o (10MB mÃƒÆ’Ã‚Â¡ximo)
     if ($file['size'] > 10 * 1024 * 1024) {
         http_response_code(400);
-        echo json_encode(['error' => 'El archivo es demasiado grande. MÃƒÂ¡ximo 10MB']);
+        echo json_encode(['error' => 'El archivo es demasiado grande. MÃƒÆ’Ã‚Â¡ximo 10MB']);
         exit;
     }
 
@@ -84,7 +117,7 @@ try {
         }
     }
 
-    // Generar nombre ÃƒÂºnico para el archivo
+    // Generar nombre ÃƒÆ’Ã‚Âºnico para el archivo
     $timestamp = date('Y-m-d_H-i-s');
     $userSlug = preg_replace('/[^a-zA-Z0-9]/', '_', $userEmail);
     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
@@ -108,8 +141,8 @@ try {
         if ($file['type'] === 'application/pdf') {
             $extractedText = $pdfExtractorService->extractText($cvPath);
         } else {
-            // Para archivos DOCX, por ahora usaremos el mismo mÃƒÂ©todo
-            // En futuro se puede agregar soporte especÃƒÂ­fico para DOCX
+            // Para archivos DOCX, por ahora usaremos el mismo mÃƒÆ’Ã‚Â©todo
+            // En futuro se puede agregar soporte especÃƒÆ’Ã‚Â­fico para DOCX
             $extractedText = $pdfExtractorService->extractText($cvPath);
         }
     } catch (\Exception $e) {
@@ -124,7 +157,7 @@ try {
         exit;
     }
 
-    // Guardar texto extraÃƒÂ­do
+    // Guardar texto extraÃƒÆ’Ã‚Â­do
     $textFilename = "cv_{$userSlug}_{$timestamp}.txt";
     $textPath = $textsDir . '/' . $textFilename;
     file_put_contents($textPath, $extractedText);
@@ -168,3 +201,4 @@ try {
         'message' => $e->getMessage()
     ]);
 }
+

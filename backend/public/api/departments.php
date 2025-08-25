@@ -1,6 +1,32 @@
-<?php
+﻿<?php
 
-require_once __DIR__ . '/bootstrap.php';
+
+require_once __DIR__ . '/./bootstrap.php';
+JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+    CsrfMiddleware::protect(); // double-submit cookie
+}
+
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+}
+
+// cookie HttpOnly obligatoria
+
+// En producciÃ³n NO aceptar Authorization header (solo cookie)
+if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
+    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Unauthorized (cookie required)']);
+        exit;
+    }
+}
+
+// ORIGINAL CODE BELOW
 require_once __DIR__ . '/../../config/database.php';
 
 if (!function_exists('db')) {
@@ -53,22 +79,28 @@ try {
             }
             break;
         case 'POST':
+            // En producción, insertar en BD real
+            if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
+                http_response_code(501);
+                echo json_encode(['error' => 'Department creation not implemented']);
+                exit;
+            }
+
             $input = json_decode(file_get_contents('php://input'), true);
             $department = [
-                'id' => rand(1000, 9999),
+                'id' => 1001, // ID fijo para desarrollo
                 'name' => $input['name'] ?? 'Nuevo Departamento',
-                'description' => $input['description'] ?? 'DescripciÃ³n del departamento',
+                'description' => $input['description'] ?? 'Descripción del departamento',
                 'active' => true,
                 'created_at' => date('Y-m-d H:i:s')
             ];
-            echo json_encode(['ok' => true, 'message' => 'Departamento creado exitosamente', 'data' => $department]);
+            echo json_encode(['ok' => true, 'message' => 'Departamento creado exitosamente (dev)', 'data' => $department]);
             break;
         default:
             http_response_code(405);
-            echo json_encode(['ok' => false, 'message' => 'MÃ©todo no permitido', 'data' => null]);
+            echo json_encode(['ok' => false, 'message' => 'MÃƒÂ©todo no permitido', 'data' => null]);
     }
 } catch (Throwable $e) {
     http_response_code(500);
     echo json_encode(['ok' => false, 'message' => 'Error', 'data' => ['error' => $e->getMessage()]]);
 }
-

@@ -191,11 +191,6 @@ $router->get('/api/job_benefits.php', 'JobBenefitController@index');
 $router->get('/api/job_requirements.php', 'JobRequirementController@index');
 $router->get('/api/job_skills.php', 'JobSkillController@index');
 
-// =====================================================
-// 12. ENDPOINTS DE CONTENIDO Y CULTURA
-// =====================================================
-$router->get('/api/culture.php', 'CultureController@index');
-$router->get('/api/news.php', 'NewsController@index');
 
 // =====================================================
 // 13. ENDPOINTS DE CHATBOT E IA

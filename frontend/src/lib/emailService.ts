@@ -5,6 +5,8 @@
  * Replaces the previous mock implementation for production use.
  */
 
+import { safeGet, safeSet, safeRemove } from '../utils/safeStorage';
+
 interface EmailOptions {
   to: string;
   subject: string;
@@ -190,7 +192,7 @@ export const sendCandidateStatusUpdateNotification = async (
 };
 
 /**
- * Gets the email history from localStorage
+ * Gets the email history from safe storage (no-op en producción)
  * This is for demo purposes in the MVP - in production this would come from a database
  */
 export const getEmailHistory = (): Array<{
@@ -200,13 +202,13 @@ export const getEmailHistory = (): Array<{
   body: string;
   success: boolean;
 }> => {
-  return JSON.parse(localStorage.getItem('emailHistory') || '[]');
+  return safeGet<any[]>('emailHistory', []);
 };
 
 /**
- * Clear the email history from localStorage
+ * Clear the email history from safe storage (no-op en producción)
  * This is for demo purposes in the MVP
  */
 export const clearEmailHistory = (): void => {
-  localStorage.removeItem('emailHistory');
+  safeRemove('emailHistory');
 };

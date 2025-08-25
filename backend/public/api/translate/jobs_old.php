@@ -1,4 +1,10 @@
 <?php
+// @deprecated - archivo legacy, deshabilitar en producción
+if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
+  http_response_code(404);
+  exit('Not found');
+}
+
 // backend/api/translate/jobs.php
 // REDIRIGIDO A JobTranslate class en jobs.php
 

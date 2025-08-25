@@ -27,7 +27,7 @@ class ResponseHelper
         return false;
     }
 
-    public static function error(string $message = 'Internal Server Error', \Throwable $e = null, int $status = 500)
+    public static function error(string $message = 'Internal Server Error', ?\Throwable $e = null, int $status = 500)
     {
         http_response_code($status);
         header('Content-Type: application/json; charset=UTF-8');

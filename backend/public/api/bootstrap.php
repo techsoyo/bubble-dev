@@ -6,24 +6,33 @@ declare(strict_types=1);
  * Bootstrap puente para endpoints bajo public/api/*
  * Asegura que el bootstrap principal con CORS se cargue para todos los endpoints API
  */
-// Evitar doble carga
 if (!defined('API_BOOTSTRAPPED')) {
     define('API_BOOTSTRAPPED', true);
 
-// Ruta al bootstrap principal con configuración CORS
-$mainBootstrap = __DIR__ . '/../../config/bootstrap.php';
+    // 1) Cargar SIEMPRE el bootstrap principal (define BASE_PATH, CORS, autoloader, etc.)
+    $mainBootstrap = __DIR__ . '/../../config/bootstrap.php';
+    if (!is_file($mainBootstrap)) {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode([
+            'success' => false,
+            'message' => 'Bootstrap principal no encontrado',
+            'data'    => null,
+        ]);
+        exit;
+    }
+    require_once $mainBootstrap;
 
-if (!file_exists($mainBootstrap)) {
-    http_response_code(500);
-    header('Content-Type: application/json; charset=UTF-8');
-    echo json_encode([
-        'success' => false,
-        'message' => 'Bootstrap principal no encontrado',
-        'data' => null
-    ]);
-    exit;
-}
+    // 2) Compatibilidad JWTMiddleware (sin require manual)
+    //    Creamos alias solo si hace falta, confiando en el autoloader.
+    $hasUtils  = class_exists('\Utils\JWTMiddleware', true);
+    $hasGlobal = class_exists('\JWTMiddleware', false);
 
-// Incluir bootstrap principal - esto activa CORS, autoloader, configuración, etc.
-require_once $mainBootstrap;
+    if ($hasUtils && !$hasGlobal) {
+        // endpoints legacy que llaman JWTMiddleware::...
+        class_alias('\Utils\JWTMiddleware', '\JWTMiddleware');
+    } elseif ($hasGlobal && !class_exists('\Utils\JWTMiddleware', false)) {
+        // si existe global y algún código usa \Utils\JWTMiddleware
+        class_alias('\JWTMiddleware', '\Utils\JWTMiddleware');
+    }
 }

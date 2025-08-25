@@ -109,7 +109,7 @@ export class CSRFProtection {
     };
 
     // Para requests que modifican datos, asegurar credentials
-    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method?.toUpperCase() || 'GET')) {
+    if (['POST', 'PUT', 'DELETE'].includes(options.method?.toUpperCase() || 'GET')) {
       options.credentials = 'include';
     }
 

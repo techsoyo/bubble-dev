@@ -8,7 +8,7 @@
  */
 
 declare(strict_types=1);
-
+require_once dirname(__DIR__) . '/bootstrap.php';
 
 try {
     // Solo permitir GET y POST para callbacks OAuth

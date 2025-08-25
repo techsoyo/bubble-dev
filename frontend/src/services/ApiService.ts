@@ -444,7 +444,7 @@ export async function submitApplication(data: any) {
   return await ApiService.post('applications.php', safe);
 
 }
-// Usar POST para actualizaciones en lote (backend no soporta PATCH)
+// Usar POST para actualizaciones en lote
 export async function bulkUpdateApplications(applications: Array<any>) {
   // Usar POST para operaciones en lote
   return await ApiService.post('applications.php', { bulk_update: applications });

@@ -9,6 +9,20 @@ declare(strict_types=1);
  */
 
 
+// Cargar variables de entorno desde archivo .env
+$envFile = realpath(__DIR__ . '/../../.env');
+if (file_exists($envFile)) {
+  $envVars = parse_ini_file($envFile);
+  if ($envVars) {
+    foreach ($envVars as $key => $value) {
+      if (!getenv($key)) {
+        putenv("$key=$value");
+        $_ENV[$key] = $value;
+      }
+    }
+  }
+}
+
 // Definir la ruta base de la aplicación
 define('BASE_PATH', realpath(__DIR__ . '/..'));
 

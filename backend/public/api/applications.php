@@ -3,77 +3,79 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
- 
 
-// Configurar CORS y headers de seguridad
-header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: ' . ($_SERVER['HTTP_ORIGIN'] ?? '*'));
-header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
+// No dupliques CORS aquí. El bootstrap ya los aplica.
+// Sólo fijamos Content-Type y atendemos preflight.
+header('Content-Type: application/json; charset=UTF-8');
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+    http_response_code(204);
+    exit;
 }
 
-function jsend($ok, $message, $data = null, $code = 200): void
+function jsend(bool $ok, string $message, $data = null, int $code = 200): void
 {
     http_response_code($code);
     echo json_encode(['success' => $ok, 'message' => $message, 'data' => $data], JSON_UNESCAPED_UNICODE);
     exit;
 }
-// ===== GET: AHORA CON AUTENTICACIÃƒâ€œN JWT =====
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Ã¢Å“â€¦ REQUERIR AUTENTICACIÃƒâ€œN JWT
-    $userPayload = JWTMiddleware::requireAuth();
-    if (!$userPayload) {
-        // JWTMiddleware ya enviÃƒÂ³ la respuesta de error
-        exit;
-    }
 
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+// Requiere JWT en todos los métodos
+$userPayload = JWTMiddleware::requireAuth();
+if (!$userPayload) {
+    exit;
+} // el middleware ya habrá respondido
+
+$userId   = $userPayload['user_id']   ?? null;
+$userRole = $userPayload['role']      ?? null;            // 'admin' | 'hr' | 'recruiter' | 'candidate' ...
+$userType = $userPayload['user_type'] ?? null;            // 'staff' | 'candidate' (según tu login)
+
+try {
+    $db = getDbConnection();
+} catch (Throwable $e) {
+    jsend(false, 'Error de conexión a BD', null, 500);
+}
+
+/* ============================
+   GET: listar aplicaciones
+   ============================ */
+if ($method === 'GET') {
     try {
-        $db = getDbConnection();
-
-        // Obtener parÃƒÂ¡metros de query
         $candidateId = $_GET['candidate_id'] ?? null;
-        $jobId = $_GET['job_id'] ?? null;
-        $status = $_GET['status'] ?? null;
-        $limit = min((int)($_GET['limit'] ?? 20), 100); // MÃƒÂ¡ximo 100
-        $offset = (int)($_GET['offset'] ?? 0);
+        $jobId       = $_GET['job_id']       ?? null;
+        $status      = $_GET['status']       ?? null;
+        $limit       = min((int)($_GET['limit'] ?? 20), 100);
+        $offset      = (int)($_GET['offset'] ?? 0);
 
-        // Ã¢Å“â€¦ CONTROL DE ACCESO: Solo admins o el propio candidato puede ver aplicaciones
-        $userRole = $userPayload['role'] ?? 'candidate';
-        $userId = $userPayload['user_id'];
+        // Control de acceso:
+        // - Candidatos: sólo sus propias aplicaciones
+        // - Staff con rol admin/hr/recruiter: pueden filtrar libremente
+        $staffAllowed = in_array($userRole, ['admin', 'hr', 'recruiter'], true);
 
-        if ($userRole === 'candidate') {
-            // Los candidatos solo pueden ver sus propias aplicaciones
+        if (!$staffAllowed) {
+            // Trátalo como candidato: solo ve lo suyo
             $candidateId = $userId;
-        } elseif (!in_array($userRole, ['admin', 'hr', 'recruiter'])) {
-            jsend(false, 'Permisos insuficientes', null, 403);
-            exit;
         }
 
-        // Construir query con filtros
-        $whereClauses = [];
+        $where = [];
         $params = [];
 
         if ($candidateId) {
-            $whereClauses[] = 'a.candidate_id = ?';
+            $where[] = 'a.candidate_id = ?';
             $params[] = $candidateId;
         }
         if ($jobId) {
-            $whereClauses[] = 'a.job_id = ?';
+            $where[] = 'a.job_id = ?';
             $params[] = $jobId;
         }
         if ($status) {
-            $whereClauses[] = 'a.status = ?';
+            $where[] = 'a.status = ?';
             $params[] = $status;
         }
 
-        $whereSQL = !empty($whereClauses) ? 'WHERE ' . implode(' AND ', $whereClauses) : '';
+        $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
-        // Ã¢Å“â€¦ QUERY SEGURA CON JOINS Y PREPARED STATEMENTS
         $sql = "
             SELECT 
                 a.id,
@@ -81,140 +83,157 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 a.job_id,
                 a.status,
                 a.score,
-                a.created_at as applied_at,
+                a.created_at AS applied_at,
                 a.updated_at,
-                c.name as candidate_name,
-                c.email as candidate_email,
-                j.title as job_title,
+                c.name  AS candidate_name,
+                c.email AS candidate_email,
+                j.title AS job_title,
                 j.company_name,
-                j.location as job_location,
+                j.location AS job_location,
                 j.salary_range
             FROM bt_applications a
             LEFT JOIN bt_candidates c ON a.candidate_id = c.id
-            LEFT JOIN bt_jobs j ON a.job_id = j.id
-            $whereSQL
+            LEFT JOIN bt_jobs j       ON a.job_id      = j.id
+            $whereSql
             ORDER BY a.created_at DESC
             LIMIT ? OFFSET ?
         ";
-
         $params[] = $limit;
         $params[] = $offset;
 
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
-        $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $applications = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-        // Ã¢Å“â€¦ SANITIZAR DATOS SENSIBLES SEGÃƒÅ¡N ROL
-        foreach ($applications as &$app) {
-            if ($userRole === 'candidate') {
-                // Los candidatos no deben ver emails de otros candidatos
+        // Saneado para candidatos (no exponer email de otros)
+        if (!$staffAllowed) {
+            foreach ($applications as &$app) {
                 unset($app['candidate_email']);
+                if (!empty($app['applied_at'])) {
+                    $app['applied_at'] = date('Y-m-d H:i:s', strtotime($app['applied_at']));
+                }
             }
-
-            // Formatear fechas
-            if ($app['applied_at']) {
-                $app['applied_at'] = date('Y-m-d H:i:s', strtotime($app['applied_at']));
+        } else {
+            foreach ($applications as &$app) {
+                if (!empty($app['applied_at'])) {
+                    $app['applied_at'] = date('Y-m-d H:i:s', strtotime($app['applied_at']));
+                }
             }
         }
 
-        // Obtener count total para paginaciÃƒÂ³n
-        $countSQL = "SELECT COUNT(*) FROM bt_applications a $whereSQL";
-        $countStmt = $db->prepare($countSQL);
-        $countStmt->execute(array_slice($params, 0, -2)); // Excluir LIMIT y OFFSET
-        $totalCount = (int)$countStmt->fetchColumn();
+        // Conteo total
+        $countSql = "SELECT COUNT(*) FROM bt_applications a $whereSql";
+        $countStmt = $db->prepare($countSql);
+        $countStmt->execute(array_slice($params, 0, -2));
+        $total = (int)$countStmt->fetchColumn();
 
-        jsend(true, 'Aplicaciones obtenidas exitosamente', [
+        jsend(true, 'OK', [
             'applications' => $applications,
             'pagination' => [
-                'total' => $totalCount,
+                'total' => $total,
                 'limit' => $limit,
                 'offset' => $offset,
-                'has_more' => ($offset + $limit) < $totalCount
+                'has_more' => ($offset + $limit) < $total
             ],
             'filters' => [
                 'candidate_id' => $candidateId,
                 'job_id' => $jobId,
                 'status' => $status
             ]
-        ], 200);
-    } catch (Exception $e) {
-        error_log("GET APPLICATIONS ERROR: " . $e->getMessage());
+        ]);
+    } catch (Throwable $e) {
+        error_log('GET APPLICATIONS ERROR: ' . $e->getMessage());
         jsend(false, 'Error al obtener aplicaciones', null, 500);
     }
-    exit;
 }
 
-// ===== POST: TAMBIÃƒâ€°N REQUIERE AUTENTICACIÃƒâ€œN =====
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Ã¢Å“â€¦ REQUERIR AUTENTICACIÃƒâ€œN JWT
-    $userPayload = JWTMiddleware::requireAuth();
-    if (!$userPayload) {
-        exit;
+/* ============================
+   POST:
+   - bulk_update (staff: admin/hr/recruiter)
+   - crear aplicación (candidato)
+   ============================ */
+if ($method === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true) ?? [];
+
+    // Rama A: BULK UPDATE (staff)
+    if (isset($input['bulk_update']) && is_array($input['bulk_update'])) {
+        if (!in_array($userRole, ['admin', 'hr', 'recruiter'], true)) {
+            jsend(false, 'Permisos insuficientes', null, 403);
+        }
+
+        $stmt = $db->prepare('UPDATE bt_applications SET status = ?, updated_at = NOW() WHERE id = ?');
+        $results = [];
+
+        foreach ($input['bulk_update'] as $row) {
+            $id = $row['id']     ?? null;
+            $st = $row['status'] ?? null;
+
+            if (!$id || !$st) {
+                $results[] = ['id' => $id, 'ok' => false, 'error' => 'id/status requeridos'];
+                continue;
+            }
+            try {
+                $ok = $stmt->execute([$st, $id]);
+                $results[] = ['id' => $id, 'ok' => (bool)$ok];
+            } catch (Throwable $e) {
+                $results[] = ['id' => $id, 'ok' => false, 'error' => $e->getMessage()];
+            }
+        }
+
+        jsend(true, 'Actualización masiva realizada', ['results' => $results], 200);
     }
 
-    $input = json_decode(file_get_contents('php://input'), true);
-
-    if (!$input || empty($input['job_id'])) {
+    // Rama B: crear aplicación (sólo candidatos)
+    if (empty($input['job_id'])) {
         jsend(false, 'job_id es requerido', null, 400);
-        exit;
+    }
+    if ($userType !== 'candidate' && !in_array($userRole, ['candidate'], true)) {
+        jsend(false, 'Sólo candidatos pueden aplicar a un trabajo', null, 403);
     }
 
-    $jobId = $input['job_id'];
-    $candidateId = $userPayload['user_id']; // El candidato autenticado
+    $jobId       = $input['job_id'];
+    $candidateId = $userId;
     $coverLetter = trim($input['cover_letter'] ?? '');
 
     try {
-        $db = getDbConnection();
-
-        // Ã¢Å“â€¦ VERIFICAR QUE EL TRABAJO EXISTE Y ESTÃƒÂ ACTIVO
+        // Verifica que el job exista y esté abierto
         $jobStmt = $db->prepare('SELECT id, title FROM bt_jobs WHERE id = ? AND status = "open"');
         $jobStmt->execute([$jobId]);
         $job = $jobStmt->fetch(PDO::FETCH_ASSOC);
-
         if (!$job) {
-            jsend(false, 'El trabajo no existe o no estÃƒÂ¡ disponible', null, 404);
-            exit;
+            jsend(false, 'El trabajo no existe o no está disponible', null, 404);
         }
 
-        // Ã¢Å“â€¦ VERIFICAR QUE NO HAYA APLICACIÃƒâ€œN DUPLICADA
-        $existingStmt = $db->prepare('SELECT id FROM bt_applications WHERE candidate_id = ? AND job_id = ?');
-        $existingStmt->execute([$candidateId, $jobId]);
-
-        if ($existingStmt->fetch()) {
+        // Evita duplicados
+        $dupe = $db->prepare('SELECT id FROM bt_applications WHERE candidate_id = ? AND job_id = ?');
+        $dupe->execute([$candidateId, $jobId]);
+        if ($dupe->fetch()) {
             jsend(false, 'Ya has aplicado a este trabajo anteriormente', null, 409);
-            exit;
         }
 
-        // Ã¢Å“â€¦ CREAR APLICACIÃƒâ€œN CON PREPARED STATEMENTS
-        $insertSQL = "INSERT INTO bt_applications (candidate_id, job_id, status, cover_letter, created_at, updated_at) VALUES (?, ?, 'pending', ?, NOW(), NOW())";
-
-        $insertStmt = $db->prepare($insertSQL);
-        $success = $insertStmt->execute([$candidateId, $jobId, $coverLetter]);
-
-        if (!$success) {
-            throw new Exception('Error al insertar aplicaciÃƒÂ³n');
+        // Inserta
+        $ins = $db->prepare('
+            INSERT INTO bt_applications (candidate_id, job_id, status, cover_letter, created_at, updated_at)
+            VALUES (?, ?, "pending", ?, NOW(), NOW())
+        ');
+        $ok = $ins->execute([$candidateId, $jobId, $coverLetter]);
+        if (!$ok) {
+            jsend(false, 'Error al insertar aplicación', null, 500);
         }
 
-        $applicationId = $db->lastInsertId();
-
-        // Log de auditorÃƒÂ­a
-        error_log("APPLICATION CREATED: ID $applicationId - Candidate: $candidateId - Job: $jobId");
-
-        jsend(true, 'AplicaciÃƒÂ³n creada exitosamente', [
-            'id' => $applicationId,
-            'candidate_id' => $candidateId,
-            'job_id' => $jobId,
-            'job_title' => $job['title'],
-            'status' => 'pending',
-            'created_at' => date('Y-m-d H:i:s')
+        $appId = $db->lastInsertId();
+        jsend(true, 'Aplicación creada', [
+            'id'            => $appId,
+            'candidate_id'  => $candidateId,
+            'job_id'        => $jobId,
+            'job_title'     => $job['title'],
+            'status'        => 'pending',
+            'created_at'    => date('Y-m-d H:i:s')
         ], 201);
-    } catch (Exception $e) {
-        error_log("CREATE APPLICATION ERROR: " . $e->getMessage());
-        jsend(false, 'Error al crear la aplicaciÃƒÂ³n', null, 500);
+    } catch (Throwable $e) {
+        error_log('CREATE APPLICATION ERROR: ' . $e->getMessage());
+        jsend(false, 'Error al crear la aplicación', null, 500);
     }
-    exit;
 }
 
-// MÃƒÂ©todo no permitido
-jsend(false, 'MÃƒÂ©todo no permitido', null, 405);
-
+jsend(false, 'Método no permitido', null, 405);

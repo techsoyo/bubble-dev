@@ -21,6 +21,30 @@ function generateNonce(): string
 }
 
 /**
+ * Configura headers CORS usando variables de entorno
+ */
+function configureCors(): void
+{
+  // Obtener configuración desde variables de entorno con valores por defecto
+  $allowedMethods = getenv('CORS_ALLOWED_METHODS') ?: 'GET,POST,PUT,DELETE,OPTIONS';
+  $allowedOrigins = getenv('CORS_ALLOWED_ORIGINS') ?: '*';
+  $allowedHeaders = getenv('CORS_ALLOWED_HEADERS') ?: 'Content-Type,Authorization,X-Requested-With';
+
+  // Configurar headers CORS
+  header('Access-Control-Allow-Origin: ' . $allowedOrigins);
+  header('Access-Control-Allow-Methods: ' . $allowedMethods);
+  header('Access-Control-Allow-Headers: ' . $allowedHeaders);
+  header('Access-Control-Allow-Credentials: true');
+  header('Access-Control-Max-Age: 3600');
+
+  // Manejar preflight requests
+  if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit();
+  }
+}
+
+/**
  * Establece headers de seguridad según el entorno
  * @return string El nonce generado para CSP
  */
@@ -68,6 +92,9 @@ function setSecurityHeaders(?string $environment = null): string
   header('Cache-Control: no-cache, no-store, must-revalidate');
   header('Pragma: no-cache');
   header('Expires: 0');
+
+  // Configurar CORS
+  configureCors();
 
   return $nonce;
 }

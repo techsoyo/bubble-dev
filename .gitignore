@@ -161,3 +161,5 @@ postcss.config.js
 
 # Archivos específicos de VSCode
 .vscode/
+
+backend/_backups/

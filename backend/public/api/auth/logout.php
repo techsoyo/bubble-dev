@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-require_once __DIR__ . '/../bootstrap.php';
+require_once dirname(__DIR__) . '/bootstrap.php';
 
 // Content Type header (CORS ya configurado en bootstrap.php)
 header('Content-Type: application/json');

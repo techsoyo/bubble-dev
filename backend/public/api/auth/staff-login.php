@@ -2,115 +2,96 @@
 
 declare(strict_types=1);
 
-use Utils\Database;
-use Utils\Logger;
+require_once dirname(__DIR__) . '/bootstrap.php';
+
 use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
+use Utils\Logger;
 
-// Configurar headers de seguridad
+// Preflight CORS
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+  http_response_code(204);
+  exit;
+}
 
-// Solo aceptar POST
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+// Solo POST
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
   http_response_code(405);
-  echo json_encode(['success' => false, 'message' => 'MÃƒÂ©todo no permitido']);
+  echo json_encode(['success' => false, 'message' => 'Método no permitido']);
   exit;
 }
 
 try {
-  // Leer datos de entrada
-  $input = json_decode(file_get_contents('php://input'), true);
-
-  if (!$input || !isset($input['action']) || $input['action'] !== 'staff_login') {
-    throw new Exception('AcciÃƒÂ³n no vÃƒÂ¡lida');
+  // Lee JSON o form-urlencoded
+  $raw = file_get_contents('php://input');
+  $input = json_decode($raw, true);
+  if (!is_array($input) || empty($input)) {
+    $input = $_POST ?? [];
   }
 
-  $email = trim($input['email'] ?? '');
+  // Campos
+  $email    = trim($input['email']    ?? '');
   $password = trim($input['password'] ?? '');
 
-  // Validaciones bÃƒÂ¡sicas
-  if (empty($email) || empty($password)) {
-    throw new Exception('Email y contraseÃƒÂ±a son requeridos');
+  if ($email === '' || $password === '') {
+    throw new Exception('Email y contraseña son requeridos');
   }
-
   if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    throw new Exception('Email no vÃƒÂ¡lido');
+    throw new Exception('Email no válido');
   }
 
-  // Verificar que sea email corporativo
-  if (substr($email, -strlen('@bubblegum.agency')) !== '@bubblegum.agency') {
-    throw new Exception('Solo se permite acceso con email corporativo @bubblegum.agency');
+  // (Opcional) forzar dominio por ENV
+  $reqDomain = $_ENV['STAFF_EMAIL_DOMAIN'] ?? '@bubblegum.agency';
+  if ($reqDomain && !str_ends_with(strtolower($email), strtolower($reqDomain))) {
+    throw new Exception("Solo emails del dominio $reqDomain");
   }
 
-  // Conectar a base de datos
-  $db = getDbConnection();
+  // Conexión (función o clase, según tengas)
+  $db = function_exists('getDbConnection')
+    ? getDbConnection()
+    : (\Utils\Database::getConnection)();
 
-  // Buscar usuario staff
+  // Busca usuario activo
   $stmt = $db->prepare("
-        SELECT id, email, role, password_hash, active, name 
-        FROM bt_staff_profiles 
-        WHERE email = ? AND active = 1
-    ");
+    SELECT id, email, role, password_hash, active, COALESCE(name,email) AS name
+    FROM bt_staff_profiles
+    WHERE email = ? AND active = 1
+  ");
   $stmt->execute([$email]);
   $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-  if (!$user) {
-    throw new Exception('Usuario no encontrado o inactivo');
-  }
-
-  // Verificar contraseÃƒÂ±a
-  if (!password_verify($password, $user['password_hash'])) {
+  if (!$user || !password_verify($password, $user['password_hash'])) {
     throw new Exception('Credenciales incorrectas');
   }
 
+  // Genera JWT
+  $jwt_secret = $_ENV['JWT_SECRET'] ?? 'cambia_esto_en_.env';
   $payload = [
-    'user_id' => $user['id'],
-    'email' => $user['email'],
-    'role' => $user['role'],
+    'user_id'   => $user['id'],
+    'email'     => $user['email'],
+    'role'      => $user['role'],
     'user_type' => 'staff',
-    'iat' => time(),
-    'exp' => time() + (24 * 60 * 60) // 24 horas
+    'iat'       => time(),
+    'exp'       => time() + 86400,
   ];
-
-  // Usa tu clave secreta JWT (ajusta la ruta o variable segÃƒÂºn tu configuraciÃƒÂ³n)
-  $jwt_secret = $_ENV['JWT_SECRET'] ?? 'tu_clave_secreta_super_segura';
   $token = JWT::encode($payload, $jwt_secret, 'HS256');
 
-  // Crear sesiÃƒÂ³n en BD
-  $session_token = bin2hex(random_bytes(32));
-  $session_id = bin2hex(random_bytes(16));
+  // (Opcional) registrar sesión en tabla si la usas
+  // ...
 
-  $stmt = $db->prepare("
-        INSERT INTO bt_staff_sessions (id, staff_id, token, expires_at, created_at) 
-        VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 24 HOUR), NOW())
-    ");
-  $stmt->execute([$session_id, $user['id'], $session_token]);
-
-  // Log del login exitoso
-  $logger = new Logger();
-  $logger->info("Staff login exitoso: {$email} (rol: {$user['role']})");
-
-  // Respuesta exitosa
+  // OK
   echo json_encode([
     'success' => true,
     'message' => 'Login exitoso',
     'user' => [
-      'id' => $user['id'],
+      'id'   => $user['id'],
       'email' => $user['email'],
       'role' => $user['role'],
-      'name' => $user['name'] ?: $user['email'],
-      'user_type' => 'staff'
+      'name' => $user['name'],
+      'user_type' => 'staff',
     ],
     'token' => $token,
-    'session_token' => $session_token
   ]);
 } catch (Exception $e) {
-  // Log del error
   error_log("Error en staff login: " . $e->getMessage());
-
   http_response_code(400);
-  echo json_encode([
-    'success' => false,
-    'message' => $e->getMessage()
-  ]);
+  echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
-

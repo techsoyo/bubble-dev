@@ -443,20 +443,22 @@ class Interview extends BaseModel
     public function scheduleInterview(array $data): mixed
     {
         // Validaciones específicas para entrevistas
-        $requiredFields = ['application_id', 'interviewer_id', 'scheduled_at', 'duration_minutes'];
+        $requiredFields = ['application_id', 'interviewer_id', 'scheduled_datetime', 'duration_minutes'];
         foreach ($requiredFields as $field) {
             if (empty($data[$field])) {
                 throw new \InvalidArgumentException("Field $field is required");
             }
         }
 
-        // Establecer valores por defecto
+        // Establecer valores por defecto solo si no existen
         $data['status'] = $data['status'] ?? 'scheduled';
         $data['type'] = $data['type'] ?? 'technical';
-        $data['created_at'] = date('Y-m-d H:i:s');
+
+        // Filtrar solo los campos permitidos
+        $filtered = array_intersect_key($data, array_flip($this->fillable));
 
         try {
-            $interviewId = $this->store($data);
+            $interviewId = $this->store($filtered);
 
             if ($interviewId) {
                 // Invalidar cache relacionado
@@ -464,14 +466,14 @@ class Interview extends BaseModel
 
                 $this->logDebug('New interview scheduled', [
                     'interview_id' => $interviewId,
-                    'application_id' => $data['application_id'],
-                    'scheduled_at' => $data['scheduled_at']
+                    'application_id' => $filtered['application_id'],
+                    'scheduled_datetime' => $filtered['scheduled_datetime']
                 ]);
             }
 
             return $interviewId;
         } catch (\Exception $e) {
-            $this->logError('Error scheduling interview', ['data' => $data], $e);
+            $this->logError('Error scheduling interview', ['data' => $filtered], $e);
             throw new \RuntimeException('Failed to schedule interview: ' . $e->getMessage());
         }
     }

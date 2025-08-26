@@ -566,14 +566,14 @@ class DepartmentCategory extends BaseModel
     {
         try {
             $this->validateDepartmentCategoryData($data);
-            $id = $this->store($data);
+            // Filtrar solo los campos permitidos
+            $filtered = array_intersect_key($data, array_flip($this->fillable));
+            $id = $this->store($filtered);
             $this->invalidateDepartmentCategoryCache();
-
             $this->logDebug('DepartmentCategory created successfully', [
                 'model' => static::class,
                 'id' => $id
             ]);
-
             return $id;
         } catch (\Exception $e) {
             $this->logError('Error creating department_category', [
@@ -614,17 +614,17 @@ class DepartmentCategory extends BaseModel
     {
         try {
             $this->validateDepartmentCategoryData($data, $id);
-            $result = $this->update($id, $data);
-
+            // Filtrar solo los campos permitidos
+            $filtered = array_intersect_key($data, array_flip($this->fillable));
+            $result = $this->update($id, $filtered);
             if ($result) {
                 $this->invalidateDepartmentCategoryCache();
                 $this->logDebug('DepartmentCategory updated successfully', [
                     'model' => static::class,
                     'id' => $id,
-                    'fields' => array_keys($data)
+                    'fields' => array_keys($filtered)
                 ]);
             }
-
             return $result;
         } catch (\Exception $e) {
             $this->logError('Error updating department_category', [

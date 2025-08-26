@@ -364,33 +364,29 @@ class Job extends BaseModel
         if (empty($data['title'])) {
             throw new \InvalidArgumentException('Title is required');
         }
-
         if (empty($data['description'])) {
             throw new \InvalidArgumentException('Description is required');
         }
-
         if (empty($data['department_id'])) {
             throw new \InvalidArgumentException('Department ID is required');
         }
-
         // Asignar valores por defecto
         $data['status'] = $data['status'] ?? 'active';
         $data['posted_date'] = $data['posted_date'] ?? date('Y-m-d H:i:s');
         $data['employment_type'] = $data['employment_type'] ?? 'full_time';
         $data['currency'] = $data['currency'] ?? 'EUR';
-
+        // Filtrar solo los campos permitidos
+        $filtered = array_intersect_key($data, array_flip($this->fillable));
         try {
-            $id = $this->store($data);
+            $id = $this->store($filtered);
             $this->invalidateJobCache();
-
             Logger::info('Job created successfully', [
                 'id' => $id,
-                'title' => $data['title']
+                'title' => $filtered['title']
             ]);
-
             return $id;
         } catch (\Exception $e) {
-            Logger::error('Failed to create job', ['data' => $data, 'error' => $e->getMessage()]);
+            Logger::error('Failed to create job', ['data' => $filtered, 'error' => $e->getMessage()]);
             throw new \RuntimeException('Failed to create job: ' . $e->getMessage());
         }
     }
@@ -415,26 +411,23 @@ class Job extends BaseModel
         if (empty($id)) {
             throw new \InvalidArgumentException('ID cannot be empty');
         }
-
         if (empty($data)) {
             throw new \InvalidArgumentException('Data cannot be empty');
         }
-
         // Verificar que el trabajo existe
         $existing = $this->findById($id);
         if (!$existing) {
             throw new \InvalidArgumentException('Job not found');
         }
-
+        // Filtrar solo los campos permitidos
+        $filtered = array_intersect_key($data, array_flip($this->fillable));
         try {
-            $result = $this->update($id, $data);
+            $result = $this->update($id, $filtered);
             $this->invalidateJobCache();
-
             Logger::info('Job updated successfully', [
                 'id' => $id,
-                'fields' => array_keys($data)
+                'fields' => array_keys($filtered)
             ]);
-
             return $result;
         } catch (\Exception $e) {
             Logger::error('Failed to update job', ['id' => $id, 'error' => $e->getMessage()]);

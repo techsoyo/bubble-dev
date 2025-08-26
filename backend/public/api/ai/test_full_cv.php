@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // @deprecated - archivo de test, deshabilitar en producciÃ³n
 if ((\['APP_ENV'] ?? 'production') === 'production') {
     http_response_code(404);

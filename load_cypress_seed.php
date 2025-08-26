@@ -1,7 +1,6 @@
 <?php
 
-// Conf    // Leer y ejecutar el archivo seed
-    $seed_sql = file_get_contents('cypress_e2e_seed_final.sql');uración de base de datos
+// Configuración de base de datos
 $db_config = [
   'host' => '192.168.1.40',
   'dbname' => 'bubble_talents_DB',

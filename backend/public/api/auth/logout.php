@@ -1,20 +1,22 @@
-﻿<?php
+<?php
 
 declare(strict_types=1);
 
+use Security\Cookies;
+use Security\CsrfMiddleware;
 
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
-    CsrfMiddleware::protect(); // double-submit cookie
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+  CsrfMiddleware::protect(); // double-submit cookie
 }
 
 if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized (cookie required)']);
-    exit;
+  http_response_code(401);
+  echo json_encode(['error' => 'Unauthorized (cookie required)']);
+  exit;
 }
 
 // cookie HttpOnly obligatoria
@@ -30,11 +32,10 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
 
 // CSRF requerido para POST/PUT/DELETE
 if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'DELETE'])) {
-  CsrfMiddleware::validateCsrfToken();
+  CsrfMiddleware::validateToken();
 }
 
-use Security\Cookies;
-use Security\CsrfMiddleware;
+
 
 // Content Type header (CORS ya configurado en bootstrap.php)
 header('Content-Type: application/json');
@@ -88,4 +89,3 @@ try {
   http_response_code(500);
   echo json_encode(['success' => false, 'message' => 'Error interno del servidor']);
 }
-

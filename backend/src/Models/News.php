@@ -473,16 +473,24 @@ class News extends BaseModel
             $data['excerpt'] = $this->generateExcerpt($data['content']);
         }
 
+        // Filtrar solo los campos permitidos por $fillable
+        $filtered = [];
+        foreach ($this->fillable as $field) {
+            if (array_key_exists($field, $data)) {
+                $filtered[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+            }
+        }
+
         try {
-            $newsId = $this->store($data);
+            $newsId = $this->store($filtered);
 
             // Invalidar cache de noticias
             $this->invalidateNewsCache();
 
             Logger::info('News created successfully', [
                 'news_id' => $newsId,
-                'title' => $data['title'],
-                'status' => $data['status']
+                'title' => $filtered['title'] ?? null,
+                'status' => $filtered['status'] ?? null
             ]);
 
             return $newsId;
@@ -524,15 +532,23 @@ class News extends BaseModel
             $data['excerpt'] = $this->generateExcerpt($data['content']);
         }
 
+        // Filtrar solo los campos permitidos por $fillable
+        $filtered = [];
+        foreach ($this->fillable as $field) {
+            if (array_key_exists($field, $data)) {
+                $filtered[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+            }
+        }
+
         try {
-            $result = $this->update($id, $data);
+            $result = $this->update($id, $filtered);
 
             // Invalidar cache de noticias
             $this->invalidateNewsCache();
 
             Logger::info('News updated successfully', [
                 'news_id' => $id,
-                'updated_fields' => array_keys($data)
+                'updated_fields' => array_keys($filtered)
             ]);
 
             return $result;
@@ -738,7 +754,14 @@ class News extends BaseModel
         self::validateNewsData($data);
 
         $news = new self();
-        $id = $news->store($data);
+        // Filtrar solo los campos permitidos por $fillable
+        $filtered = [];
+        foreach ($news->fillable as $field) {
+            if (array_key_exists($field, $data)) {
+                $filtered[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+            }
+        }
+        $id = $news->store($filtered);
 
         if (!$id) {
             throw new \Exception('Error al crear la noticia');
@@ -784,7 +807,14 @@ class News extends BaseModel
             throw new \InvalidArgumentException("Noticia con ID {$id} no encontrada");
         }
 
-        $success = $news->update($id, $data);
+        // Filtrar solo los campos permitidos por $fillable
+        $filtered = [];
+        foreach ($news->fillable as $field) {
+            if (array_key_exists($field, $data)) {
+                $filtered[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+            }
+        }
+        $success = $news->update($id, $filtered);
 
         if ($success) {
             self::invalidateNewsCacheStandard();

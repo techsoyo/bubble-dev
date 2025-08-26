@@ -55,18 +55,14 @@ class ApplicationNote extends BaseModel
 
     /**
      * Campos que pueden ser asignados masivamente
+     * Basado en la estructura real de la tabla bt_application_notes
      *
      * @var array<string>
      */
     protected array $fillable = [
         'application_id',
-        'author_id',
-        'note',
-        'is_internal',
         'note_idx',
-        'resume',
-        'cover_letter',
-        'insights',
+        'note',
     ];
 
     /**
@@ -95,19 +91,13 @@ class ApplicationNote extends BaseModel
             throw new \InvalidArgumentException('Application ID cannot be empty');
         }
 
-        try {
-            return $this->findAll(
-                ['application_id' => $applicationId],
-                1,
-                self::MAX_LIMIT,
-                ['note_idx' => 'ASC']
-            );
-        } catch (\Exception $e) {
-            $this->logError('Error retrieving application notes', [
-                'application_id' => $applicationId
-            ], $e);
-            throw new \RuntimeException('Failed to retrieve application notes: ' . $e->getMessage());
-        }
+        // BaseModel ya maneja las excepciones de forma segura
+        return $this->findAll(
+            ['application_id' => $applicationId],
+            1,
+            self::MAX_LIMIT,
+            ['note_idx' => 'ASC']
+        );
     }
 
     /**
@@ -200,46 +190,24 @@ class ApplicationNote extends BaseModel
      */
     public function addSequentialNote(string $applicationId, string $note)
     {
-        if (empty($applicationId)) {
-            throw new \InvalidArgumentException('Application ID cannot be empty');
+        if (empty($applicationId) || empty(trim($note))) {
+            throw new \InvalidArgumentException('Application ID and note content cannot be empty');
         }
 
-        if (empty(trim($note))) {
-            throw new \InvalidArgumentException('Note content cannot be empty');
+        // Validar que la aplicación existe antes de crear la nota
+        if (!$this->applicationExists($applicationId)) {
+            throw new \RuntimeException('Application not found');
         }
 
-        try {
-            // Obtener el próximo índice secuencial
-            $nextIdx = $this->getNextNoteIndex($applicationId);
+        // Obtener el próximo índice secuencial
+        $nextIdx = $this->getNextNoteIndex($applicationId);
 
-            // Validar que la aplicación existe antes de crear la nota
-            if (!$this->applicationExists($applicationId)) {
-                throw new \RuntimeException('Application not found');
-            }
-
-            // Crear la nota con el índice calculado
-            $noteData = [
-                'application_id' => $applicationId,
-                'note_idx' => $nextIdx,
-                'note' => trim($note)
-            ];
-
-            $result = $this->store($noteData);
-
-            Logger::info('Sequential note added successfully', [
-                'application_id' => $applicationId,
-                'note_idx' => $nextIdx,
-                'note_length' => strlen(trim($note))
-            ]);
-
-            return $result;
-        } catch (\Exception $e) {
-            $this->logError('Error adding sequential note', [
-                'application_id' => $applicationId,
-                'note_preview' => substr($note, 0, 50) . '...'
-            ], $e);
-            throw new \RuntimeException('Failed to add sequential note: ' . $e->getMessage());
-        }
+        // Crear la nota con el índice calculado - BaseModel maneja excepciones
+        return $this->store([
+            'application_id' => $applicationId,
+            'note_idx' => $nextIdx,
+            'note' => trim($note)
+        ]);
     }
 
     /**
@@ -247,24 +215,16 @@ class ApplicationNote extends BaseModel
      *
      * @param string $applicationId ID de la aplicación
      * @return int Próximo note_idx disponible
-     * @throws \RuntimeException Si la consulta falla
      */
     private function getNextNoteIndex(string $applicationId): int
     {
-        try {
-            $sql = "SELECT COALESCE(MAX(note_idx), 0) + 1 as next_idx 
-                    FROM `{$this->table}` 
-                    WHERE application_id = :application_id";
+        $sql = "SELECT COALESCE(MAX(note_idx), 0) + 1 as next_idx 
+                FROM `{$this->table}` 
+                WHERE application_id = :application_id";
 
-            $result = $this->query($sql, [':application_id' => $applicationId]);
+        $result = $this->query($sql, [':application_id' => $applicationId]);
 
-            return (int)($result[0]['next_idx'] ?? 1);
-        } catch (\Exception $e) {
-            $this->logError('Error calculating next note index', [
-                'application_id' => $applicationId
-            ], $e);
-            throw new \RuntimeException('Failed to calculate next note index: ' . $e->getMessage());
-        }
+        return (int)($result[0]['next_idx'] ?? 1);
     }
 
     /**
@@ -272,23 +232,15 @@ class ApplicationNote extends BaseModel
      *
      * @param string $applicationId ID de la aplicación
      * @return bool True si la aplicación existe
-     * @throws \RuntimeException Si la consulta falla
      */
     private function applicationExists(string $applicationId): bool
     {
-        try {
-            $sql = "SELECT 1 FROM vw_applications_extended 
-                    WHERE application_id = :application_id LIMIT 1";
+        $sql = "SELECT 1 FROM vw_applications_extended 
+                WHERE application_id = :application_id LIMIT 1";
 
-            $result = $this->query($sql, [':application_id' => $applicationId]);
+        $result = $this->query($sql, [':application_id' => $applicationId]);
 
-            return !empty($result);
-        } catch (\Exception $e) {
-            $this->logError('Error checking application existence', [
-                'application_id' => $applicationId
-            ], $e);
-            throw new \RuntimeException('Failed to validate application existence: ' . $e->getMessage());
-        }
+        return !empty($result);
     }
 
     /**
@@ -433,211 +385,6 @@ class ApplicationNote extends BaseModel
                 'limit' => $limit
             ], $e);
             throw new \RuntimeException('Failed to search notes by content: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * MÉTODOS LEGACY - Mantenidos para compatibilidad
-     */
-
-    /**
-     * Método legacy mantenido para compatibilidad
-     * 
-     * @deprecated Usar findByApplicationId() en su lugar
-     */
-    public function findAll(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
-    {
-        // Si se filtra por application_id, usar el método optimizado
-        if (isset($filters['application_id']) && count($filters) === 1) {
-            return $this->findByApplicationId($filters['application_id']);
-        }
-
-        // Fallback al método padre para otros casos
-        return parent::findAll($filters, $page, $limit, $orderBy);
-    }
-
-    // ==========================================
-    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
-    // ==========================================
-
-    /**
-     * Crear nuevo application_note con validaciones
-     * @param array $data Datos del nuevo application_note
-     * @return mixed ID del nuevo application_note o false en caso de error
-     */
-    public function createApplicationNote(array $data): mixed
-    {
-        try {
-            $this->validateApplicationNoteData($data);
-            $id = $this->store($data);
-            $this->invalidateApplicationNoteCache();
-
-            Logger::info('ApplicationNote created successfully', [
-                'model' => static::class,
-                'id' => $id
-            ]);
-
-            return $id;
-        } catch (\Exception $e) {
-            Logger::error('Error creating application_note', [
-                'model' => static::class,
-                'data' => $data,
-                'error' => $e->getMessage()
-            ]);
-            return false;
-        }
-    }
-
-    /**
-     * Obtener application_note por ID
-     * @param mixed $id ID del application_note
-     * @return array|null Datos del application_note o null si no existe
-     */
-    public function getApplicationNote($id): ?array
-    {
-        try {
-            return $this->findById($id);
-        } catch (\Exception $e) {
-            Logger::error('Error retrieving application_note', [
-                'model' => static::class,
-                'id' => $id,
-                'error' => $e->getMessage()
-            ]);
-            return null;
-        }
-    }
-
-    /**
-     * Actualizar application_note con validaciones
-     * @param mixed $id ID del application_note a actualizar
-     * @param array $data Nuevos datos
-     * @return bool True si la actualización fue exitosa
-     */
-    public function updateApplicationNote($id, array $data): bool
-    {
-        try {
-            $this->validateApplicationNoteData($data, $id);
-            $result = $this->update($id, $data);
-
-            if ($result) {
-                $this->invalidateApplicationNoteCache();
-                Logger::info('ApplicationNote updated successfully', [
-                    'model' => static::class,
-                    'id' => $id,
-                    'fields' => array_keys($data)
-                ]);
-            }
-
-            return $result;
-        } catch (\Exception $e) {
-            Logger::error('Error updating application_note', [
-                'model' => static::class,
-                'id' => $id,
-                'data' => $data,
-                'error' => $e->getMessage()
-            ]);
-            return false;
-        }
-    }
-
-    /**
-     * Eliminar application_note con validaciones
-     * @param mixed $id ID del application_note a eliminar
-     * @return bool True si la eliminación fue exitosa
-     */
-    public function deleteApplicationNote($id): bool
-    {
-        try {
-            $result = $this->delete($id);
-
-            if ($result) {
-                $this->invalidateApplicationNoteCache();
-                Logger::info('ApplicationNote deleted successfully', [
-                    'model' => static::class,
-                    'id' => $id
-                ]);
-            }
-
-            return $result;
-        } catch (\Exception $e) {
-            Logger::error('Error deleting application_note', [
-                'model' => static::class,
-                'id' => $id,
-                'error' => $e->getMessage()
-            ]);
-            return false;
-        }
-    }
-
-    /**
-     * Buscar application_notes con filtros
-     * @param array $filters Filtros de búsqueda
-     * @param int $page Página actual
-     * @param int $limit Registros por página
-     * @param array $orderBy Criterios de ordenamiento
-     * @return array Array de application_notes
-     */
-    public function searchApplicationNotes(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
-    {
-        try {
-            return $this->findAll($filters, $page, $limit, $orderBy);
-        } catch (\Exception $e) {
-            Logger::error('Error searching application_notes', [
-                'model' => static::class,
-                'filters' => $filters,
-                'error' => $e->getMessage()
-            ]);
-            return [];
-        }
-    }
-
-    /**
-     * Contar total de application_notes con filtros
-     * @param array $filters Filtros de búsqueda
-     * @return int Número total de application_notes
-     */
-    public function countApplicationNotes(array $filters = []): int
-    {
-        try {
-            return $this->countAll($filters);
-        } catch (\Exception $e) {
-            Logger::error('Error counting application_notes', [
-                'model' => static::class,
-                'filters' => $filters,
-                'error' => $e->getMessage()
-            ]);
-            return 0;
-        }
-    }
-
-    // ==========================================
-    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
-    // ==========================================
-
-    /**
-     * Validar datos específicos de application_notes
-     * @param array $data Datos a validar
-     * @param mixed $id ID para validaciones de actualización (opcional)
-     * @throws \InvalidArgumentException Si los datos no son válidos
-     */
-    private function validateApplicationNoteData(array $data, $id = null): void
-    {
-        // TODO: Implementar validaciones específicas del modelo
-    }
-
-    /**
-     * Invalidar cache específico de application_notes
-     */
-    public function invalidateApplicationNoteCache(): int
-    {
-        try {
-            if (class_exists('\Utils\Cache')) {
-                return \Utils\Cache::deleteByTags(['application_notes', 'application_note_core', 'application_note_list']);
-            }
-            return 0;
-        } catch (\Exception $e) {
-            $this->logError('Error invalidating application_note cache', [], $e);
-            return 0;
         }
     }
 }

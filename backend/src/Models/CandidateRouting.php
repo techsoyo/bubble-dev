@@ -36,7 +36,7 @@ class CandidateRouting extends BaseModel
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
      */
-    
+
 
     /**
      * Clave primaria de la tabla

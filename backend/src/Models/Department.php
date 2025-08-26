@@ -581,14 +581,14 @@ class Department extends BaseModel
     {
         try {
             $this->validateDepartmentData($data);
-            $id = $this->store($data);
+            // Filtrar solo los campos permitidos
+            $filtered = array_intersect_key($data, array_flip($this->fillable));
+            $id = $this->store($filtered);
             $this->invalidateDepartmentCache();
-
             $this->logDebug('Department created successfully', [
                 'model' => static::class,
                 'id' => $id
             ]);
-
             return $id;
         } catch (\Exception $e) {
             $this->logError('Error creating department', [
@@ -629,17 +629,17 @@ class Department extends BaseModel
     {
         try {
             $this->validateDepartmentData($data, $id);
-            $result = $this->update($id, $data);
-
+            // Filtrar solo los campos permitidos
+            $filtered = array_intersect_key($data, array_flip($this->fillable));
+            $result = $this->update($id, $filtered);
             if ($result) {
                 $this->invalidateDepartmentCache();
                 $this->logDebug('Department updated successfully', [
                     'model' => static::class,
                     'id' => $id,
-                    'fields' => array_keys($data)
+                    'fields' => array_keys($filtered)
                 ]);
             }
-
             return $result;
         } catch (\Exception $e) {
             $this->logError('Error updating department', [

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 declare(strict_types=1);
 
@@ -30,9 +30,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
   exit();
 }
 
-// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ REQUERIR AUTENTICACIÃƒÆ’Ã¢â‚¬Å“N JWT SIEMPRE
-$userPayload = if (!$userPayload) {
-  // JWTMiddleware ya enviÃƒÆ’Ã‚Â³ la respuesta de error
+if (!$requestedCandidateId) {
+  http_response_code(400);
+  echo json_encode([
+    'success' => false,
+    'message' => 'candidate_id es requerido',
+    'error_code' => 'MISSING_CANDIDATE_ID'
+  ]);
   exit;
 }
 

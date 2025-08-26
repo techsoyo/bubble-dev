@@ -63,20 +63,31 @@ class Skill extends BaseModel
   {
     try {
       $this->validateSkillData($data);
+      // Filtrar solo los campos permitidos por $fillable
+      $filtered = [];
+      foreach ($this->fillable as $field) {
+        if (array_key_exists($field, $data)) {
+          $filtered[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+        }
+      }
+      // Valores por defecto
+      if (!isset($filtered['category'])) {
+        $filtered['category'] = 'technical';
+      }
+      if (!isset($filtered['description'])) {
+        $filtered['description'] = '';
+      }
+      if (!isset($filtered['level'])) {
+        $filtered['level'] = 'beginner';
+      }
+      if (!isset($filtered['is_active'])) {
+        $filtered['is_active'] = true;
+      }
 
-      $skillData = [
-        'name' => trim($data['name']),
-        'category' => $data['category'] ?? 'technical',
-        'description' => $data['description'] ?? '',
-        'level' => $data['level'] ?? 'beginner',
-        'is_active' => $data['is_active'] ?? true
-      ];
-
-      // Usar store() del BaseModel
-      $id = $this->store($skillData);
+      $id = $this->store($filtered);
 
       if ($id) {
-        Logger::info('Skill created successfully', ['id' => $id, 'name' => $skillData['name']]);
+        Logger::info('Skill created successfully', ['id' => $id, 'name' => $filtered['name'] ?? null]);
         return $id;
       }
 
@@ -126,15 +137,17 @@ class Skill extends BaseModel
 
       $this->validateSkillData($data, false);
 
-      $skillData = array_filter([
-        'name' => isset($data['name']) ? trim($data['name']) : null,
-        'category' => $data['category'] ?? null,
-        'description' => $data['description'] ?? null,
-        'level' => $data['level'] ?? null,
-        'is_active' => $data['is_active'] ?? null
-      ], fn($value) => $value !== null);
+      // Filtrar solo los campos permitidos por $fillable
+      $filtered = [];
+      foreach ($this->fillable as $field) {
+        if (array_key_exists($field, $data)) {
+          $filtered[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+        }
+      }
+      // Eliminar nulos para no sobreescribir con null
+      $filtered = array_filter($filtered, fn($value) => $value !== null);
 
-      $result = $this->update($id, $skillData);
+      $result = $this->update($id, $filtered);
 
       if ($result) {
         Logger::info('Skill updated successfully', ['id' => $id]);

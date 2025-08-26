@@ -1,12 +1,18 @@
 <?php
+
+declare(strict_types=1);
+
 require_once __DIR__ . '/../bootstrap.php';
+
+use Security\CsrfMiddleware;
+use Src\Models\JobSkillModel;
+
+// JWTMiddleware usa alias global del bootstrap
 JWTMiddleware::requireAuth();
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
   CsrfMiddleware::protect();
 }
-
-use Src\Models\JobSkillModel;
 
 $model = new JobSkillModel();
 
@@ -20,10 +26,9 @@ switch ($method) {
       echo json_encode(['error' => 'job_id requerido']);
       exit;
     }
-    // BaseModel: add where/filter method si la tienes; si no, usa consulta directa
-    $stmt = $model->db->prepare("SELECT id, job_id, skill, level, required, created_at, updated_at FROM bt_job_skills WHERE job_id = :job_id ORDER BY id");
-    $stmt->execute(['job_id' => $jobId]);
-    echo json_encode(['data' => $stmt->fetchAll(\PDO::FETCH_ASSOC)]);
+    // Usar findBy para filtrar por job_id
+    $results = $model->findBy('job_id', $jobId);
+    echo json_encode(['data' => $results]);
     break;
 
   case 'POST':
@@ -37,7 +42,7 @@ switch ($method) {
       echo json_encode(['error' => 'job_id y skill son obligatorios']);
       exit;
     }
-    $id = $model->createJobSkill(['job_id' => $jobId, 'skill' => $skill, 'level' => $level, 'required' => $required]);
+    $id = $model->store(['job_id' => $jobId, 'skill' => $skill, 'level' => $level, 'required' => $required]);
     echo json_encode(['id' => $id, 'ok' => true]); // 201 si prefieres
     break;
 

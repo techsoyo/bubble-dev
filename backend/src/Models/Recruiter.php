@@ -569,7 +569,14 @@ class Recruiter extends BaseModel
     {
         try {
             $this->validateRecruiterData($data);
-            $id = $this->store($data);
+            // Filtrar solo los campos permitidos por $fillable
+            $filtered = [];
+            foreach ($this->fillable as $field) {
+                if (array_key_exists($field, $data)) {
+                    $filtered[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+                }
+            }
+            $id = $this->store($filtered);
             $this->invalidateRecruiterCache();
 
             Logger::info('Recruiter created successfully', [
@@ -617,14 +624,21 @@ class Recruiter extends BaseModel
     {
         try {
             $this->validateRecruiterData($data, $id);
-            $result = $this->update($id, $data);
+            // Filtrar solo los campos permitidos por $fillable
+            $filtered = [];
+            foreach ($this->fillable as $field) {
+                if (array_key_exists($field, $data)) {
+                    $filtered[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+                }
+            }
+            $result = $this->update($id, $filtered);
 
             if ($result) {
                 $this->invalidateRecruiterCache();
                 Logger::info('Recruiter updated successfully', [
                     'model' => static::class,
                     'id' => $id,
-                    'fields' => array_keys($data)
+                    'fields' => array_keys($filtered)
                 ]);
             }
 

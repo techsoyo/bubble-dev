@@ -1,8 +1,8 @@
-﻿<?php
+<?php
 
 declare(strict_types=1);
 
-
+use Security\CsrfMiddleware;
 require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -53,8 +53,8 @@ use Services\Exceptions\AiUnavailableException;
 use Utils\ResponseHelper;
 
 // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ REQUERIR AUTENTICACIÃƒÆ’Ã¢â‚¬Å“N JWT SIEMPRE
-$userPayload = if (!$userPayload) {
-  // JWTMiddleware ya enviÃƒÆ’Ã‚Â³ la respuesta de error
+if (!$userPayload) {
+  // JWTMiddleware ya enviÃƒÂ³ la respuesta de error
   exit;
 }
 

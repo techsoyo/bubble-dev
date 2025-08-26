@@ -42,18 +42,28 @@ class JobCategory extends BaseModel
     try {
       $this->validateCategoryData($data);
 
-      $categoryData = [
-        'name' => trim($data['name']),
-        'description' => $data['description'] ?? '',
-        'parent_id' => $data['parent_id'] ?? null,
-        'is_active' => $data['is_active'] ?? true,
-        'sort_order' => $data['sort_order'] ?? 0
-      ];
+      // Filtrar solo los campos permitidos por $fillable
+      $categoryData = [];
+      foreach ($this->fillable as $field) {
+        if (array_key_exists($field, $data)) {
+          $categoryData[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+        }
+      }
+      // Valores por defecto
+      if (!isset($categoryData['is_active'])) {
+        $categoryData['is_active'] = true;
+      }
+      if (!isset($categoryData['sort_order'])) {
+        $categoryData['sort_order'] = 0;
+      }
+      if (!isset($categoryData['description'])) {
+        $categoryData['description'] = '';
+      }
 
       $id = $this->store($categoryData);
 
       if ($id) {
-        Logger::info('Job category created successfully', ['id' => $id, 'name' => $categoryData['name']]);
+        Logger::info('Job category created successfully', ['id' => $id, 'name' => $categoryData['name'] ?? null]);
         return $id;
       }
 
@@ -116,13 +126,15 @@ class JobCategory extends BaseModel
 
       $this->validateCategoryData($data, false);
 
-      $categoryData = array_filter([
-        'name' => isset($data['name']) ? trim($data['name']) : null,
-        'description' => $data['description'] ?? null,
-        'parent_id' => $data['parent_id'] ?? null,
-        'is_active' => $data['is_active'] ?? null,
-        'sort_order' => $data['sort_order'] ?? null
-      ], fn($value) => $value !== null);
+      // Filtrar solo los campos permitidos por $fillable
+      $categoryData = [];
+      foreach ($this->fillable as $field) {
+        if (array_key_exists($field, $data)) {
+          $categoryData[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+        }
+      }
+      // Eliminar nulos para no sobreescribir con null
+      $categoryData = array_filter($categoryData, fn($value) => $value !== null);
 
       $result = $this->update($id, $categoryData);
 

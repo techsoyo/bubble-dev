@@ -1,8 +1,13 @@
-﻿<?php
+
+<?php
 
 declare(strict_types=1);
 
-
+use Models\Candidate;
+use PDO;
+use Exception;
+use Utils\JWTMiddleware as JWTMiddleware; // Para satisfacer el linter, aunque se aliasa globalmente
+use Security\CsrfMiddleware as CsrfMiddleware; // Para satisfacer el linter, aunque se aliasa globalmente
 
 require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
@@ -20,13 +25,13 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// Proteger solo mÃ©todos que cambian estado
+// Proteger solo métodos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
     // double-submit cookie
 }
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producción NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
         http_response_code(401);
@@ -49,16 +54,20 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['error' => 'MÃƒÆ’Ã‚Â©todo no permitido']);
+    echo json_encode(['error' => 'Método no permitido']);
     exit();
 }
+
+// Obtener la instancia de PDO singleton que usan los modelos
+require_once __DIR__ . '/../../config/database.php'; // Asegura que getDbConnection está disponible
+$pdo = getDbConnection();
 
 try {
     // Leer input JSON
     $inputData = json_decode(file_get_contents('php://input'), true);
 
     if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('JSON invÃƒÆ’Ã‚Â¡lido en request body');
+        throw new Exception('JSON inválido en request body');
     }
 
     // Validar datos requeridos
@@ -80,59 +89,35 @@ try {
 
     // Validar email
     if (!filter_var($candidateData['email'], FILTER_VALIDATE_EMAIL)) {
-        throw new Exception('Email no vÃƒÆ’Ã‚Â¡lido');
+        throw new Exception('Email no válido');
     }
 
-    // Conectar a la base de datos
-    $pdo = new PDO(
-        "mysql:host={$_ENV['DB_HOST']};dbname={$_ENV['DB_NAME']};charset=utf8mb4",
-        $_ENV['DB_USER'],
-        $_ENV['DB_PASSWORD'],
-        [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-        ]
-    );
-
-    // Iniciar transacciÃƒÆ’Ã‚Â³n
+    // Iniciar transacción
     $pdo->beginTransaction();
 
     try {
-        // 1. Insertar o actualizar usuario en tabla de autenticaciÃƒÆ’Ã‚Â³n
-        $userId = null;
-        if (!empty($accountData['username']) && !empty($accountData['password'])) {
-            $stmt = $pdo->prepare("
-                INSERT INTO usuarios (username, email, password_hash, role, created_at) 
-                VALUES (?, ?, ?, 'candidate', NOW())
-                ON DUPLICATE KEY UPDATE 
-                    email = VALUES(email),
-                    updated_at = NOW()
-            ");
+        // No hay necesidad de un userId separado, los candidatos se autentican a través de bt_candidates
+        $candidateId = null; // Inicializar candidateId
 
-            $passwordHash = password_hash($accountData['password'], PASSWORD_DEFAULT);
-            $stmt->execute([
-                $accountData['username'],
-                $candidateData['email'],
-                $passwordHash
-            ]);
-
-            $userId = $pdo->lastInsertId() ?: $pdo->query("SELECT id FROM usuarios WHERE email = '{$candidateData['email']}'")->fetchColumn();
+        // Hash de contraseña si se proporciona
+        if (!empty($accountData['password'])) {
+            $candidateData['password_hash'] = password_hash($accountData['password'], PASSWORD_DEFAULT);
         }
 
         // 2. Insertar o actualizar datos principales del candidato CON DATOS GDPR
+        $candidateModel = new Candidate();
         $stmt = $pdo->prepare('
             INSERT INTO bt_candidates (
                 name, email, phone, location, date_of_birth,
-                portfolio_url, linkedin_url, resumen_profesional, 
-                soft_skills, hard_skills, idiomas, intereses, referencias, 
-                disponibilidad, certificaciones, cv_original_file, cv_text_file, 
-                cv_json_file, data_source, created_at,
-                gdpr_consent_given, gdpr_consent_date, openai_processing_consent, 
-                openai_consent_date, data_processing_purposes, consent_version,
+                portfolio_url, linkedin_url, resumen_profesional,
+                soft_skills, hard_skills, idiomas, intereses, referencias,
+                disponibilidad, certificaciones, cv_original_file, cv_text_file,
+                cv_json_file, data_source, created_at, password_hash,
+                gdpr_consent_given, gdpr_consent_date, IA_processing_consent,
+                IA_consent_date, data_processing_purposes, consent_version,
                 ip_address_consent, user_agent_consent, data_retention_until
             ) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(),
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?,
                 ?, NOW(), ?, NOW(), ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 24 MONTH)
             )
             ON DUPLICATE KEY UPDATE
@@ -154,10 +139,11 @@ try {
                 cv_text_file = VALUES(cv_text_file),
                 cv_json_file = VALUES(cv_json_file),
                 data_source = VALUES(data_source),
+                password_hash = VALUES(password_hash),
                 gdpr_consent_given = VALUES(gdpr_consent_given),
                 gdpr_consent_date = VALUES(gdpr_consent_date),
-                openai_processing_consent = VALUES(openai_processing_consent),
-                openai_consent_date = VALUES(openai_consent_date),
+                IA_processing_consent = VALUES(IA_processing_consent),
+                IA_consent_date = VALUES(IA_consent_date),
                 data_processing_purposes = VALUES(data_processing_purposes),
                 consent_version = VALUES(consent_version),
                 ip_address_consent = VALUES(ip_address_consent),
@@ -165,11 +151,11 @@ try {
                 data_retention_until = VALUES(data_retention_until)
         ');
 
-        // Capturar datos GDPR de auditorÃƒÆ’Ã‚Â­a
+        // Capturar datos GDPR de auditoría
         $userIP = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['HTTP_X_REAL_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
 
-        // Datos de propÃƒÆ’Ã‚Â³sitos del tratamiento GDPR
+        // Datos de propósitos del tratamiento GDPR
         $processingPurposes = [
             'cv_analysis' => true,
             'recruitment_process' => true,
@@ -179,7 +165,7 @@ try {
         ];
 
         $stmt->execute([
-            // Datos bÃƒÆ’Ã‚Â¡sicos del candidato
+            // Datos básicos del candidato
             $candidateData['nombre'],
             $candidateData['email'],
             $candidateData['telefono'],
@@ -199,26 +185,30 @@ try {
             $cvFiles['text'] ?? null,
             $cvFiles['json'] ?? null,
             $inputData['data_source'] ?? 'manual_entry',
-            // Datos GDPR - CRÃƒÆ’Ã‚ÂTICOS PARA CUMPLIMIENTO
-            true, // gdpr_consent_given - siempre true si llegÃƒÆ’Ã‚Â³ aquÃƒÆ’Ã‚Â­
+            $candidateData['password_hash'] ?? null, // Incluir password_hash
+            // Datos GDPR - CRÍTICOS PARA CUMPLIMIENTO
+            true, // gdpr_consent_given - siempre true si llegó aquí
             true, // openai_processing_consent - true si data_source es ai_processing
             json_encode($processingPurposes, JSON_UNESCAPED_UNICODE), // data_processing_purposes
             '1.0', // consent_version
             $userIP, // ip_address_consent
             $userAgent // user_agent_consent
-            // data_retention_until se calcula automÃƒÆ’Ã‚Â¡ticamente con DATE_ADD en SQL
+            // data_retention_until se calcula automáticamente con DATE_ADD en SQL
         ]);
 
-        $candidateId = $pdo->lastInsertId() ?: $pdo->query("SELECT id FROM bt_candidates WHERE email = '{$candidateData['email']}'")->fetchColumn();
+        // Buscar el ID del candidato si ya existe, usando el modelo Candidate
+        $existingCandidate = $candidateModel->findOneBy('email', $candidateData['email']);
+        $candidateId = $pdo->lastInsertId() ?: ($existingCandidate['id'] ?? null);
 
         // 3. Insertar experiencia laboral (usar tabla existente bt_candidate_experiences)
         if (!empty($candidateData['puestos_anteriores'])) {
             // Limpiar experiencia anterior
-            $pdo->prepare('DELETE FROM bt_candidate_experiences WHERE candidate_id = ?')->execute([$candidateId]);
+            $stmt = $pdo->prepare('DELETE FROM bt_candidate_experiences WHERE candidate_id = ?');
+            $stmt->execute([$candidateId]);
 
             $stmt = $pdo->prepare('
                 INSERT INTO bt_candidate_experiences (
-                    candidate_id, job_title, company_name, start_date, end_date, 
+                    candidate_id, job_title, company_name, start_date, end_date,
                     description, created_at
                 ) VALUES (?, ?, ?, ?, ?, ?, NOW())
             ');
@@ -235,14 +225,15 @@ try {
             }
         }
 
-        // 4. Insertar educaciÃƒÆ’Ã‚Â³n (usar tabla existente bt_candidate_education)
+        // 4. Insertar educación (usar tabla existente bt_candidate_education)
         if (!empty($candidateData['educacion'])) {
-            // Limpiar educaciÃƒÆ’Ã‚Â³n anterior
-            $pdo->prepare('DELETE FROM bt_candidate_education WHERE candidate_id = ?')->execute([$candidateId]);
+            // Limpiar educación anterior
+            $stmt = $pdo->prepare('DELETE FROM bt_candidate_education WHERE candidate_id = ?');
+            $stmt->execute([$candidateId]);
 
             $stmt = $pdo->prepare('
                 INSERT INTO bt_candidate_education (
-                    candidate_id, degree_title, institution_name, start_date, end_date, 
+                    candidate_id, degree_title, institution_name, start_date, end_date,
                     description, created_at
                 ) VALUES (?, ?, ?, ?, ?, ?, NOW())
             ');
@@ -260,7 +251,8 @@ try {
         }    // 5. Insertar proyectos (si existen)
         if (!empty($candidateData['proyectos'])) {
             // Limpiar proyectos anteriores
-            $pdo->prepare('DELETE FROM bt_candidate_projects WHERE candidate_id = ?')->execute([$candidateId]);
+            $stmt = $pdo->prepare('DELETE FROM bt_candidate_projects WHERE candidate_id = ?');
+            $stmt->execute([$candidateId]);
 
             $stmt = $pdo->prepare('
                 INSERT INTO bt_candidate_projects (
@@ -278,7 +270,7 @@ try {
             }
         }
 
-        // Confirmar transacciÃƒÆ’Ã‚Â³n
+        // Confirmar transacción
         $pdo->commit();
 
         // Respuesta exitosa
@@ -287,7 +279,6 @@ try {
             'message' => 'Datos del candidato guardados exitosamente',
             'data' => [
                 'candidate_id' => $candidateId,
-                'user_id' => $userId,
                 'email' => $candidateData['email'],
                 'nombre' => $candidateData['nombre']
             ],
@@ -315,3 +306,4 @@ try {
     ]);
 }
 
+```

@@ -589,7 +589,15 @@ class JobRequirement extends BaseModel
         self::validateJobRequirementData($data);
 
         $jobRequirement = new self();
-        $id = $jobRequirement->store($data);
+        // Filtrar solo los campos permitidos por $fillable
+        $filteredData = [];
+        foreach ($jobRequirement->fillable as $field) {
+            if (array_key_exists($field, $data)) {
+                $filteredData[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+            }
+        }
+
+        $id = $jobRequirement->store($filteredData);
 
         if (!$id) {
             throw new \Exception('Error al crear el requisito de trabajo');
@@ -635,7 +643,15 @@ class JobRequirement extends BaseModel
             throw new \InvalidArgumentException("Requisito de trabajo con ID {$id} no encontrado");
         }
 
-        $success = $jobRequirement->update($id, $data);
+        // Filtrar solo los campos permitidos por $fillable
+        $filteredData = [];
+        foreach ($jobRequirement->fillable as $field) {
+            if (array_key_exists($field, $data)) {
+                $filteredData[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+            }
+        }
+
+        $success = $jobRequirement->update($id, $filteredData);
 
         if ($success) {
             self::invalidateJobRequirementCache();

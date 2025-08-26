@@ -454,31 +454,20 @@ class ChatbotOption extends BaseModel
      */
     public function store(array $data)
     {
-        // Validaciones específicas
-        if (empty($data['node_id'])) {
+        // Filtrar solo los campos permitidos
+        $filtered = array_intersect_key($data, array_flip($this->fillable));
+        if (empty($filtered['node_id'])) {
             throw new \InvalidArgumentException('Node ID is required');
         }
-
-        if (empty($data['text'])) {
+        if (empty($filtered['option_text'])) {
             throw new \InvalidArgumentException('Option text is required');
         }
-
         // Valores por defecto
-        $data['action_type'] = $data['action_type'] ?? 'navigate';
-        $data['order_position'] = $data['order_position'] ?? $this->getNextOrderPosition($data['node_id']);
-        $data['is_active'] = $data['is_active'] ?? 1;
-
-        // Codificar action_data si es array
-        if (isset($data['action_data']) && is_array($data['action_data'])) {
-            $data['action_data'] = json_encode($data['action_data']);
-        }
-
+        $filtered['is_active'] = $filtered['is_active'] ?? 1;
+        $filtered['sort_order'] = $filtered['sort_order'] ?? $this->getNextOrderPosition($filtered['node_id']);
         try {
-            $id = parent::store($data);
-
-            // Limpiar cache relacionado
-            $this->clearNodeCache($data['node_id']);
-
+            $id = parent::store($filtered);
+            $this->clearNodeCache($filtered['node_id']);
             return $id;
         } catch (\Exception $e) {
             throw new \RuntimeException('Failed to create option: ' . $e->getMessage());
@@ -494,19 +483,13 @@ class ChatbotOption extends BaseModel
      */
     public function update($id, array $data): bool
     {
-        // Codificar action_data si es array
-        if (isset($data['action_data']) && is_array($data['action_data'])) {
-            $data['action_data'] = json_encode($data['action_data']);
-        }
-
+        // Filtrar solo los campos permitidos
+        $filtered = array_intersect_key($data, array_flip($this->fillable));
         try {
-            $result = parent::update($id, $data);
-
-            // Limpiar cache relacionado si se actualizó node_id
-            if (isset($data['node_id'])) {
-                $this->clearNodeCache($data['node_id']);
+            $result = parent::update($id, $filtered);
+            if (isset($filtered['node_id'])) {
+                $this->clearNodeCache($filtered['node_id']);
             }
-
             return $result;
         } catch (\Exception $e) {
             throw new \RuntimeException('Failed to update option: ' . $e->getMessage());

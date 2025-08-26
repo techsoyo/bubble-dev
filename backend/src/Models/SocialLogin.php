@@ -165,7 +165,15 @@ class SocialLogin extends BaseModel
                 $data['profile_data'] = json_encode($data['profile_data']);
             }
 
-            return $this->store($data);
+            // Filtrar solo los campos permitidos por $fillable
+            $filtered = [];
+            foreach ($this->fillable as $field) {
+                if (array_key_exists($field, $data)) {
+                    $filtered[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+                }
+            }
+
+            return $this->store($filtered);
         } catch (\Exception $e) {
             Logger::error('Error creando vinculación social', [
                 'provider' => $data['provider'],
@@ -663,13 +671,20 @@ class SocialLogin extends BaseModel
         }
 
         try {
-            $result = $instance->store($data);
+            // Filtrar solo los campos permitidos por $fillable
+            $filtered = [];
+            foreach ($instance->fillable as $field) {
+                if (array_key_exists($field, $data)) {
+                    $filtered[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+                }
+            }
+            $result = $instance->store($filtered);
 
             if ($result) {
                 $instance->logDebug('Vinculación social creada exitosamente', [
                     'id' => $result,
-                    'candidate_id' => $data['candidate_id'] ?? null,
-                    'provider' => $data['provider'] ?? null
+                    'candidate_id' => $filtered['candidate_id'] ?? null,
+                    'provider' => $filtered['provider'] ?? null
                 ]);
 
                 // Invalidar cache relacionado
@@ -736,12 +751,19 @@ class SocialLogin extends BaseModel
         }
 
         try {
-            $result = $instance->update($id, $data);
+            // Filtrar solo los campos permitidos por $fillable
+            $filtered = [];
+            foreach ($instance->fillable as $field) {
+                if (array_key_exists($field, $data)) {
+                    $filtered[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+                }
+            }
+            $result = $instance->update($id, $filtered);
 
             if ($result) {
                 $instance->logDebug('Vinculación social actualizada exitosamente', [
                     'id' => $id,
-                    'data' => $data
+                    'data' => $filtered
                 ]);
 
                 // Invalidar cache relacionado

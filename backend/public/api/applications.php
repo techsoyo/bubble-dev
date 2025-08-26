@@ -1,14 +1,14 @@
-﻿<?php
+<?php
 
 declare(strict_types=1);
 
-
+use Security\CsrfMiddleware;
 
 require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
     CsrfMiddleware::protect(); // double-submit cookie
 }
 
@@ -52,10 +52,14 @@ function jsend(bool $ok, string $message, $data = null, int $code = 200): void
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-// Requiere JWT en todos los mÃ©todos
-$userPayload = if (!$userPayload) {
+// Requiere JWT en todos los métodos
+$userPayload = null; // Inicializar variable
+// TODO: Implementar obtención del payload JWT desde cookie
+if (!$userPayload) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized - JWT required']);
     exit;
-} // el middleware ya habrÃ¡ respondido
+} // el middleware ya habrá respondido
 
 $userId   = $userPayload['user_id']   ?? null;
 $userRole = $userPayload['role']      ?? null;            // 'admin' | 'hr' | 'recruiter' | 'candidate' ...
@@ -267,4 +271,3 @@ if ($method === 'POST') {
 }
 
 jsend(false, 'MÃ©todo no permitido', null, 405);
-

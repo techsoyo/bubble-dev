@@ -797,7 +797,14 @@ class User extends BaseModel
         self::validateUserData($data);
 
         $user = new self();
-        $id = $user->store($data);
+        // Filtrar solo los campos permitidos por $fillable
+        $filtered = [];
+        foreach ($user->fillable as $field) {
+            if (array_key_exists($field, $data)) {
+                $filtered[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+            }
+        }
+        $id = $user->store($filtered);
 
         if (!$id) {
             throw new \Exception('Error al crear el usuario');
@@ -843,7 +850,14 @@ class User extends BaseModel
             throw new \InvalidArgumentException("Usuario con ID {$id} no encontrado");
         }
 
-        $success = $user->update($id, $data);
+        // Filtrar solo los campos permitidos por $fillable
+        $filtered = [];
+        foreach ($user->fillable as $field) {
+            if (array_key_exists($field, $data)) {
+                $filtered[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+            }
+        }
+        $success = $user->update($id, $filtered);
 
         if ($success) {
             self::invalidateUserCache();

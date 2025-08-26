@@ -147,13 +147,15 @@ class AuthController
             $this->setAuthCookies($jwt);
             $this->successfulLoginResponse($user, $jwt);
             
-        } catch (\Throwable $e) {
-            http_response_code(500);
-            header('Content-Type: application/json');
-            echo json_encode(['error' => 'internal_server_error']);
-            exit;
+                } catch (\Throwable $e) {
+                    http_response_code(500);
+                    header('Content-Type: application/json');
+                    echo json_encode(['error' => 'internal_server_error']);
+                    exit;
+                }
+            }
         }
-    }
+    
 
     /**
      * Login específico de candidato

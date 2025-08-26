@@ -331,8 +331,16 @@ class Notification extends BaseModel
             $data['created_at'] = date('Y-m-d H:i:s');
         }
 
+        // Filtrar solo los campos permitidos por $fillable
+        $filtered = [];
+        foreach ($this->fillable as $field) {
+            if (array_key_exists($field, $data)) {
+                $filtered[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+            }
+        }
+
         try {
-            $notificationId = $this->store($data);
+            $notificationId = $this->store($filtered);
 
             if ($notificationId) {
                 // Invalidar cache después de crear
@@ -484,7 +492,14 @@ class Notification extends BaseModel
         self::validateNotificationData($data);
 
         $notification = new self();
-        $id = $notification->store($data);
+        // Filtrar solo los campos permitidos por $fillable
+        $filtered = [];
+        foreach ($notification->fillable as $field) {
+            if (array_key_exists($field, $data)) {
+                $filtered[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+            }
+        }
+        $id = $notification->store($filtered);
 
         if (!$id) {
             throw new \Exception('Error al crear la notificación');
@@ -530,7 +545,14 @@ class Notification extends BaseModel
             throw new \InvalidArgumentException("Notificación con ID {$id} no encontrada");
         }
 
-        $success = $notification->update($id, $data);
+        // Filtrar solo los campos permitidos por $fillable
+        $filtered = [];
+        foreach ($notification->fillable as $field) {
+            if (array_key_exists($field, $data)) {
+                $filtered[$field] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+            }
+        }
+        $success = $notification->update($id, $filtered);
 
         if ($success) {
             self::invalidateNotificationCacheStandard();

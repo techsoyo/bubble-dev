@@ -1,8 +1,11 @@
-﻿<?php
+<?php
 
 declare(strict_types=1);
 
-
+use Firebase\JWT\JWT;
+use Utils\Logger;
+use Security\Cookies;
+use Security\CsrfMiddleware;
 
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
@@ -18,10 +21,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
     exit;
 }
 
-use Firebase\JWT\JWT;
-use Utils\Logger;
-use Security\Cookies;
-use Security\CsrfMiddleware;
+
 
 // Preflight CORS
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {

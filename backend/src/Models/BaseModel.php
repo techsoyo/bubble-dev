@@ -7,6 +7,7 @@ namespace Models;
 use PDO;
 use PDOException;
 use Utils\Logger;
+use InvalidArgumentException;
 
 /**
  * Base model providing generic CRUD operations and database utilities
@@ -365,8 +366,19 @@ abstract class BaseModel
 
         $this->validateTable();
 
+        // Filtrar datos para permitir solo los campos "fillable"
+        $fillableData = array_filter(
+            $data,
+            fn($key) => in_array($key, $this->fillable, true),
+            ARRAY_FILTER_USE_KEY
+        );
+
+        if (empty($fillableData)) {
+            throw new \InvalidArgumentException('No fillable data provided. Check the $fillable property in your model.');
+        }
+
         try {
-            $fields = array_keys($data);
+            $fields = array_keys($fillableData);
             $placeholders = array_map(fn($field) => ":$field", $fields);
 
             $fieldsStr = '`' . implode('`, `', $fields) . '`';
@@ -376,22 +388,25 @@ abstract class BaseModel
 
             $stmt = $this->db->prepare($query);
 
-            foreach ($data as $field => $value) {
+            foreach ($fillableData as $field => $value) {
                 $stmt->bindValue(":$field", $value, $this->getPdoType($value));
             }
 
             $stmt->execute();
 
+            $this->invalidateCache(); // Invalidar caché después de crear
+            $newId = $this->db->lastInsertId();
+
             Logger::info('Record created successfully', [
                 'model' => static::class,
-                'id' => $this->db->lastInsertId()
+                'id' => $newId
             ]);
 
-            return $this->db->lastInsertId();
+            return $newId;
         } catch (PDOException $e) {
-            Logger::error('Database error in create', [
+            Logger::error('Database error in store', [
                 'model' => static::class,
-                'data' => $data,
+                'data' => $fillableData, // Loguear solo los datos filtrados
                 'error' => $e->getMessage()
             ]);
             throw new \RuntimeException('Failed to create record: ' . $e->getMessage());
@@ -523,8 +538,19 @@ abstract class BaseModel
 
         $this->validateTable();
 
+        // Filtrar datos para permitir solo los campos "fillable"
+        $fillableData = array_filter(
+            $data,
+            fn($key) => in_array($key, $this->fillable, true),
+            ARRAY_FILTER_USE_KEY
+        );
+
+        if (empty($fillableData)) {
+            throw new \InvalidArgumentException('No fillable data provided for update. Check the $fillable property in your model.');
+        }
+
         try {
-            $fields = array_keys($data);
+            $fields = array_keys($fillableData);
             $setStatements = array_map(fn($field) => "`$field` = :$field", $fields);
 
             $query = "UPDATE `{$this->table}` SET " . implode(', ', $setStatements) .
@@ -532,13 +558,15 @@ abstract class BaseModel
 
             $stmt = $this->db->prepare($query);
 
-            foreach ($data as $field => $value) {
+            foreach ($fillableData as $field => $value) {
                 $stmt->bindValue(":$field", $value, $this->getPdoType($value));
             }
 
             $stmt->bindValue(':id', $id, $this->getPdoType($id));
 
             $result = $stmt->execute();
+
+            $this->invalidateCache(); // Invalidar caché después de actualizar
 
             Logger::info('Record updated successfully', [
                 'model' => static::class,
@@ -551,7 +579,7 @@ abstract class BaseModel
             Logger::error('Database error in update', [
                 'model' => static::class,
                 'id' => $id,
-                'data' => $data,
+                'data' => $fillableData, // Loguear solo los datos filtrados
                 'error' => $e->getMessage()
             ]);
             throw new \RuntimeException('Failed to update record: ' . $e->getMessage());
@@ -631,6 +659,13 @@ abstract class BaseModel
             throw new \InvalidArgumentException('SQL query cannot be empty');
         }
 
+        // Advertencia de seguridad para desarrolladores
+        if ($this->isDevelopment() && stripos($sql, 'SELECT') === 0 && !preg_match('/\b(WHERE|LIMIT|JOIN)\b/i', $sql)) {
+            Logger::warning('Executing a broad SELECT query via query(). Consider using findAll() or findOptimized() for better security and performance.', [
+                'sql' => $sql
+            ]);
+        }
+
         try {
             $stmt = $this->db->prepare($sql);
 
@@ -639,6 +674,11 @@ abstract class BaseModel
             }
 
             $stmt->execute();
+
+            // Invalidar caché si es una operación de escritura
+            if (preg_match('/^(INSERT|UPDATE|DELETE)/i', $sql)) {
+                $this->invalidateCache();
+            }
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
@@ -699,7 +739,21 @@ abstract class BaseModel
      */
     protected function isValidFieldName(string $fieldName): bool
     {
-        return preg_match('/^[a-zA-Z0-9_]+$/', $fieldName) === 1;
+        // Permite solo caracteres alfanuméricos y guiones bajos.
+        if (preg_match('/^[a-zA-Z0-9_]+$/', $fieldName) !== 1) {
+            return false;
+        }
+
+        // En un entorno de desarrollo, comprueba si el campo está en la lista de fillable o es la clave primaria.
+        // Esto ayuda a detectar errores tipográficos o intentos de usar campos no permitidos.
+        if ($this->isDevelopment()) {
+            if (!in_array($fieldName, $this->fillable) && $fieldName !== $this->primaryKey) {
+                // Podríamos registrar una advertencia aquí si quisiéramos ser más estrictos.
+                // Logger::warning("Attempted to use a non-fillable or non-primary-key field: {$fieldName}");
+            }
+        }
+
+        return true;
     }
 
     /**

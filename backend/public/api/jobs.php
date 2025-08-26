@@ -1,26 +1,28 @@
-﻿<?php
+<?php
 
 declare(strict_types=1);
 
+use Security\CsrfMiddleware;
+// Usar alias global de JWTMiddleware creado en bootstrap.php
 
 
 require_once __DIR__ . '/./bootstrap.php';
-JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+// JWTMiddleware::requireAuth(); // Movido a donde se necesita específicamente
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
-    CsrfMiddleware::protect(); // double-submit cookie
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+  CsrfMiddleware::protect(); // double-submit cookie
 }
 
 if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized (cookie required)']);
-    exit;
+  http_response_code(401);
+  echo json_encode(['error' => 'Unauthorized (cookie required)']);
+  exit;
 }
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
-  }
+}
 
 if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
   http_response_code(401);
@@ -272,11 +274,12 @@ if ($method === 'GET') {
   }
 }
 
-// Manejo de POST para crear trabajos - AHORA CON AUTENTICACIÃƒÆ’Ã¢â‚¬Å“N
+// Manejo de POST para crear trabajos - AHORA CON AUTENTICACION JWT
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  // REQUERIR AUTENTICACIÃƒÆ’Ã¢â‚¬Å“N JWT
-  $userPayload = if (!$userPayload) {
-    // JWTMiddleware ya enviÃƒÆ’Ã‚Â³ la respuesta de error
+  // REQUERIR AUTENTICACION JWT
+  $userPayload = JWTMiddleware::requireAuth();
+  if (!$userPayload) {
+    // JWTMiddleware ya envió la respuesta de error
     exit;
   }
 
@@ -371,4 +374,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
   }
 }
-

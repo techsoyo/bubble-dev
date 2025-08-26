@@ -1,6 +1,4 @@
-<?php
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -17,13 +15,13 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// Proteger solo mÃ©todos que cambian estado
+// Proteger solo mÃƒÂ©todos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
     // double-submit cookie
 }
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
         http_response_code(401);
@@ -36,8 +34,8 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
 /**
  * API Endpoint: Content Generation & Predictive Analysis
  *
- * Endpoint unificado para generaciÃƒÆ’Ã‚Â³n automÃƒÆ’Ã‚Â¡tica de contenido y anÃƒÆ’Ã‚Â¡lisis predictivo.
- * Incluye job descriptions, preguntas de entrevista, anÃƒÆ’Ã‚Â¡lisis de ÃƒÆ’Ã‚Â©xito, tiempo de contrataciÃƒÆ’Ã‚Â³n.
+ * Endpoint unificado para generaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡tica de contenido y anÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lisis predictivo.
+ * Incluye job descriptions, preguntas de entrevista, anÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lisis de ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©xito, tiempo de contrataciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n.
  *
  * @package Backend\API\AI
  * @version 1.0.0
@@ -53,7 +51,7 @@ header('Content-Type: application/json; charset=utf-8');
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode([
-        'error' => 'MÃƒÆ’Ã‚Â©todo no permitido',
+        'error' => 'MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©todo no permitido',
         'message' => 'Este endpoint solo acepta POST requests'
     ]);
     exit();
@@ -64,10 +62,10 @@ try {
     $inputData = json_decode(file_get_contents('php://input'), true);
 
     if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('JSON invÃƒÆ’Ã‚Â¡lido en request body');
+        throw new Exception('JSON invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido en request body');
     }
 
-    // Validar acciÃƒÆ’Ã‚Â³n requerida
+    // Validar acciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n requerida
     if (!isset($inputData['action'])) {
         throw new Exception('Campo "action" es requerido');
     }
@@ -76,7 +74,7 @@ try {
     $contentService = new \Services\ContentGenerationService();
     $action = $inputData['action'];
 
-    // Enrutamiento por acciÃƒÆ’Ã‚Â³n
+    // Enrutamiento por acciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
     switch ($action) {
         case 'generate_job_description':
             $result = handleJobDescriptionGeneration($contentService, $inputData);
@@ -107,7 +105,7 @@ try {
             break;
 
         default:
-            throw new Exception("AcciÃƒÆ’Ã‚Â³n no vÃƒÆ’Ã‚Â¡lida: {$action}");
+            throw new Exception("AcciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n no vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lida: {$action}");
     }
 
     // Respuesta exitosa
@@ -124,14 +122,14 @@ try {
 
     http_response_code(400);
     echo json_encode([
-        'error' => 'Error en generaciÃƒÆ’Ã‚Â³n de contenido',
+        'error' => 'Error en generaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de contenido',
         'message' => $e->getMessage(),
         'timestamp' => date('Y-m-d H:i:s')
     ]);
 }
 
 /**
- * Maneja generaciÃƒÆ’Ã‚Â³n de job description
+ * Maneja generaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de job description
  */
 function handleJobDescriptionGeneration($service, $inputData)
 {
@@ -141,9 +139,9 @@ function handleJobDescriptionGeneration($service, $inputData)
 
     $jobInputs = $inputData['job_inputs'];
 
-    // Validaciones bÃƒÆ’Ã‚Â¡sicas
+    // Validaciones bÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡sicas
     if (empty($jobInputs['title'])) {
-        throw new Exception('TÃƒÆ’Ã‚Â­tulo del trabajo es requerido');
+        throw new Exception('TÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­tulo del trabajo es requerido');
     }
 
     $result = $service->generateJobDescription($jobInputs);
@@ -156,7 +154,7 @@ function handleJobDescriptionGeneration($service, $inputData)
 }
 
 /**
- * Maneja generaciÃƒÆ’Ã‚Â³n de preguntas de entrevista
+ * Maneja generaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de preguntas de entrevista
  */
 function handleInterviewQuestionsGeneration($service, $inputData)
 {
@@ -173,7 +171,7 @@ function handleInterviewQuestionsGeneration($service, $inputData)
     return [
         'interview_questions' => $result,
         'candidate_info' => [
-            'name' => $candidateData['nombre'] ?? 'AnÃƒÆ’Ã‚Â³nimo',
+            'name' => $candidateData['nombre'] ?? 'AnÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³nimo',
             'experience_years' => count($candidateData['puestos_anteriores'] ?? [])
         ],
         'job_info' => [
@@ -185,7 +183,7 @@ function handleInterviewQuestionsGeneration($service, $inputData)
 }
 
 /**
- * Maneja predicciÃƒÆ’Ã‚Â³n de ÃƒÆ’Ã‚Â©xito laboral
+ * Maneja predicciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©xito laboral
  */
 function handleJobSuccessPrediction($service, $inputData)
 {
@@ -212,7 +210,7 @@ function handleJobSuccessPrediction($service, $inputData)
 }
 
 /**
- * Maneja estimaciÃƒÆ’Ã‚Â³n de tiempo de contrataciÃƒÆ’Ã‚Â³n
+ * Maneja estimaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de tiempo de contrataciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
  */
 function handleTimeToFillEstimation($service, $inputData)
 {
@@ -237,7 +235,7 @@ function handleTimeToFillEstimation($service, $inputData)
 }
 
 /**
- * Maneja generaciÃƒÆ’Ã‚Â³n de templates de sourcing
+ * Maneja generaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de templates de sourcing
  */
 function handleSourcingTemplatesGeneration($service, $inputData)
 {
@@ -259,7 +257,7 @@ function handleSourcingTemplatesGeneration($service, $inputData)
 }
 
 /**
- * Maneja anÃƒÆ’Ã‚Â¡lisis de diversidad
+ * Maneja anÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lisis de diversidad
  */
 function handleDiversityAnalysis($service, $inputData)
 {
@@ -271,7 +269,7 @@ function handleDiversityAnalysis($service, $inputData)
     $diversityMetrics = $inputData['diversity_metrics'] ?? ['experience', 'education', 'background'];
 
     if (!is_array($candidatesData) || empty($candidatesData)) {
-        throw new Exception('Se requiere al menos un candidato para el anÃƒÆ’Ã‚Â¡lisis');
+        throw new Exception('Se requiere al menos un candidato para el anÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lisis');
     }
 
     $result = $service->analyzeDiversity($candidatesData, $diversityMetrics);
@@ -285,7 +283,7 @@ function handleDiversityAnalysis($service, $inputData)
 }
 
 /**
- * Maneja generaciÃƒÆ’Ã‚Â³n masiva de contenido
+ * Maneja generaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n masiva de contenido
  */
 function handleBulkContentGeneration($service, $inputData)
 {
@@ -325,7 +323,7 @@ function handleBulkContentGeneration($service, $inputData)
                     break;
 
                 default:
-                    throw new Exception("Tipo no vÃƒÆ’Ã‚Â¡lido: {$request['type']}");
+                    throw new Exception("Tipo no vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido: {$request['type']}");
             }
         } catch (Exception $e) {
             $errors[$index] = $e->getMessage();

@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Controllers;
 
 use Models\JobCategory;
@@ -25,7 +24,7 @@ class JobCategoryController extends BaseController
       $limit = (int)($filters['limit'] ?? 20);
       $offset = ($page - 1) * $limit;
 
-      // Si se solicitan solo categorías principales
+      // Si se solicitan solo categorÃƒÆ’Ã‚Â­as principales
       if (isset($filters['main_only']) && $filters['main_only'] == '1') {
         $categories = $this->model->getMainCategories();
         $total = count($categories);
@@ -34,7 +33,7 @@ class JobCategoryController extends BaseController
         $total = $this->model->countJobCategories($filters);
       }
 
-      return ResponseHelper::success('Lista de categorías de trabajo', [
+      return ResponseHelper::success('Lista de categorÃƒÆ’Ã‚Â­as de trabajo', [
         'data' => $categories,
         'total' => $total,
         'page' => $page,
@@ -42,7 +41,7 @@ class JobCategoryController extends BaseController
       ], 200);
     } catch (\Throwable $e) {
       Logger::error('Error listing job categories', ['error' => $e->getMessage()]);
-      return ResponseHelper::error('Error al listar categorías de trabajo', $e, 500);
+      return ResponseHelper::error('Error al listar categorÃƒÆ’Ã‚Â­as de trabajo', $e, 500);
     }
   }
 
@@ -56,13 +55,13 @@ class JobCategoryController extends BaseController
 
       $category = $this->model->getJobCategoryWithCount((int)$id);
       if (!$category) {
-        return ResponseHelper::fail('Categoría de trabajo no encontrada', 404);
+        return ResponseHelper::fail('CategorÃƒÆ’Ã‚Â­a de trabajo no encontrada', 404);
       }
 
-      return ResponseHelper::success('Categoría de trabajo encontrada', $category, 200);
+      return ResponseHelper::success('CategorÃƒÆ’Ã‚Â­a de trabajo encontrada', $category, 200);
     } catch (\Throwable $e) {
       Logger::error('Error retrieving job category', ['id' => $id, 'error' => $e->getMessage()]);
-      return ResponseHelper::error('Error al obtener categoría de trabajo', $e, 500);
+      return ResponseHelper::error('Error al obtener categorÃƒÆ’Ã‚Â­a de trabajo', $e, 500);
     }
   }
 
@@ -78,13 +77,13 @@ class JobCategoryController extends BaseController
       }
 
       Logger::info('Job category created from controller', ['id' => $id]);
-      return ResponseHelper::success('Categoría de trabajo creada', ['id' => $id], 201);
+      return ResponseHelper::success('CategorÃƒÆ’Ã‚Â­a de trabajo creada', ['id' => $id], 201);
     } catch (\InvalidArgumentException $e) {
       Logger::error('Validation failed creating job category', ['error' => $e->getMessage()]);
       return ResponseHelper::fail($e->getMessage(), 422);
     } catch (\Throwable $e) {
       Logger::error('Unexpected error creating job category', ['error' => $e->getMessage()]);
-      return ResponseHelper::error('Error al crear categoría de trabajo', $e, 500);
+      return ResponseHelper::error('Error al crear categorÃƒÆ’Ã‚Â­a de trabajo', $e, 500);
     }
   }
 
@@ -105,13 +104,13 @@ class JobCategoryController extends BaseController
       }
 
       Logger::info('Job category updated from controller', ['id' => $id]);
-      return ResponseHelper::success("Categoría de trabajo $id actualizada", ['success' => true], 200);
+      return ResponseHelper::success("CategorÃƒÆ’Ã‚Â­a de trabajo $id actualizada", ['success' => true], 200);
     } catch (\InvalidArgumentException $e) {
       Logger::error('Validation failed updating job category', ['id' => $id, 'error' => $e->getMessage()]);
       return ResponseHelper::fail($e->getMessage(), 422);
     } catch (\Throwable $e) {
       Logger::error('Unexpected error updating job category', ['id' => $id, 'error' => $e->getMessage()]);
-      return ResponseHelper::error('Error al actualizar categoría de trabajo', $e, 500);
+      return ResponseHelper::error('Error al actualizar categorÃƒÆ’Ã‚Â­a de trabajo', $e, 500);
     }
   }
 
@@ -129,13 +128,13 @@ class JobCategoryController extends BaseController
       }
 
       Logger::info('Job category deleted from controller', ['id' => $id]);
-      return ResponseHelper::success("Categoría de trabajo $id eliminada", [], 204);
+      return ResponseHelper::success("CategorÃƒÆ’Ã‚Â­a de trabajo $id eliminada", [], 204);
     } catch (\InvalidArgumentException $e) {
       Logger::error('Validation failed deleting job category', ['id' => $id, 'error' => $e->getMessage()]);
       return ResponseHelper::fail($e->getMessage(), 422);
     } catch (\Throwable $e) {
       Logger::error('Unexpected error deleting job category', ['id' => $id, 'error' => $e->getMessage()]);
-      return ResponseHelper::error('Error al eliminar categoría de trabajo', $e, 500);
+      return ResponseHelper::error('Error al eliminar categorÃƒÆ’Ã‚Â­a de trabajo', $e, 500);
     }
   }
 }

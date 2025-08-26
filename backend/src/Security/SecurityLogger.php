@@ -1,10 +1,9 @@
-<?php
-
-namespace Security;
+<?php declare(strict_types=1);
+namespace Security\SecurityLogger.php\Security;
 
 /**
  * Sistema de logging de eventos de seguridad
- * SEGURIDAD: Auditoria completa de eventos críticos
+ * SEGURIDAD: Auditoria completa de eventos crÃƒÂ­ticos
  */
 class SecurityLogger
 {
@@ -52,14 +51,14 @@ class SecurityLogger
     // Escribir al archivo de log
     file_put_contents(self::$logFile, $logLine, FILE_APPEND | LOCK_EX);
 
-    // Para eventos críticos, también log al syslog
+    // Para eventos crÃƒÂ­ticos, tambiÃƒÂ©n log al syslog
     if (in_array($level, ['ERROR', 'CRITICAL'])) {
       error_log("SECURITY {$level}: {$event} - " . json_encode($data));
     }
   }
 
   /**
-   * Log de autenticación exitosa
+   * Log de autenticaciÃƒÂ³n exitosa
    */
   public static function logAuthSuccess(string $userId, string $role): void
   {
@@ -70,7 +69,7 @@ class SecurityLogger
   }
 
   /**
-   * Log de fallo de autenticación
+   * Log de fallo de autenticaciÃƒÂ³n
    */
   public static function logAuthFailure(string $reason, array $context = []): void
   {
@@ -92,7 +91,7 @@ class SecurityLogger
   }
 
   /**
-   * Log de violación de rate limiting
+   * Log de violaciÃƒÂ³n de rate limiting
    */
   public static function logRateLimitViolation(string $userId, string $endpoint): void
   {
@@ -113,7 +112,7 @@ class SecurityLogger
   }
 
   /**
-   * Log de JWT inválido
+   * Log de JWT invÃƒÂ¡lido
    */
   public static function logInvalidJWT(string $reason, string $token = null): void
   {
@@ -124,7 +123,7 @@ class SecurityLogger
   }
 
   /**
-   * Log de operación admin crítica
+   * Log de operaciÃƒÂ³n admin crÃƒÂ­tica
    */
   public static function logAdminOperation(string $operation, string $adminId, array $details = []): void
   {
@@ -136,7 +135,7 @@ class SecurityLogger
   }
 
   /**
-   * Log de intento de CORS violación
+   * Log de intento de CORS violaciÃƒÂ³n
    */
   public static function logCORSViolation(string $origin, string $method): void
   {
@@ -147,7 +146,7 @@ class SecurityLogger
   }
 
   /**
-   * Obtener estadísticas de seguridad
+   * Obtener estadÃƒÂ­sticas de seguridad
    */
   public static function getSecurityStats(int $hours = 24): array
   {

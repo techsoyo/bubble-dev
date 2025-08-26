@@ -1,8 +1,7 @@
-<?php
-
+<?php declare(strict_types=1);
 /**
  * database.php
- * Conexión PDO segura y singleton
+ * ConexiÃ³n PDO segura y singleton
  */
 
 require_once __DIR__ . '/config.php';
@@ -31,11 +30,11 @@ function getDbConnection(): PDO
   try {
     $pdo = new PDO($dsn, $user, $pass, $options);
   } catch (\PDOException $e) {
-    $msg = "Error de conexión a la base de datos.";
+    $msg = "Error de conexiÃ³n a la base de datos.";
     if (isDevelopment()) {
       throw new \PDOException($msg . " Detalle: " . $e->getMessage(), (int)$e->getCode());
     } else {
-      error_log($msg . " Código: " . $e->getCode());
+      error_log($msg . " CÃ³digo: " . $e->getCode());
       throw new \PDOException($msg . " Por favor contacte al administrador.", 500);
     }
   }

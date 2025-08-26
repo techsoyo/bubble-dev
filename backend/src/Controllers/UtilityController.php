@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Controllers;
 
 use Utils\Request;
@@ -9,7 +8,7 @@ class UtilityController
 {
   public function requestInfo(Request $request)
   {
-    // Información básica de la request (debug)
+    // InformaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica de la request (debug)
     return ResponseHelper::success('Request info', [
       'method' => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
       'uri' => $_SERVER['REQUEST_URI'] ?? 'unknown',

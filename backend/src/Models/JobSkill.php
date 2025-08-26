@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 namespace Models;
 
 use Utils\Logger;
@@ -10,8 +7,8 @@ use PDO;
 /**
  * Modelo para las habilidades requeridas en ofertas de trabajo.
  * 
- * Proporciona funcionalidades avanzadas para análisis de mercado de habilidades,
- * matching de candidatos, y análisis de demanda/oferta usando vistas optimizadas.
+ * Proporciona funcionalidades avanzadas para anÃƒÆ’Ã‚Â¡lisis de mercado de habilidades,
+ * matching de candidatos, y anÃƒÆ’Ã‚Â¡lisis de demanda/oferta usando vistas optimizadas.
  * 
  * @package Models
  * @author Bubble of Talents Development Team
@@ -22,14 +19,14 @@ class JobSkill extends BaseModel
 {
     protected string $table = 'job_skills';
     /*
-     * 🔧 CORRECCIÓN AUTOMÁTICA APLICADA
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÃƒÆ’Ã¢â‚¬Å“N AUTOMÃƒÆ’Ã‚ÂTICA APLICADA
      * Modelo: JobSkill
      * Fecha: 2025-08-23
      * 
      * Cambios realizados:
-     * ➕ Campos añadidos: ['skill_id', 'required_level', 'weight']
-     * ❌ Campos removidos: ['skill', 'proficiency_level', 'years_experience']
-     * 📊 Total campos fillable: 5
+     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aÃƒÆ’Ã‚Â±adidos: ['skill_id', 'required_level', 'weight']
+     * ÃƒÂ¢Ã‚ÂÃ…â€™ Campos removidos: ['skill', 'proficiency_level', 'years_experience']
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Total campos fillable: 5
      * 
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
@@ -54,12 +51,12 @@ class JobSkill extends BaseModel
     protected array $hidden = [];
 
     /**
-     * Cache para análisis de mercado (TTL: 1 hora)
+     * Cache para anÃƒÆ’Ã‚Â¡lisis de mercado (TTL: 1 hora)
      */
     private const CACHE_TTL = 3600;
 
     /**
-     * MÉTODOS BÁSICOS - Funcionalidad original mejorada
+     * MÃƒÆ’Ã¢â‚¬Â°TODOS BÃƒÆ’Ã‚ÂSICOS - Funcionalidad original mejorada
      */
 
     /**
@@ -87,15 +84,15 @@ class JobSkill extends BaseModel
     }
 
     /**
-     * MÉTODOS DE ANÁLISIS DE DEMANDA Y OFERTA - Usando vistas optimizadas
+     * MÃƒÆ’Ã¢â‚¬Â°TODOS DE ANÃƒÆ’Ã‚ÂLISIS DE DEMANDA Y OFERTA - Usando vistas optimizadas
      */
 
     /**
-     * Obtiene análisis de demanda de habilidades usando vw_skill_demand
+     * Obtiene anÃƒÆ’Ã‚Â¡lisis de demanda de habilidades usando vw_skill_demand
      * 
      * @param array $filters Filtros opcionales
-     * @param int $limit Límite de resultados
-     * @return array Análisis de demanda por habilidad
+     * @param int $limit LÃƒÆ’Ã‚Â­mite de resultados
+     * @return array AnÃƒÆ’Ã‚Â¡lisis de demanda por habilidad
      */
     public function getSkillDemandAnalysis(array $filters = [], int $limit = 50): array
     {
@@ -156,11 +153,11 @@ class JobSkill extends BaseModel
     }
 
     /**
-     * Obtiene análisis de oferta de habilidades usando vw_skill_supply
+     * Obtiene anÃƒÆ’Ã‚Â¡lisis de oferta de habilidades usando vw_skill_supply
      * 
      * @param array $filters Filtros opcionales
-     * @param int $limit Límite de resultados
-     * @return array Análisis de oferta por habilidad
+     * @param int $limit LÃƒÆ’Ã‚Â­mite de resultados
+     * @return array AnÃƒÆ’Ã‚Â¡lisis de oferta por habilidad
      */
     public function getSkillSupplyAnalysis(array $filters = [], int $limit = 50): array
     {
@@ -221,10 +218,10 @@ class JobSkill extends BaseModel
     }
 
     /**
-     * Obtiene análisis de brecha del mercado combinando demanda y oferta
+     * Obtiene anÃƒÆ’Ã‚Â¡lisis de brecha del mercado combinando demanda y oferta
      * 
-     * @param int $limit Límite de resultados
-     * @return array Análisis de brechas por habilidad
+     * @param int $limit LÃƒÆ’Ã‚Â­mite de resultados
+     * @return array AnÃƒÆ’Ã‚Â¡lisis de brechas por habilidad
      */
     public function getSkillMarketGap(int $limit = 30): array
     {
@@ -281,10 +278,10 @@ class JobSkill extends BaseModel
     }
 
     /**
-     * Obtiene habilidades más demandadas (trending)
+     * Obtiene habilidades mÃƒÆ’Ã‚Â¡s demandadas (trending)
      * 
-     * @param int $days Días hacia atrás para el análisis
-     * @param int $limit Límite de resultados
+     * @param int $days DÃƒÆ’Ã‚Â­as hacia atrÃƒÆ’Ã‚Â¡s para el anÃƒÆ’Ã‚Â¡lisis
+     * @param int $limit LÃƒÆ’Ã‚Â­mite de resultados
      * @return array Habilidades trending
      */
     public function getTrendingSkills(int $days = 30, int $limit = 20): array
@@ -327,7 +324,7 @@ class JobSkill extends BaseModel
             // Enriquecer con metadata
             $result = $this->enrichTrendingSkills($result);
 
-            // Cache por 30 minutos (más frecuente para trends)
+            // Cache por 30 minutos (mÃƒÆ’Ã‚Â¡s frecuente para trends)
             $this->cache[$cacheKey] = $result;
 
             $this->logDebug('Trending skills retrieved', [
@@ -348,7 +345,7 @@ class JobSkill extends BaseModel
     }
 
     /**
-     * MÉTODOS DE INTEGRACIÓN CON VISTAS - Para matching y búsquedas avanzadas
+     * MÃƒÆ’Ã¢â‚¬Â°TODOS DE INTEGRACIÃƒÆ’Ã¢â‚¬Å“N CON VISTAS - Para matching y bÃƒÆ’Ã‚Âºsquedas avanzadas
      */
 
     /**
@@ -356,7 +353,7 @@ class JobSkill extends BaseModel
      * 
      * @param array $skills Lista de habilidades para filtrar
      * @param array $filters Filtros adicionales
-     * @param int $limit Límite de resultados
+     * @param int $limit LÃƒÆ’Ã‚Â­mite de resultados
      * @return array Trabajos con metadata
      */
     public function getJobsWithMetaBySkills(array $skills = [], array $filters = [], int $limit = 20): array
@@ -425,8 +422,8 @@ class JobSkill extends BaseModel
      * Encuentra candidatos compatibles usando vw_match_candidates_jobs
      * 
      * @param string $jobId ID del trabajo
-     * @param int $minMatchedSkills Mínimo de habilidades coincidentes
-     * @param int $limit Límite de resultados
+     * @param int $minMatchedSkills MÃƒÆ’Ã‚Â­nimo de habilidades coincidentes
+     * @param int $limit LÃƒÆ’Ã‚Â­mite de resultados
      * @return array Candidatos compatibles ordenados por matching
      */
     public function findCandidateMatches(string $jobId, int $minMatchedSkills = 1, int $limit = 50): array
@@ -489,7 +486,7 @@ class JobSkill extends BaseModel
      * Obtiene skills optimizadas para un job usando vistas combinadas
      * 
      * @param string $jobId ID del trabajo
-     * @return array Habilidades optimizadas con análisis de mercado
+     * @return array Habilidades optimizadas con anÃƒÆ’Ã‚Â¡lisis de mercado
      */
     public function getJobSkillsOptimized(string $jobId): array
     {
@@ -548,7 +545,7 @@ class JobSkill extends BaseModel
     }
 
     /**
-     * MÉTODOS DE UTILIDAD Y HELPERS PRIVADOS
+     * MÃƒÆ’Ã¢â‚¬Â°TODOS DE UTILIDAD Y HELPERS PRIVADOS
      */
 
     /**
@@ -612,7 +609,7 @@ class JobSkill extends BaseModel
     }
 
     /**
-     * Añade recomendaciones de mercado basadas en brechas
+     * AÃƒÆ’Ã‚Â±ade recomendaciones de mercado basadas en brechas
      */
     private function addMarketRecommendations(array $data): array
     {
@@ -622,12 +619,12 @@ class JobSkill extends BaseModel
             switch ($row['market_status']) {
                 case 'critical_shortage':
                     $recommendations[] = 'Incrementar presupuesto de reclutamiento';
-                    $recommendations[] = 'Considerar programas de capacitación interna';
-                    $recommendations[] = 'Evaluar contratación remota o internacional';
+                    $recommendations[] = 'Considerar programas de capacitaciÃƒÆ’Ã‚Â³n interna';
+                    $recommendations[] = 'Evaluar contrataciÃƒÆ’Ã‚Â³n remota o internacional';
                     break;
 
                 case 'high_demand':
-                    $recommendations[] = 'Acelerar procesos de selección';
+                    $recommendations[] = 'Acelerar procesos de selecciÃƒÆ’Ã‚Â³n';
                     $recommendations[] = 'Mejorar propuesta de valor al candidato';
                     $recommendations[] = 'Considerar rangos salariales competitivos';
                     break;
@@ -643,8 +640,8 @@ class JobSkill extends BaseModel
                     break;
 
                 case 'oversupply':
-                    $recommendations[] = 'Elevar estándares de selección';
-                    $recommendations[] = 'Proceso de evaluación más riguroso';
+                    $recommendations[] = 'Elevar estÃƒÆ’Ã‚Â¡ndares de selecciÃƒÆ’Ã‚Â³n';
+                    $recommendations[] = 'Proceso de evaluaciÃƒÆ’Ã‚Â³n mÃƒÆ’Ã‚Â¡s riguroso';
                     $recommendations[] = 'Oportunidad para negociar condiciones';
                     break;
             }
@@ -683,7 +680,7 @@ class JobSkill extends BaseModel
     }
 
     /**
-     * Añade recomendaciones de reclutamiento
+     * AÃƒÆ’Ã‚Â±ade recomendaciones de reclutamiento
      */
     private function addRecruitmentRecommendations(array $data): array
     {
@@ -698,7 +695,7 @@ class JobSkill extends BaseModel
 
                 case 'scarce':
                     $recruitmentAdvice[] = 'Skill escaso - competencia alta';
-                    $recruitmentAdvice[] = 'Acelerar proceso de selección';
+                    $recruitmentAdvice[] = 'Acelerar proceso de selecciÃƒÆ’Ã‚Â³n';
                     break;
 
                 case 'balanced':
@@ -721,7 +718,7 @@ class JobSkill extends BaseModel
     }
 
     /**
-     * Calcula percentil de un array de números
+     * Calcula percentil de un array de nÃƒÆ’Ã‚Âºmeros
      */
     private function calculatePercentile(array $values, int $percentile): float
     {
@@ -779,7 +776,7 @@ class JobSkill extends BaseModel
     }
 
     /**
-     * Calcula score de recomendación
+     * Calcula score de recomendaciÃƒÆ’Ã‚Â³n
      */
     private function calculateRecommendationScore(array $candidateData): int
     {
@@ -793,7 +790,7 @@ class JobSkill extends BaseModel
     }
 
     /**
-     * Evalúa fit del candidato
+     * EvalÃƒÆ’Ã‚Âºa fit del candidato
      */
     private function assessFit(float $matchPercentage): string
     {
@@ -805,7 +802,7 @@ class JobSkill extends BaseModel
     }
 
     /**
-     * Limpiar cache específico
+     * Limpiar cache especÃƒÆ’Ã‚Â­fico
      */
     public function clearSkillsCache(): void
     {
@@ -825,7 +822,7 @@ class JobSkill extends BaseModel
     }
 
     // ==========================================
-    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // MÃƒÆ’Ã¢â‚¬Â°TODOS CRUD ENCAPSULADOS ESTÃƒÆ’Ã‚ÂNDAR
     // ==========================================
 
     /**
@@ -886,7 +883,7 @@ class JobSkill extends BaseModel
      * Actualizar job_skill con validaciones
      * @param mixed $id ID del job_skill a actualizar
      * @param array $data Nuevos datos
-     * @return bool True si la actualización fue exitosa
+     * @return bool True si la actualizaciÃƒÆ’Ã‚Â³n fue exitosa
      */
     public function updateJobSkill($id, array $data): bool
     {
@@ -925,7 +922,7 @@ class JobSkill extends BaseModel
     /**
      * Eliminar job_skill con validaciones
      * @param mixed $id ID del job_skill a eliminar
-     * @return bool True si la eliminación fue exitosa
+     * @return bool True si la eliminaciÃƒÆ’Ã‚Â³n fue exitosa
      */
     public function deleteJobSkill($id): bool
     {
@@ -953,9 +950,9 @@ class JobSkill extends BaseModel
 
     /**
      * Buscar job_skills con filtros
-     * @param array $filters Filtros de búsqueda
-     * @param int $page Página actual
-     * @param int $limit Registros por página
+     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
+     * @param int $page PÃƒÆ’Ã‚Â¡gina actual
+     * @param int $limit Registros por pÃƒÆ’Ã‚Â¡gina
      * @param array $orderBy Criterios de ordenamiento
      * @return array Array de job_skills
      */
@@ -975,8 +972,8 @@ class JobSkill extends BaseModel
 
     /**
      * Contar total de job_skills con filtros
-     * @param array $filters Filtros de búsqueda
-     * @return int Número total de job_skills
+     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
+     * @return int NÃƒÆ’Ã‚Âºmero total de job_skills
      */
     public function countJobSkills(array $filters = []): int
     {
@@ -993,22 +990,22 @@ class JobSkill extends BaseModel
     }
 
     // ==========================================
-    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // MÃƒÆ’Ã¢â‚¬Â°TODOS DE VALIDACIÃƒÆ’Ã¢â‚¬Å“N ESPECÃƒÆ’Ã‚ÂFICOS
     // ==========================================
 
     /**
-     * Validar datos específicos de job_skills
+     * Validar datos especÃƒÆ’Ã‚Â­ficos de job_skills
      * @param array $data Datos a validar
-     * @param mixed $id ID para validaciones de actualización (opcional)
-     * @throws \InvalidArgumentException Si los datos no son válidos
+     * @param mixed $id ID para validaciones de actualizaciÃƒÆ’Ã‚Â³n (opcional)
+     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
      */
     private function validateJobSkillData(array $data, $id = null): void
     {
-        // TODO: Implementar validaciones específicas del modelo
+        // TODO: Implementar validaciones especÃƒÆ’Ã‚Â­ficas del modelo
     }
 
     /**
-     * Invalidar cache específico de job_skills
+     * Invalidar cache especÃƒÆ’Ã‚Â­fico de job_skills
      */
     public function invalidateJobSkillCache(): int
     {

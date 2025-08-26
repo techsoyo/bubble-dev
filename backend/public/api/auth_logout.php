@@ -1,6 +1,4 @@
-<?php
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -33,7 +31,7 @@ try {
         }
     }
     
-    // TambiÃƒÆ’Ã‚Â©n verificar en cookies
+    // TambiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©n verificar en cookies
     if (!$token && isset($_COOKIE['auth_token'])) {
         $token = $_COOKIE['auth_token'];
     }
@@ -43,7 +41,7 @@ try {
         JWTHelper::invalidateToken($token);
     }
     
-    // Limpiar cookies de sesiÃƒÆ’Ã‚Â³n
+    // Limpiar cookies de sesiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
     if (isset($_COOKIE['auth_token'])) {
         setcookie('auth_token', '', time() - 3600, '/', '', true, true);
     }

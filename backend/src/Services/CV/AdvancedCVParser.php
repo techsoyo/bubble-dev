@@ -1,9 +1,8 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Services\CV;
 
 /**
- * Servicio avanzado para el análisis y extracción de información de CVs
+ * Servicio avanzado para el anÃƒÂ¡lisis y extracciÃƒÂ³n de informaciÃƒÂ³n de CVs
  */
 class AdvancedCVParser
 {
@@ -26,7 +25,7 @@ class AdvancedCVParser
     }
 
     /**
-     * Inicializa los patrones de expresiones regulares para la extracción
+     * Inicializa los patrones de expresiones regulares para la extracciÃƒÂ³n
      */
     private function initPatterns(): void
     {
@@ -40,7 +39,7 @@ class AdvancedCVParser
             '/(?:Email|Correo|E-mail)[:\s]*([\w._%+-]+@[\w.-]+\.[a-zA-Z]{2,6})/i'
           ],
           'telefono' => [
-            '/(?:Tel[ée]fono|Phone)[:\s]*(\+?\d{1,4}[\s.-]?\d{2,4}[\s.-]?\d{2,4}[\s.-]?\d{2,4})/i',
+            '/(?:Tel[ÃƒÂ©e]fono|Phone)[:\s]*(\+?\d{1,4}[\s.-]?\d{2,4}[\s.-]?\d{2,4}[\s.-]?\d{2,4})/i',
             '/(\+?\d{1,4}[\s.-]?\d{2,4}[\s.-]?\d{2,4}[\s.-]?\d{2,4})/'
           ],
           'linkedin' => [
@@ -48,21 +47,21 @@ class AdvancedCVParser
             '/(?:Linkedin|Perfil)[:\s]*(linkedin\.com\/in\/[\w\-]+)/i'
           ],
           'ubicacion' => [
-            '/(?:Ubicaci[óo]n|Direcci[óo]n|Ciudad)[:\s]+([A-Z][a-z\u00C0-\u017F]+(?: [A-Z][a-z\u00C0-\u017F]+)*,?\s*(?:[A-Z][a-z\u00C0-\u017F]+)?)/u',
-            '/(?:CP|C\.P\.|Código postal)[:\s]*(\d{5})/'
+            '/(?:Ubicaci[ÃƒÂ³o]n|Direcci[ÃƒÂ³o]n|Ciudad)[:\s]+([A-Z][a-z\u00C0-\u017F]+(?: [A-Z][a-z\u00C0-\u017F]+)*,?\s*(?:[A-Z][a-z\u00C0-\u017F]+)?)/u',
+            '/(?:CP|C\.P\.|CÃƒÂ³digo postal)[:\s]*(\d{5})/'
           ]
         ];
     }
 
     /**
-     * Analiza el CV completo y extrae toda la información disponible
+     * Analiza el CV completo y extrae toda la informaciÃƒÂ³n disponible
      */
     public function analyzeCV(): array
     {
-        // Aplicar limpieza básica al texto
+        // Aplicar limpieza bÃƒÂ¡sica al texto
         $cleanText = $this->cleanText($this->cvText);
 
-        // Extraer información básica
+        // Extraer informaciÃƒÂ³n bÃƒÂ¡sica
         $result = [
           'nombre' => $this->extractPattern('nombre', $cleanText),
           'email' => $this->extractPattern('email', $cleanText),
@@ -79,7 +78,7 @@ class AdvancedCVParser
           'resumen' => $this->generateSummary($cleanText)
         ];
 
-        // Asignar subcategoría basada en la categoría
+        // Asignar subcategorÃƒÂ­a basada en la categorÃƒÂ­a
         $result['subcategoria'] = $this->assignSubcategory($result['categoria'], $cleanText);
 
         return $result;
@@ -90,23 +89,23 @@ class AdvancedCVParser
      */
     private function cleanText(string $text): string
     {
-        // Normalizar saltos de línea
+        // Normalizar saltos de lÃƒÂ­nea
         $text = str_replace(["\r\n", "\r"], "\n", $text);
 
-        // Eliminar múltiples espacios
+        // Eliminar mÃƒÂºltiples espacios
         $text = preg_replace('/\s{2,}/', ' ', $text);
 
         // Eliminar marcas de agua comunes
         $text = preg_replace('/www\.cv-maker\.com|cvonline\.com|Indeed\.com|www\.linkedin\.com/i', '', $text);
 
-        // Eliminar caracteres de control excepto saltos de línea
+        // Eliminar caracteres de control excepto saltos de lÃƒÂ­nea
         $text = preg_replace('/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/', '', $text);
 
         return trim($text);
     }
 
     /**
-     * Extrae información usando patrones de expresiones regulares
+     * Extrae informaciÃƒÂ³n usando patrones de expresiones regulares
      */
     private function extractPattern(string $type, string $text): string
     {
@@ -124,17 +123,17 @@ class AdvancedCVParser
     }
 
     /**
-     * Extrae información educativa del CV
+     * Extrae informaciÃƒÂ³n educativa del CV
      */
     private function extractEducation(string $text): array
     {
         $education = [];
 
-        // Encontrar sección de educación
-        if (preg_match('/(?:Formaci[óo]n|Educaci[óo]n|Estudios)[:\s]+([\s\S]+?)(?:Experiencia|Habilidades|Idiomas|$)/i', $text, $section)) {
+        // Encontrar secciÃƒÂ³n de educaciÃƒÂ³n
+        if (preg_match('/(?:Formaci[ÃƒÂ³o]n|Educaci[ÃƒÂ³o]n|Estudios)[:\s]+([\s\S]+?)(?:Experiencia|Habilidades|Idiomas|$)/i', $text, $section)) {
             $educationText = $section[1];
 
-            // Buscar patrones de estudios (grado, máster, título)
+            // Buscar patrones de estudios (grado, mÃƒÂ¡ster, tÃƒÂ­tulo)
             preg_match_all('/(?:(?:19|20)\d{2}[\s-]+(?:19|20)\d{2}|(?:19|20)\d{2}[\s-]+(?:Actualidad|Presente|Actual))\s+([^,\n]+),?\s+([^,\n]+)/i', $educationText, $matches, PREG_SET_ORDER);
 
             foreach ($matches as $match) {
@@ -167,8 +166,8 @@ class AdvancedCVParser
     {
         $experience = [];
 
-        // Encontrar sección de experiencia
-        if (preg_match('/(?:Experiencia|Historial laboral|Trayectoria)[:\s]+([\s\S]+?)(?:Formaci[óo]n|Educaci[óo]n|Estudios|Habilidades|$)/i', $text, $section)) {
+        // Encontrar secciÃƒÂ³n de experiencia
+        if (preg_match('/(?:Experiencia|Historial laboral|Trayectoria)[:\s]+([\s\S]+?)(?:Formaci[ÃƒÂ³o]n|Educaci[ÃƒÂ³o]n|Estudios|Habilidades|$)/i', $text, $section)) {
             $experienceText = $section[1];
 
             // Buscar patrones de experiencia (empresa, puesto, periodo)
@@ -200,18 +199,18 @@ class AdvancedCVParser
     }
 
     /**
-     * Extrae habilidades y tecnologías del CV
+     * Extrae habilidades y tecnologÃƒÂ­as del CV
      */
     private function extractSkills(string $text): array
     {
         $skills = [];
 
         // Buscar secciones comunes de habilidades
-        if (preg_match('/(?:Skills|Habilidades|Competencias|Tecnolog[íi]as)[:\s]+([\s\S]+?)(?:Idiomas|Experiencia|Formaci[óo]n|$)/i', $text, $section)) {
+        if (preg_match('/(?:Skills|Habilidades|Competencias|Tecnolog[ÃƒÂ­i]as)[:\s]+([\s\S]+?)(?:Idiomas|Experiencia|Formaci[ÃƒÂ³o]n|$)/i', $text, $section)) {
             $skillsText = $section[1];
 
             // Dividir por separadores comunes
-            $skillsArray = preg_split('/[,•\n\-]+/', $skillsText);
+            $skillsArray = preg_split('/[,Ã¢â‚¬Â¢\n\-]+/', $skillsText);
 
             foreach ($skillsArray as $skill) {
                 $skill = trim($skill);
@@ -221,7 +220,7 @@ class AdvancedCVParser
             }
         }
 
-        // Buscar tecnologías específicas en todo el texto
+        // Buscar tecnologÃƒÂ­as especÃƒÂ­ficas en todo el texto
         $techKeywords = [
           'HTML',
           'CSS',
@@ -275,12 +274,12 @@ class AdvancedCVParser
     {
         $languages = [];
 
-        // Buscar sección de idiomas
-        if (preg_match('/(?:Idiomas|Lenguas|Languages)[:\s]+([\s\S]+?)(?:Skills|Habilidades|Competencias|Experiencia|Formaci[óo]n|$)/i', $text, $section)) {
+        // Buscar secciÃƒÂ³n de idiomas
+        if (preg_match('/(?:Idiomas|Lenguas|Languages)[:\s]+([\s\S]+?)(?:Skills|Habilidades|Competencias|Experiencia|Formaci[ÃƒÂ³o]n|$)/i', $text, $section)) {
             $languagesText = $section[1];
 
             // Buscar patrones de idiomas con niveles
-            preg_match_all('/(?:Espa[ñn]ol|Ingl[ée]s|Franc[ée]s|Alem[aá]n|Italiano|Portugu[ée]s|Catal[aá]n|Chino|Ruso)[:\s]*(?:Nativo|Bilingüe|Fluido|Avanzado|Intermedio|Básico|A1|A2|B1|B2|C1|C2)/i', $languagesText, $matches);
+            preg_match_all('/(?:Espa[ÃƒÂ±n]ol|Ingl[ÃƒÂ©e]s|Franc[ÃƒÂ©e]s|Alem[aÃƒÂ¡]n|Italiano|Portugu[ÃƒÂ©e]s|Catal[aÃƒÂ¡]n|Chino|Ruso)[:\s]*(?:Nativo|BilingÃƒÂ¼e|Fluido|Avanzado|Intermedio|BÃƒÂ¡sico|A1|A2|B1|B2|C1|C2)/i', $languagesText, $matches);
 
             foreach ($matches[0] as $match) {
                 $parts = preg_split('/[:\s]+/', trim($match), 2);
@@ -300,7 +299,7 @@ class AdvancedCVParser
 
         // Si no se encontraron idiomas estructurados, buscar referencias sueltas
         if (empty($languages)) {
-            $languageKeywords = ['Español', 'Inglés', 'Francés', 'Alemán', 'Italiano', 'Portugués', 'Catalán'];
+            $languageKeywords = ['EspaÃƒÂ±ol', 'InglÃƒÂ©s', 'FrancÃƒÂ©s', 'AlemÃƒÂ¡n', 'Italiano', 'PortuguÃƒÂ©s', 'CatalÃƒÂ¡n'];
 
             foreach ($languageKeywords as $lang) {
                 if (preg_match('/\b' . preg_quote($lang, '/') . '\b/i', $text)) {
@@ -322,12 +321,12 @@ class AdvancedCVParser
     {
         $certifications = [];
 
-        // Buscar sección de certificaciones
-        if (preg_match('/(?:Certificaciones|Certificados|Cursos)[:\s]+([\s\S]+?)(?:Idiomas|Skills|Habilidades|Experiencia|Formaci[óo]n|$)/i', $text, $section)) {
+        // Buscar secciÃƒÂ³n de certificaciones
+        if (preg_match('/(?:Certificaciones|Certificados|Cursos)[:\s]+([\s\S]+?)(?:Idiomas|Skills|Habilidades|Experiencia|Formaci[ÃƒÂ³o]n|$)/i', $text, $section)) {
             $certText = $section[1];
 
-            // Dividir por líneas o puntos
-            $certLines = preg_split('/[\n•\-]+/', $certText);
+            // Dividir por lÃƒÂ­neas o puntos
+            $certLines = preg_split('/[\nÃ¢â‚¬Â¢\-]+/', $certText);
 
             foreach ($certLines as $line) {
                 $line = trim($line);
@@ -346,14 +345,14 @@ class AdvancedCVParser
     private function categorizeProfile(string $text): string
     {
         $categories = [
-          'Management' => ['Account Manager', 'Director', 'Gerente', 'Coordinador', 'Jefe', 'Líder', 'Manager', 'Strategist', 'Planner'],
-          'Creativity (Art & Design)' => ['Copywriter', 'Art Director', 'Diseñador Gráfico', 'Graphic Designer', 'Content Creator', 'Content Strategist', 'Creativo', 'Ilustrador'],
+          'Management' => ['Account Manager', 'Director', 'Gerente', 'Coordinador', 'Jefe', 'LÃƒÂ­der', 'Manager', 'Strategist', 'Planner'],
+          'Creativity (Art & Design)' => ['Copywriter', 'Art Director', 'DiseÃƒÂ±ador GrÃƒÂ¡fico', 'Graphic Designer', 'Content Creator', 'Content Strategist', 'Creativo', 'Ilustrador'],
           'Digital & Technology' => ['UX', 'UI', 'Developer', 'Desarrollador', 'Programador', 'Frontend', 'Backend', 'Full Stack', 'Digital Project Manager', 'Ingeniero'],
-          'Audiovisual & Production' => ['Video', 'Producer', 'Motion Graphics', 'Postproducción', 'Editor', 'Audiovisual', 'Multimedia'],
-          'Events & Experiences' => ['Event', 'Eventos', 'Experiencial', 'Production Coordinator', 'Producción'],
-          'Communication & PR' => ['PR', 'Media Relations', 'Community Manager', 'Content Manager', 'Comunicación', 'Periodista'],
+          'Audiovisual & Production' => ['Video', 'Producer', 'Motion Graphics', 'PostproducciÃƒÂ³n', 'Editor', 'Audiovisual', 'Multimedia'],
+          'Events & Experiences' => ['Event', 'Eventos', 'Experiencial', 'Production Coordinator', 'ProducciÃƒÂ³n'],
+          'Communication & PR' => ['PR', 'Media Relations', 'Community Manager', 'Content Manager', 'ComunicaciÃƒÂ³n', 'Periodista'],
           'Paid Media & Performance' => ['Google Ads', 'Meta', 'TikTok', 'Performance', 'Email Marketing', 'CRM', 'Digital Analytics', 'SEO', 'SEM'],
-          'Internships/Junior' => ['Intern', 'Prácticas', 'Becario', 'Junior', 'Trainee', 'Estudiante']
+          'Internships/Junior' => ['Intern', 'PrÃƒÂ¡cticas', 'Becario', 'Junior', 'Trainee', 'Estudiante']
         ];
 
         $matchCounts = [];
@@ -365,15 +364,15 @@ class AdvancedCVParser
             }
         }
 
-        // Obtener la categoría con más coincidencias
+        // Obtener la categorÃƒÂ­a con mÃƒÂ¡s coincidencias
         arsort($matchCounts);
         $topCategories = array_keys($matchCounts);
 
-        return $topCategories[0] ?? 'Digital & Technology'; // Categoría por defecto si no hay coincidencias
+        return $topCategories[0] ?? 'Digital & Technology'; // CategorÃƒÂ­a por defecto si no hay coincidencias
     }
 
     /**
-     * Asigna una subcategoría basada en la categoría principal
+     * Asigna una subcategorÃƒÂ­a basada en la categorÃƒÂ­a principal
      */
     private function assignSubcategory(string $category, string $text): string
     {
@@ -382,16 +381,16 @@ class AdvancedCVParser
             'Account Manager' => ['Account Manager', 'Cliente', 'Cuenta'],
             'Account Director' => ['Director', 'Account Director'],
             'Medical Strategist/Planner' => ['Medical', 'Healthcare', 'Salud', 'Planner', 'Estratega'],
-            'Scientific Account Executive' => ['Scientific', 'Científico', 'Account Executive']
+            'Scientific Account Executive' => ['Scientific', 'CientÃƒÂ­fico', 'Account Executive']
           ],
           'Creativity (Art & Design)' => [
             'Copywriter (health)' => ['Copywriter', 'Redactor', 'Copy', 'Contenidos'],
             'Art Director' => ['Art Director', 'Director de Arte'],
-            'Graphic Designer' => ['Graphic Designer', 'Diseñador Gráfico', 'Gráfico'],
+            'Graphic Designer' => ['Graphic Designer', 'DiseÃƒÂ±ador GrÃƒÂ¡fico', 'GrÃƒÂ¡fico'],
             'Content Creator/Content Strategist' => ['Content', 'Contenido', 'Estrategia de Contenido']
           ],
           'Digital & Technology' => [
-            'UX/UI Designer' => ['UX', 'UI', 'User Experience', 'User Interface', 'Diseñador de Experiencia'],
+            'UX/UI Designer' => ['UX', 'UI', 'User Experience', 'User Interface', 'DiseÃƒÂ±ador de Experiencia'],
             'Front-end/Web Developer' => ['Front', 'Frontend', 'HTML', 'CSS', 'JavaScript'],
             'Mobile Developer (iOS/Android)' => ['Mobile', 'iOS', 'Android', 'Swift', 'Kotlin', 'React Native'],
             'Digital Project Manager' => ['Project Manager', 'Digital Project', 'Gestor de Proyectos']
@@ -411,7 +410,7 @@ class AdvancedCVParser
             }
         }
 
-        // Obtener la subcategoría con más coincidencias
+        // Obtener la subcategorÃƒÂ­a con mÃƒÂ¡s coincidencias
         arsort($matchCounts);
         $topSubcategories = array_keys($matchCounts);
 
@@ -423,10 +422,10 @@ class AdvancedCVParser
      */
     private function generateSummary(string $text): string
     {
-        // Extraer una versión resumida para presentación
+        // Extraer una versiÃƒÂ³n resumida para presentaciÃƒÂ³n
         $lines = explode("\n", $text);
         $filteredLines = array_filter($lines, function ($line) {
-            return strlen(trim($line)) > 10 && !preg_match('/^\s*[•\-]\s*$/', $line);
+            return strlen(trim($line)) > 10 && !preg_match('/^\s*[Ã¢â‚¬Â¢\-]\s*$/', $line);
         });
 
         $summary = implode(' ', array_slice($filteredLines, 0, 5));

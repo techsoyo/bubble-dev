@@ -1,5 +1,5 @@
-<?php
-// @deprecated - archivo de test, deshabilitar en producciÃ³n
+<?php declare(strict_types=1);
+// @deprecated - archivo de test, deshabilitar en producciÃƒÂ³n
 if ((\['APP_ENV'] ?? 'production') === 'production') {
     http_response_code(404);
     exit('Not found');
@@ -11,17 +11,17 @@ if ((getenv('APP_ENV') ?: 'production') === 'production') {
     http_response_code(404);
     exit;
 }
-// Proteger endpoint de pruebas en entornos de producciÃƒÂ³n.
+// Proteger endpoint de pruebas en entornos de producciÃƒÆ’Ã‚Â³n.
 require_once dirname(__DIR__, 2) . '/config/config.php';
 if (function_exists('isProduction') && isProduction()) {
     http_response_code(403);
     echo json_encode(['error' => 'Endpoint disabled in production']);
     exit;
 }
-// Script de debug para ver exactamente quÃƒÂ© se envÃƒÂ­a a Ollama
+// Script de debug para ver exactamente quÃƒÆ’Ã‚Â© se envÃƒÆ’Ã‚Â­a a Ollama
 $_POST['filename'] = 'Ejemplo1_CV_2025-07-27_12-13-23.txt';
 
-echo "Ã°Å¸â€Â DEBUG: Ã‚Â¿QUÃƒâ€° SE ENVÃƒÂA A OLLAMA?\n";
+echo "ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â DEBUG: Ãƒâ€šÃ‚Â¿QUÃƒÆ’Ã¢â‚¬Â° SE ENVÃƒÆ’Ã‚ÂA A OLLAMA?\n";
 echo "==================================\n\n";
 
 // Ejecutar los primeros pasos localmente sin enviar a Ollama
@@ -29,14 +29,14 @@ $filename = $_POST['filename'] ?? '';
 $filePath = __DIR__ . '/../../uploads/textos/' . basename($filename);
 
 if (!file_exists($filePath)) {
-    echo "Ã¢ÂÅ’ Archivo no encontrado: $filePath\n";
+    echo "ÃƒÂ¢Ã‚ÂÃ…â€™ Archivo no encontrado: $filePath\n";
     exit;
 }
 
 $content = file_get_contents($filePath);
 
 // Construir el prompt exactamente como en el archivo original
-$prompt = "Analiza el siguiente CV en texto plano y extrae la informaciÃƒÂ³n en formato JSON estructurado con los siguientes campos:aunque algunos estÃƒÂ©n vacÃƒÂ­os):\n\n" .
+$prompt = "Analiza el siguiente CV en texto plano y extrae la informaciÃƒÆ’Ã‚Â³n en formato JSON estructurado con los siguientes campos:aunque algunos estÃƒÆ’Ã‚Â©n vacÃƒÆ’Ã‚Â­os):\n\n" .
     "{\n" .
     "  \"nombre\": \"\",\n" .
     "  \"email\": \"\",\n" .
@@ -81,7 +81,7 @@ $prompt = "Analiza el siguiente CV en texto plano y extrae la informaciÃƒÂ³n
     "  \"subcategoria\": \"\",\n" .
     "  \"otros\": \"\"\n" .
     "}\n\n" .
-    "Asocia el perfil a una de las siguientes categorÃƒÂ­as y subcategorÃƒÂ­as segÃƒÂºn la experiencia y habilidades detectadas:\n\n" .
+    "Asocia el perfil a una de las siguientes categorÃƒÆ’Ã‚Â­as y subcategorÃƒÆ’Ã‚Â­as segÃƒÆ’Ã‚Âºn la experiencia y habilidades detectadas:\n\n" .
     "[\n" .
     "  { categoria: 'Management', subcategorias: ['Account Manager', 'Account Director', 'Medical Strategist/Planner', 'Scientific Account Executive'] },\n" .
     "  { categoria: 'Creativity (Art & Design)', subcategorias: ['Copywriter (health)', 'Art Director', 'Graphic Designer', 'Content Creator/Content Strategist'] },\n" .
@@ -94,13 +94,13 @@ $prompt = "Analiza el siguiente CV en texto plano y extrae la informaciÃƒÂ³n
     "]\n\n" .
     "Texto del CV:\n---\n" . $content . "\n---";
 
-echo "Ã°Å¸â€œÅ  INFORMACIÃƒâ€œN DEL PROMPT:\n";
+echo "ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  INFORMACIÃƒÆ’Ã¢â‚¬Å“N DEL PROMPT:\n";
 echo "==========================\n";
-echo 'Ã°Å¸â€œÂ Longitud total: ' . strlen($prompt) . " caracteres\n";
-echo "Ã°Å¸â€œâ€ž Archivo CV: $filename\n";
-echo 'Ã°Å¸â€™Â¾ TamaÃƒÂ±o del contenido del CV: ' . strlen($content) . " caracteres\n\n";
+echo 'ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Longitud total: ' . strlen($prompt) . " caracteres\n";
+echo "ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Archivo CV: $filename\n";
+echo 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾ TamaÃƒÆ’Ã‚Â±o del contenido del CV: ' . strlen($content) . " caracteres\n\n";
 
-echo "Ã°Å¸Å¡â‚¬ PAYLOAD QUE SE ENVÃƒÂA A OLLAMA:\n";
+echo "ÃƒÂ°Ã…Â¸Ã…Â¡Ã¢â€šÂ¬ PAYLOAD QUE SE ENVÃƒÆ’Ã‚ÂA A OLLAMA:\n";
 echo "=================================\n";
 
 $payload = json_encode([
@@ -111,13 +111,13 @@ $payload = json_encode([
 
 echo $payload . "\n\n";
 
-echo "Ã°Å¸â€Â PRIMEROS 500 CARACTERES DEL PROMPT:\n";
+echo "ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â PRIMEROS 500 CARACTERES DEL PROMPT:\n";
 echo "======================================\n";
 echo substr($prompt, 0, 500) . "...\n\n";
 
-echo "Ã°Å¸â€Â ÃƒÅ¡LTIMOS 300 CARACTERES DEL PROMPT:\n";
+echo "ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â ÃƒÆ’Ã…Â¡LTIMOS 300 CARACTERES DEL PROMPT:\n";
 echo "====================================\n";
 echo '...' . substr($prompt, -300) . "\n\n";
 
-echo "Ã¢Å“â€¦ DEBUG COMPLETADO - READY PARA ENVIAR A OLLAMA\n";
+echo "ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DEBUG COMPLETADO - READY PARA ENVIAR A OLLAMA\n";
 

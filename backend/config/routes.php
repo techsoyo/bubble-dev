@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 return [
   // === AdminController ===
   ['GET', '/api/admin/dashboard', 'AdminController@dashboard'],

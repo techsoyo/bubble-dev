@@ -1,29 +1,28 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Middleware;
 
 use Utils\JWT;
 use Security\SecurityLogger;
 
 /**
- * Middleware de autorización para endpoints administrativos
+ * Middleware de autorizaciÃƒÆ’Ã‚Â³n para endpoints administrativos
  * 
- * Verifica que el usuario esté autenticado y tenga los permisos necesarios
+ * Verifica que el usuario estÃƒÆ’Ã‚Â© autenticado y tenga los permisos necesarios
  * para acceder a funcionalidades administrativas.
  */
 class AuthorizationMiddleware
 {
   /**
-   * Verificar autenticación y autorización
+   * Verificar autenticaciÃƒÆ’Ã‚Â³n y autorizaciÃƒÆ’Ã‚Â³n
    *
    * @param array $requiredRoles Roles requeridos para acceder
    * @param bool $strict Si es true, requiere roles exactos
    * @return array Datos del usuario autenticado
-   * @throws Exception Si la autenticación/autorización falla
+   * @throws Exception Si la autenticaciÃƒÆ’Ã‚Â³n/autorizaciÃƒÆ’Ã‚Â³n falla
    */
   public static function requireAuth(array $requiredRoles = [], bool $strict = false): array
   {
-    // Verificar token de autenticación
+    // Verificar token de autenticaciÃƒÆ’Ã‚Â³n
     $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
 
     if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
@@ -50,10 +49,10 @@ class AuthorizationMiddleware
       self::denyAccess('Invalid token payload', 401);
     }
 
-    // Log autenticación exitosa
+    // Log autenticaciÃƒÆ’Ã‚Â³n exitosa
     SecurityLogger::logAuthSuccess($user['user_id'], $user['role'] ?? 'unknown');
 
-    // Verificar autorización si se requieren roles específicos
+    // Verificar autorizaciÃƒÆ’Ã‚Â³n si se requieren roles especÃƒÆ’Ã‚Â­ficos
     if (!empty($requiredRoles)) {
       $userRole = $user['role'] ?? 'guest';
 
@@ -64,7 +63,7 @@ class AuthorizationMiddleware
           self::denyAccess('Insufficient privileges', 403);
         }
       } else {
-        // Modo jerárquico: admin puede acceder a todo
+        // Modo jerÃƒÆ’Ã‚Â¡rquico: admin puede acceder a todo
         $hasAccess = in_array($userRole, $requiredRoles, true) ||
           in_array($userRole, ['admin', 'superadmin'], true);
 
@@ -95,7 +94,7 @@ class AuthorizationMiddleware
   }
 
   /**
-   * Verificar acceso a objeto específico (Object Level Authorization)
+   * Verificar acceso a objeto especÃƒÆ’Ã‚Â­fico (Object Level Authorization)
    */
   public static function requireObjectAccess(string $resourceType, $resourceId, array $user = null): array
   {
@@ -108,7 +107,7 @@ class AuthorizationMiddleware
       return $user;
     }
 
-    // Verificar si el usuario puede acceder a este recurso específico
+    // Verificar si el usuario puede acceder a este recurso especÃƒÆ’Ã‚Â­fico
     switch ($resourceType) {
       case 'candidate':
         if ($user['user_id'] != $resourceId) {
@@ -117,8 +116,8 @@ class AuthorizationMiddleware
         break;
 
       case 'application':
-        // Aquí implementarías lógica para verificar si el usuario
-        // puede acceder a esta aplicación específica
+        // AquÃƒÆ’Ã‚Â­ implementarÃƒÆ’Ã‚Â­as lÃƒÆ’Ã‚Â³gica para verificar si el usuario
+        // puede acceder a esta aplicaciÃƒÆ’Ã‚Â³n especÃƒÆ’Ã‚Â­fica
         // Por ahora, solo el propio usuario o admin
         break;
 
@@ -130,7 +129,7 @@ class AuthorizationMiddleware
   }
 
   /**
-   * Rate limiting básico por usuario
+   * Rate limiting bÃƒÆ’Ã‚Â¡sico por usuario
    */
   public static function checkRateLimit(array $user, int $maxRequests = 100, int $timeWindow = 3600): bool
   {
@@ -157,13 +156,13 @@ class AuthorizationMiddleware
       return ($now - $timestamp) < $timeWindow;
     });
 
-    // Verificar límite
+    // Verificar lÃƒÆ’Ã‚Â­mite
     if (count($requests) >= $maxRequests) {
       SecurityLogger::logRateLimitViolation($userId, $_SERVER['REQUEST_URI'] ?? 'unknown');
       self::denyAccess('Rate limit exceeded', 429);
     }
 
-    // Añadir request actual
+    // AÃƒÆ’Ã‚Â±adir request actual
     $requests[] = $now;
 
     // Guardar requests actualizadas
@@ -208,7 +207,7 @@ class AuthorizationMiddleware
 
     error_log('SECURITY_EVENT: ' . json_encode($logData));
 
-    // Para eventos críticos, puedes implementar alertas adicionales
+    // Para eventos crÃƒÆ’Ã‚Â­ticos, puedes implementar alertas adicionales
     if (in_array($event, ['ACCESS_DENIED', 'RATE_LIMIT_EXCEEDED'])) {
       // Implementar alertas para el equipo de seguridad
     }

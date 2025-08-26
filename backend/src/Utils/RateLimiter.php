@@ -1,14 +1,11 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 namespace Utils;
 
 /**
  * RateLimiter simple basado en archivos para ventanas fijas de 10 minutos.
  * Rutas target: /api/cv/parse (10/10min) y /api/cv/confirm (20/10min).
  * Estructura de archivo: storage/ratelimit/{window}_{ipHash}.json => { route => count }
- * Pensado para ser sustituible por Redis implementando la misma interfaz pública.
+ * Pensado para ser sustituible por Redis implementando la misma interfaz pÃƒÆ’Ã‚Âºblica.
  */
 final class RateLimiter
 {
@@ -70,7 +67,7 @@ final class RateLimiter
               'success' => false,
               'error' => [
                 'code' => 'RATE_LIMIT_EXCEEDED',
-                'message' => 'Límite de solicitudes excedido',
+                'message' => 'LÃƒÆ’Ã‚Â­mite de solicitudes excedido',
                 'details' => [
                   'route' => $route,
                   'limit' => $limit,

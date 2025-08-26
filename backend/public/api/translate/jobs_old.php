@@ -1,5 +1,5 @@
-<?php
-// @deprecated - archivo legacy, deshabilitar en producción
+<?php declare(strict_types=1);
+// @deprecated - archivo legacy, deshabilitar en producciÃ³n
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
   http_response_code(404);
   exit('Not found');
@@ -20,5 +20,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Incluir el archivo principal que contiene la clase JobTranslate
 require_once __DIR__ . '/../jobs.php';
 
-// Redirigir la peticiÃ³n a la clase JobTranslate
+// Redirigir la peticiÃƒÂ³n a la clase JobTranslate
 JobTranslate::handleTranslationRequest();

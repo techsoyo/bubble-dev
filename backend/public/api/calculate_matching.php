@@ -1,7 +1,4 @@
-<?php
-
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -16,11 +13,11 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
     exit;
 }
 
-// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ticamente en bootstrap.php
 
 /**
- * Endpoint: CÃƒÆ’Ã‚Â¡lculo de matching
+ * Endpoint: CÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lculo de matching
  * POST /ai/calculate-matching
  */
 

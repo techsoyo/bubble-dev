@@ -1,9 +1,8 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Services\Exceptions;
 
 /**
- * Excepción para errores del servicio de IA
+ * ExcepciÃƒÂ³n para errores del servicio de IA
  */
 class AiUnavailableException extends \Exception
 {

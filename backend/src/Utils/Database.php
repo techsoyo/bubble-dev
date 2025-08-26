@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Utils;
 
 use PDO;
@@ -36,7 +35,7 @@ class Database
         error_log("- User: $user");
         error_log("- Pass: " . ($pass ? '[SET]' : '[EMPTY]'));
 
-        // Validación de credenciales críticas
+        // ValidaciÃƒÆ’Ã‚Â³n de credenciales crÃƒÆ’Ã‚Â­ticas
         if (empty($user)) {
             throw new \Exception('DB connection failed: DB_USER is not configured');
         }
@@ -80,5 +79,5 @@ class Database
         return $stmt->execute();
     }
 
-    // Puedes agregar métodos select/update/delete según necesidad
+    // Puedes agregar mÃƒÆ’Ã‚Â©todos select/update/delete segÃƒÆ’Ã‚Âºn necesidad
 }

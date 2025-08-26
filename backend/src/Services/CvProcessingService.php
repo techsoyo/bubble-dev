@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 namespace Services;
 
 use Services\AI\AIProviderFactory;
@@ -15,7 +12,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Servicio Principal de Procesamiento de CV
- * Nueva implementación con arquitectura moderna
+ * Nueva implementaciÃƒÆ’Ã‚Â³n con arquitectura moderna
  */
 class CvProcessingService
 {
@@ -49,7 +46,7 @@ class CvProcessingService
       $metrics->setUploadDuration((int)round((microtime(true) - $uploadStart) * 1000));
       $metrics->setFileSize(filesize($filePath));
 
-      // 2. Verificar caché por hash del archivo
+      // 2. Verificar cachÃƒÆ’Ã‚Â© por hash del archivo
       $fileHash = $this->cacheService->getFileHash($filePath);
       $cachedResult = $this->cacheService->getCachedResult($fileHash);
 
@@ -90,7 +87,7 @@ class CvProcessingService
       ];
       $this->cacheService->cacheResult($fileHash, $cacheData);
 
-      // 7. Guardar métricas
+      // 7. Guardar mÃƒÆ’Ã‚Â©tricas
       $metrics->setSuccess(true)
         ->setAiProvider($result['meta']['provider'])
         ->setProcessingMode($request->processing_mode)
@@ -126,7 +123,7 @@ class CvProcessingService
 
   private function processWithAI(string $filePath, CvUploadRequest $request, string $requestId): array
   {
-    // Intentar con proveedor específico o buscar uno disponible
+    // Intentar con proveedor especÃƒÆ’Ã‚Â­fico o buscar uno disponible
     if ($request->ai_provider !== 'auto') {
       try {
         $aiService = $this->aiProviderFactory->store($request->ai_provider);
@@ -147,7 +144,7 @@ class CvProcessingService
 
     $providerName = $this->getProviderName($aiService);
 
-    // Procesar según el tipo de servicio
+    // Procesar segÃƒÆ’Ã‚Âºn el tipo de servicio
     if (method_exists($aiService, 'analyzeCvFromPdf')) {
       // Procesamiento directo de PDF (Ollama)
       $aiData = $aiService->analyzeCvFromPdf($filePath);
@@ -171,7 +168,7 @@ class CvProcessingService
   {
     $candidate = new CvCandidate();
 
-    // Datos básicos
+    // Datos bÃƒÆ’Ã‚Â¡sicos
     $candidate->setNombre($normalizedData['nombre'] ?? '')
       ->setEmail($normalizedData['email'] ?? '')
       ->setTelefono($normalizedData['telefono'] ?? null)
@@ -195,7 +192,7 @@ class CvProcessingService
       $candidate->addExperience($experience);
     }
 
-    // Educación
+    // EducaciÃƒÆ’Ã‚Â³n
     foreach ($normalizedData['educacion'] ?? [] as $educationData) {
       $education = new CvEducation();
       $education->setTitulo($educationData['titulo'] ?? '')

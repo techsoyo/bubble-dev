@@ -1,11 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 // @public
 
 /**
  * OAuth Handler - Google y LinkedIn
  * 
- * Maneja el flujo de autenticaciÃ³n OAuth 2.0 para Google y LinkedIn
- * Preparado para activaciÃ³n rÃ¡pida del cliente
+ * Maneja el flujo de autenticaciÃƒÂ³n OAuth 2.0 para Google y LinkedIn
+ * Preparado para activaciÃƒÂ³n rÃƒÂ¡pida del cliente
  * 
  * @author Bubble of Talents Development Team
  * @version 1.0.0
@@ -26,7 +26,7 @@ class OAuthHandler
   }
 
   /**
-   * Cargar configuraciÃ³n OAuth desde variables de entorno
+   * Cargar configuraciÃƒÂ³n OAuth desde variables de entorno
    */
   private function loadConfig()
   {
@@ -63,7 +63,7 @@ class OAuthHandler
   }
 
   /**
-   * Verificar si OAuth estÃ¡ configurado
+   * Verificar si OAuth estÃƒÂ¡ configurado
    */
   public function isConfigured($provider = null)
   {
@@ -76,7 +76,7 @@ class OAuthHandler
   }
 
   /**
-   * Generar URL de autorizaciÃ³n
+   * Generar URL de autorizaciÃƒÂ³n
    */
   public function getAuthUrl($provider, $state = null)
   {
@@ -104,7 +104,7 @@ class OAuthHandler
   }
 
   /**
-   * Intercambiar cÃ³digo por token de acceso
+   * Intercambiar cÃƒÂ³digo por token de acceso
    */
   public function exchangeCodeForToken($provider, $code)
   {
@@ -123,7 +123,7 @@ class OAuthHandler
   }
 
   /**
-   * Obtener informaciÃ³n del usuario
+   * Obtener informaciÃƒÂ³n del usuario
    */
   public function getUserInfo($provider, $accessToken)
   {
@@ -131,7 +131,7 @@ class OAuthHandler
     $headers = ["Authorization: Bearer $accessToken"];
 
     if ($provider === 'linkedin') {
-      // LinkedIn requiere headers especÃ­ficos
+      // LinkedIn requiere headers especÃƒÂ­ficos
       $headers[] = 'X-Restli-Protocol-Version: 2.0.0';
     }
 
@@ -140,7 +140,7 @@ class OAuthHandler
   }
 
   /**
-   * Realizar peticiÃ³n HTTP
+   * Realizar peticiÃƒÂ³n HTTP
    */
   private function makeHttpRequest($url, $data = null, $headers = [])
   {
@@ -178,14 +178,14 @@ class OAuthHandler
   public function handleCallback($provider, $code, $state)
   {
     try {
-      // 1. Intercambiar cÃ³digo por token
+      // 1. Intercambiar cÃƒÂ³digo por token
       $tokenData = $this->exchangeCodeForToken($provider, $code);
 
       if (!isset($tokenData['access_token'])) {
-        throw new Exception('No se recibiÃ³ access token');
+        throw new Exception('No se recibiÃƒÂ³ access token');
       }
 
-      // 2. Obtener informaciÃ³n del usuario
+      // 2. Obtener informaciÃƒÂ³n del usuario
       $userInfo = $this->getUserInfo($provider, $tokenData['access_token']);
 
       // 3. Normalizar datos del usuario
@@ -208,7 +208,7 @@ class OAuthHandler
   }
 
   /**
-   * Normalizar datos del usuario segÃºn el proveedor
+   * Normalizar datos del usuario segÃƒÂºn el proveedor
    */
   private function normalizeUserData($provider, $userInfo)
   {

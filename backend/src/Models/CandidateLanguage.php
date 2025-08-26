@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 namespace Models;
 
 use Utils\Logger;
@@ -10,7 +7,7 @@ use Utils\Logger;
  * Modelo CandidateLanguage
  *
  * Gestiona los idiomas y niveles de proficiencia de los candidatos,
- * incluyendo validaciones según el Marco Común Europeo de Referencia.
+ * incluyendo validaciones segÃƒÆ’Ã‚Âºn el Marco ComÃƒÆ’Ã‚Âºn Europeo de Referencia.
  *
  * @package Models
  * @version 2.0.0
@@ -36,15 +33,15 @@ class CandidateLanguage extends BaseModel
     protected array $hidden = [];
 
     /**
-     * Constantes para niveles de proficiencia según marco europeo
+     * Constantes para niveles de proficiencia segÃƒÆ’Ã‚Âºn marco europeo
      */
     public const PROFICIENCY_LEVELS = [
         'A1' => 'Principiante',
-        'A2' => 'Básico',
+        'A2' => 'BÃƒÆ’Ã‚Â¡sico',
         'B1' => 'Intermedio',
         'B2' => 'Intermedio-Alto',
         'C1' => 'Avanzado',
-        'C2' => 'Nativo/Bilingüe'
+        'C2' => 'Nativo/BilingÃƒÆ’Ã‚Â¼e'
     ];
 
     public const LEVEL_A1 = 'A1';
@@ -121,7 +118,7 @@ class CandidateLanguage extends BaseModel
     }
 
     /**
-     * Buscar idiomas por candidato (método compatible con versión anterior)
+     * Buscar idiomas por candidato (mÃƒÆ’Ã‚Â©todo compatible con versiÃƒÆ’Ã‚Â³n anterior)
      */
     public function findByCandidate(int $candidateId): array
     {
@@ -162,7 +159,7 @@ class CandidateLanguage extends BaseModel
     }
 
     /**
-     * Validar si un nivel de proficiencia es válido
+     * Validar si un nivel de proficiencia es vÃƒÆ’Ã‚Â¡lido
      */
     private function isValidProficiencyLevel(string $level): bool
     {
@@ -178,7 +175,7 @@ class CandidateLanguage extends BaseModel
     }
 
     /**
-     * Obtener descripción de un nivel de proficiencia
+     * Obtener descripciÃƒÆ’Ã‚Â³n de un nivel de proficiencia
      */
     public static function getProficiencyLevelDescription(string $level): ?string
     {
@@ -186,7 +183,7 @@ class CandidateLanguage extends BaseModel
     }
 
     /**
-     * Obtener estadísticas de idiomas por candidato
+     * Obtener estadÃƒÆ’Ã‚Â­sticas de idiomas por candidato
      */
     public function getLanguageStats(int $candidateId): array
     {
@@ -214,7 +211,7 @@ class CandidateLanguage extends BaseModel
                 'level' => $level
             ];
 
-            // Determinar nivel más alto
+            // Determinar nivel mÃƒÆ’Ã‚Â¡s alto
             if (
                 $stats['highest_level'] === null ||
                 array_search($level, array_keys(self::PROFICIENCY_LEVELS)) >
@@ -251,7 +248,7 @@ class CandidateLanguage extends BaseModel
     }
 
     /**
-     * Obtener los idiomas más comunes en la base de datos
+     * Obtener los idiomas mÃƒÆ’Ã‚Â¡s comunes en la base de datos
      */
     public function getMostCommonLanguages(int $limit = 20): array
     {
@@ -267,7 +264,7 @@ class CandidateLanguage extends BaseModel
     }
 
     /**
-     * Obtener distribución de niveles para un idioma específico
+     * Obtener distribuciÃƒÆ’Ã‚Â³n de niveles para un idioma especÃƒÆ’Ã‚Â­fico
      */
     public function getLanguageProficiencyDistribution(string $language): array
     {

@@ -1,10 +1,7 @@
-<?php
-
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
-
+use Security\CsrfMiddleware;
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
     CsrfMiddleware::protect(); // double-submit cookie
@@ -22,7 +19,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
  * Controlado por flag CV_ALLOW_EXPORT_JSON=true.
  */
 
-declare(strict_types=1);
+
 
 use Utils\Auth;
 use Utils\Cors;
@@ -40,12 +37,12 @@ if (class_exists('Utils\\Cors')) {
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if ($method !== 'GET') {
-    jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'MÃƒÆ’Ã‚Â©todo no permitido']]);
+    jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©todo no permitido']]);
 }
 
 $allow = (getenv('CV_ALLOW_EXPORT_JSON') === 'true') || (($_ENV['CV_ALLOW_EXPORT_JSON'] ?? '') === 'true');
 if (!$allow) {
-    jsonResponse(403, ['success' => false, 'error' => ['code' => 'EXPORT_DISABLED', 'message' => 'ExportaciÃƒÆ’Ã‚Â³n deshabilitada']]);
+    jsonResponse(403, ['success' => false, 'error' => ['code' => 'EXPORT_DISABLED', 'message' => 'ExportaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n deshabilitada']]);
 }
 
 if (class_exists('Utils\\Auth')) {
@@ -57,7 +54,7 @@ $pdo = getDbConnection();
 // Extraer candidate_id de la URL (router simple)
 $uri = $_SERVER['REQUEST_URI'] ?? '';
 if (!preg_match('#/api/cv/export/(\d+)#', $uri, $m)) {
-    jsonResponse(400, ['success' => false, 'error' => ['code' => 'INVALID_ID', 'message' => 'ID invÃƒÆ’Ã‚Â¡lido']]);
+    jsonResponse(400, ['success' => false, 'error' => ['code' => 'INVALID_ID', 'message' => 'ID invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido']]);
 }
 $id = (int)$m[1];
 
@@ -74,8 +71,7 @@ try {
     $exp->execute([$id]);
     $edu = $pdo->prepare('SELECT institution_name as institucion, degree_title as titulo, start_date as fecha_inicio, end_date as fecha_fin, description as descripcion FROM bt_candidate_education WHERE candidate_id=? ORDER BY start_date DESC');
     $edu->execute([$id]);
-    $proj = $pdo->prepare('SELECT nombre, descripcion, tecnologias FROM bt_candidate_projects WHERE candidate_id=?');
-    $proj->execute([$id]);
+
 
     $data = $row + [
       'puestos_anteriores' => $exp->fetchAll(PDO::FETCH_ASSOC),

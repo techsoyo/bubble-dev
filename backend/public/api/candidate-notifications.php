@@ -1,9 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -31,7 +26,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 try {
-  // Verificar si hay sesiÃƒÆ’Ã‚Â³n activa
+  // Verificar si hay sesiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n activa
   if (empty($_SESSION['candidate_id'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'No authenticated']);

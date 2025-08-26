@@ -1,9 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -56,7 +51,7 @@ try {
     exit;
   }
 
-  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ CONTROL DE ACCESO: Solo el propio candidato o admin/hr pueden ver aplicaciones
+  // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ CONTROL DE ACCESO: Solo el propio candidato o admin/hr pueden ver aplicaciones
   $userRole = $userPayload['role'] ?? 'candidate';
   $currentUserId = $userPayload['user_id'];
 
@@ -78,7 +73,7 @@ try {
     exit;
   }
 
-  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ QUERY SEGURA CON PREPARED STATEMENTS
+  // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ QUERY SEGURA CON PREPARED STATEMENTS
   $sql = "
         SELECT 
             a.id as application_id,
@@ -109,7 +104,7 @@ try {
   $stmt->execute([$requestedCandidateId]);
   $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FORMATEAR Y LIMPIAR DATOS
+  // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ FORMATEAR Y LIMPIAR DATOS
   foreach ($applications as &$app) {
     // Formatear fechas
     if ($app['applied_date']) {
@@ -123,7 +118,7 @@ try {
     $app['score'] = $app['score'] ?? 0;
     $app['cover_letter'] = $app['cover_letter'] ?? '';
 
-    // AÃƒÆ’Ã‚Â±adir informaciÃƒÆ’Ã‚Â³n adicional
+    // AÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â±adir informaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n adicional
     $app['can_withdraw'] = in_array($app['status'], ['pending', 'in_review']);
   }
 

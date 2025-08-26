@@ -1,4 +1,5 @@
-<?php
+<?php declare(strict_types=1);
+namespace Utils;
 
 // backend/src/Utils/ResponseHandler.php
 
@@ -10,9 +11,9 @@ namespace Utils;
 class ResponseHandler
 {
     /**
-     * Generar respuesta de éxito
+     * Generar respuesta de ÃƒÆ’Ã‚Â©xito
      */
-    public function success($data = [], string $message = 'Operación exitosa', int $code = 200): string
+    public function success($data = [], string $message = 'OperaciÃƒÆ’Ã‚Â³n exitosa', int $code = 200): string
     {
         $response = [
             'success' => true,
@@ -51,9 +52,9 @@ class ResponseHandler
     }
 
     /**
-     * Generar respuesta de validación
+     * Generar respuesta de validaciÃƒÆ’Ã‚Â³n
      */
-    public function validationError(array $errors, string $message = 'Datos de entrada inválidos'): string
+    public function validationError(array $errors, string $message = 'Datos de entrada invÃƒÆ’Ã‚Â¡lidos'): string
     {
         return $this->error($message, 422, ['validation_errors' => $errors]);
     }
@@ -85,13 +86,13 @@ class ResponseHandler
     /**
      * Generar respuesta de conflicto
      */
-    public function conflict(string $message = 'Conflicto en la operación'): string
+    public function conflict(string $message = 'Conflicto en la operaciÃƒÆ’Ã‚Â³n'): string
     {
         return $this->error($message, 409);
     }
 
     /**
-     * Generar respuesta de límite excedido
+     * Generar respuesta de lÃƒÆ’Ã‚Â­mite excedido
      */
     public function tooManyRequests(string $message = 'Demasiadas solicitudes'): string
     {
@@ -99,7 +100,7 @@ class ResponseHandler
     }
 
     /**
-     * Respuesta de éxito para creación
+     * Respuesta de ÃƒÆ’Ã‚Â©xito para creaciÃƒÆ’Ã‚Â³n
      */
     public function created($data = [], string $message = 'Recurso creado exitosamente'): string
     {
@@ -107,7 +108,7 @@ class ResponseHandler
     }
 
     /**
-     * Respuesta de éxito para actualización
+     * Respuesta de ÃƒÆ’Ã‚Â©xito para actualizaciÃƒÆ’Ã‚Â³n
      */
     public function updated($data = [], string $message = 'Recurso actualizado exitosamente'): string
     {
@@ -115,7 +116,7 @@ class ResponseHandler
     }
 
     /**
-     * Respuesta de éxito para eliminación
+     * Respuesta de ÃƒÆ’Ã‚Â©xito para eliminaciÃƒÆ’Ã‚Â³n
      */
     public function deleted(string $message = 'Recurso eliminado exitosamente'): string
     {
@@ -123,7 +124,7 @@ class ResponseHandler
     }
 
     /**
-     * Respuesta para contenido vacío
+     * Respuesta para contenido vacÃƒÆ’Ã‚Â­o
      */
     public function noContent(): string
     {
@@ -132,7 +133,7 @@ class ResponseHandler
     }
 
     /**
-     * Enviar respuesta y terminar ejecución
+     * Enviar respuesta y terminar ejecuciÃƒÆ’Ã‚Â³n
      */
     public function send(string $response): void
     {
@@ -166,18 +167,18 @@ class ResponseHandler
 
     /**
      * Configurar headers CORS - DEPRECATED
-     * CORS ahora se configura automáticamente en bootstrap.php
+     * CORS ahora se configura automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
      */
     public function setCorsHeaders(): void
     {
-        // CORS ya configurado en bootstrap.php - método mantenido por compatibilidad
+        // CORS ya configurado en bootstrap.php - mÃƒÆ’Ã‚Â©todo mantenido por compatibilidad
         if (function_exists('error_log')) {
-            error_log('DEPRECATION WARNING: ResponseHandler::setCorsHeaders() ya no es necesario. CORS se configura automáticamente en bootstrap.php');
+            error_log('DEPRECATION WARNING: ResponseHandler::setCorsHeaders() ya no es necesario. CORS se configura automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php');
         }
     }
 
     /**
-     * Manejar petición OPTIONS para CORS
+     * Manejar peticiÃƒÆ’Ã‚Â³n OPTIONS para CORS
      */
     public function handleOptions(): void
     {

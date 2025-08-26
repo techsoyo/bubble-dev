@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Controllers;
 
 use Utils\Request;
@@ -22,7 +21,7 @@ class ApplicationController
   }
 
   /**
-   * Crear una nueva aplicación
+   * Crear una nueva aplicaciÃƒÆ’Ã‚Â³n
    */
   public function store(Request $request, array $params = [])
   {
@@ -30,16 +29,16 @@ class ApplicationController
       $data = $request->getBody();
 
       // TODO: Validar y guardar $data
-      return ResponseHelper::success("Aplicación creada correctamente", [
+      return ResponseHelper::success("AplicaciÃƒÆ’Ã‚Â³n creada correctamente", [
         'data' => $data
       ], 201);
     } catch (\Throwable $e) {
-      return ResponseHelper::error("Error al crear aplicación", $e);
+      return ResponseHelper::error("Error al crear aplicaciÃƒÆ’Ã‚Â³n", $e);
     }
   }
 
   /**
-   * Ver una aplicación por ID
+   * Ver una aplicaciÃƒÆ’Ã‚Â³n por ID
    */
   public function show(Request $request, array $params = [])
   {
@@ -49,16 +48,16 @@ class ApplicationController
         return ResponseHelper::fail("ID no proporcionado", 400);
       }
 
-      return ResponseHelper::success("Aplicación encontrada", [
+      return ResponseHelper::success("AplicaciÃƒÆ’Ã‚Â³n encontrada", [
         'id' => $id
       ]);
     } catch (\Throwable $e) {
-      return ResponseHelper::error("Error al mostrar aplicación", $e);
+      return ResponseHelper::error("Error al mostrar aplicaciÃƒÆ’Ã‚Â³n", $e);
     }
   }
 
   /**
-   * Actualizar una aplicación
+   * Actualizar una aplicaciÃƒÆ’Ã‚Â³n
    */
   public function update(Request $request, array $params = [])
   {
@@ -70,17 +69,17 @@ class ApplicationController
         return ResponseHelper::fail("ID no proporcionado", 400);
       }
 
-      return ResponseHelper::success("Aplicación actualizada correctamente", [
+      return ResponseHelper::success("AplicaciÃƒÆ’Ã‚Â³n actualizada correctamente", [
         'id' => $id,
         'data' => $data
       ]);
     } catch (\Throwable $e) {
-      return ResponseHelper::error("Error al actualizar aplicación", $e);
+      return ResponseHelper::error("Error al actualizar aplicaciÃƒÆ’Ã‚Â³n", $e);
     }
   }
 
   /**
-   * Eliminar una aplicación
+   * Eliminar una aplicaciÃƒÆ’Ã‚Â³n
    */
   public function delete(Request $request, array $params = [])
   {
@@ -90,16 +89,16 @@ class ApplicationController
         return ResponseHelper::fail("ID no proporcionado", 400);
       }
 
-      return ResponseHelper::success("Aplicación eliminada correctamente", [
+      return ResponseHelper::success("AplicaciÃƒÆ’Ã‚Â³n eliminada correctamente", [
         'id' => $id
       ]);
     } catch (\Throwable $e) {
-      return ResponseHelper::error("Error al eliminar aplicación", $e);
+      return ResponseHelper::error("Error al eliminar aplicaciÃƒÆ’Ã‚Â³n", $e);
     }
   }
 
   /**
-   * Actualizar el estado de una aplicación
+   * Actualizar el estado de una aplicaciÃƒÆ’Ã‚Â³n
    */
   public function updateStatus(Request $request, array $params = [])
   {
@@ -111,7 +110,7 @@ class ApplicationController
         return ResponseHelper::fail("ID de candidato no proporcionado", 400);
       }
 
-      return ResponseHelper::success("Estado de aplicación actualizado", [
+      return ResponseHelper::success("Estado de aplicaciÃƒÆ’Ã‚Â³n actualizado", [
         'candidato_id' => $candidatoId,
         'data' => $data
       ]);
@@ -135,47 +134,47 @@ class ApplicationController
   }
 
   /**
-   * Guardar aplicación parcial
+   * Guardar aplicaciÃƒÆ’Ã‚Â³n parcial
    */
   public function savePartial(Request $request, array $params = [])
   {
     try {
       $data = $request->getBody();
-      return ResponseHelper::success("Aplicación parcial guardada", [
+      return ResponseHelper::success("AplicaciÃƒÆ’Ã‚Â³n parcial guardada", [
         'data' => $data
       ]);
     } catch (\Throwable $e) {
-      return ResponseHelper::error("Error al guardar aplicación parcial", $e);
+      return ResponseHelper::error("Error al guardar aplicaciÃƒÆ’Ã‚Â³n parcial", $e);
     }
   }
 
   /**
-   * Actualización masiva de aplicaciones
+   * ActualizaciÃƒÆ’Ã‚Â³n masiva de aplicaciones
    */
   public function bulkUpdate(Request $request, array $params = [])
   {
     try {
       $data = $request->getBody();
-      return ResponseHelper::success("Actualización masiva completada", [
+      return ResponseHelper::success("ActualizaciÃƒÆ’Ã‚Â³n masiva completada", [
         'data' => $data
       ]);
     } catch (\Throwable $e) {
-      return ResponseHelper::error("Error en actualización masiva", $e);
+      return ResponseHelper::error("Error en actualizaciÃƒÆ’Ã‚Â³n masiva", $e);
     }
   }
 
   /**
-   * Eliminación masiva de aplicaciones
+   * EliminaciÃƒÆ’Ã‚Â³n masiva de aplicaciones
    */
   public function bulkDelete(Request $request, array $params = [])
   {
     try {
       $data = $request->getBody();
-      return ResponseHelper::success("Eliminación masiva completada", [
+      return ResponseHelper::success("EliminaciÃƒÆ’Ã‚Â³n masiva completada", [
         'data' => $data
       ]);
     } catch (\Throwable $e) {
-      return ResponseHelper::error("Error en eliminación masiva", $e);
+      return ResponseHelper::error("Error en eliminaciÃƒÆ’Ã‚Â³n masiva", $e);
     }
   }
 }

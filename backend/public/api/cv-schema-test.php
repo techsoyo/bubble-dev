@@ -1,8 +1,5 @@
-<?php
-
-declare(strict_types=1);
-
-// @deprecated - archivo de test, deshabilitar en producción
+<?php declare(strict_types=1);
+// @deprecated - archivo de test, deshabilitar en producciÃ³n
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
   http_response_code(404);
   exit('Not found');
@@ -11,7 +8,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
 require_once __DIR__ . '/bootstrap.php';
 
 if (!isset($_SERVER['REQUEST_METHOD'])) {
-  $_SERVER['REQUEST_METHOD'] = 'GET'; // Para ejecuciÃƒÂ³n directa
+  $_SERVER['REQUEST_METHOD'] = 'GET'; // Para ejecuciÃƒÆ’Ã‚Â³n directa
 }
 
 
@@ -27,7 +24,7 @@ if (!class_exists('Domain\\CvSchema')) {
 
 use Domain\CvSchema;
 
-// Bloquear en producciÃƒÂ³n
+// Bloquear en producciÃƒÆ’Ã‚Â³n
 if ((getenv('APP_ENV') ?: 'production') === 'production') {
   http_response_code(404);
   exit;
@@ -77,14 +74,14 @@ try {
       if ($input === null) {
         sendJsonResponse(false, null, [
           'code' => 'INVALID_JSON',
-          'message' => 'El JSON enviado no es vÃƒÂ¡lido'
+          'message' => 'El JSON enviado no es vÃƒÆ’Ã‚Â¡lido'
         ]);
       }
 
       // Normalizar datos
       $normalizedData = CvSchema::normalize($input);
 
-      // Validar datos mÃƒÂ­nimos
+      // Validar datos mÃƒÆ’Ã‚Â­nimos
       $validationErrors = CvSchema::validateMinimumData($normalizedData);
 
       if (!empty($validationErrors)) {
@@ -92,7 +89,7 @@ try {
           'normalized_data' => $normalizedData
         ], [
           'code' => 'VALIDATION_FAILED',
-          'message' => 'Los datos no cumplen con los requisitos mÃƒÂ­nimos',
+          'message' => 'Los datos no cumplen con los requisitos mÃƒÆ’Ã‚Â­nimos',
           'details' => $validationErrors
         ]);
       }
@@ -108,7 +105,7 @@ try {
     default:
       sendJsonResponse(false, null, [
         'code' => 'METHOD_NOT_ALLOWED',
-        'message' => 'MÃƒÂ©todo HTTP no permitido. Use GET o POST.'
+        'message' => 'MÃƒÆ’Ã‚Â©todo HTTP no permitido. Use GET o POST.'
       ]);
   }
 } catch (Exception $e) {

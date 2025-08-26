@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 use Firebase\JWT\JWT;
 use Utils\Logger;
 use Security\Cookies;
@@ -34,10 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 try {
-  // Solo permitir mÃ©todo POST
+  // Solo permitir mÃƒÂ©todo POST
   if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'MÃ©todo no permitido']);
+    echo json_encode(['success' => false, 'message' => 'MÃƒÂ©todo no permitido']);
     exit;
   }
 
@@ -53,7 +50,7 @@ try {
 
   if (!$email || empty($password)) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Email y contraseÃ±a son requeridos']);
+    echo json_encode(['success' => false, 'message' => 'Email y contraseÃƒÂ±a son requeridos']);
     exit;
   }
 
@@ -67,14 +64,14 @@ try {
 
   if (!$candidate) {
     http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Credenciales invÃ¡lidas']);
+    echo json_encode(['success' => false, 'message' => 'Credenciales invÃƒÂ¡lidas']);
     exit;
   }
 
-  // Verificar contraseÃ±a
+  // Verificar contraseÃƒÂ±a
   if (!password_verify($password, $candidate['password_hash'])) {
     http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Credenciales invÃ¡lidas']);
+    echo json_encode(['success' => false, 'message' => 'Credenciales invÃƒÂ¡lidas']);
     exit;
   }
 
@@ -96,7 +93,7 @@ try {
   // Generar y establecer token CSRF
   $csrfToken = CsrfMiddleware::generateToken();
 
-  // En producciÃ³n, opcional: no devolver token en body por seguridad extra
+  // En producciÃƒÂ³n, opcional: no devolver token en body por seguridad extra
   if (($_ENV['APP_ENV'] ?? 'development') === 'production' && ($_ENV['HIDE_TOKEN_IN_RESPONSE'] ?? false)) {
     http_response_code(200);
     echo json_encode([

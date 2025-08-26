@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 // @public  
 /**
  * OAuth Start Endpoint - Inicia el flujo OAuth
@@ -6,8 +6,8 @@
  */
 
 require_once __DIR__ . '/../../bootstrap.php';
-// NO JWTMiddleware::requireAuth() aquí - endpoint público
-// NO CsrfMiddleware::protect() aquí - inicia flujo OAuth (no modifica estado de usuario aún)
+// NO JWTMiddleware::requireAuth() aquÃ­ - endpoint pÃºblico
+// NO CsrfMiddleware::protect() aquÃ­ - inicia flujo OAuth (no modifica estado de usuario aÃºn)
 
 require_once __DIR__ . '/OAuthHandler.php';
 
@@ -18,7 +18,7 @@ try {
   $jobId = $_GET['job'] ?? null;
 
   if (!$provider || !in_array($provider, ['google', 'linkedin'])) {
-    throw new Exception('Proveedor OAuth no vÃ¡lido');
+    throw new Exception('Proveedor OAuth no vÃƒÂ¡lido');
   }
 
   $oauth = new OAuthHandler();
@@ -37,6 +37,6 @@ try {
   echo json_encode([
     'success' => false,
     'error' => $e->getMessage(),
-    'help' => 'Revisa la guÃ­a OAUTH_SETUP_GUIDE.md para configurar OAuth'
+    'help' => 'Revisa la guÃƒÂ­a OAUTH_SETUP_GUIDE.md para configurar OAuth'
   ]);
 }

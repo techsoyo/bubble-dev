@@ -1,8 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -60,7 +56,7 @@ switch ($method) {
         $raw = file_get_contents('php://input');
         $in = json_decode($raw, true);
         if (!is_array($in)) {
-            jsonResponse(400, ['success' => false, 'error' => ['code' => 'INVALID_JSON', 'message' => 'JSON invÃƒÆ’Ã‚Â¡lido']]);
+            jsonResponse(400, ['success' => false, 'error' => ['code' => 'INVALID_JSON', 'message' => 'JSON invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido']]);
         }
         $normalized = CvSchema::normalize($in);
         $errors = CvSchema::validate($normalized);
@@ -69,7 +65,7 @@ switch ($method) {
               'success' => false,
               'error' => [
                 'code' => 'VALIDATION_FAILED',
-                'message' => 'Violaciones de validaciÃƒÆ’Ã‚Â³n',
+                'message' => 'Violaciones de validaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n',
                 'details' => $errors
               ],
               'data' => $normalized
@@ -82,6 +78,6 @@ switch ($method) {
         ]);
         break;
     default:
-        jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'MÃƒÆ’Ã‚Â©todo no permitido']]);
+        jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©todo no permitido']]);
 }
 

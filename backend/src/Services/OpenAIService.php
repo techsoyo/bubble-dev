@@ -1,14 +1,13 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Services;
 
 use Domain\CvSchema;
 use Services\Exceptions\AiUnavailableException;
 
 /**
- * Servicio de IA Multi-Proveedor para Análisis de CV
+ * Servicio de IA Multi-Proveedor para AnÃƒÆ’Ã‚Â¡lisis de CV
  *
- * Soporta múltiples proveedores de IA:
+ * Soporta mÃƒÆ’Ã‚Âºltiples proveedores de IA:
  * - OpenAI (GPT models)
  * - Azure OpenAI
  * - Servicios locales compatibles con OpenAI
@@ -32,7 +31,7 @@ class OpenAIService
 
     public function __construct()
     {
-        // Cargar configuración desde .env
+        // Cargar configuraciÃƒÆ’Ã‚Â³n desde .env
         $this->provider = ($_ENV['AI_PROVIDER'] ?? getenv('AI_PROVIDER')) ?: 'openai';
         $this->apiKey = $_ENV['OPENAI_API_KEY'] ?? getenv('OPENAI_API_KEY');
         $this->model = ($_ENV['OPENAI_MODEL'] ?? getenv('OPENAI_MODEL')) ?: 'gpt-4o-mini';
@@ -42,7 +41,7 @@ class OpenAIService
         $this->jsonMode = (($_ENV['OPENAI_JSON_MODE'] ?? getenv('OPENAI_JSON_MODE')) === 'true');
         $this->maxRetries = (int)(($_ENV['AI_MAX_RETRIES'] ?? getenv('AI_MAX_RETRIES')) ?: 3);
 
-        // Configurar URLs y parámetros específicos del proveedor
+        // Configurar URLs y parÃƒÆ’Ã‚Â¡metros especÃƒÆ’Ã‚Â­ficos del proveedor
         $this->configureProvider();
 
         if (!$this->apiKey) {
@@ -51,7 +50,7 @@ class OpenAIService
     }
 
     /**
-     * Configura URLs y parámetros específicos del proveedor
+     * Configura URLs y parÃƒÆ’Ã‚Â¡metros especÃƒÆ’Ã‚Â­ficos del proveedor
      */
     private function configureProvider(): void
     {
@@ -88,9 +87,9 @@ class OpenAIService
     /**
      * Analiza texto de CV y devuelve JSON estructurado
      *
-     * @param string $rawText Texto extraído del CV
+     * @param string $rawText Texto extraÃƒÆ’Ã‚Â­do del CV
      * @return array Datos estructurados del CV
-     * @throws AiUnavailableException Si la IA no está disponible o devuelve JSON inválido
+     * @throws AiUnavailableException Si la IA no estÃƒÆ’Ã‚Â¡ disponible o devuelve JSON invÃƒÆ’Ã‚Â¡lido
      */
     public function analyzeCvFromText(string $rawText): array
     {
@@ -141,43 +140,43 @@ class OpenAIService
     }
 
     /**
-     * Construye el prompt sistemático para análisis de CV
+     * Construye el prompt sistemÃƒÆ’Ã‚Â¡tico para anÃƒÆ’Ã‚Â¡lisis de CV
      */
     private function buildCvAnalysisPrompt(string $rawText): string
     {
-        // Truncar texto si es muy largo (máximo 8000 caracteres)
+        // Truncar texto si es muy largo (mÃƒÆ’Ã‚Â¡ximo 8000 caracteres)
         $truncatedText = mb_strlen($rawText) > 8000 ? mb_substr($rawText, 0, 8000) . "\n\n[TEXTO TRUNCADO]" : $rawText;
 
         $templateJson = json_encode(CvSchema::PROMPT_MINIMAL, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
-        $systemPrompt = 'Eres un experto analizador de CV. Tu tarea es extraer TODA la información disponible del texto proporcionado y estructurarla en JSON. ' .
-            'Busca activamente nombres, contactos, experiencia laboral, educación, habilidades, etc. ' .
-            'Si encuentras información, úsala. Solo deja campos vacíos si realmente no aparece información. ' .
-            'Fechas en formato YYYY-MM o YYYY-MM-DD. Devuelve SOLO JSON válido, sin comentarios adicionales.';
+        $systemPrompt = 'Eres un experto analizador de CV. Tu tarea es extraer TODA la informaciÃƒÆ’Ã‚Â³n disponible del texto proporcionado y estructurarla en JSON. ' .
+            'Busca activamente nombres, contactos, experiencia laboral, educaciÃƒÆ’Ã‚Â³n, habilidades, etc. ' .
+            'Si encuentras informaciÃƒÆ’Ã‚Â³n, ÃƒÆ’Ã‚Âºsala. Solo deja campos vacÃƒÆ’Ã‚Â­os si realmente no aparece informaciÃƒÆ’Ã‚Â³n. ' .
+            'Fechas en formato YYYY-MM o YYYY-MM-DD. Devuelve SOLO JSON vÃƒÆ’Ã‚Â¡lido, sin comentarios adicionales.';
 
-        $userPrompt = "Analiza el siguiente CV y extrae TODA la información disponible. Se específico y completo:\n\n" .
+        $userPrompt = "Analiza el siguiente CV y extrae TODA la informaciÃƒÆ’Ã‚Â³n disponible. Se especÃƒÆ’Ã‚Â­fico y completo:\n\n" .
             "CAMPOS A EXTRAER:\n" .
             "- nombre: Busca el nombre completo de la persona\n" .
-            "- email: Busca direcciones de correo electrónico\n" .
-            "- telefono: Busca números de teléfono (incluye códigos de país)\n" .
-            "- ubicacion_actual: Busca ciudad, país, dirección actual\n" .
+            "- email: Busca direcciones de correo electrÃƒÆ’Ã‚Â³nico\n" .
+            "- telefono: Busca nÃƒÆ’Ã‚Âºmeros de telÃƒÆ’Ã‚Â©fono (incluye cÃƒÆ’Ã‚Â³digos de paÃƒÆ’Ã‚Â­s)\n" .
+            "- ubicacion_actual: Busca ciudad, paÃƒÆ’Ã‚Â­s, direcciÃƒÆ’Ã‚Â³n actual\n" .
             "- fecha_nacimiento: Busca fecha de nacimiento (YYYY-MM-DD)\n" .
             "- portfolio, linkedin: Busca URLs de portfolio, LinkedIn, etc.\n" .
             "- otras_redes: Busca URLs de redes sociales adicionales\n" .
             "- resumen_profesional: Busca resumen, perfil profesional, objetivo\n" .
-            "- soft_skills: Busca habilidades blandas (liderazgo, comunicación, etc.)\n" .
-            "- hard_skills: Busca habilidades técnicas (software, lenguajes, herramientas)\n" .
-            "- idiomas: Busca idiomas y niveles [{\"idioma\":\"Español\",\"nivel\":\"Nativo\"}]\n" .
+            "- soft_skills: Busca habilidades blandas (liderazgo, comunicaciÃƒÆ’Ã‚Â³n, etc.)\n" .
+            "- hard_skills: Busca habilidades tÃƒÆ’Ã‚Â©cnicas (software, lenguajes, herramientas)\n" .
+            "- idiomas: Busca idiomas y niveles [{\"idioma\":\"EspaÃƒÆ’Ã‚Â±ol\",\"nivel\":\"Nativo\"}]\n" .
             "- intereses: Busca pasiones, hobbies, intereses personales\n" .
-            "- disponibilidad: Busca información sobre disponibilidad laboral\n" .
+            "- disponibilidad: Busca informaciÃƒÆ’Ã‚Â³n sobre disponibilidad laboral\n" .
             "- puestos_anteriores: Busca TODA la experiencia laboral con fechas, empresas, responsabilidades\n" .
-            "- educacion: Busca TODA la educación: títulos, universidades, fechas\n" .
+            "- educacion: Busca TODA la educaciÃƒÆ’Ã‚Â³n: tÃƒÆ’Ã‚Â­tulos, universidades, fechas\n" .
             "- certificaciones: Busca certificaciones, cursos, capacitaciones\n" .
             "- proyectos: Busca proyectos mencionados\n\n" .
             "EJEMPLO DE EXPERIENCIA:\n" .
-            '{\"puesto\":\"Diseñador Gráfico Senior\",\"empresa\":\"BBVA\",\"fecha_inicio\":\"2019-01\",\"fecha_fin\":\"2023-01\",\"descripcion\":\"Desarrollé estrategias visuales...\",\"responsabilidades\":[\"Coordiné equipo de 5 diseñadores\",\"Implementé técnicas de diseño adaptativo\"]}' . "\n\n" .
+            '{\"puesto\":\"DiseÃƒÆ’Ã‚Â±ador GrÃƒÆ’Ã‚Â¡fico Senior\",\"empresa\":\"BBVA\",\"fecha_inicio\":\"2019-01\",\"fecha_fin\":\"2023-01\",\"descripcion\":\"DesarrollÃƒÆ’Ã‚Â© estrategias visuales...\",\"responsabilidades\":[\"CoordinÃƒÆ’Ã‚Â© equipo de 5 diseÃƒÆ’Ã‚Â±adores\",\"ImplementÃƒÆ’Ã‚Â© tÃƒÆ’Ã‚Â©cnicas de diseÃƒÆ’Ã‚Â±o adaptativo\"]}' . "\n\n" .
             "TEXTO DEL CV:\n" . $truncatedText . "\n\n" .
-            'Extrae TODA la información disponible y responde SOLO con JSON válido:';
+            'Extrae TODA la informaciÃƒÆ’Ã‚Â³n disponible y responde SOLO con JSON vÃƒÆ’Ã‚Â¡lido:';
 
         return $userPrompt;
     }
@@ -199,7 +198,7 @@ class OpenAIService
             } catch (\Exception $e) {
                 $lastError = $e;
 
-                // Solo reintentar en errores específicos
+                // Solo reintentar en errores especÃƒÆ’Ã‚Â­ficos
                 if ($this->shouldRetry($e)) {
                     $attempt++;
                     if ($attempt < $this->maxRetries) {
@@ -223,7 +222,7 @@ class OpenAIService
     }
 
     /**
-     * Realiza la llamada específica al proveedor de IA
+     * Realiza la llamada especÃƒÆ’Ã‚Â­fica al proveedor de IA
      */
     private function callAiProvider(string $prompt): ?string
     {
@@ -274,7 +273,7 @@ class OpenAIService
     }
 
     /**
-     * Construye los datos de la petición según el proveedor
+     * Construye los datos de la peticiÃƒÆ’Ã‚Â³n segÃƒÆ’Ã‚Âºn el proveedor
      */
     private function buildRequestData(string $prompt): array
     {
@@ -283,7 +282,7 @@ class OpenAIService
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => 'Eres un parser de CV. Devuelve solo JSON, exactamente con estas claves (sin extras). Campos desconocidos → vacío. Fechas YYYY-MM o YYYY-MM-DD. Límite strings 2000 chars y arrays 200 items. Nunca pidas datos fuera del texto. Nunca metas comentarios fuera del JSON.'
+                    'content' => 'Eres un parser de CV. Devuelve solo JSON, exactamente con estas claves (sin extras). Campos desconocidos ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ vacÃƒÆ’Ã‚Â­o. Fechas YYYY-MM o YYYY-MM-DD. LÃƒÆ’Ã‚Â­mite strings 2000 chars y arrays 200 items. Nunca pidas datos fuera del texto. Nunca metas comentarios fuera del JSON.'
                 ],
                 [
                     'role' => 'user',
@@ -294,7 +293,7 @@ class OpenAIService
             'temperature' => $this->temperature
         ];
 
-        // Añadir modo JSON si está soportado
+        // AÃƒÆ’Ã‚Â±adir modo JSON si estÃƒÆ’Ã‚Â¡ soportado
         if ($this->jsonMode && $this->supportsJsonMode()) {
             $data['response_format'] = ['type' => 'json_object'];
         }
@@ -302,7 +301,7 @@ class OpenAIService
         return $data;
     }
     /**
-     * Construye headers según el proveedor
+     * Construye headers segÃƒÆ’Ã‚Âºn el proveedor
      */
     private function buildHeaders(): array
     {
@@ -366,7 +365,7 @@ class OpenAIService
     }
 
     /**
-     * Registra métricas de la petición
+     * Registra mÃƒÆ’Ã‚Â©tricas de la peticiÃƒÆ’Ã‚Â³n
      */
     private function logRequest(string $requestId, float $startTime, int $httpCode, string $model, int $inputSize, int $outputSize, string $error = ''): void
     {
@@ -386,7 +385,7 @@ class OpenAIService
     }
 
     /**
-     * Método legacy para compatibilidad hacia atrás
+     * MÃƒÆ’Ã‚Â©todo legacy para compatibilidad hacia atrÃƒÆ’Ã‚Â¡s
      * @deprecated Use analyzeCvFromText instead
      */
     public function analyzeCVWithOpenAI($cvText)
@@ -394,13 +393,13 @@ class OpenAIService
         try {
             return $this->analyzeCvFromText($cvText);
         } catch (AiUnavailableException $e) {
-            // Retornar estructura básica en caso de error para compatibilidad
+            // Retornar estructura bÃƒÆ’Ã‚Â¡sica en caso de error para compatibilidad
             return $this->createFallbackStructure($cvText);
         }
     }
 
     /**
-     * Crea estructura básica como fallback
+     * Crea estructura bÃƒÆ’Ã‚Â¡sica como fallback
      */
     private function createFallbackStructure(string $cvText): array
     {
@@ -408,7 +407,7 @@ class OpenAIService
         $nombre = '';
         $telefono = '';
 
-        // Extraer información básica usando regex
+        // Extraer informaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica usando regex
         if (preg_match('/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', $cvText, $matches)) {
             $email = $matches[0];
         }
@@ -422,7 +421,7 @@ class OpenAIService
             $line = trim($line);
             if (
                 strlen($line) > 5 && strlen($line) < 50 &&
-                preg_match('/^[A-Za-zÀ-ÿ\s]+$/', $line) &&
+                preg_match('/^[A-Za-zÃƒÆ’Ã¢â€šÂ¬-ÃƒÆ’Ã‚Â¿\s]+$/', $line) &&
                 str_word_count($line) >= 2
             ) {
                 $nombre = $line;

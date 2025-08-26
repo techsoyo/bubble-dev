@@ -1,5 +1,5 @@
-<?php
-// @deprecated - archivo de test, deshabilitar en producciÃ³n
+<?php declare(strict_types=1);
+// @deprecated - archivo de test, deshabilitar en producciÃƒÂ³n
 if ((\['APP_ENV'] ?? 'production') === 'production') {
     http_response_code(404);
     exit('Not found');
@@ -8,7 +8,7 @@ if ((\['APP_ENV'] ?? 'production') === 'production') {
 
 
 // Test simple para verificar que Mistral funciona con timeout largo
-echo "Ã°Å¸â€Â TEST DE MISTRAL CON TIMEOUT EXTENDIDO\n";
+echo "ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â TEST DE MISTRAL CON TIMEOUT EXTENDIDO\n";
 echo "========================================\n\n";
 
 $start_time = microtime(true);
@@ -27,26 +27,26 @@ curl_setopt_array($curl, [
     CURLOPT_TIMEOUT => 120 // 2 minutos
 ]);
 
-echo "Ã°Å¸â€œÂ¤ Enviando peticiÃƒÂ³n a Mistral...\n";
+echo "ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¤ Enviando peticiÃƒÆ’Ã‚Â³n a Mistral...\n";
 
 $response = curl_exec($curl);
 $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 $time_taken = microtime(true) - $start_time;
 
-echo 'Ã¢ÂÂ±Ã¯Â¸Â  Tiempo: ' . round($time_taken, 2) . " segundos\n";
+echo 'ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â  Tiempo: ' . round($time_taken, 2) . " segundos\n";
 
 if (curl_errno($curl)) {
-    echo 'Ã¢ÂÅ’ Error cURL: ' . curl_error($curl) . "\n";
+    echo 'ÃƒÂ¢Ã‚ÂÃ…â€™ Error cURL: ' . curl_error($curl) . "\n";
 } else {
-    echo "Ã¢Å“â€¦ HTTP Code: $httpCode\n";
+    echo "ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ HTTP Code: $httpCode\n";
 
     $data = json_decode($response, true);
     if (isset($data['response'])) {
-        echo 'Ã¢Å“â€¦ Respuesta de Mistral: ' . trim($data['response']) . "\n";
-        echo "Ã¢Å“â€¦ MISTRAL FUNCIONA CORRECTAMENTE\n\n";
-        echo "Ã°Å¸Å½Â¯ READY PARA PROBAR EL SISTEMA DE RESUMEN\n";
+        echo 'ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Respuesta de Mistral: ' . trim($data['response']) . "\n";
+        echo "ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ MISTRAL FUNCIONA CORRECTAMENTE\n\n";
+        echo "ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ READY PARA PROBAR EL SISTEMA DE RESUMEN\n";
     } else {
-        echo 'Ã¢ÂÅ’ Respuesta invÃƒÂ¡lida: ' . substr($response, 0, 200) . "\n";
+        echo 'ÃƒÂ¢Ã‚ÂÃ…â€™ Respuesta invÃƒÆ’Ã‚Â¡lida: ' . substr($response, 0, 200) . "\n";
     }
 }
 

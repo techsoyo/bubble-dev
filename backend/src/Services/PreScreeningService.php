@@ -1,12 +1,11 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Services;
 
 /**
  * AI-Powered Pre-Screening Service
  *
- * Servicio para screening automático de candidatos, generación de preguntas
- * personalizadas y detección de red flags usando OpenAI.
+ * Servicio para screening automÃƒÆ’Ã‚Â¡tico de candidatos, generaciÃƒÆ’Ã‚Â³n de preguntas
+ * personalizadas y detecciÃƒÆ’Ã‚Â³n de red flags usando OpenAI.
  *
  * @package Backend\Services
  * @version 1.0.0
@@ -31,7 +30,7 @@ class PreScreeningService
      *
      * @param array $candidateData Datos del candidato
      * @param array $jobData Datos del trabajo
-     * @param int $questionCount Número de preguntas a generar
+     * @param int $questionCount NÃƒÆ’Ã‚Âºmero de preguntas a generar
      * @return array Lista de preguntas personalizadas
      */
     public function generateScreeningQuestions($candidateData, $jobData, $questionCount = 5)
@@ -60,8 +59,8 @@ class PreScreeningService
     /**
      * Detecta red flags en el CV del candidato
      *
-     * @param array $candidateData Datos extraídos del CV
-     * @return array Análisis de red flags
+     * @param array $candidateData Datos extraÃƒÆ’Ã‚Â­dos del CV
+     * @return array AnÃƒÆ’Ã‚Â¡lisis de red flags
      */
     public function detectRedFlags($candidateData)
     {
@@ -87,11 +86,11 @@ class PreScreeningService
     }
 
     /**
-     * Valida requisitos mínimos automáticamente
+     * Valida requisitos mÃƒÆ’Ã‚Â­nimos automÃƒÆ’Ã‚Â¡ticamente
      *
      * @param array $candidateData Datos del candidato
      * @param array $jobRequirements Requisitos del trabajo
-     * @return array Resultado de validación
+     * @return array Resultado de validaciÃƒÆ’Ã‚Â³n
      */
     public function validateMinimumRequirements($candidateData, $jobRequirements)
     {
@@ -133,7 +132,7 @@ class PreScreeningService
         // 2. Detectar red flags
         $results['red_flags_analysis'] = $this->detectRedFlags($candidateData);
 
-        // 3. Validar requisitos mínimos
+        // 3. Validar requisitos mÃƒÆ’Ã‚Â­nimos
         $results['requirements_validation'] = $this->validateMinimumRequirements(
             $candidateData,
             $jobData['requirements'] ?? []
@@ -142,121 +141,121 @@ class PreScreeningService
         // 4. Calcular score general de screening
         $results['screening_score'] = $this->calculateScreeningScore($results);
 
-        // 5. Recomendación final
+        // 5. RecomendaciÃƒÆ’Ã‚Â³n final
         $results['recommendation'] = $this->generateScreeningRecommendation($results);
 
         return $results;
     }
 
     /**
-     * Construye prompt para generación de preguntas
+     * Construye prompt para generaciÃƒÆ’Ã‚Â³n de preguntas
      */
     private function buildScreeningPrompt($candidateData, $jobData, $questionCount)
     {
-        return "Genera {$questionCount} preguntas de pre-screening personalizadas para este candidato específico y trabajo.
+        return "Genera {$questionCount} preguntas de pre-screening personalizadas para este candidato especÃƒÆ’Ã‚Â­fico y trabajo.
 
 CANDIDATO:
 Nombre: " . ($candidateData['nombre'] ?? 'No especificado') . '
 Experiencia: ' . json_encode($candidateData['puestos_anteriores'] ?? []) . '
 Skills: ' . implode(', ', $candidateData['hard_skills'] ?? []) . '
-Educación: ' . json_encode($candidateData['educacion'] ?? []) . '
-Ubicación: ' . ($candidateData['ubicacion_actual'] ?? 'No especificada') . '
+EducaciÃƒÆ’Ã‚Â³n: ' . json_encode($candidateData['educacion'] ?? []) . '
+UbicaciÃƒÆ’Ã‚Â³n: ' . ($candidateData['ubicacion_actual'] ?? 'No especificada') . '
 
 TRABAJO:
-Título: ' . ($jobData['title'] ?? 'No especificado') . '
-Descripción: ' . ($jobData['description'] ?? 'No especificada') . '
+TÃƒÆ’Ã‚Â­tulo: ' . ($jobData['title'] ?? 'No especificado') . '
+DescripciÃƒÆ’Ã‚Â³n: ' . ($jobData['description'] ?? 'No especificada') . '
 Skills requeridas: ' . implode(', ', $jobData['required_skills'] ?? []) . '
-Experiencia mínima: ' . ($jobData['min_experience'] ?? 'No especificada') . ' años
-Ubicación: ' . ($jobData['location'] ?? 'No especificada') . '
+Experiencia mÃƒÆ’Ã‚Â­nima: ' . ($jobData['min_experience'] ?? 'No especificada') . ' aÃƒÆ’Ã‚Â±os
+UbicaciÃƒÆ’Ã‚Â³n: ' . ($jobData['location'] ?? 'No especificada') . '
 
 INSTRUCCIONES:
-- Genera preguntas ESPECÍFICAS para este candidato y puesto
-- Enfócate en gaps o áreas a clarificar del CV
-- Incluye preguntas técnicas relevantes
-- Añade preguntas sobre disponibilidad y expectativas
-- Evita preguntas genéricas
+- Genera preguntas ESPECÃƒÆ’Ã‚ÂFICAS para este candidato y puesto
+- EnfÃƒÆ’Ã‚Â³cate en gaps o ÃƒÆ’Ã‚Â¡reas a clarificar del CV
+- Incluye preguntas tÃƒÆ’Ã‚Â©cnicas relevantes
+- AÃƒÆ’Ã‚Â±ade preguntas sobre disponibilidad y expectativas
+- Evita preguntas genÃƒÆ’Ã‚Â©ricas
 
-Responde ÚNICAMENTE con JSON válido:
+Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido:
 {
   "questions": [
     {
       "id": 1,
-      "question": "Pregunta específica aquí",
+      "question": "Pregunta especÃƒÆ’Ã‚Â­fica aquÃƒÆ’Ã‚Â­",
       "type": "technical|experience|availability|cultural|salary",
       "priority": "high|medium|low",
       "expected_answer_type": "open|multiple_choice|yes_no|numeric",
-      "reasoning": "Por qué esta pregunta es relevante para este candidato"
+      "reasoning": "Por quÃƒÆ’Ã‚Â© esta pregunta es relevante para este candidato"
     }
   ],
-  "focus_areas": ["Lista de áreas principales a explorar"],
+  "focus_areas": ["Lista de ÃƒÆ’Ã‚Â¡reas principales a explorar"],
   "estimated_duration": "Tiempo estimado del screening en minutos"
 }';
     }
 
     /**
-     * Construye prompt para detección de red flags
+     * Construye prompt para detecciÃƒÆ’Ã‚Â³n de red flags
      */
     private function buildRedFlagsPrompt($candidateData)
     {
         $cvText = "DATOS DEL CANDIDATO:\n";
         $cvText .= 'Nombre: ' . ($candidateData['nombre'] ?? 'No especificado') . "\n";
         $cvText .= 'Email: ' . ($candidateData['email'] ?? 'No especificado') . "\n";
-        $cvText .= 'Ubicación: ' . ($candidateData['ubicacion_actual'] ?? 'No especificada') . "\n";
+        $cvText .= 'UbicaciÃƒÆ’Ã‚Â³n: ' . ($candidateData['ubicacion_actual'] ?? 'No especificada') . "\n";
         $cvText .= 'Experiencia Laboral: ' . json_encode($candidateData['puestos_anteriores'] ?? []) . "\n";
-        $cvText .= 'Educación: ' . json_encode($candidateData['educacion'] ?? []) . "\n";
+        $cvText .= 'EducaciÃƒÆ’Ã‚Â³n: ' . json_encode($candidateData['educacion'] ?? []) . "\n";
         $cvText .= 'Skills: ' . implode(', ', $candidateData['hard_skills'] ?? []) . "\n";
 
-        return "Analiza este CV y detecta posibles red flags o señales de alerta.
+        return "Analiza este CV y detecta posibles red flags o seÃƒÆ’Ã‚Â±ales de alerta.
 
 {$cvText}
 
-BUSCA ESPECÍFICAMENTE:
+BUSCA ESPECÃƒÆ’Ã‚ÂFICAMENTE:
 - Gaps en experiencia laboral inexplicados
 - Inconsistencias en fechas
-- Progresión de carrera inusual (regresiones)
+- ProgresiÃƒÆ’Ã‚Â³n de carrera inusual (regresiones)
 - Cambios frecuentes de trabajo
-- Sobre-calificación extrema para trabajos básicos
-- Información faltante o vaga
+- Sobre-calificaciÃƒÆ’Ã‚Â³n extrema para trabajos bÃƒÆ’Ã‚Â¡sicos
+- InformaciÃƒÆ’Ã‚Â³n faltante o vaga
 - Skills irreales o exageradas
 - Problemas en datos de contacto
 
-Responde ÚNICAMENTE con JSON válido:
+Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido:
 {
   \"red_flags\": [
     {
       \"type\": \"employment_gap|inconsistent_dates|job_hopping|overqualification|missing_info|unrealistic_skills|other\",
       \"severity\": \"high|medium|low\",
-      \"description\": \"Descripción específica del problema\",
+      \"description\": \"DescripciÃƒÆ’Ã‚Â³n especÃƒÆ’Ã‚Â­fica del problema\",
       \"details\": \"Detalles adicionales\",
-      \"recommendation\": \"Qué hacer al respecto\"
+      \"recommendation\": \"QuÃƒÆ’Ã‚Â© hacer al respecto\"
     }
   ],
   \"overall_risk_level\": \"high|medium|low\",
-  \"verification_needed\": [\"Lista de cosas que necesitan verificación\"],
-  \"positive_signals\": [\"Señales positivas encontradas\"],
+  \"verification_needed\": [\"Lista de cosas que necesitan verificaciÃƒÆ’Ã‚Â³n\"],
+  \"positive_signals\": [\"SeÃƒÆ’Ã‚Â±ales positivas encontradas\"],
   \"recommendation\": \"proceed|investigate|reject\",
   \"confidence_score\": 85
 }";
     }
 
     /**
-     * Construye prompt para validación de requisitos
+     * Construye prompt para validaciÃƒÆ’Ã‚Â³n de requisitos
      */
     private function buildRequirementsPrompt($candidateData, $jobRequirements)
     {
-        return 'Valida si este candidato cumple con los requisitos mínimos del trabajo.
+        return 'Valida si este candidato cumple con los requisitos mÃƒÆ’Ã‚Â­nimos del trabajo.
 
 CANDIDATO:
 Experiencia: ' . json_encode($candidateData['puestos_anteriores'] ?? []) . '
-Educación: ' . json_encode($candidateData['educacion'] ?? []) . '
+EducaciÃƒÆ’Ã‚Â³n: ' . json_encode($candidateData['educacion'] ?? []) . '
 Skills: ' . implode(', ', $candidateData['hard_skills'] ?? []) . '
 Idiomas: ' . implode(', ', $candidateData['idiomas'] ?? []) . '
-Ubicación: ' . ($candidateData['ubicacion_actual'] ?? 'No especificada') . '
+UbicaciÃƒÆ’Ã‚Â³n: ' . ($candidateData['ubicacion_actual'] ?? 'No especificada') . '
 
 REQUISITOS A VALIDAR:
 ' . json_encode($jobRequirements) . '
 
-Responde ÚNICAMENTE con JSON válido:
+Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido:
 {
   "requirements_met": [
     {
@@ -267,7 +266,7 @@ Responde ÚNICAMENTE con JSON válido:
     }
   ],
   "overall_compliance": "full|partial|minimal|none",
-  "critical_missing": ["Lista de requisitos críticos no cumplidos"],
+  "critical_missing": ["Lista de requisitos crÃƒÆ’Ã‚Â­ticos no cumplidos"],
   "strengths": ["Requisitos que supera"],
   "final_recommendation": "approve|conditional|reject",
   "percentage_met": 85
@@ -300,7 +299,7 @@ Responde ÚNICAMENTE con JSON válido:
     }
 
     /**
-     * Genera recomendación de screening
+     * Genera recomendaciÃƒÆ’Ã‚Â³n de screening
      */
     private function generateScreeningRecommendation($screeningResults)
     {
@@ -333,7 +332,7 @@ Responde ÚNICAMENTE con JSON válido:
     }
 
     /**
-     * Métodos de fallback y validación similares a MatchingService
+     * MÃƒÆ’Ã‚Â©todos de fallback y validaciÃƒÆ’Ã‚Â³n similares a MatchingService
      */
     private function createFallbackQuestions($jobData)
     {
@@ -341,15 +340,15 @@ Responde ÚNICAMENTE con JSON válido:
           'questions' => [
             [
               'id' => 1,
-              'question' => '¿Cuántos años de experiencia tienes en el rol o similar?',
+              'question' => 'Ãƒâ€šÃ‚Â¿CuÃƒÆ’Ã‚Â¡ntos aÃƒÆ’Ã‚Â±os de experiencia tienes en el rol o similar?',
               'type' => 'experience',
               'priority' => 'high',
               'expected_answer_type' => 'numeric',
-              'reasoning' => 'Validar experiencia mínima requerida'
+              'reasoning' => 'Validar experiencia mÃƒÆ’Ã‚Â­nima requerida'
             ],
             [
               'id' => 2,
-              'question' => '¿Estás disponible para comenzar en las próximas 2-4 semanas?',
+              'question' => 'Ãƒâ€šÃ‚Â¿EstÃƒÆ’Ã‚Â¡s disponible para comenzar en las prÃƒÆ’Ã‚Â³ximas 2-4 semanas?',
               'type' => 'availability',
               'priority' => 'high',
               'expected_answer_type' => 'yes_no',
@@ -368,7 +367,7 @@ Responde ÚNICAMENTE con JSON válido:
           'red_flags' => [],
           'overall_risk_level' => 'medium',
           'verification_needed' => ['Revisar manualmente'],
-          'positive_signals' => ['Análisis automático limitado'],
+          'positive_signals' => ['AnÃƒÆ’Ã‚Â¡lisis automÃƒÆ’Ã‚Â¡tico limitado'],
           'recommendation' => 'investigate',
           'confidence_score' => 50,
           'fallback_analysis' => true
@@ -380,7 +379,7 @@ Responde ÚNICAMENTE con JSON válido:
         return [
           'requirements_met' => [],
           'overall_compliance' => 'unclear',
-          'critical_missing' => ['Análisis manual necesario'],
+          'critical_missing' => ['AnÃƒÆ’Ã‚Â¡lisis manual necesario'],
           'strengths' => [],
           'final_recommendation' => 'conditional',
           'percentage_met' => 50,
@@ -388,7 +387,7 @@ Responde ÚNICAMENTE con JSON válido:
         ];
     }
 
-    // Métodos de validación de estructura
+    // MÃƒÆ’Ã‚Â©todos de validaciÃƒÆ’Ã‚Â³n de estructura
     private function validateQuestionsStructure($data)
     {
         if (!isset($data['questions']) || !is_array($data['questions'])) {
@@ -423,7 +422,7 @@ Responde ÚNICAMENTE con JSON válido:
     }
 
     /**
-     * Llamada a OpenAI (mismo método que MatchingService)
+     * Llamada a OpenAI (mismo mÃƒÆ’Ã‚Â©todo que MatchingService)
      */
     private function callOpenAI($prompt)
     {
@@ -432,7 +431,7 @@ Responde ÚNICAMENTE con JSON válido:
           'messages' => [
             [
               'role' => 'system',
-              'content' => 'Eres un experto en pre-screening y evaluación de candidatos. Analiza CVs con precisión profesional y genera contenido útil para recruiters. Responde ÚNICAMENTE con JSON válido.'
+              'content' => 'Eres un experto en pre-screening y evaluaciÃƒÆ’Ã‚Â³n de candidatos. Analiza CVs con precisiÃƒÆ’Ã‚Â³n profesional y genera contenido ÃƒÆ’Ã‚Âºtil para recruiters. Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido.'
             ],
             [
               'role' => 'user',

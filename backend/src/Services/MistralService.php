@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Services;
 
 use Services\Exceptions\AiUnavailableException;
@@ -7,9 +6,9 @@ use Services\Exceptions\AiUnavailableException;
 /**
  * Servicio de IA Mistral via Hugging Face Inference API
  *
- * Servicio gratuito usando Mistral 7B a través de Hugging Face
+ * Servicio gratuito usando Mistral 7B a travÃƒÆ’Ã‚Â©s de Hugging Face
  * - Completamente gratuito (1000 requests/mes)
- * - Sin instalación local requerida
+ * - Sin instalaciÃƒÆ’Ã‚Â³n local requerida
  * - Modelo Mistral 7B optimizado
  * - API simple y directa
  *
@@ -27,7 +26,7 @@ class MistralService
 
   public function __construct()
   {
-    // Cargar configuración desde .env
+    // Cargar configuraciÃƒÆ’Ã‚Â³n desde .env
     $this->token = ($_ENV['HUGGINGFACE_TOKEN'] ?? getenv('HUGGINGFACE_TOKEN'));
     $this->model = ($_ENV['MISTRAL_MODEL'] ?? getenv('MISTRAL_MODEL')) ?: 'mistralai/Mistral-7B-Instruct-v0.2';
     $this->timeoutMs = (int)(($_ENV['MISTRAL_TIMEOUT_MS'] ?? getenv('MISTRAL_TIMEOUT_MS')) ?: 120000); // 2 minutos
@@ -44,9 +43,9 @@ class MistralService
   /**
    * Analiza texto de CV y devuelve JSON estructurado
    *
-   * @param string $rawText Texto extraído del CV
+   * @param string $rawText Texto extraÃƒÆ’Ã‚Â­do del CV
    * @return array Datos estructurados del CV
-   * @throws AiUnavailableException Si Hugging Face no está disponible o devuelve JSON inválido
+   * @throws AiUnavailableException Si Hugging Face no estÃƒÆ’Ã‚Â¡ disponible o devuelve JSON invÃƒÆ’Ã‚Â¡lido
    */
   public function analyzeCvFromText(string $rawText): array
   {
@@ -56,7 +55,7 @@ class MistralService
 
     $startTime = microtime(true);
 
-    // Construir prompt optimizado para análisis de CV
+    // Construir prompt optimizado para anÃƒÆ’Ã‚Â¡lisis de CV
     $prompt = $this->buildCvAnalysisPrompt($rawText);
 
     // Hacer llamada a Hugging Face con reintentos
@@ -74,13 +73,13 @@ class MistralService
     }
 
     $duration = round((microtime(true) - $startTime) * 1000);
-    error_log("[MistralService] CV análisis completado en {$duration}ms");
+    error_log("[MistralService] CV anÃƒÆ’Ã‚Â¡lisis completado en {$duration}ms");
 
     return $cvData;
   }
 
   /**
-   * Método para compatibilidad con llamadas existentes
+   * MÃƒÆ’Ã‚Â©todo para compatibilidad con llamadas existentes
    */
   public function analyzeCV($rawText): array
   {
@@ -88,11 +87,11 @@ class MistralService
   }
 
   /**
-   * Construye el prompt optimizado para análisis de CV
+   * Construye el prompt optimizado para anÃƒÆ’Ã‚Â¡lisis de CV
    */
   private function buildCvAnalysisPrompt(string $rawText): string
   {
-    return "[INST] Analiza este CV y extrae la información en formato JSON exacto. Responde SOLO con JSON válido, sin explicaciones adicionales.
+    return "[INST] Analiza este CV y extrae la informaciÃƒÆ’Ã‚Â³n en formato JSON exacto. Responde SOLO con JSON vÃƒÆ’Ã‚Â¡lido, sin explicaciones adicionales.
 
 Estructura requerida:
 {
@@ -130,7 +129,6 @@ Estructura requerida:
     \"soft_skills\": []
   },
   \"certifications\": [],
-  \"projects\": [],
   \"languages\": [
     {
       \"language\": \"\",
@@ -166,7 +164,7 @@ JSON: [/INST]";
         error_log("[MistralService] Error en intento {$attempt}: {$lastError}");
 
         if ($attempt < $this->maxRetries) {
-          // Esperar más tiempo si el modelo se está cargando
+          // Esperar mÃƒÆ’Ã‚Â¡s tiempo si el modelo se estÃƒÆ’Ã‚Â¡ cargando
           $waitTime = str_contains($lastError, 'loading') ? 20 : $attempt * 2;
           error_log("[MistralService] Esperando {$waitTime}s antes del siguiente intento...");
           sleep($waitTime);
@@ -221,7 +219,7 @@ JSON: [/INST]";
       $errorInfo = json_decode($response, true);
       $errorMsg = $errorInfo['error'] ?? $response;
 
-      // Si el modelo se está cargando, es un error temporal
+      // Si el modelo se estÃƒÆ’Ã‚Â¡ cargando, es un error temporal
       if (str_contains($errorMsg, 'loading')) {
         throw new \Exception("Model is loading, please wait");
       }
@@ -264,7 +262,7 @@ JSON: [/INST]";
       }
     }
 
-    // Si no hay JSON válido, intentar toda la respuesta
+    // Si no hay JSON vÃƒÆ’Ã‚Â¡lido, intentar toda la respuesta
     $data = json_decode($response, true);
     if (json_last_error() === JSON_ERROR_NONE && is_array($data)) {
       return $data;
@@ -274,7 +272,7 @@ JSON: [/INST]";
   }
 
   /**
-   * Verifica si Hugging Face está disponible
+   * Verifica si Hugging Face estÃƒÆ’Ã‚Â¡ disponible
    */
   public function isAvailable(): bool
   {
@@ -300,14 +298,14 @@ JSON: [/INST]";
       $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
       curl_close($ch);
 
-      return in_array($httpCode, [200, 503]); // 503 = modelo cargándose, pero disponible
+      return in_array($httpCode, [200, 503]); // 503 = modelo cargÃƒÆ’Ã‚Â¡ndose, pero disponible
     } catch (\Exception $e) {
       return false;
     }
   }
 
   /**
-   * Obtiene información del servicio
+   * Obtiene informaciÃƒÆ’Ã‚Â³n del servicio
    */
   public function getServiceInfo(): array
   {
@@ -322,23 +320,23 @@ JSON: [/INST]";
   }
 
   /**
-   * Genera descripción de trabajo usando IA
+   * Genera descripciÃƒÆ’Ã‚Â³n de trabajo usando IA
    */
   public function generateJobDescription(array $params): string
   {
-    $prompt = "[INST] Genera una descripción de trabajo profesional basada en:\n";
+    $prompt = "[INST] Genera una descripciÃƒÆ’Ã‚Â³n de trabajo profesional basada en:\n";
 
     foreach ($params as $key => $value) {
       $prompt .= "- $key: $value\n";
     }
 
-    $prompt .= "\nGenera una descripción completa y atractiva: [/INST]";
+    $prompt .= "\nGenera una descripciÃƒÆ’Ã‚Â³n completa y atractiva: [/INST]";
 
     try {
       $response = $this->callHuggingFaceWithRetries($prompt);
-      return $response ?? 'Error generando descripción';
+      return $response ?? 'Error generando descripciÃƒÆ’Ã‚Â³n';
     } catch (\Exception $e) {
-      return 'Error generando descripción: ' . $e->getMessage();
+      return 'Error generando descripciÃƒÆ’Ã‚Â³n: ' . $e->getMessage();
     }
   }
 }

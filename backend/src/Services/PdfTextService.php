@@ -1,21 +1,18 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 namespace Services;
 
 use RuntimeException;
 
 /**
- * Servicio de extracción de texto desde PDFs con doble estrategia:
- *  A) Texto "nativo" (pdftotext) + heurística de calidad
+ * Servicio de extracciÃƒÆ’Ã‚Â³n de texto desde PDFs con doble estrategia:
+ *  A) Texto "nativo" (pdftotext) + heurÃƒÆ’Ã‚Â­stica de calidad
  *  B) OCR (pdftoppm + tesseract) si habilitado y falla A
  *
- * Diseñado para el flujo de /api/cv/parse (currículums) garantizando:
- *  - Validaciones tempranas (existencia, tamaño, MIME, antivirus opcional)
+ * DiseÃƒÆ’Ã‚Â±ado para el flujo de /api/cv/parse (currÃƒÆ’Ã‚Â­culums) garantizando:
+ *  - Validaciones tempranas (existencia, tamaÃƒÆ’Ã‚Â±o, MIME, antivirus opcional)
  *  - Limpieza rigurosa de temporales
- *  - No exposición de rutas internas en excepciones
- *  - Logs mínimos estructurados sin contenido sensible
+ *  - No exposiciÃƒÆ’Ã‚Â³n de rutas internas en excepciones
+ *  - Logs mÃƒÆ’Ã‚Â­nimos estructurados sin contenido sensible
  */
 class PdfTextService
 {
@@ -36,7 +33,7 @@ class PdfTextService
     {
         $this->maxBytes     = (int)($this->env('CV_MAX_UPLOAD_BYTES', '5242880')); // 5MB por defecto
         $this->ocrEnabled   = $this->env('CV_ENABLE_OCR', 'true') === 'true';
-        // COMENTADO: Eliminamos dependencia de pdftotext - Llama procesará PDF directamente
+        // COMENTADO: Eliminamos dependencia de pdftotext - Llama procesarÃƒÆ’Ã‚Â¡ PDF directamente
         // $this->binPdftotext = $this->resolveBinary($this->env('PDFTOTEXT_BIN', 'pdftotext'));
         // $this->binPdftoppm  = $this->resolveBinary($this->env('PDFTOPPM_BIN', 'pdftoppm'));
         // $this->binTesseract = $this->resolveBinary($this->env('TESSERACT_BIN', 'tesseract'));
@@ -47,7 +44,7 @@ class PdfTextService
     }
 
     /**
-     * NUEVO: Método simplificado que retorna el path del PDF para procesamiento directo por Llama
+     * NUEVO: MÃƒÆ’Ã‚Â©todo simplificado que retorna el path del PDF para procesamiento directo por Llama
      * @throws PdfSecurityException|InfectedFileException
      */
     public function validateAndReturnPath(string $pdfPath): string
@@ -70,12 +67,12 @@ class PdfTextService
     }
 
     /**
-     * DEPRECATED: Extrae texto usando heurísticas y OCR fallback.
+     * DEPRECATED: Extrae texto usando heurÃƒÆ’Ã‚Â­sticas y OCR fallback.
      * @throws PdfSecurityException|PdfTextEmptyException|InfectedFileException
      */
     public function extract(string $pdfPath): string
     {
-        // COMENTADO: Método legacy - ahora Llama procesa PDF directamente
+        // COMENTADO: MÃƒÆ’Ã‚Â©todo legacy - ahora Llama procesa PDF directamente
         throw new \RuntimeException('extract() method deprecated - use validateAndReturnPath() for direct Llama processing');
 
         /*
@@ -132,13 +129,13 @@ class PdfTextService
             }
         }
 
-        // Ninguna estrategia útil
+        // Ninguna estrategia ÃƒÆ’Ã‚Âºtil
         throw new PdfTextEmptyException('E_PDF_TEXT_EMPTY');
         */
     }
 
     /* =================== Estrategias COMENTADAS =================== */
-    // COMENTADO: Métodos legacy que dependían de pdftotext
+    // COMENTADO: MÃƒÆ’Ã‚Â©todos legacy que dependÃƒÆ’Ã‚Â­an de pdftotext
     /*
     private function extractNative(string $pdfPath): ?string
     {
@@ -157,7 +154,7 @@ class PdfTextService
         $data = @file_get_contents($tmpTxt) ?: '';
         @unlink($tmpTxt);
 
-        // Verificar que tenemos datos válidos
+        // Verificar que tenemos datos vÃƒÆ’Ã‚Â¡lidos
         if (!$data || trim($data) === '') {
             return null;
         }
@@ -186,7 +183,7 @@ class PdfTextService
             $this->cleanupDir($workspace);
             return null;
         }
-        // Orden natural por sufijo numérico
+        // Orden natural por sufijo numÃƒÆ’Ã‚Â©rico
         usort($pngs, function ($a, $b) {
             return $this->extractPageNum($a) <=> $this->extractPageNum($b);
         });
@@ -201,7 +198,7 @@ class PdfTextService
                 escapeshellarg($outBase),
                 escapeshellarg($langs)
             );
-            $this->execCommand($cmdOcr, 90); // OCR por página
+            $this->execCommand($cmdOcr, 90); // OCR por pÃƒÆ’Ã‚Â¡gina
             $txtFile = $outBase . '.txt';
             if (is_file($txtFile)) {
                 $seg = @file_get_contents($txtFile) ?: '';
@@ -224,7 +221,7 @@ class PdfTextService
         return implode("\n\n", $all);
     }
 
-    /* =================== Heurística =================== */
+    /* =================== HeurÃƒÆ’Ã‚Â­stica =================== */
 
     private function scoreTextQuality(string $txt): array
     {
@@ -238,8 +235,8 @@ class PdfTextService
                 'pass'               => false
             ];
         }
-        // Caracteres útiles: letras (incluye acentos) y dígitos
-        $useful = preg_replace('/[^0-9A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/u', '', $txt);
+        // Caracteres ÃƒÆ’Ã‚Âºtiles: letras (incluye acentos) y dÃƒÆ’Ã‚Â­gitos
+        $useful = preg_replace('/[^0-9A-Za-zÃƒÆ’Ã‚ÂÃƒÆ’Ã¢â‚¬Â°ÃƒÆ’Ã‚ÂÃƒÆ’Ã¢â‚¬Å“ÃƒÆ’Ã…Â¡ÃƒÆ’Ã…â€œÃƒÆ’Ã¢â‚¬ËœÃƒÆ’Ã‚Â¡ÃƒÆ’Ã‚Â©ÃƒÆ’Ã‚Â­ÃƒÆ’Ã‚Â³ÃƒÆ’Ã‚ÂºÃƒÆ’Ã‚Â¼ÃƒÆ’Ã‚Â±]/u', '', $txt);
         $lenUseful = mb_strlen($useful, 'UTF-8');
         $lines = preg_split('/\R/u', $txt) ?: [];
         $blank = 0;
@@ -268,9 +265,9 @@ class PdfTextService
         $txt = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', ' ', $txt);
         // 3. Colapsar espacios
         $txt = preg_replace('/[ \t]+/u', ' ', $txt);
-        // 4. Trim por línea
+        // 4. Trim por lÃƒÆ’Ã‚Â­nea
         $lines = array_map(static fn($l) => trim($l), explode("\n", $txt));
-        // 5. Limitar bloques de líneas vacías consecutivas a 2
+        // 5. Limitar bloques de lÃƒÆ’Ã‚Â­neas vacÃƒÆ’Ã‚Â­as consecutivas a 2
         $out = [];
         $emptySeq = 0;
         foreach ($lines as $l) {
@@ -321,7 +318,7 @@ class PdfTextService
         $cmd = $this->clamScanCmd . ' ' . escapeshellarg($path) . ' 2>&1';
         $res = $this->execCommand($cmd, 45);
         if ($res['exit'] !== 0) {
-            // ClamAV típico: exit 1 => infectado / otros códigos pueden variar, tratamos cualquiera !=0 como sospechoso
+            // ClamAV tÃƒÆ’Ã‚Â­pico: exit 1 => infectado / otros cÃƒÆ’Ã‚Â³digos pueden variar, tratamos cualquiera !=0 como sospechoso
             throw new InfectedFileException('INFECTED_FILE');
         }
     }
@@ -349,7 +346,7 @@ class PdfTextService
 
     private function execCommand(string $cmd, int $timeoutSec): array
     {
-        // Implementación simple (sin proc_open complejo) dado entorno controlado.
+        // ImplementaciÃƒÆ’Ã‚Â³n simple (sin proc_open complejo) dado entorno controlado.
         $start = microtime(true);
         $output = [];
         exec($cmd, $output, $exit); // Limitaciones: sin timeout duro nativo.
@@ -427,7 +424,7 @@ class PdfTextService
     }
 }
 
-/* =================== Excepciones específicas =================== */
+/* =================== Excepciones especÃƒÆ’Ã‚Â­ficas =================== */
 
 class PdfTextEmptyException extends RuntimeException {}
 class PdfSecurityException extends RuntimeException {}

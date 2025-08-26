@@ -1,6 +1,4 @@
-<?php
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -17,7 +15,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 /**
  * Endpoint: /api/auth/verify y /api/auth/session
- * Verifica sesiÃƒÆ’Ã‚Â³n y token JWT
+ * Verifica sesiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n y token JWT
  */
 require_once __DIR__ . '/../../../src/Models/User.php';
 
@@ -35,7 +33,7 @@ try {
         }
     }
     
-    // TambiÃƒÆ’Ã‚Â©n verificar en cookies
+    // TambiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©n verificar en cookies
     if (!$token && isset($_COOKIE['auth_token'])) {
         $token = $_COOKIE['auth_token'];
     }
@@ -50,7 +48,7 @@ try {
     
     if (!$payload) {
         http_response_code(401);
-        Res::error('Token invÃƒÆ’Ã‚Â¡lido o expirado', 401);
+        Res::error('Token invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido o expirado', 401);
         exit;
     }
     
@@ -63,7 +61,7 @@ try {
         exit;
     }
     
-    Res::success('SesiÃƒÆ’Ã‚Â³n vÃƒÆ’Ã‚Â¡lida', [
+    Res::success('SesiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lida', [
         'user' => [
             'id' => $user['id'],
             'email' => $user['email'],
@@ -75,7 +73,7 @@ try {
 } catch (Exception $e) {
     error_log("Session Verification Error: " . $e->getMessage());
     http_response_code(500);
-    Res::error('Error en verificaciÃƒÆ’Ã‚Â³n de sesiÃƒÆ’Ã‚Â³n', 500);
+    Res::error('Error en verificaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de sesiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n', 500);
 }
 ?>
 

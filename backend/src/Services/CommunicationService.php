@@ -1,12 +1,11 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Services;
 
 /**
  * AI-Powered Communication Automation Service
  *
- * Servicio para automatización de comunicación con candidatos:
- * emails personalizados, respuestas automáticas, follow-ups, etc.
+ * Servicio para automatizaciÃƒÆ’Ã‚Â³n de comunicaciÃƒÆ’Ã‚Â³n con candidatos:
+ * emails personalizados, respuestas automÃƒÆ’Ã‚Â¡ticas, follow-ups, etc.
  *
  * @package Backend\Services
  * @version 1.0.0
@@ -27,12 +26,12 @@ class CommunicationService
     }
 
     /**
-     * Genera email personalizado según el estado del candidato
+     * Genera email personalizado segÃƒÆ’Ã‚Âºn el estado del candidato
      *
      * @param string $emailType Tipo de email a generar
      * @param array $candidateData Datos del candidato
      * @param array $jobData Datos del trabajo
-     * @param array $additionalData Datos adicionales según el contexto
+     * @param array $additionalData Datos adicionales segÃƒÆ’Ã‚Âºn el contexto
      * @return array Email generado con asunto y cuerpo
      */
     public function generatePersonalizedEmail($emailType, $candidateData, $jobData = [], $additionalData = [])
@@ -59,7 +58,7 @@ class CommunicationService
     }
 
     /**
-     * Genera respuesta automática para aplicación recibida
+     * Genera respuesta automÃƒÆ’Ã‚Â¡tica para aplicaciÃƒÆ’Ã‚Â³n recibida
      */
     public function generateApplicationResponse($candidateData, $jobData)
     {
@@ -77,7 +76,7 @@ class CommunicationService
     }
 
     /**
-     * Genera email de invitación a entrevista
+     * Genera email de invitaciÃƒÆ’Ã‚Â³n a entrevista
      */
     public function generateInterviewInvitation($candidateData, $jobData, $interviewDetails = [])
     {
@@ -97,7 +96,7 @@ class CommunicationService
     }
 
     /**
-     * Genera email de actualización de estado
+     * Genera email de actualizaciÃƒÆ’Ã‚Â³n de estado
      */
     public function generateStatusUpdateEmail($candidateData, $jobData, $newStatus, $nextSteps = [])
     {
@@ -108,7 +107,7 @@ class CommunicationService
     }
 
     /**
-     * Genera múltiples templates para diferentes escenarios
+     * Genera mÃƒÆ’Ã‚Âºltiples templates para diferentes escenarios
      */
     public function generateEmailTemplates($jobData)
     {
@@ -129,7 +128,7 @@ class CommunicationService
     }
 
     /**
-     * Programa emails automáticos basados en triggers
+     * Programa emails automÃƒÆ’Ã‚Â¡ticos basados en triggers
      */
     public function scheduleAutomaticEmails($candidateData, $jobData, $triggers = [])
     {
@@ -164,58 +163,58 @@ class CommunicationService
     }
 
     /**
-     * Construye prompt para generación de emails
+     * Construye prompt para generaciÃƒÆ’Ã‚Â³n de emails
      */
     private function buildEmailPrompt($emailType, $candidateData, $jobData, $additionalData)
     {
         $candidateName = $candidateData['nombre'] ?? 'Candidato';
-        $jobTitle = $jobData['title'] ?? 'la posición';
+        $jobTitle = $jobData['title'] ?? 'la posiciÃƒÆ’Ã‚Â³n';
         $companyName = $jobData['company'] ?? 'nuestra empresa';
 
-        $basePrompt = "Genera un email profesional y personalizado en español para un candidato.
+        $basePrompt = "Genera un email profesional y personalizado en espaÃƒÆ’Ã‚Â±ol para un candidato.
 
 CANDIDATO:
 Nombre: {$candidateName}
 Email: " . ($candidateData['email'] ?? 'No especificado') . "
 
 TRABAJO:
-Título: {$jobTitle}
+TÃƒÆ’Ã‚Â­tulo: {$jobTitle}
 Empresa: {$companyName}
-Ubicación: " . ($jobData['location'] ?? 'No especificada') . '
+UbicaciÃƒÆ’Ã‚Â³n: " . ($jobData['location'] ?? 'No especificada') . '
 
 ';
 
         switch ($emailType) {
             case 'application_received':
-                $basePrompt .= 'TIPO DE EMAIL: Confirmación de aplicación recibida
-OBJETIVO: Confirmar recepción, dar timeline aproximado, mantener engagement
-TONO: Profesional, cálido, informativo';
+                $basePrompt .= 'TIPO DE EMAIL: ConfirmaciÃƒÆ’Ã‚Â³n de aplicaciÃƒÆ’Ã‚Â³n recibida
+OBJETIVO: Confirmar recepciÃƒÆ’Ã‚Â³n, dar timeline aproximado, mantener engagement
+TONO: Profesional, cÃƒÆ’Ã‚Â¡lido, informativo';
                 break;
 
             case 'rejection':
                 $reason = $additionalData['reason'] ?? '';
                 $basePrompt .= "TIPO DE EMAIL: Rechazo con feedback constructivo
-OBJETIVO: Comunicar decisión profesionalmente, dar feedback útil, mantener buena imagen
-TONO: Profesional, empático, constructivo
-RAZÓN DE RECHAZO: {$reason}";
+OBJETIVO: Comunicar decisiÃƒÆ’Ã‚Â³n profesionalmente, dar feedback ÃƒÆ’Ã‚Âºtil, mantener buena imagen
+TONO: Profesional, empÃƒÆ’Ã‚Â¡tico, constructivo
+RAZÃƒÆ’Ã¢â‚¬Å“N DE RECHAZO: {$reason}";
                 break;
 
             case 'interview_invitation':
-                $basePrompt .= 'TIPO DE EMAIL: Invitación a entrevista
-OBJETIVO: Invitar a siguiente etapa, dar detalles, confirmar interés
+                $basePrompt .= 'TIPO DE EMAIL: InvitaciÃƒÆ’Ã‚Â³n a entrevista
+OBJETIVO: Invitar a siguiente etapa, dar detalles, confirmar interÃƒÆ’Ã‚Â©s
 TONO: Profesional, entusiasta, claro';
                 break;
 
             case 'follow_up':
                 $stage = $additionalData['stage'] ?? 'general';
-                $basePrompt .= "TIPO DE EMAIL: Follow-up después de {$stage}
-OBJETIVO: Mantener comunicación, verificar interés, dar updates
+                $basePrompt .= "TIPO DE EMAIL: Follow-up despuÃƒÆ’Ã‚Â©s de {$stage}
+OBJETIVO: Mantener comunicaciÃƒÆ’Ã‚Â³n, verificar interÃƒÆ’Ã‚Â©s, dar updates
 TONO: Profesional, amigable, no presionante";
                 break;
 
             case 'status_update':
                 $newStatus = $additionalData['new_status'] ?? 'en proceso';
-                $basePrompt .= "TIPO DE EMAIL: Actualización de estado del proceso
+                $basePrompt .= "TIPO DE EMAIL: ActualizaciÃƒÆ’Ã‚Â³n de estado del proceso
 NUEVO ESTADO: {$newStatus}
 OBJETIVO: Informar progreso, mantener transparencia
 TONO: Profesional, transparente, informativo";
@@ -224,7 +223,7 @@ TONO: Profesional, transparente, informativo";
             case 'interview_reminder':
                 $basePrompt .= 'TIPO DE EMAIL: Recordatorio de entrevista
 OBJETIVO: Recordar fecha/hora, confirmar asistencia, dar detalles finales
-TONO: Profesional, claro, útil';
+TONO: Profesional, claro, ÃƒÆ’Ã‚Âºtil';
                 break;
         }
 
@@ -232,16 +231,16 @@ TONO: Profesional, claro, útil';
 
 INSTRUCCIONES:
 - Personaliza usando el nombre del candidato y detalles del trabajo
-- Mantén un tono profesional pero humano
-- Incluye información específica y útil
-- Añade call-to-action claro cuando sea apropiado
-- Evita lenguaje genérico o plantilla obvia
+- MantÃƒÆ’Ã‚Â©n un tono profesional pero humano
+- Incluye informaciÃƒÆ’Ã‚Â³n especÃƒÆ’Ã‚Â­fica y ÃƒÆ’Ã‚Âºtil
+- AÃƒÆ’Ã‚Â±ade call-to-action claro cuando sea apropiado
+- Evita lenguaje genÃƒÆ’Ã‚Â©rico o plantilla obvia
 
-Responde ÚNICAMENTE con JSON válido:
+Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido:
 {
-  "subject": "Asunto del email específico y atractivo",
+  "subject": "Asunto del email especÃƒÆ’Ã‚Â­fico y atractivo",
   "body": "Cuerpo del email completo con saludo, contenido y cierre",
-  "call_to_action": "Acción específica que debe tomar el candidato",
+  "call_to_action": "AcciÃƒÆ’Ã‚Â³n especÃƒÆ’Ã‚Â­fica que debe tomar el candidato",
   "priority": "high|medium|low",
   "send_timing": "immediate|within_24h|within_week",
   "personalization_elements": ["Lista de elementos personalizados incluidos"]
@@ -251,25 +250,25 @@ Responde ÚNICAMENTE con JSON válido:
     }
 
     /**
-     * Genera template genérico para un tipo de email
+     * Genera template genÃƒÆ’Ã‚Â©rico para un tipo de email
      */
     private function generateGenericTemplate($emailType, $jobData)
     {
-        $prompt = "Genera un template de email genérico para '{$emailType}' que pueda ser usado para múltiples candidatos.
+        $prompt = "Genera un template de email genÃƒÆ’Ã‚Â©rico para '{$emailType}' que pueda ser usado para mÃƒÆ’Ã‚Âºltiples candidatos.
 
 TRABAJO:
-Título: " . ($jobData['title'] ?? '[TÍTULO_TRABAJO]') . '
+TÃƒÆ’Ã‚Â­tulo: " . ($jobData['title'] ?? '[TÃƒÆ’Ã‚ÂTULO_TRABAJO]') . '
 Empresa: ' . ($jobData['company'] ?? '[EMPRESA]') . "
 
-Usa placeholders como [NOMBRE_CANDIDATO], [TÍTULO_TRABAJO], etc. que puedan ser reemplazados.
+Usa placeholders como [NOMBRE_CANDIDATO], [TÃƒÆ’Ã‚ÂTULO_TRABAJO], etc. que puedan ser reemplazados.
 
-Responde ÚNICAMENTE con JSON válido:
+Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido:
 {
   \"template_name\": \"{$emailType}_template\",
   \"subject_template\": \"Asunto con placeholders\",
   \"body_template\": \"Cuerpo con placeholders\",
   \"placeholders\": [\"Lista de placeholders disponibles\"],
-  \"usage_notes\": \"Notas sobre cuándo usar este template\"
+  \"usage_notes\": \"Notas sobre cuÃƒÆ’Ã‚Â¡ndo usar este template\"
 }";
 
         $response = $this->callOpenAI($prompt);
@@ -293,16 +292,16 @@ Responde ÚNICAMENTE con JSON válido:
 
         $fallbackEmails = [
           'application_received' => [
-            'subject' => 'Confirmación de aplicación recibida',
-            'body' => "Estimado/a {$candidateName},\n\nHemos recibido tu aplicación y estamos revisando tu perfil. Te contactaremos pronto con actualizaciones.\n\nSaludos cordiales,\nEquipo de Reclutamiento",
+            'subject' => 'ConfirmaciÃƒÆ’Ã‚Â³n de aplicaciÃƒÆ’Ã‚Â³n recibida',
+            'body' => "Estimado/a {$candidateName},\n\nHemos recibido tu aplicaciÃƒÆ’Ã‚Â³n y estamos revisando tu perfil. Te contactaremos pronto con actualizaciones.\n\nSaludos cordiales,\nEquipo de Reclutamiento",
             'call_to_action' => 'Esperar respuesta del equipo',
             'priority' => 'medium',
             'send_timing' => 'immediate'
           ],
           'rejection' => [
-            'subject' => 'Actualización sobre tu aplicación',
-            'body' => "Estimado/a {$candidateName},\n\nTe agradecemos tu interés en nuestra empresa. Después de revisar tu perfil, hemos decidido continuar con otros candidatos.\n\nTe deseamos mucho éxito en tu búsqueda laboral.\n\nSaludos cordiales,\nEquipo de Reclutamiento",
-            'call_to_action' => 'Continuar búsqueda laboral',
+            'subject' => 'ActualizaciÃƒÆ’Ã‚Â³n sobre tu aplicaciÃƒÆ’Ã‚Â³n',
+            'body' => "Estimado/a {$candidateName},\n\nTe agradecemos tu interÃƒÆ’Ã‚Â©s en nuestra empresa. DespuÃƒÆ’Ã‚Â©s de revisar tu perfil, hemos decidido continuar con otros candidatos.\n\nTe deseamos mucho ÃƒÆ’Ã‚Â©xito en tu bÃƒÆ’Ã‚Âºsqueda laboral.\n\nSaludos cordiales,\nEquipo de Reclutamiento",
+            'call_to_action' => 'Continuar bÃƒÆ’Ã‚Âºsqueda laboral',
             'priority' => 'medium',
             'send_timing' => 'within_24h'
           ]
@@ -319,10 +318,10 @@ Responde ÚNICAMENTE con JSON válido:
     {
         return [
           'template_name' => "{$emailType}_template",
-          'subject_template' => 'Actualización sobre tu aplicación para [TÍTULO_TRABAJO]',
-          'body_template' => "Estimado/a [NOMBRE_CANDIDATO],\n\n[CONTENIDO_ESPECÍFICO]\n\nSaludos cordiales,\n[EMPRESA]",
-          'placeholders' => ['[NOMBRE_CANDIDATO]', '[TÍTULO_TRABAJO]', '[EMPRESA]', '[CONTENIDO_ESPECÍFICO]'],
-          'usage_notes' => 'Template genérico que requiere personalización manual',
+          'subject_template' => 'ActualizaciÃƒÆ’Ã‚Â³n sobre tu aplicaciÃƒÆ’Ã‚Â³n para [TÃƒÆ’Ã‚ÂTULO_TRABAJO]',
+          'body_template' => "Estimado/a [NOMBRE_CANDIDATO],\n\n[CONTENIDO_ESPECÃƒÆ’Ã‚ÂFICO]\n\nSaludos cordiales,\n[EMPRESA]",
+          'placeholders' => ['[NOMBRE_CANDIDATO]', '[TÃƒÆ’Ã‚ÂTULO_TRABAJO]', '[EMPRESA]', '[CONTENIDO_ESPECÃƒÆ’Ã‚ÂFICO]'],
+          'usage_notes' => 'Template genÃƒÆ’Ã‚Â©rico que requiere personalizaciÃƒÆ’Ã‚Â³n manual',
           'fallback_generated' => true
         ];
     }
@@ -350,8 +349,8 @@ Responde ÚNICAMENTE con JSON válido:
     private function getDefaultEmailValue($field)
     {
         $defaults = [
-          'subject' => 'Actualización sobre tu aplicación',
-          'body' => 'Te contactaremos pronto con más información.',
+          'subject' => 'ActualizaciÃƒÆ’Ã‚Â³n sobre tu aplicaciÃƒÆ’Ã‚Â³n',
+          'body' => 'Te contactaremos pronto con mÃƒÆ’Ã‚Â¡s informaciÃƒÆ’Ã‚Â³n.',
           'call_to_action' => 'Esperar respuesta',
           'priority' => 'medium',
           'send_timing' => 'within_24h',
@@ -362,7 +361,7 @@ Responde ÚNICAMENTE con JSON válido:
     }
 
     /**
-     * Llamada a OpenAI (mismo método base)
+     * Llamada a OpenAI (mismo mÃƒÆ’Ã‚Â©todo base)
      */
     private function callOpenAI($prompt)
     {
@@ -371,7 +370,7 @@ Responde ÚNICAMENTE con JSON válido:
           'messages' => [
             [
               'role' => 'system',
-              'content' => 'Eres un experto en comunicación profesional y recruitment. Generas emails personalizados, profesionales y efectivos para procesos de selección. Responde ÚNICAMENTE con JSON válido.'
+              'content' => 'Eres un experto en comunicaciÃƒÆ’Ã‚Â³n profesional y recruitment. Generas emails personalizados, profesionales y efectivos para procesos de selecciÃƒÆ’Ã‚Â³n. Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido.'
             ],
             [
               'role' => 'user',

@@ -1,10 +1,9 @@
-<?php
-
+<?php declare(strict_types=1);
 /**
  * Headers de Seguridad Mejorados para Bubble of Talents
  * 
- * Configuración robusta de CSP y headers de seguridad para producción
- * con soporte diferenciado para desarrollo y producción.
+ * ConfiguraciÃ³n robusta de CSP y headers de seguridad para producciÃ³n
+ * con soporte diferenciado para desarrollo y producciÃ³n.
  * 
  * @author Bubble of Talents Security Team
  * @version 2.0.0
@@ -13,7 +12,7 @@
 require_once __DIR__ . '/config.php';
 
 /**
- * Genera nonce criptográficamente seguro
+ * Genera nonce criptogrÃ¡ficamente seguro
  */
 function generateNonce(): string
 {
@@ -25,7 +24,7 @@ function generateNonce(): string
  */
 function configureCors(): void
 {
-  // Obtener configuración desde variables de entorno con valores por defecto
+  // Obtener configuraciÃ³n desde variables de entorno con valores por defecto
   $allowedMethods = getenv('CORS_ALLOWED_METHODS') ?: 'GET,POST,PUT,DELETE,OPTIONS';
   $allowedOrigins = getenv('CORS_ALLOWED_ORIGINS') ?: '*';
   $allowedHeaders = getenv('CORS_ALLOWED_HEADERS') ?: 'Content-Type,Authorization,X-Requested-With';
@@ -45,7 +44,7 @@ function configureCors(): void
 }
 
 /**
- * Establece headers de seguridad según el entorno
+ * Establece headers de seguridad segÃºn el entorno
  * @return string El nonce generado para CSP
  */
 function setSecurityHeaders(?string $environment = null): string
@@ -54,7 +53,7 @@ function setSecurityHeaders(?string $environment = null): string
   $isDev = ($environment === 'development');
   $nonce = generateNonce();
 
-  // Content Security Policy seguro para producción
+  // Content Security Policy seguro para producciÃ³n
   $cspDirectives = [
     "default-src 'self'",
     $isDev
@@ -88,7 +87,7 @@ function setSecurityHeaders(?string $environment = null): string
   header('Referrer-Policy: strict-origin-when-cross-origin');
   header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 
-  // Headers para evitar caché de páginas sensibles
+  // Headers para evitar cachÃ© de pÃ¡ginas sensibles
   header('Cache-Control: no-cache, no-store, must-revalidate');
   header('Pragma: no-cache');
   header('Expires: 0');
@@ -99,7 +98,7 @@ function setSecurityHeaders(?string $environment = null): string
   return $nonce;
 }
 
-// Aplicar headers de seguridad automáticamente solo si no se está ejecutando desde CLI
+// Aplicar headers de seguridad automÃ¡ticamente solo si no se estÃ¡ ejecutando desde CLI
 if (PHP_SAPI !== 'cli' && !defined('SECURITY_HEADERS_APPLIED')) {
   define('SECURITY_HEADERS_APPLIED', true);
   $environment = ($_ENV['NODE_ENV'] ?? 'production');

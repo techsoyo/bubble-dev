@@ -1,17 +1,16 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Services;
 
 use Utils\Database;
 
 /**
  * StatisticsService
- * Servicio para recopilar y consultar métricas y estadísticas del sistema.
+ * Servicio para recopilar y consultar mÃƒÆ’Ã‚Â©tricas y estadÃƒÆ’Ã‚Â­sticas del sistema.
  */
 class StatisticsService
 {
     /**
-     * Obtiene el número total de usuarios registrados
+     * Obtiene el nÃƒÆ’Ã‚Âºmero total de usuarios registrados
      */
     public function getTotalUsers(): int
     {
@@ -21,7 +20,7 @@ class StatisticsService
     }
 
     /**
-     * Obtiene el número total de empleos publicados
+     * Obtiene el nÃƒÆ’Ã‚Âºmero total de empleos publicados
      */
     public function getTotalJobs(): int
     {
@@ -31,7 +30,7 @@ class StatisticsService
     }
 
     /**
-     * Obtiene el número total de postulaciones
+     * Obtiene el nÃƒÆ’Ã‚Âºmero total de postulaciones
      */
     public function getTotalApplications(): int
     {
@@ -40,5 +39,5 @@ class StatisticsService
         return (int)($result[0]['total'] ?? 0);
     }
 
-    // Puedes agregar más métodos para otras métricas relevantes
+    // Puedes agregar mÃƒÆ’Ã‚Â¡s mÃƒÆ’Ã‚Â©todos para otras mÃƒÆ’Ã‚Â©tricas relevantes
 }

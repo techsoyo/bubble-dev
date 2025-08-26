@@ -1,11 +1,7 @@
-<?php
-
-declare(strict_types=1);
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
-
+use Security\CsrfMiddleware;
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
     CsrfMiddleware::protect(); // double-submit cookie
@@ -19,7 +15,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
         http_response_code(401);
@@ -30,7 +26,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
 
 // CSRF requerido para POST/PUT/DELETE
 if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'DELETE'])) {
-    CsrfMiddleware::validateCsrfToken();
+    CsrfMiddleware::protect();
 }
 
 // Content Type header (CORS ya configurado en bootstrap.php)
@@ -45,17 +41,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
  * Endpoint: POST /api/cv/confirm
  * Persiste un CV normalizado (fuente IA o manual) en tablas relacionales.declare(strict_types=1);
 
-// Sube 3 niveles: cv ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ api ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ public ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ backend/
 
-/**
  * Endpoint: POST /api/cv/confirm
  * Persiste un CV normalizado (fuente IA o manual) en tablas relacionales.
  * Flujo:
  *  - Lee JSON -> decode -> CvSchema::normalize
- *  - Validaciones servidor (formato email, longitudes, fechas, tamaÃƒÆ’Ã‚Â±os listas)
- *  - TransacciÃƒÆ’Ã‚Â³n PDO:
+ *  - Validaciones servidor (formato email, longitudes, fechas, tamaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â±os listas)
+ *  - TransacciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n PDO:
  *      * upsert bt_candidates por email
- *      * limpia e inserta tablas hijas: experiencias, educaciÃƒÆ’Ã‚Â³n, certificaciones (simple), proyectos
+ *      * limpia e inserta tablas hijas: experiencias, educaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n, certificaciones (simple), proyectos
  *  - Commit y respuesta
  * Errores controlados:
  *  - 400 INVALID_JSON
@@ -79,7 +73,7 @@ if (!$isCli) {
     // REMOVED: header('Content-Type: application/json; charset=utf-8'); // Use jsonResponse() helper
     $method = $_SERVER['REQUEST_METHOD'] ?? 'CLI';
     if ($method !== 'POST') {
-        jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'MÃƒÆ’Ã‚Â©todo no permitido', 'details' => (object)[]]]);
+        jsonResponse(405, ['success' => false, 'error' => ['code' => 'METHOD_NOT_ALLOWED', 'message' => 'MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©todo no permitido', 'details' => (object)[]]]);
     }
     if (class_exists('Utils\\RateLimiter')) {
         RateLimiter::enforceForRoute('/api/cv/confirm');
@@ -148,8 +142,8 @@ function validateServer(array $data): array
 
     // Email RFC razonable
     if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-        $errors[] = 'Email invÃƒÆ’Ã‚Â¡lido';
-        $details['email'] = 'Formato no vÃƒÆ’Ã‚Â¡lido';
+        $errors[] = 'Email invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido';
+        $details['email'] = 'Formato no vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido';
     }
 
     // Strings <= 2000
@@ -171,7 +165,7 @@ function validateServer(array $data): array
         }
     }
 
-    // Listas tamaÃƒÆ’Ã‚Â±o <= 200
+    // Listas tamaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â±o <= 200
     $listFields = ['otras_redes', 'soft_skills', 'hard_skills', 'idiomas', 'intereses', 'certificaciones', 'habilidades_adicionales', 'puestos_anteriores', 'educacion', 'proyectos'];
     foreach ($listFields as $lf) {
         if (isset($data[$lf]) && is_array($data[$lf]) && count($data[$lf]) > 200) {
@@ -189,7 +183,7 @@ function validateServer(array $data): array
     foreach (($data['puestos_anteriores'] ?? []) as $i => $p) {
         foreach (['fecha_inicio', 'fecha_fin'] as $df) {
             if (!empty($p[$df]) && !$checkDate($p[$df])) {
-                $errors[] = "Experiencia[$i].$df formato invÃƒÆ’Ã‚Â¡lido";
+                $errors[] = "Experiencia[$i].$df formato invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido";
                 $details["puestos_anteriores.$i.$df"] = 'invalid_date';
             }
         }
@@ -197,7 +191,7 @@ function validateServer(array $data): array
     foreach (($data['educacion'] ?? []) as $i => $e) {
         foreach (['fecha_inicio', 'fecha_fin'] as $df) {
             if (!empty($e[$df]) && !$checkDate($e[$df])) {
-                $errors[] = "Educacion[$i].$df formato invÃƒÆ’Ã‚Â¡lido";
+                $errors[] = "Educacion[$i].$df formato invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido";
                 $details["educacion.$i.$df"] = 'invalid_date';
             }
         }
@@ -205,7 +199,7 @@ function validateServer(array $data): array
     foreach (($data['proyectos'] ?? []) as $i => $p) {
         foreach (['fecha_inicio', 'fecha_fin'] as $df) {
             if (!empty($p[$df]) && !$checkDate($p[$df])) {
-                $errors[] = "Proyecto[$i].$df formato invÃƒÆ’Ã‚Â¡lido";
+                $errors[] = "Proyecto[$i].$df formato invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido";
                 $details["proyectos.$i.$df"] = 'invalid_date';
             }
         }
@@ -217,7 +211,7 @@ function validateServer(array $data): array
 $raw = file_get_contents('php://input');
 $dataIn = json_decode($raw, true);
 if (!is_array($dataIn)) {
-    respondJson(400, false, errorPayload('INVALID_JSON', 'JSON invÃƒÆ’Ã‚Â¡lido'));
+    respondJson(400, false, errorPayload('INVALID_JSON', 'JSON invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido'));
 }
 
 $normalized = CvSchema::normalize($dataIn);
@@ -237,14 +231,14 @@ if (class_exists('Utils\\Log')) {
 }
 $minErrors = CvSchema::validateMinimumData($normalized);
 if (!empty($minErrors)) {
-    respondJson(422, false, errorPayload('VALIDATION_FAILED', 'Datos mÃƒÆ’Ã‚Â­nimos incompletos', $minErrors));
+    respondJson(422, false, errorPayload('VALIDATION_FAILED', 'Datos mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­nimos incompletos', $minErrors));
 }
 
 // Validaciones servidor adicionales
 [$vErrors, $vDetails] = validateServer($normalized);
 if ($vErrors) {
     $aux = $vDetails ?: []; // mantener formato details
-    respondJson(422, false, errorPayload('VALIDATION_FAILED', 'Violaciones de validaciÃƒÆ’Ã‚Â³n', $aux));
+    respondJson(422, false, errorPayload('VALIDATION_FAILED', 'Violaciones de validaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n', $aux));
 }
 
 try {
@@ -288,7 +282,6 @@ try {
     $tables = [
         'bt_candidate_experiences',
         'bt_candidate_education',
-        'bt_candidate_projects'
     ];
     foreach ($tables as $t) {
         $pdo->prepare("DELETE FROM $t WHERE candidate_id = ?")->execute([$candidateId]);
@@ -311,7 +304,7 @@ try {
         }
     }
 
-    // EducaciÃƒÆ’Ã‚Â³n
+    // EducaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
     if (!empty($normalized['educacion'])) {
         $iedu = $pdo->prepare('INSERT INTO bt_candidate_education (candidate_id, institution_name, degree_title, start_date, end_date, description, created_at) VALUES (?,?,?,?,?,?,NOW())');
         foreach ($normalized['educacion'] as $e) {
@@ -326,18 +319,6 @@ try {
         }
     }
 
-    // Proyectos
-    if (!empty($normalized['proyectos'])) {
-        $iproj = $pdo->prepare('INSERT INTO bt_candidate_projects (candidate_id, nombre, descripcion, tecnologias, created_at) VALUES (?,?,?,?,NOW())');
-        foreach ($normalized['proyectos'] as $p) {
-            $iproj->execute([
-                $candidateId,
-                $p['nombre'] ?: null,
-                $p['descripcion'] ?: null,
-                json_encode($p['tecnologias'] ?? [], JSON_UNESCAPED_UNICODE)
-            ]);
-        }
-    }
 
     $pdo->commit();
     $__cv_confirm_sub['db_tx_ms'] = (int)round((microtime(true) - $tx0) * 1000);

@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Services;
 
 /**
@@ -9,11 +8,11 @@ namespace Services;
 class NotificationService
 {
     /**
-     * Envía una notificación por email
+     * EnvÃƒÆ’Ã‚Â­a una notificaciÃƒÆ’Ã‚Â³n por email
      */
     public function sendEmail(string $to, string $subject, string $body, array $headers = []): bool
     {
-        // Implementación básica usando mail()
+        // ImplementaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica usando mail()
         $defaultHeaders = [
           'Content-Type: text/html; charset=UTF-8'
         ];
@@ -23,20 +22,20 @@ class NotificationService
     }
 
     /**
-     * Envía una notificación push (placeholder)
+     * EnvÃƒÆ’Ã‚Â­a una notificaciÃƒÆ’Ã‚Â³n push (placeholder)
      */
     public function sendPush(string $to, string $message, array $data = []): bool
     {
-        // Aquí iría la integración con un servicio push
+        // AquÃƒÆ’Ã‚Â­ irÃƒÆ’Ã‚Â­a la integraciÃƒÆ’Ã‚Â³n con un servicio push
         return false;
     }
 
     /**
-     * Envía una notificación SMS (placeholder)
+     * EnvÃƒÆ’Ã‚Â­a una notificaciÃƒÆ’Ã‚Â³n SMS (placeholder)
      */
     public function sendSMS(string $to, string $message): bool
     {
-        // Aquí iría la integración con un gateway SMS
+        // AquÃƒÆ’Ã‚Â­ irÃƒÆ’Ã‚Â­a la integraciÃƒÆ’Ã‚Â³n con un gateway SMS
         return false;
     }
 }

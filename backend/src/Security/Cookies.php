@@ -1,14 +1,11 @@
-<?php
-
-declare(strict_types=1);
-
-namespace Security;
+<?php declare(strict_types=1);
+namespace Security\Cookies.php\Security;
 
 /**
- * Manejo centralizado de cookies para autenticación
+ * Manejo centralizado de cookies para autenticaciÃƒÂ³n
  * 
  * Esta clase proporciona funciones reutilizables para el manejo seguro
- * de cookies, especialmente para tokens JWT con configuración httpOnly.
+ * de cookies, especialmente para tokens JWT con configuraciÃƒÂ³n httpOnly.
  * 
  * @package Security
  * @author Bubble Talents Development Team
@@ -17,11 +14,11 @@ namespace Security;
 final class Cookies
 {
   /**
-   * Detectar si la conexión es HTTPS considerando proxies/CDN
+   * Detectar si la conexiÃƒÂ³n es HTTPS considerando proxies/CDN
    */
   public static function isHttps(): bool
   {
-    // Detrás de proxy/CDN (Cloudflare, AWS ALB, etc.)
+    // DetrÃƒÂ¡s de proxy/CDN (Cloudflare, AWS ALB, etc.)
     if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
       return strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https';
     }
@@ -31,12 +28,12 @@ final class Cookies
       return true;
     }
 
-    // Header estándar de Apache/Nginx
+    // Header estÃƒÂ¡ndar de Apache/Nginx
     if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
       return true;
     }
 
-    // Puerto 443 (HTTPS estándar)
+    // Puerto 443 (HTTPS estÃƒÂ¡ndar)
     return (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] === '443');
   }
 
@@ -45,7 +42,7 @@ final class Cookies
    */
   public static function options(array $overrides = []): array
   {
-    // Lee configuración de .env con defaults sensatos
+    // Lee configuraciÃƒÂ³n de .env con defaults sensatos
     $domain   = $_ENV['COOKIE_DOMAIN']   ?? '';          // p.ej. ".acme.com" para subdominios
     $sameSite = $_ENV['COOKIE_SAMESITE'] ?? 'Lax';       // "Lax" | "Strict" | "None"
 
@@ -60,14 +57,14 @@ final class Cookies
       'domain'   => $domain,         // Configurable para subdominios
       'secure'   => $secure,         // Auto-detecta HTTPS o configurable
       'httponly' => true,            // Siempre httpOnly para seguridad
-      'samesite' => $sameSite,       // Protección CSRF configurable
+      'samesite' => $sameSite,       // ProtecciÃƒÂ³n CSRF configurable
     ];
 
     return array_merge($defaults, $overrides);
   }
 
   /**
-   * Establecer cookie JWT de autenticación
+   * Establecer cookie JWT de autenticaciÃƒÂ³n
    */
   public static function setJwt(string $jwt, int $expirationTime = null): void
   {
@@ -81,7 +78,7 @@ final class Cookies
   }
 
   /**
-   * Eliminar cookie JWT de autenticación
+   * Eliminar cookie JWT de autenticaciÃƒÂ³n
    */
   public static function unsetJwt(): void
   {
@@ -98,7 +95,7 @@ final class Cookies
   }
 
   /**
-   * Verificar si existe una cookie JWT válida
+   * Verificar si existe una cookie JWT vÃƒÂ¡lida
    */
   public static function hasJwt(): bool
   {

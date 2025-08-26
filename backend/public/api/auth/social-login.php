@@ -1,6 +1,6 @@
-<?php
+<?php declare(strict_types=1);
 // @public
-// social-login.php - Manejo de autenticaciÃ³n OAuth con proveedores externos
+// social-login.php - Manejo de autenticaciÃƒÂ³n OAuth con proveedores externos
 
 require_once dirname(__DIR__) . '/bootstrap.php';
 session_start();
@@ -52,7 +52,7 @@ function getDBConnection()
   }
 }
 
-// FunciÃ³n para intercambiar cÃ³digo OAuth por tokens
+// FunciÃƒÂ³n para intercambiar cÃƒÂ³digo OAuth por tokens
 function exchangeOAuthCode($provider, $code, $redirectUri)
 {
   $clientId = '';
@@ -77,10 +77,10 @@ function exchangeOAuthCode($provider, $code, $redirectUri)
   }
 
   if (!$clientId || !$clientSecret) {
-    throw new Exception("ConfiguraciÃ³n OAuth incompleta para $provider");
+    throw new Exception("ConfiguraciÃƒÂ³n OAuth incompleta para $provider");
   }
 
-  // Datos para el intercambio de cÃ³digo
+  // Datos para el intercambio de cÃƒÂ³digo
   $postData = [
     'grant_type' => 'authorization_code',
     'code' => $code,
@@ -89,7 +89,7 @@ function exchangeOAuthCode($provider, $code, $redirectUri)
     'client_secret' => $clientSecret,
   ];
 
-  // Realizar peticiÃ³n POST
+  // Realizar peticiÃƒÂ³n POST
   $context = stream_context_store([
     'http' => [
       'method' => 'POST',
@@ -117,7 +117,7 @@ function exchangeOAuthCode($provider, $code, $redirectUri)
   return $tokenData;
 }
 
-// FunciÃ³n para obtener datos del usuario desde el proveedor OAuth
+// FunciÃƒÂ³n para obtener datos del usuario desde el proveedor OAuth
 function getUserFromProvider($provider, $accessToken)
 {
   $userApiUrl = '';
@@ -135,7 +135,7 @@ function getUserFromProvider($provider, $accessToken)
       throw new Exception("Proveedor no soportado para obtener datos de usuario: $provider");
   }
 
-  // Hacer peticiÃ³n para obtener datos del usuario
+  // Hacer peticiÃƒÂ³n para obtener datos del usuario
   $context = stream_context_store([
     'http' => [
       'method' => 'GET',
@@ -156,10 +156,10 @@ function getUserFromProvider($provider, $accessToken)
   $userData = json_decode($userResponse, true);
 
   if (!$userData) {
-    throw new Exception("Respuesta invÃ¡lida del proveedor $provider");
+    throw new Exception("Respuesta invÃƒÂ¡lida del proveedor $provider");
   }
 
-  // Normalizar datos segÃºn el proveedor
+  // Normalizar datos segÃƒÂºn el proveedor
   $normalizedData = [];
 
   switch ($provider) {
@@ -181,7 +181,7 @@ function getUserFromProvider($provider, $accessToken)
         'name' => ($userData['localizedFirstName'] ?? '') . ' ' . ($userData['localizedLastName'] ?? ''),
         'first_name' => $userData['localizedFirstName'] ?? '',
         'last_name' => $userData['localizedLastName'] ?? '',
-        'email' => '', // LinkedIn requiere peticiÃ³n separada para email
+        'email' => '', // LinkedIn requiere peticiÃƒÂ³n separada para email
         'avatar' => null,
         'verified_email' => false
       ];
@@ -204,20 +204,20 @@ try {
   $code = $input['code'] ?? null;
   $redirectUri = $input['redirect_uri'] ?? null;
 
-  // ValidaciÃ³n bÃ¡sica
+  // ValidaciÃƒÂ³n bÃƒÂ¡sica
   if (!$provider || !$code || !$redirectUri) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'ParÃ¡metros OAuth incompletos']);
+    echo json_encode(['success' => false, 'message' => 'ParÃƒÂ¡metros OAuth incompletos']);
     exit();
   }
 
   if (!in_array($provider, ['google', 'linkedin', 'apple'])) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Proveedor OAuth no vÃ¡lido']);
+    echo json_encode(['success' => false, 'message' => 'Proveedor OAuth no vÃƒÂ¡lido']);
     exit();
   }
 
-  // Paso 1: Intercambiar cÃ³digo por tokens
+  // Paso 1: Intercambiar cÃƒÂ³digo por tokens
   $tokenData = exchangeOAuthCode($provider, $code, $redirectUri);
   $accessToken = $tokenData['access_token'];
 
@@ -273,7 +273,7 @@ try {
       $userData['social_id']
     ]);
 
-    // Insertar en tabla de usuarios para autenticaciÃ³n
+    // Insertar en tabla de usuarios para autenticaciÃƒÂ³n
     $userId = 'user_' . uniqid();
     $insertUser = $db->prepare("
             INSERT INTO usuarios (id, username, email, role, created_at) 
@@ -290,18 +290,18 @@ try {
     ];
   }
 
-  // Paso 4: Establecer sesiÃ³n
+  // Paso 4: Establecer sesiÃƒÂ³n
   $_SESSION['user_id'] = $user['id'];
   $_SESSION['user_email'] = $user['email'];
   $_SESSION['user_role'] = $user['role'];
   $_SESSION['login_time'] = time();
 
-  // Generar token JWT si estÃ¡ configurado
-  $jwtToken = null; // Se puede implementar mÃ¡s adelante
+  // Generar token JWT si estÃƒÂ¡ configurado
+  $jwtToken = null; // Se puede implementar mÃƒÂ¡s adelante
 
   echo json_encode([
     'success' => true,
-    'message' => 'AutenticaciÃ³n exitosa',
+    'message' => 'AutenticaciÃƒÂ³n exitosa',
     'data' => [
       'user' => $user,
       'token' => $jwtToken,
@@ -313,7 +313,7 @@ try {
   http_response_code(500);
   echo json_encode([
     'success' => false,
-    'message' => 'Error en la autenticaciÃ³n OAuth',
+    'message' => 'Error en la autenticaciÃƒÂ³n OAuth',
     'error' => $e->getMessage()
   ]);
 }

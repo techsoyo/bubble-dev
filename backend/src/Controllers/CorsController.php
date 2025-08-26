@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Controllers;
 
 class CorsController extends BaseController

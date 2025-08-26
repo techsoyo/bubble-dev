@@ -1,9 +1,7 @@
-<?php
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
-
+use Security\CsrfMiddleware;
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
     CsrfMiddleware::protect(); // double-submit cookie
@@ -17,13 +15,13 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// Proteger solo mÃ©todos que cambian estado
+// Proteger solo mÃƒÂ©todos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
     // double-submit cookie
 }
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
         http_response_code(401);
@@ -34,16 +32,16 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
 
 // ORIGINAL CODE BELOW
 /**
- * Endpoint para guardar datos de candidato extraÃƒÂ­dos por IA
- * VersiÃƒÂ³n actualizada con esquema de BD correcto
+ * Endpoint para guardar datos de candidato extraÃƒÆ’Ã‚Â­dos por IA
+ * VersiÃƒÆ’Ã‚Â³n actualizada con esquema de BD correcto
  */
 
 use Utils\ResponseHelper;
 use Utils\Database;
 
-// Solo permitir mÃƒÂ©todo POST
+// Solo permitir metodo POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-  ResponseHelper::error('MÃƒÂ©todo no permitido', 405);
+  ResponseHelper::error('Metodo no permitido', null, 405);
   exit;
 }
 
@@ -53,23 +51,23 @@ try {
   $data = json_decode($input, true);
 
   if (json_last_error() !== JSON_ERROR_NONE) {
-    ResponseHelper::error('JSON invÃƒÂ¡lido: ' . json_last_error_msg(), 400);
+    ResponseHelper::error('JSON invalido: ' . json_last_error_msg(), null, 400);
     exit;
   }
 
-  // Validar campos mÃƒÂ­nimos requeridos
+  // Validar campos maximos requeridos
   if (empty($data['nombre']) || empty($data['email'])) {
-    ResponseHelper::error('Faltan campos requeridos: nombre y email', 400);
+    ResponseHelper::error('Faltan campos requeridos: nombre y email', null, 400);
     exit;
   }
 
   $db = Database::getInstance();
   $pdo = $db->getConnection();
 
-  // Iniciar transacciÃƒÂ³n
+  // Iniciar transacciÃƒÆ’Ã‚Â³n
   $pdo->beginTransaction();
 
-  // Generar ID ÃƒÂºnico para el candidato
+  // Generar ID ÃƒÆ’Ã‚Âºnico para el candidato
   $candidateId = uniqid('cnd-');
 
   // Extraer nombre y apellido del nombre completo
@@ -136,7 +134,7 @@ try {
         ");
 
     foreach ($data['puestos_anteriores'] as $exp) {
-      // Validar y limpiar fechas vacÃƒÂ­as
+      // Validar y limpiar fechas vacÃƒÆ’Ã‚Â­as
       $startDate = (!empty($exp['fecha_inicio']) && $exp['fecha_inicio'] !== '') ? $exp['fecha_inicio'] : null;
       $endDate = (!empty($exp['fecha_fin']) && $exp['fecha_fin'] !== '') ? $exp['fecha_fin'] : null;
 
@@ -153,7 +151,7 @@ try {
     }
   }
 
-  // Insertar educaciÃƒÂ³n
+  // Insertar educaciÃƒÆ’Ã‚Â³n
   if (!empty($data['educacion']) && is_array($data['educacion'])) {
     $eduStmt = $pdo->prepare("
             INSERT INTO bt_candidate_education (
@@ -163,7 +161,7 @@ try {
         ");
 
     foreach ($data['educacion'] as $edu) {
-      // Validar y limpiar fechas vacÃƒÂ­as
+      // Validar y limpiar fechas vacÃƒÆ’Ã‚Â­as
       $startDate = (!empty($edu['fecha_inicio']) && $edu['fecha_inicio'] !== '') ? $edu['fecha_inicio'] : null;
       $endDate = (!empty($edu['fecha_fin']) && $edu['fecha_fin'] !== '') ? $edu['fecha_fin'] : null;
 
@@ -189,7 +187,7 @@ try {
         ");
 
     foreach ($data['certificaciones_detalle'] as $cert) {
-      // Validar y limpiar fechas vacÃƒÂ­as
+      // Validar y limpiar fechas vacÃƒÆ’Ã‚Â­as
       $issueDate = (!empty($cert['fecha_emision']) && $cert['fecha_emision'] !== '') ? $cert['fecha_emision'] : null;
       $expiryDate = (!empty($cert['fecha_expiracion']) && $cert['fecha_expiracion'] !== '') ? $cert['fecha_expiracion'] : null;
 
@@ -220,31 +218,6 @@ try {
     }
   }
 
-  // Insertar proyectos
-  if (!empty($data['proyectos']) && is_array($data['proyectos'])) {
-    $projStmt = $pdo->prepare("
-            INSERT INTO bt_candidate_projects (
-                candidate_id, project_name, description, tecnologies,
-                start_date, end_date, url
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
-        ");
-
-    foreach ($data['proyectos'] as $proyecto) {
-      // Validar y limpiar fechas vacÃƒÂ­as
-      $startDate = (!empty($proyecto['fecha_inicio']) && $proyecto['fecha_inicio'] !== '') ? $proyecto['fecha_inicio'] : null;
-      $endDate = (!empty($proyecto['fecha_fin']) && $proyecto['fecha_fin'] !== '') ? $proyecto['fecha_fin'] : null;
-
-      $projStmt->execute([
-        $candidateId,
-        $proyecto['nombre'] ?? '',
-        $proyecto['descripcion'] ?? '',
-        isset($proyecto['tecnologias']) ? json_encode($proyecto['tecnologias']) : null,
-        $startDate,
-        $endDate,
-        $proyecto['url'] ?? null
-      ]);
-    }
-  }
 
   // Insertar referencias detalladas
   if (!empty($data['referencias_detalle']) && is_array($data['referencias_detalle'])) {
@@ -266,7 +239,7 @@ try {
     }
   }
 
-  // Confirmar transacciÃƒÂ³n
+  // Confirmar transacciÃƒÆ’Ã‚Â³n
   $pdo->commit();
 
   ResponseHelper::success('Candidato creado exitosamente', [
@@ -274,12 +247,12 @@ try {
     'data_source' => $data['data_source'] ?? 'ai_processing'
   ], 201);
 } catch (Exception $e) {
-  // Revertir transacciÃƒÂ³n en caso de error
+  // Revertir transacciÃƒÆ’Ã‚Â³n en caso de error
   if (isset($pdo) && $pdo->inTransaction()) {
     $pdo->rollBack();
   }
 
   error_log("Error guardando candidato: " . $e->getMessage());
-  ResponseHelper::error('Error interno del servidor: ' . $e->getMessage(), 500);
+  ResponseHelper::error('Error interno del servidor: ' . $e->getMessage());
 }
 

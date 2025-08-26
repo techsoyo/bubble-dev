@@ -1,9 +1,8 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
+namespace Utils;
 
 /**
- * JWT Middleware - Protección de endpoints con JWT
+ * JWT Middleware - ProtecciÃƒÆ’Ã‚Â³n de endpoints con JWT
  * 
  * @package Utils
  * @author Bubble Talents Development Team
@@ -17,23 +16,23 @@ use Security\Cookies;
 class JWTMiddleware
 {
   /**
-   * Verificar autenticación JWT en request actual
+   * Verificar autenticaciÃƒÆ’Ã‚Â³n JWT en request actual
    */
   public static function requireAuth(): ?array
   {
     $token = null;
 
-    // En producción: solo cookies por seguridad
+    // En producciÃƒÆ’Ã‚Â³n: solo cookies por seguridad
     if (($_ENV['APP_ENV'] ?? 'development') === 'production') {
       $token = Cookies::getJwt();
 
       if (!$token) {
-        self::sendUnauthorized('Token de autorización requerido');
+        self::sendUnauthorized('Token de autorizaciÃƒÆ’Ã‚Â³n requerido');
         return null;
       }
     } else {
       // En desarrollo/staging: mantener fallback para compatibilidad
-      // 1. Primero, intentar obtener token desde cookie (método preferido)
+      // 1. Primero, intentar obtener token desde cookie (mÃƒÆ’Ã‚Â©todo preferido)
       $token = Cookies::getJwt();
 
       if (!$token) {
@@ -50,7 +49,7 @@ class JWTMiddleware
       }
 
       if (!$token) {
-        self::sendUnauthorized('Token de autorización requerido');
+        self::sendUnauthorized('Token de autorizaciÃƒÆ’Ã‚Â³n requerido');
         return null;
       }
     }
@@ -59,11 +58,11 @@ class JWTMiddleware
     $payload = JWTHelper::validateToken($token);
 
     if (!$payload) {
-      self::sendUnauthorized('Token inválido o expirado');
+      self::sendUnauthorized('Token invÃƒÆ’Ã‚Â¡lido o expirado');
       return null;
     }
 
-    // Verificar que el usuario existe y está activo
+    // Verificar que el usuario existe y estÃƒÆ’Ã‚Â¡ activo
     if (!self::verifyUserExists($payload['user_id'])) {
       self::sendUnauthorized('Usuario no encontrado o inactivo');
       return null;
@@ -73,7 +72,7 @@ class JWTMiddleware
   }
 
   /**
-   * Verificar que el usuario existe y está activo
+   * Verificar que el usuario existe y estÃƒÆ’Ã‚Â¡ activo
    */
   private static function verifyUserExists(string $userId): bool
   {
@@ -121,7 +120,7 @@ class JWTMiddleware
   }
 
   /**
-   * Verificar rol específico
+   * Verificar rol especÃƒÆ’Ã‚Â­fico
    */
   public static function requireRole(array $allowedRoles): ?array
   {

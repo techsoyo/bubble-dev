@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 namespace Models;
 
 use Utils\Logger;
@@ -9,13 +6,13 @@ use Utils\Logger;
 /**
  * Modelo para notas asociadas a solicitudes de empleo.
  *
- * Cada nota está ligada a una solicitud (application_id) y tiene
- * un índice incremental (note_idx) que permite múltiples notas por
- * aplicación. Extiende BaseModel para aprovechar las operaciones
- * genéricas de CRUD y los filtros seguros.
+ * Cada nota estÃƒÆ’Ã‚Â¡ ligada a una solicitud (application_id) y tiene
+ * un ÃƒÆ’Ã‚Â­ndice incremental (note_idx) que permite mÃƒÆ’Ã‚Âºltiples notas por
+ * aplicaciÃƒÆ’Ã‚Â³n. Extiende BaseModel para aprovechar las operaciones
+ * genÃƒÆ’Ã‚Â©ricas de CRUD y los filtros seguros.
  *
  * Este modelo integra con vw_applications_extended para obtener
- * información contextual completa de las aplicaciones.
+ * informaciÃƒÆ’Ã‚Â³n contextual completa de las aplicaciones.
  *
  * @package Models
  * @author Bubble of Talents Development Team  
@@ -31,14 +28,14 @@ class ApplicationNote extends BaseModel
      */
     protected string $table = 'application_notes';
     /*
-     * 🔧 CORRECCIÓN AUTOMÁTICA APLICADA
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÃƒÆ’Ã¢â‚¬Å“N AUTOMÃƒÆ’Ã‚ÂTICA APLICADA
      * Modelo: ApplicationNote
      * Fecha: 2025-08-23
      * 
      * Cambios realizados:
-     * ➕ Campos añadidos: ['author_id', 'is_internal']
-     * ❌ Campos removidos: ['note_idx']
-     * 📊 Total campos fillable: 4
+     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aÃƒÆ’Ã‚Â±adidos: ['author_id', 'is_internal']
+     * ÃƒÂ¢Ã‚ÂÃ…â€™ Campos removidos: ['note_idx']
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Total campos fillable: 4
      * 
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
@@ -47,7 +44,7 @@ class ApplicationNote extends BaseModel
 
     /**
      * Clave primaria compuesta (application_id, note_idx)
-     * Usamos application_id como clave lógica principal
+     * Usamos application_id como clave lÃƒÆ’Ã‚Â³gica principal
      *
      * @var string
      */
@@ -67,22 +64,22 @@ class ApplicationNote extends BaseModel
 
     /**
      * Campos ocultos en arrays/JSON
-     * Las notas son internas, no hay campos específicos que ocultar
+     * Las notas son internas, no hay campos especÃƒÆ’Ã‚Â­ficos que ocultar
      *
      * @var array<string>
      */
     protected array $hidden = [];
 
     /**
-     * MÉTODOS DE GESTIÓN DE NOTAS
+     * MÃƒÆ’Ã¢â‚¬Â°TODOS DE GESTIÃƒÆ’Ã¢â‚¬Å“N DE NOTAS
      */
 
     /**
-     * Obtiene todas las notas de una aplicación ordenadas por índice
+     * Obtiene todas las notas de una aplicaciÃƒÆ’Ã‚Â³n ordenadas por ÃƒÆ’Ã‚Â­ndice
      *
-     * @param string $applicationId ID de la aplicación
+     * @param string $applicationId ID de la aplicaciÃƒÆ’Ã‚Â³n
      * @return array Lista de notas ordenadas por note_idx
-     * @throws \InvalidArgumentException Si el ID está vacío
+     * @throws \InvalidArgumentException Si el ID estÃƒÆ’Ã‚Â¡ vacÃƒÆ’Ã‚Â­o
      * @throws \RuntimeException Si la consulta falla
      */
     public function findByApplicationId(string $applicationId): array
@@ -101,11 +98,11 @@ class ApplicationNote extends BaseModel
     }
 
     /**
-     * Obtiene las notas con detalles completos de la aplicación usando vista extendida
+     * Obtiene las notas con detalles completos de la aplicaciÃƒÆ’Ã‚Â³n usando vista extendida
      *
-     * @param string $applicationId ID de la aplicación
-     * @return array Notas con información extendida de aplicación, candidato y trabajo
-     * @throws \InvalidArgumentException Si el ID está vacío
+     * @param string $applicationId ID de la aplicaciÃƒÆ’Ã‚Â³n
+     * @return array Notas con informaciÃƒÆ’Ã‚Â³n extendida de aplicaciÃƒÆ’Ã‚Â³n, candidato y trabajo
+     * @throws \InvalidArgumentException Si el ID estÃƒÆ’Ã‚Â¡ vacÃƒÆ’Ã‚Â­o
      * @throws \RuntimeException Si la consulta falla
      */
     public function getApplicationNotesWithDetails(string $applicationId): array
@@ -137,11 +134,11 @@ class ApplicationNote extends BaseModel
     }
 
     /**
-     * Obtiene la línea de tiempo completa de notas para análisis
+     * Obtiene la lÃƒÆ’Ã‚Â­nea de tiempo completa de notas para anÃƒÆ’Ã‚Â¡lisis
      *
-     * @param string $applicationId ID de la aplicación
-     * @return array Timeline de notas con información temporal
-     * @throws \InvalidArgumentException Si el ID está vacío
+     * @param string $applicationId ID de la aplicaciÃƒÆ’Ã‚Â³n
+     * @return array Timeline de notas con informaciÃƒÆ’Ã‚Â³n temporal
+     * @throws \InvalidArgumentException Si el ID estÃƒÆ’Ã‚Â¡ vacÃƒÆ’Ã‚Â­o
      * @throws \RuntimeException Si la consulta falla
      */
     public function getNotesTimeline(string $applicationId): array
@@ -178,15 +175,15 @@ class ApplicationNote extends BaseModel
     }
 
     /**
-     * Añade una nueva nota secuencial a una aplicación
+     * AÃƒÆ’Ã‚Â±ade una nueva nota secuencial a una aplicaciÃƒÆ’Ã‚Â³n
      * 
-     * Calcula automáticamente el próximo note_idx y crea la nota
+     * Calcula automÃƒÆ’Ã‚Â¡ticamente el prÃƒÆ’Ã‚Â³ximo note_idx y crea la nota
      *
-     * @param string $applicationId ID de la aplicación
+     * @param string $applicationId ID de la aplicaciÃƒÆ’Ã‚Â³n
      * @param string $note Contenido de la nota
      * @return mixed ID del registro creado
-     * @throws \InvalidArgumentException Si los parámetros están vacíos
-     * @throws \RuntimeException Si la operación falla
+     * @throws \InvalidArgumentException Si los parÃƒÆ’Ã‚Â¡metros estÃƒÆ’Ã‚Â¡n vacÃƒÆ’Ã‚Â­os
+     * @throws \RuntimeException Si la operaciÃƒÆ’Ã‚Â³n falla
      */
     public function addSequentialNote(string $applicationId, string $note)
     {
@@ -194,15 +191,15 @@ class ApplicationNote extends BaseModel
             throw new \InvalidArgumentException('Application ID and note content cannot be empty');
         }
 
-        // Validar que la aplicación existe antes de crear la nota
+        // Validar que la aplicaciÃƒÆ’Ã‚Â³n existe antes de crear la nota
         if (!$this->applicationExists($applicationId)) {
             throw new \RuntimeException('Application not found');
         }
 
-        // Obtener el próximo índice secuencial
+        // Obtener el prÃƒÆ’Ã‚Â³ximo ÃƒÆ’Ã‚Â­ndice secuencial
         $nextIdx = $this->getNextNoteIndex($applicationId);
 
-        // Crear la nota con el índice calculado - BaseModel maneja excepciones
+        // Crear la nota con el ÃƒÆ’Ã‚Â­ndice calculado - BaseModel maneja excepciones
         return $this->store([
             'application_id' => $applicationId,
             'note_idx' => $nextIdx,
@@ -211,10 +208,10 @@ class ApplicationNote extends BaseModel
     }
 
     /**
-     * Obtiene el próximo índice secuencial para una aplicación
+     * Obtiene el prÃƒÆ’Ã‚Â³ximo ÃƒÆ’Ã‚Â­ndice secuencial para una aplicaciÃƒÆ’Ã‚Â³n
      *
-     * @param string $applicationId ID de la aplicación
-     * @return int Próximo note_idx disponible
+     * @param string $applicationId ID de la aplicaciÃƒÆ’Ã‚Â³n
+     * @return int PrÃƒÆ’Ã‚Â³ximo note_idx disponible
      */
     private function getNextNoteIndex(string $applicationId): int
     {
@@ -228,10 +225,10 @@ class ApplicationNote extends BaseModel
     }
 
     /**
-     * Valida que una aplicación existe en el sistema
+     * Valida que una aplicaciÃƒÆ’Ã‚Â³n existe en el sistema
      *
-     * @param string $applicationId ID de la aplicación
-     * @return bool True si la aplicación existe
+     * @param string $applicationId ID de la aplicaciÃƒÆ’Ã‚Â³n
+     * @return bool True si la aplicaciÃƒÆ’Ã‚Â³n existe
      */
     private function applicationExists(string $applicationId): bool
     {
@@ -244,17 +241,17 @@ class ApplicationNote extends BaseModel
     }
 
     /**
-     * MÉTODOS DE VALIDACIÓN Y UTILIDADES
+     * MÃƒÆ’Ã¢â‚¬Â°TODOS DE VALIDACIÃƒÆ’Ã¢â‚¬Å“N Y UTILIDADES
      */
 
     /**
-     * Valida que el note_idx sea secuencial para una aplicación
+     * Valida que el note_idx sea secuencial para una aplicaciÃƒÆ’Ã‚Â³n
      *
-     * @param string $applicationId ID de la aplicación
-     * @param int $noteIdx Índice a validar
-     * @return bool True si el índice es válido secuencialmente
-     * @throws \InvalidArgumentException Si los parámetros son inválidos
-     * @throws \RuntimeException Si la validación falla
+     * @param string $applicationId ID de la aplicaciÃƒÆ’Ã‚Â³n
+     * @param int $noteIdx ÃƒÆ’Ã‚Ândice a validar
+     * @return bool True si el ÃƒÆ’Ã‚Â­ndice es vÃƒÆ’Ã‚Â¡lido secuencialmente
+     * @throws \InvalidArgumentException Si los parÃƒÆ’Ã‚Â¡metros son invÃƒÆ’Ã‚Â¡lidos
+     * @throws \RuntimeException Si la validaciÃƒÆ’Ã‚Â³n falla
      */
     public function validateSequentialIndex(string $applicationId, int $noteIdx): bool
     {
@@ -279,7 +276,7 @@ class ApplicationNote extends BaseModel
 
             $existingCount = (int)($result[0]['count'] ?? 0);
 
-            // El índice es válido si hay exactamente (noteIdx - 1) notas anteriores
+            // El ÃƒÆ’Ã‚Â­ndice es vÃƒÆ’Ã‚Â¡lido si hay exactamente (noteIdx - 1) notas anteriores
             return ($existingCount === ($noteIdx - 1));
         } catch (\Exception $e) {
             $this->logError('Error validating sequential index', [
@@ -291,11 +288,11 @@ class ApplicationNote extends BaseModel
     }
 
     /**
-     * Obtiene estadísticas de notas por aplicación
+     * Obtiene estadÃƒÆ’Ã‚Â­sticas de notas por aplicaciÃƒÆ’Ã‚Â³n
      *
-     * @param string $applicationId ID de la aplicación  
-     * @return array Estadísticas de las notas
-     * @throws \InvalidArgumentException Si el ID está vacío
+     * @param string $applicationId ID de la aplicaciÃƒÆ’Ã‚Â³n  
+     * @return array EstadÃƒÆ’Ã‚Â­sticas de las notas
+     * @throws \InvalidArgumentException Si el ID estÃƒÆ’Ã‚Â¡ vacÃƒÆ’Ã‚Â­o
      * @throws \RuntimeException Si la consulta falla
      */
     public function getApplicationNotesStats(string $applicationId): array
@@ -320,7 +317,7 @@ class ApplicationNote extends BaseModel
 
             $stats = $result[0] ?? [];
 
-            // Convertir valores numéricos y formatear fechas
+            // Convertir valores numÃƒÆ’Ã‚Â©ricos y formatear fechas
             if (!empty($stats)) {
                 $stats['total_notes'] = (int)$stats['total_notes'];
                 $stats['max_index'] = (int)($stats['max_index'] ?? 0);
@@ -341,11 +338,11 @@ class ApplicationNote extends BaseModel
     /**
      * Busca notas por contenido de texto
      *
-     * @param string $searchTerm Término de búsqueda
-     * @param string|null $applicationId ID específico de aplicación (opcional)
-     * @param int $limit Límite de resultados
-     * @return array Notas que coinciden con la búsqueda
-     * @throws \InvalidArgumentException Si los parámetros son inválidos
+     * @param string $searchTerm TÃƒÆ’Ã‚Â©rmino de bÃƒÆ’Ã‚Âºsqueda
+     * @param string|null $applicationId ID especÃƒÆ’Ã‚Â­fico de aplicaciÃƒÆ’Ã‚Â³n (opcional)
+     * @param int $limit LÃƒÆ’Ã‚Â­mite de resultados
+     * @return array Notas que coinciden con la bÃƒÆ’Ã‚Âºsqueda
+     * @throws \InvalidArgumentException Si los parÃƒÆ’Ã‚Â¡metros son invÃƒÆ’Ã‚Â¡lidos
      * @throws \RuntimeException Si la consulta falla
      */
     public function searchNotesByContent(string $searchTerm, ?string $applicationId = null, int $limit = 50): array

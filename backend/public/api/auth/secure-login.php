@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 use Security\CsrfMiddleware;
 
 require_once __DIR__ . '/../bootstrap.php';
@@ -20,7 +17,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
   if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
     http_response_code(401);
@@ -46,7 +43,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
   session_start();
 }
 
-// Bloquear en producciÃ³n si este endpoint no estÃ¡ completamente implementado
+// Bloquear en producciÃƒÂ³n si este endpoint no estÃƒÂ¡ completamente implementado
 if ((getenv('APP_ENV') ?: 'production') === 'production') {
   http_response_code(404);
   exit;
@@ -59,17 +56,17 @@ $input = json_decode(file_get_contents('php://input') ?: '[]', true);
 $email = filter_var($input['email'] ?? '', FILTER_VALIDATE_EMAIL);
 $pass  = (string)($input['password'] ?? '');
 
-// Validaciones mÃƒÆ’Ã‚Â­nimas
+// Validaciones mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­nimas
 if (!$email || $pass === '') {
   http_response_code(400);
-  echo json_encode(['ok' => false, 'error' => 'ParÃƒÆ’Ã‚Â¡metros invÃƒÆ’Ã‚Â¡lidos']);
+  echo json_encode(['ok' => false, 'error' => 'ParÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡metros invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lidos']);
   exit;
 }
 
 // TODO: autenticar contra tu fuente real (hash verificado, etc.)
 // if (!auth_ok($email, $pass)) { ... }
 
-// Marca de sesiÃƒÆ’Ã‚Â³n mÃƒÆ’Ã‚Â­nima (solo dev)
+// Marca de sesiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­nima (solo dev)
 $_SESSION['user_id'] = 123;
 
 http_response_code(200);

@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Middleware;
 
 use Utils\Request;
@@ -7,16 +6,16 @@ use Utils\JWT;
 use Utils\ResponseHelper;
 
 /**
- * Middleware de autenticación para rutas protegidas
+ * Middleware de autenticaciÃƒÆ’Ã‚Â³n para rutas protegidas
  */
 class AuthMiddleware
 {
   /**
-   * Manejar la autenticación y autorización de la request
+   * Manejar la autenticaciÃƒÆ’Ã‚Â³n y autorizaciÃƒÆ’Ã‚Â³n de la request
    * 
    * @param Request $request La solicitud actual
    * @param array $roles Roles permitidos para acceder al recurso
-   * @return ?\Closure Función de middleware o null si la autenticación es exitosa
+   * @return ?\Closure FunciÃƒÆ’Ã‚Â³n de middleware o null si la autenticaciÃƒÆ’Ã‚Â³n es exitosa
    */
   public static function handle(Request $request, array $roles = []): ?\Closure
   {
@@ -44,7 +43,7 @@ class AuthMiddleware
       // Verificar el token JWT
       $user = JWT::verify($token);
 
-      // Verificar que el token tenga la información mínima esperada
+      // Verificar que el token tenga la informaciÃƒÆ’Ã‚Â³n mÃƒÆ’Ã‚Â­nima esperada
       if (!$user || !isset($user['user_id'])) {
         return function () {
           return self::respondUnauthorized('Invalid token payload');
@@ -58,8 +57,8 @@ class AuthMiddleware
       if (!empty($roles)) {
         $userRole = $user['role'] ?? 'guest';
 
-        // Verificar si el rol del usuario está en la lista de roles permitidos
-        // También permitir acceso a administradores globales
+        // Verificar si el rol del usuario estÃƒÆ’Ã‚Â¡ en la lista de roles permitidos
+        // TambiÃƒÆ’Ã‚Â©n permitir acceso a administradores globales
         $hasAccess = in_array($userRole, $roles, true) ||
           in_array($userRole, ['admin', 'superadmin'], true);
 
@@ -70,7 +69,7 @@ class AuthMiddleware
         }
       }
 
-      // Autenticación y autorización exitosas
+      // AutenticaciÃƒÆ’Ã‚Â³n y autorizaciÃƒÆ’Ã‚Â³n exitosas
       return null;
     } catch (\Exception $e) {
       // Error al verificar el token

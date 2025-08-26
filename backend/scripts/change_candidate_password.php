@@ -136,7 +136,7 @@ function main()
     }
 
     // Confirmar cambio
-    echo "\n⚠️  ¿Estás seguro de cambiar la contraseña? (s/N): ";
+    echo "\n ¿Estás seguro de cambiar la contraseña? (s/N): ";
     $confirm = trim(fgets(STDIN));
 
     if (strtolower($confirm) !== 's' && strtolower($confirm) !== 'si') {

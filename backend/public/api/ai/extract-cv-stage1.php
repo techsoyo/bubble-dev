@@ -1,6 +1,4 @@
-<?php
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -17,13 +15,13 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// Proteger solo mÃ©todos que cambian estado
+// Proteger solo mÃƒÂ©todos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
     // double-submit cookie
 }
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
         http_response_code(401);
@@ -60,7 +58,7 @@ if ($cvContent === false) {
     exit;
 }
 
-// 4.1. PRE-LIMPIEZA BÃƒÂSICA para reducir tamaÃƒÂ±o antes de enviar a LLaMA3
+// 4.1. PRE-LIMPIEZA BÃƒÆ’Ã‚ÂSICA para reducir tamaÃƒÆ’Ã‚Â±o antes de enviar a LLaMA3
 $cvContent = preg_replace('/\s+/', ' ', $cvContent); // Normalizar espacios
 $cvContent = preg_replace('/[^\w\s\.\,\;\:\-\(\)\[\]\/\@\+]/', '', $cvContent); // Remover caracteres especiales
 $cvContent = substr($cvContent, 0, 3000); // Limitar a 3000 caracteres
@@ -74,18 +72,18 @@ if (!is_dir($cleanDir)) {
     }
 }
 
-// 6. Construir el prompt para extracciÃƒÂ³n con LLaMA3 (mÃƒÂ¡s conciso)
-$prompt = "Extrae solo informaciÃƒÂ³n ÃƒÂºtil de este CV. Incluye:\n" .
-  "- Nombre, contacto, ubicaciÃƒÂ³n\n" .
-  "- Estudios (tÃƒÂ­tulo, instituciÃƒÂ³n, aÃƒÂ±o)\n" .
-  "- Trabajo (empresa, puesto, aÃƒÂ±os, funciones principales)\n" .
-  "- TecnologÃƒÂ­as/herramientas\n" .
+// 6. Construir el prompt para extracciÃƒÆ’Ã‚Â³n con LLaMA3 (mÃƒÆ’Ã‚Â¡s conciso)
+$prompt = "Extrae solo informaciÃƒÆ’Ã‚Â³n ÃƒÆ’Ã‚Âºtil de este CV. Incluye:\n" .
+  "- Nombre, contacto, ubicaciÃƒÆ’Ã‚Â³n\n" .
+  "- Estudios (tÃƒÆ’Ã‚Â­tulo, instituciÃƒÆ’Ã‚Â³n, aÃƒÆ’Ã‚Â±o)\n" .
+  "- Trabajo (empresa, puesto, aÃƒÆ’Ã‚Â±os, funciones principales)\n" .
+  "- TecnologÃƒÆ’Ã‚Â­as/herramientas\n" .
   "- Idiomas\n" .
   "- Certificaciones\n\n" .
   "Ignora decoraciones, marcas de agua, repeticiones.\n\n" .
   "CV:\n" . $cvContent;
 
-// 7. Enviar al modelo Mistral de Ollama (mÃƒÂ¡s rÃƒÂ¡pido que LLaMA3)
+// 7. Enviar al modelo Mistral de Ollama (mÃƒÆ’Ã‚Â¡s rÃƒÆ’Ã‚Â¡pido que LLaMA3)
 $ollamaHost = 'http://localhost:11434';
 $model = 'mistral';
 
@@ -100,7 +98,7 @@ curl_setopt_array($curl, [
     'prompt' => $prompt,
     'stream' => false
   ]),
-  CURLOPT_TIMEOUT => 90, // 1.5 minutos para extracciÃƒÂ³n
+  CURLOPT_TIMEOUT => 90, // 1.5 minutos para extracciÃƒÆ’Ã‚Â³n
   CURLOPT_CONNECTTIMEOUT => 10
 ]);
 
@@ -121,7 +119,7 @@ curl_close($curl);
 $data = json_decode($response, true);
 if (!isset($data['response'])) {
     echo json_encode([
-      'error' => 'Respuesta invÃƒÂ¡lida de Ollama (LLaMA3)',
+      'error' => 'Respuesta invÃƒÆ’Ã‚Â¡lida de Ollama (LLaMA3)',
       'raw' => substr($response, 0, 200)
     ]);
     exit;

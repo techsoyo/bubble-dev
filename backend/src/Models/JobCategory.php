@@ -1,16 +1,13 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 namespace Models;
 
 use Utils\Logger;
 
 /**
- * Modelo para gestión de categorías de trabajo
+ * Modelo para gestiÃƒÆ’Ã‚Â³n de categorÃƒÆ’Ã‚Â­as de trabajo
  * 
- * Gestiona las categorías de trabajos del sistema con soporte para
- * jerarquías, conteos de jobs asociados y validaciones.
+ * Gestiona las categorÃƒÆ’Ã‚Â­as de trabajos del sistema con soporte para
+ * jerarquÃƒÆ’Ã‚Â­as, conteos de jobs asociados y validaciones.
  * 
  * @package Models
  * @author Bubble of Talents Development Team
@@ -32,10 +29,10 @@ class JobCategory extends BaseModel
   protected array $hidden = [];
 
   /**
-   * Crear una nueva categoría de trabajo
+   * Crear una nueva categorÃƒÆ’Ã‚Â­a de trabajo
    * 
-   * @param array $data Datos de la categoría
-   * @return int|false ID de la categoría creada o false si falla
+   * @param array $data Datos de la categorÃƒÆ’Ã‚Â­a
+   * @return int|false ID de la categorÃƒÆ’Ã‚Â­a creada o false si falla
    */
   public function createJobCategory(array $data): int|false
   {
@@ -75,10 +72,10 @@ class JobCategory extends BaseModel
   }
 
   /**
-   * Obtener una categoría por ID con conteo de jobs
+   * Obtener una categorÃƒÆ’Ã‚Â­a por ID con conteo de jobs
    * 
-   * @param int $id ID de la categoría
-   * @return array|null Datos de la categoría o null si no existe
+   * @param int $id ID de la categorÃƒÆ’Ã‚Â­a
+   * @return array|null Datos de la categorÃƒÆ’Ã‚Â­a o null si no existe
    */
   public function getJobCategoryWithCount(int $id): ?array
   {
@@ -110,11 +107,11 @@ class JobCategory extends BaseModel
   }
 
   /**
-   * Actualizar una categoría de trabajo
+   * Actualizar una categorÃƒÆ’Ã‚Â­a de trabajo
    * 
-   * @param int $id ID de la categoría
+   * @param int $id ID de la categorÃƒÆ’Ã‚Â­a
    * @param array $data Datos a actualizar
-   * @return bool True si se actualizó correctamente
+   * @return bool True si se actualizÃƒÆ’Ã‚Â³ correctamente
    */
   public function updateJobCategory(int $id, array $data): bool
   {
@@ -150,10 +147,10 @@ class JobCategory extends BaseModel
   }
 
   /**
-   * Eliminar una categoría de trabajo
+   * Eliminar una categorÃƒÆ’Ã‚Â­a de trabajo
    * 
-   * @param int $id ID de la categoría
-   * @return bool True si se eliminó correctamente
+   * @param int $id ID de la categorÃƒÆ’Ã‚Â­a
+   * @return bool True si se eliminÃƒÆ’Ã‚Â³ correctamente
    */
   public function deleteJobCategory(int $id): bool
   {
@@ -161,7 +158,7 @@ class JobCategory extends BaseModel
       // Verificar si tiene jobs asociados
       $jobsCount = $this->getJobsCountForCategory($id);
       if ($jobsCount > 0) {
-        throw new \InvalidArgumentException('No se puede eliminar la categoría porque tiene jobs asociados');
+        throw new \InvalidArgumentException('No se puede eliminar la categorÃƒÆ’Ã‚Â­a porque tiene jobs asociados');
       }
 
       $result = $this->delete($id);
@@ -178,12 +175,12 @@ class JobCategory extends BaseModel
   }
 
   /**
-   * Buscar categorías de trabajo con jerarquía
+   * Buscar categorÃƒÆ’Ã‚Â­as de trabajo con jerarquÃƒÆ’Ã‚Â­a
    * 
-   * @param array $criteria Criterios de búsqueda
-   * @param int $limit Límite de resultados
-   * @param int $offset Offset para paginación
-   * @return array Lista de categorías encontradas
+   * @param array $criteria Criterios de bÃƒÆ’Ã‚Âºsqueda
+   * @param int $limit LÃƒÆ’Ã‚Â­mite de resultados
+   * @param int $offset Offset para paginaciÃƒÆ’Ã‚Â³n
+   * @return array Lista de categorÃƒÆ’Ã‚Â­as encontradas
    */
   public function searchJobCategories(array $criteria = [], int $limit = 50, int $offset = 0): array
   {
@@ -234,10 +231,10 @@ class JobCategory extends BaseModel
   }
 
   /**
-   * Contar categorías según criterios
+   * Contar categorÃƒÆ’Ã‚Â­as segÃƒÆ’Ã‚Âºn criterios
    * 
-   * @param array $criteria Criterios de búsqueda
-   * @return int Número de categorías encontradas
+   * @param array $criteria Criterios de bÃƒÆ’Ã‚Âºsqueda
+   * @return int NÃƒÆ’Ã‚Âºmero de categorÃƒÆ’Ã‚Â­as encontradas
    */
   public function countJobCategories(array $criteria = []): int
   {
@@ -264,9 +261,9 @@ class JobCategory extends BaseModel
   }
 
   /**
-   * Obtener categorías principales (sin parent_id)
+   * Obtener categorÃƒÆ’Ã‚Â­as principales (sin parent_id)
    * 
-   * @return array Lista de categorías principales
+   * @return array Lista de categorÃƒÆ’Ã‚Â­as principales
    */
   public function getMainCategories(): array
   {
@@ -292,10 +289,10 @@ class JobCategory extends BaseModel
   }
 
   /**
-   * Obtener conteo de jobs para una categoría
+   * Obtener conteo de jobs para una categorÃƒÆ’Ã‚Â­a
    * 
-   * @param int $categoryId ID de la categoría
-   * @return int Número de jobs asociados
+   * @param int $categoryId ID de la categorÃƒÆ’Ã‚Â­a
+   * @return int NÃƒÆ’Ã‚Âºmero de jobs asociados
    */
   private function getJobsCountForCategory(int $categoryId): int
   {
@@ -311,28 +308,28 @@ class JobCategory extends BaseModel
   }
 
   /**
-   * Validar datos de categoría
+   * Validar datos de categorÃƒÆ’Ã‚Â­a
    * 
    * @param array $data Datos a validar
-   * @param bool $isCreation Si es una creación (requiere todos los campos)
-   * @throws \InvalidArgumentException Si los datos no son válidos
+   * @param bool $isCreation Si es una creaciÃƒÆ’Ã‚Â³n (requiere todos los campos)
+   * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
    */
   private function validateCategoryData(array $data, bool $isCreation = true): void
   {
     if ($isCreation && empty($data['name'])) {
-      throw new \InvalidArgumentException('El nombre de la categoría es requerido');
+      throw new \InvalidArgumentException('El nombre de la categorÃƒÆ’Ã‚Â­a es requerido');
     }
 
     if (isset($data['name']) && strlen(trim($data['name'])) < 2) {
-      throw new \InvalidArgumentException('El nombre de la categoría debe tener al menos 2 caracteres');
+      throw new \InvalidArgumentException('El nombre de la categorÃƒÆ’Ã‚Â­a debe tener al menos 2 caracteres');
     }
 
     if (isset($data['parent_id']) && !is_null($data['parent_id']) && $data['parent_id'] <= 0) {
-      throw new \InvalidArgumentException('El parent_id debe ser un número positivo o null');
+      throw new \InvalidArgumentException('El parent_id debe ser un nÃƒÆ’Ã‚Âºmero positivo o null');
     }
 
     if (isset($data['sort_order']) && !is_numeric($data['sort_order'])) {
-      throw new \InvalidArgumentException('El sort_order debe ser un número');
+      throw new \InvalidArgumentException('El sort_order debe ser un nÃƒÆ’Ã‚Âºmero');
     }
   }
 }

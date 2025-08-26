@@ -1,9 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -39,13 +34,13 @@ use Utils\RequestId;
 use Utils\Log;
 use Domain\CvSchema;
 
-// Autoload (por si no lo cargÃ³ bootstrap)
+// Autoload (por si no lo cargÃƒÂ³ bootstrap)
 $autoload = BASE_PATH . '/vendor/autoload.php';
 if (is_file($autoload)) {
     require_once $autoload;
 }
 
-// ===== MÃ©tricas
+// ===== MÃƒÂ©tricas
 $__cv_parse_start = microtime(true);
 $__cv_parse_sub   = ['upload_ms' => 0, 'extract_ms' => 0, 'ai_ms' => 0];
 
@@ -78,14 +73,14 @@ function respondError(int $status, string $code, string $message, array $details
     ]);
 }
 
-// ===== CORS / MÃ©todo / Rate limiting
+// ===== CORS / MÃƒÂ©todo / Rate limiting
 if (PHP_SAPI !== 'cli') {
     if (class_exists(Cors::class)) {
         Cors::enforce(['POST', 'OPTIONS']);
     }
     $method = $_SERVER['REQUEST_METHOD'] ?? 'CLI';
     if ($method !== 'POST') {
-        respondError(405, 'METHOD_NOT_ALLOWED', 'MÃ©todo no permitido');
+        respondError(405, 'METHOD_NOT_ALLOWED', 'MÃƒÂ©todo no permitido');
     }
     if (class_exists(RateLimiter::class)) {
         RateLimiter::enforceForRoute('/api/cv/parse');
@@ -95,7 +90,7 @@ if (class_exists(RequestId::class)) {
     RequestId::init();
 }
 
-// ===== PolÃ­tica â€œsolo manualâ€
+// ===== PolÃƒÂ­tica Ã¢â‚¬Å“solo manualÃ¢â‚¬Â
 $manualOnly = getenv('CV_ALLOW_MANUAL_ONLY') === 'true' || (($_ENV['CV_ALLOW_MANUAL_ONLY'] ?? '') === 'true');
 if ($manualOnly) {
     $normalized = class_exists(CvSchema::class) ? CvSchema::normalize(CvSchema::TEMPLATE) : [];
@@ -113,7 +108,7 @@ if ($manualOnly) {
     ]);
 }
 
-// ===== ValidaciÃ³n subida
+// ===== ValidaciÃƒÂ³n subida
 if (!isset($_FILES['file'])) {
     respondError(400, 'MISSING_FILE', "Archivo requerido (campo 'file')");
 }
@@ -123,7 +118,7 @@ if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
 }
 $maxBytes = (int) (getenv('CV_MAX_UPLOAD_BYTES') ?: 5242880); // 5MB
 if (($file['size'] ?? 0) > $maxBytes) {
-    respondError(413, 'MAX_SIZE_EXCEEDED', 'TamaÃ±o mÃ¡ximo ' . number_format($maxBytes / 1048576, 1) . 'MB');
+    respondError(413, 'MAX_SIZE_EXCEEDED', 'TamaÃƒÂ±o mÃƒÂ¡ximo ' . number_format($maxBytes / 1048576, 1) . 'MB');
 }
 $originalName = (string) ($file['name'] ?? '');
 $extension    = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
@@ -166,7 +161,7 @@ try {
     $pdfDoc = $parser->parseFile($safePath);
     $extractedText = trim((string) $pdfDoc->getText());
 
-    // limpieza bÃ¡sica
+    // limpieza bÃƒÂ¡sica
     $extractedText = preg_replace('/[^\PC\s]/u', ' ', $extractedText) ?? $extractedText;
     $extractedText = preg_replace('/[ \t]{2,}/', ' ', $extractedText) ?? $extractedText;
 } catch (\Throwable $e) {
@@ -210,7 +205,7 @@ if (!preg_match('~/openai/v1$~', $baseNorm)) {
 $url = $baseNorm . '/chat/completions';
 
 $system = <<<PROMPT
-Eres un extractor de CV. Devuelve SOLO JSON vÃ¡lido con la estructura:
+Eres un extractor de CV. Devuelve SOLO JSON vÃƒÂ¡lido con la estructura:
 {
   "name": string,
   "email": string,
@@ -229,12 +224,12 @@ $payload = json_encode([
         ['role' => 'system', 'content' => $system],
         ['role' => 'user',   'content' => $extractedText],
     ],
-    // 'response_format' => ['type' => 'json_object'], // ActÃ­valo si tu endpoint lo soporta
+    // 'response_format' => ['type' => 'json_object'], // ActÃƒÂ­valo si tu endpoint lo soporta
 ], JSON_UNESCAPED_UNICODE);
 
 $tAi = microtime(true);
 
-// â€”â€”â€” Reintentos con timeout â€”â€”â€”
+// Ã¢â‚¬â€Ã¢â‚¬â€Ã¢â‚¬â€ Reintentos con timeout Ã¢â‚¬â€Ã¢â‚¬â€Ã¢â‚¬â€
 $raw = false;
 $lastErr = null;
 $lastHttp = 0;
@@ -256,7 +251,7 @@ for ($i = 1; $i <= $retries; $i++) {
     $lastHttp = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    // Salimos si respondiÃ³ bien (cÃ³digo < 500 y sin error de cURL)
+    // Salimos si respondiÃƒÂ³ bien (cÃƒÂ³digo < 500 y sin error de cURL)
     if ($raw !== false && $lastHttp > 0 && $lastHttp < 500) {
         break;
     }
@@ -290,7 +285,7 @@ if ($raw === false || !$lastHttp) {
     ]);
 }
 
-// â€”â€”â€” Parseo de respuesta Groq â€”â€”â€”
+// Ã¢â‚¬â€Ã¢â‚¬â€Ã¢â‚¬â€ Parseo de respuesta Groq Ã¢â‚¬â€Ã¢â‚¬â€Ã¢â‚¬â€
 $resp = json_decode($raw, true);
 if (!is_array($resp) || $lastHttp >= 400) {
     respondError(422, 'UPSTREAM_ERROR', 'Error del proveedor LLM', ['status' => $lastHttp, 'body' => $resp]);
@@ -305,6 +300,6 @@ if ($parsed === null) {
     }
 }
 if (!is_array($parsed)) {
-    respondError(422, 'INVALID_LLM_JSON', 'El LLM no devolviÃ³ JSON vÃ¡lido', ['raw' => $content]);
+    respondError(422, 'INVALID_LLM_JSON', 'El LLM no devolviÃƒÂ³ JSON vÃƒÂ¡lido', ['raw' => $content]);
 }
 

@@ -1,16 +1,13 @@
-<?php
-
-declare(strict_types=1);
-
-namespace Security;
+<?php declare(strict_types=1);
+namespace Security\CsrfMiddleware.php\Security;
 
 /**
- * CSRF Middleware - Protección contra Cross-Site Request Forgery
+ * CSRF Middleware - ProtecciÃƒÂ³n contra Cross-Site Request Forgery
  * 
- * Implementa el patrón "double-submit cookie":
+ * Implementa el patrÃƒÂ³n "double-submit cookie":
  * - Cookie XSRF-TOKEN (legible por JS)
  * - Header X-CSRF-Token (enviado por JS)
- * - Validación que ambos coincidan
+ * - ValidaciÃƒÂ³n que ambos coincidan
  * 
  * @package Security
  * @author Bubble Talents Development Team
@@ -19,7 +16,7 @@ namespace Security;
 final class CsrfMiddleware
 {
   /**
-   * Métodos HTTP que requieren validación CSRF
+   * MÃƒÂ©todos HTTP que requieren validaciÃƒÂ³n CSRF
    */
   private const PROTECTED_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
 
@@ -44,7 +41,7 @@ final class CsrfMiddleware
     // Establecer cookie CSRF (NO httpOnly para que JS pueda leerla)
     $cookieOptions = Cookies::options([
       'httponly' => false, // Debe ser legible por JavaScript
-      'samesite' => 'Strict', // Más restrictivo para CSRF
+      'samesite' => 'Strict', // MÃƒÂ¡s restrictivo para CSRF
     ]);
 
     setcookie(self::CSRF_COOKIE_NAME, $csrfToken, $cookieOptions);
@@ -59,9 +56,9 @@ final class CsrfMiddleware
   {
     $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-    // Solo validar métodos que pueden modificar estado
+    // Solo validar mÃƒÂ©todos que pueden modificar estado
     if (!in_array($method, self::PROTECTED_METHODS, true)) {
-      return true; // GET, HEAD, OPTIONS están libres
+      return true; // GET, HEAD, OPTIONS estÃƒÂ¡n libres
     }
 
     // Obtener tokens de cookie y header
@@ -73,14 +70,14 @@ final class CsrfMiddleware
       return false;
     }
 
-    // Comparación segura contra timing attacks
+    // ComparaciÃƒÂ³n segura contra timing attacks
     return hash_equals($cookieToken, $headerToken);
   }
 
   /**
-   * Middleware de protección CSRF
+   * Middleware de protecciÃƒÂ³n CSRF
    * 
-   * Valida el token CSRF y envía 403 si es inválido
+   * Valida el token CSRF y envÃƒÂ­a 403 si es invÃƒÂ¡lido
    */
   public static function protect(): void
   {
@@ -90,7 +87,7 @@ final class CsrfMiddleware
   }
 
   /**
-   * Verificar si el método actual requiere protección CSRF
+   * Verificar si el mÃƒÂ©todo actual requiere protecciÃƒÂ³n CSRF
    */
   public static function requiresProtection(): bool
   {
@@ -107,7 +104,7 @@ final class CsrfMiddleware
   }
 
   /**
-   * Eliminar cookie CSRF (útil en logout)
+   * Eliminar cookie CSRF (ÃƒÂºtil en logout)
    */
   public static function clearToken(): void
   {

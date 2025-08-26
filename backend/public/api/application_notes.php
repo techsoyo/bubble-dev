@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 
 use Security\CsrfMiddleware;
@@ -18,7 +15,7 @@ if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
   CsrfMiddleware::protect();
 }
 
-// En producción NO aceptar Authorization header (solo cookie)
+// En producciÃ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
   if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
     http_response_code(401);
@@ -36,9 +33,9 @@ try {
           'application_id' => 'required|string:1,36'
         ]);
         if (!$ok) {
-          Res::fail('Validación fallida', 422, ['errors' => $errs]);
+          Res::fail('ValidaciÃ³n fallida', 422, ['errors' => $errs]);
         }
-        // Ownership: aquí podrías validar que el usuario tiene acceso a la aplicación
+        // Ownership: aquÃ­ podrÃ­as validar que el usuario tiene acceso a la aplicaciÃ³n
         $notes = $noteModel->findByApplicationId($applicationId);
         Res::success('OK', ['items' => $notes]);
         break;
@@ -51,9 +48,9 @@ try {
           'note'           => 'required|string:1,1000'
         ]);
         if (!$ok) {
-          Res::fail('Validación fallida', 422, ['errors' => $errs]);
+          Res::fail('ValidaciÃ³n fallida', 422, ['errors' => $errs]);
         }
-        // Ownership: aquí podrías validar que el usuario tiene acceso a la aplicación
+        // Ownership: aquÃ­ podrÃ­as validar que el usuario tiene acceso a la aplicaciÃ³n
         $existingNotes = $noteModel->findByApplicationId($input['application_id']);
         $nextIdx = 0;
         foreach ($existingNotes as $n) {
@@ -72,7 +69,7 @@ try {
         break;
       }
     default:
-      Res::fail('Método no permitido', 405);
+      Res::fail('MÃ©todo no permitido', 405);
   }
 } catch (\Throwable $e) {
   Res::error('Error interno del servidor', $e, 500);

@@ -1,6 +1,4 @@
-<?php
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -17,13 +15,13 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// Proteger solo mÃ©todos que cambian estado
+// Proteger solo mÃƒÂ©todos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
     // double-submit cookie
 }
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
         http_response_code(401);
@@ -68,13 +66,13 @@ try {
     
     if (!$email) {
         http_response_code(400);
-        Res::error('Email invÃƒÆ’Ã‚Â¡lido', 400);
+        Res::error('Email invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido', 400);
         exit;
     }
     
     if (strlen($password) < 6) {
         http_response_code(400);
-        Res::error('La contraseÃƒÆ’Ã‚Â±a debe tener al menos 6 caracteres', 400);
+        Res::error('La contraseÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â±a debe tener al menos 6 caracteres', 400);
         exit;
     }
     
@@ -133,7 +131,7 @@ try {
         $existingUser = $userModel->findByEmail($email);
         if ($existingUser) {
             http_response_code(409);
-            Res::error('El usuario ya existe. Usa la opciÃƒÆ’Ã‚Â³n de login.', 409);
+            Res::error('El usuario ya existe. Usa la opciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de login.', 409);
             exit;
         }
         
@@ -187,7 +185,7 @@ try {
 } catch (Exception $e) {
     error_log("Candidate Auth Error: " . $e->getMessage());
     http_response_code(500);
-    Res::error('Error en autenticaciÃƒÆ’Ã‚Â³n de candidato', 500);
+    Res::error('Error en autenticaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de candidato', 500);
 }
 ?>
 

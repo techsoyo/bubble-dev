@@ -1,6 +1,4 @@
-<?php
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -17,13 +15,13 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// Proteger solo mÃ©todos que cambian estado
+// Proteger solo mÃƒÂ©todos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
     // double-submit cookie
 }
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
         http_response_code(401);
@@ -38,10 +36,10 @@ declare(strict_types=1);
 
 /**
  * Endpoint: POST /api/cv/ingest
- * Pipeline completo: CV Upload ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Parse ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Match ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Route
+ * Pipeline completo: CV Upload ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ Parse ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ Match ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ Route
  * 
  * Input: multipart/form-data con archivo 'cv' + metadata JSON
- * Output: candidato procesado, score, y ruteo automÃƒÆ’Ã‚Â¡tico
+ * Output: candidato procesado, score, y ruteo automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡tico
  */
 
 use Services\CV\AdvancedCVParser;
@@ -90,7 +88,7 @@ try {
   // PASO 3: Guardar candidato (mock)
   $candidateId = 'cand_' . uniqid();
 
-  // PASO 4: Ruteo automÃƒÆ’Ã‚Â¡tico (mock)
+  // PASO 4: Ruteo automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡tico (mock)
   $assignedRecruiter = $candidateData['categoria'] === 'Frontend Developer' ? 'recruiter_frontend' : 'recruiter_general';
 
   // Response

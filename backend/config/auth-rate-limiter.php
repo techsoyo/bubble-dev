@@ -1,19 +1,18 @@
-<?php
-
+<?php declare(strict_types=1);
 /**
- * Sistema de Rate Limiting para autenticación
+ * Sistema de Rate Limiting para autenticaciÃ³n
  * Protege contra ataques de fuerza bruta
  */
 
-// Inicializar sesión INMEDIATAMENTE
+// Inicializar sesiÃ³n INMEDIATAMENTE
 session_start();
 
-// Parámetros
+// ParÃ¡metros
 define('RATE_LIMIT_MAX_ATTEMPTS', 5);
 define('RATE_LIMIT_WINDOW_SECONDS', 300);
 
 /**
- * Inicializar verificación de rate limiting
+ * Inicializar verificaciÃ³n de rate limiting
  */
 function rate_limit_init(string $ip): void
 {
@@ -27,7 +26,7 @@ function rate_limit_init(string $ip): void
 }
 
 /**
- * Registrar un intento fallido - Retorna false si supera el límite
+ * Registrar un intento fallido - Retorna false si supera el lÃ­mite
  */
 function rate_limit_register_failure(string $ip): bool
 {
@@ -44,7 +43,7 @@ function rate_limit_register_failure(string $ip): bool
   // Incrementa contador de fallos
   $entry['count']++;
 
-  // Si excede máximo de fallos, bloquea
+  // Si excede mÃ¡ximo de fallos, bloquea
   if ($entry['count'] > RATE_LIMIT_MAX_ATTEMPTS) {
     return false;
   }
@@ -56,37 +55,37 @@ class AuthRateLimiter
   private static $attempts = [];
   private static $lockouts = [];
 
-  // Configuración
+  // ConfiguraciÃ³n
   const MAX_ATTEMPTS = 5;
   const LOCKOUT_TIME = 300; // 5 minutos
   const ATTEMPT_WINDOW = 900; // 15 minutos
 
   /**
-   * Verificar si una IP está permitida para intentar login
+   * Verificar si una IP estÃ¡ permitida para intentar login
    */
   public static function isAllowed($ip)
   {
     // Limpiar intentos antiguos
     self::cleanOldAttempts($ip);
 
-    // Verificar si está bloqueado
+    // Verificar si estÃ¡ bloqueado
     if (isset(self::$lockouts[$ip])) {
       if (time() < self::$lockouts[$ip]) {
-        return false; // Aún bloqueado
+        return false; // AÃºn bloqueado
       } else {
         unset(self::$lockouts[$ip]); // Desbloquear
         self::$attempts[$ip] = []; // Resetear intentos
       }
     }
 
-    // Verificar número de intentos
+    // Verificar nÃºmero de intentos
     $attempts = self::getAttempts($ip);
     return count($attempts) < self::MAX_ATTEMPTS;
   }
 
   /**
    * Registrar un intento fallido
-   * @return int El número actual de intentos tras incrementarlo
+   * @return int El nÃºmero actual de intentos tras incrementarlo
    */
   public static function recordFailedAttempt($ip): int
   {
@@ -97,7 +96,7 @@ class AuthRateLimiter
     self::$attempts[$ip][] = time();
     $currentAttempts = count(self::$attempts[$ip]);
 
-    // Si excede el límite, bloquear
+    // Si excede el lÃ­mite, bloquear
     if ($currentAttempts >= self::MAX_ATTEMPTS) {
       self::$lockouts[$ip] = time() + self::LOCKOUT_TIME;
 
@@ -109,7 +108,7 @@ class AuthRateLimiter
   }
 
   /**
-   * Resetear intentos después de login exitoso
+   * Resetear intentos despuÃ©s de login exitoso
    */
   public static function resetAttempts($ip)
   {
@@ -156,7 +155,7 @@ class AuthRateLimiter
   }
 
   /**
-   * Obtener información de estado para debugging
+   * Obtener informaciÃ³n de estado para debugging
    */
   public static function getStatus($ip)
   {
@@ -171,13 +170,13 @@ class AuthRateLimiter
 }
 
 /**
- * Middleware de rate limiting para endpoints de autenticación
+ * Middleware de rate limiting para endpoints de autenticaciÃ³n
  */
 function applyRateLimiting()
 {
   $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
-  // Verificar si la IP está permitida
+  // Verificar si la IP estÃ¡ permitida
   if (!AuthRateLimiter::isAllowed($ip)) {
     $remaining = AuthRateLimiter::getRemainingLockoutTime($ip);
 
@@ -211,7 +210,7 @@ function recordFailedLogin(?string $ip = null): bool
 {
   $ip = $ip ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
-  // Usar las funciones de sesión, NO la clase AuthRateLimiter
+  // Usar las funciones de sesiÃ³n, NO la clase AuthRateLimiter
   rate_limit_init($ip);
   $entry = &$_SESSION['rate_limit'][$ip];
   $now = time();
@@ -226,7 +225,7 @@ function recordFailedLogin(?string $ip = null): bool
   // DEBUG: Log para verificar el contador
   error_log("RateLimit[$ip] count={$entry['count']} start={$entry['start']} max=" . RATE_LIMIT_MAX_ATTEMPTS);
 
-  // Si supera el máximo, bloquea
+  // Si supera el mÃ¡ximo, bloquea
   $result = ($entry['count'] <= RATE_LIMIT_MAX_ATTEMPTS);
   error_log("RateLimit[$ip] resultado: " . ($result ? 'PERMITIR' : 'BLOQUEAR'));
 
@@ -239,7 +238,7 @@ function recordSuccessfulLogin($ip = null)
 {
   $ip = $ip ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
-  // Resetear en sesión
+  // Resetear en sesiÃ³n
   if (isset($_SESSION['rate_limit'][$ip])) {
     unset($_SESSION['rate_limit'][$ip]);
   }

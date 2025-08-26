@@ -1,10 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 // @public
 
 /**
- * Endpoint de verificación de salud del sistema
+ * Endpoint de verificaciÃ³n de salud del sistema
  *
- * Usado para confirmar que el sistema está funcionando correctamente
+ * Usado para confirmar que el sistema estÃ¡ funcionando correctamente
  */
 
 require_once dirname(__DIR__) . '/bootstrap.php';

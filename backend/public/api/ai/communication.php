@@ -1,6 +1,4 @@
-<?php
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -17,13 +15,13 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// Proteger solo mÃ©todos que cambian estado
+// Proteger solo mÃƒÂ©todos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
     // double-submit cookie
 }
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
         http_response_code(401);
@@ -36,8 +34,8 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
 /**
  * Communication Automation API Endpoint
  *
- * Endpoint para generaciÃƒÆ’Ã‚Â³n automÃƒÆ’Ã‚Â¡tica de emails, comunicaciÃƒÆ’Ã‚Â³n
- * personalizada y automatizaciÃƒÆ’Ã‚Â³n de respuestas.
+ * Endpoint para generaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡tica de emails, comunicaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
+ * personalizada y automatizaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de respuestas.
  *
  * @package Backend\API\AI
  * @version 1.0.0
@@ -67,7 +65,7 @@ use Services\CommunicationService;
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['error' => 'MÃƒÆ’Ã‚Â©todo no permitido']);
+    echo json_encode(['error' => 'MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©todo no permitido']);
     exit;
 }
 
@@ -76,7 +74,7 @@ try {
 
     if (!$input) {
         http_response_code(400);
-        echo json_encode(['error' => 'Datos JSON invÃƒÆ’Ã‚Â¡lidos']);
+        echo json_encode(['error' => 'Datos JSON invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lidos']);
         exit;
     }
 
@@ -109,7 +107,7 @@ try {
             break;
 
         case 'application_response':
-            // Respuesta automÃƒÆ’Ã‚Â¡tica a aplicaciÃƒÆ’Ã‚Â³n
+            // Respuesta automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡tica a aplicaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
             if (!isset($input['candidate_data']) || !isset($input['job_data'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Faltan candidate_data o job_data']);
@@ -155,7 +153,7 @@ try {
             break;
 
         case 'interview_invitation':
-            // InvitaciÃƒÆ’Ã‚Â³n a entrevista
+            // InvitaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n a entrevista
             if (!isset($input['candidate_data']) || !isset($input['job_data'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Faltan candidate_data o job_data']);
@@ -203,7 +201,7 @@ try {
             break;
 
         case 'status_update':
-            // ActualizaciÃƒÆ’Ã‚Â³n de estado
+            // ActualizaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de estado
             if (!isset($input['candidate_data']) || !isset($input['job_data']) || !isset($input['new_status'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Faltan candidate_data, job_data o new_status']);
@@ -247,7 +245,7 @@ try {
             break;
 
         case 'schedule_emails':
-            // Programar emails automÃƒÆ’Ã‚Â¡ticos
+            // Programar emails automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ticos
             if (!isset($input['candidate_data']) || !isset($input['job_data']) || !isset($input['triggers'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Faltan candidate_data, job_data o triggers']);
@@ -305,7 +303,7 @@ try {
         default:
             http_response_code(400);
             echo json_encode([
-                'error' => 'AcciÃƒÆ’Ã‚Â³n no vÃƒÆ’Ã‚Â¡lida',
+                'error' => 'AcciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n no vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lida',
                 'valid_actions' => [
                     'generate_email',
                     'application_response',

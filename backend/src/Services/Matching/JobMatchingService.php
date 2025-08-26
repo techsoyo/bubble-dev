@@ -1,29 +1,28 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Services\Matching;
 
 /**
  * Servicio para el matching entre candidatos y ofertas de trabajo
- * Implementación en PHP puro sin dependencias externas
+ * ImplementaciÃƒÂ³n en PHP puro sin dependencias externas
  */
 class JobMatchingService
 {
     /**
-     * Evalúa la coincidencia entre un candidato y una oferta de trabajo
+     * EvalÃƒÂºa la coincidencia entre un candidato y una oferta de trabajo
      *
      * @param array $candidateData Datos del candidato
      * @param array $jobData Datos de la oferta de trabajo
-     * @return array Resultado de la evaluación
+     * @return array Resultado de la evaluaciÃƒÂ³n
      */
     public function evaluateMatch($candidateData, $jobData)
     {
-        // Calcular coincidencias por categorías
+        // Calcular coincidencias por categorÃƒÂ­as
         $skillsMatch = $this->calculateSkillsMatch($candidateData, $jobData);
         $experienceMatch = $this->calculateExperienceMatch($candidateData, $jobData);
         $educationMatch = $this->calculateEducationMatch($candidateData, $jobData);
         $languageMatch = $this->calculateLanguageMatch($candidateData, $jobData);
 
-        // Ponderación para el puntaje final
+        // PonderaciÃƒÂ³n para el puntaje final
         $weights = [
           'skills' => 0.4,
           'experience' => 0.3,
@@ -44,27 +43,27 @@ class JobMatchingService
         $weaknesses = [];
 
         if ($skillsMatch['percentage'] >= 70) {
-            $strengths[] = 'Habilidades técnicas adecuadas para el puesto';
+            $strengths[] = 'Habilidades tÃƒÂ©cnicas adecuadas para el puesto';
         } else {
-            $weaknesses[] = 'Habilidades técnicas que pueden necesitar desarrollo';
+            $weaknesses[] = 'Habilidades tÃƒÂ©cnicas que pueden necesitar desarrollo';
         }
 
         if ($experienceMatch['percentage'] >= 70) {
-            $strengths[] = 'Experiencia relevante para la posición';
+            $strengths[] = 'Experiencia relevante para la posiciÃƒÂ³n';
         } else {
-            $weaknesses[] = 'Podría necesitar más experiencia en el sector';
+            $weaknesses[] = 'PodrÃƒÂ­a necesitar mÃƒÂ¡s experiencia en el sector';
         }
 
         if ($educationMatch['percentage'] >= 70) {
-            $strengths[] = 'Formación académica adecuada';
+            $strengths[] = 'FormaciÃƒÂ³n acadÃƒÂ©mica adecuada';
         } else {
-            $weaknesses[] = 'Podría beneficiarse de formación adicional';
+            $weaknesses[] = 'PodrÃƒÂ­a beneficiarse de formaciÃƒÂ³n adicional';
         }
 
         if ($languageMatch['percentage'] >= 70) {
             $strengths[] = 'Cumple con los requisitos de idiomas';
         } else {
-            $weaknesses[] = 'Podría mejorar sus habilidades lingüísticas';
+            $weaknesses[] = 'PodrÃƒÂ­a mejorar sus habilidades lingÃƒÂ¼ÃƒÂ­sticas';
         }
 
         // Generar recomendaciones
@@ -102,7 +101,7 @@ class JobMatchingService
         foreach ($jobSkills as $jobSkill) {
             $found = false;
             foreach ($candidateSkills as $candidateSkill) {
-                // Comparar normalizado para mayor precisión
+                // Comparar normalizado para mayor precisiÃƒÂ³n
                 if ($this->areSkillsRelated($jobSkill, $candidateSkill)) {
                     $matches[] = $jobSkill;
                     $found = true;
@@ -125,11 +124,11 @@ class JobMatchingService
     }
 
     /**
-     * Determina si dos habilidades están relacionadas o son equivalentes
+     * Determina si dos habilidades estÃƒÂ¡n relacionadas o son equivalentes
      */
     private function areSkillsRelated($skill1, $skill2)
     {
-        // Normalizar skills para comparación
+        // Normalizar skills para comparaciÃƒÂ³n
         $skill1 = $this->normalizeText($skill1);
         $skill2 = $this->normalizeText($skill2);
 
@@ -143,7 +142,7 @@ class JobMatchingService
             return true;
         }
 
-        // Verificar acrónimos comunes
+        // Verificar acrÃƒÂ³nimos comunes
         $acronyms = [
           'js' => 'javascript',
           'ts' => 'typescript',
@@ -155,7 +154,7 @@ class JobMatchingService
           'xd' => 'adobe xd'
         ];
 
-        // Normalizar con acrónimos
+        // Normalizar con acrÃƒÂ³nimos
         $skill1Normalized = isset($acronyms[$skill1]) ? $acronyms[$skill1] : $skill1;
         $skill2Normalized = isset($acronyms[$skill2]) ? $acronyms[$skill2] : $skill2;
 
@@ -168,7 +167,7 @@ class JobMatchingService
             return true;
         }
 
-        // Agrupaciones de tecnologías relacionadas
+        // Agrupaciones de tecnologÃƒÂ­as relacionadas
         $relatedSkills = [
           ['html', 'css', 'web', 'frontend'],
           ['javascript', 'typescript', 'ecmascript'],
@@ -196,13 +195,13 @@ class JobMatchingService
      */
     private function calculateExperienceMatch($candidateData, $jobData)
     {
-        // Extraer años de experiencia del candidato
+        // Extraer aÃƒÂ±os de experiencia del candidato
         $yearsOfExperience = $this->calculateYearsOfExperience($candidateData);
 
         // Extraer requisitos de experiencia del trabajo
         $requiredYears = $this->extractRequiredYearsOfExperience($jobData);
 
-        // Si no hay requisito específico, se considera cumplido
+        // Si no hay requisito especÃƒÂ­fico, se considera cumplido
         if ($requiredYears === 0) {
             return ['percentage' => 100, 'candidate_years' => $yearsOfExperience, 'required_years' => 0];
         }
@@ -218,7 +217,7 @@ class JobMatchingService
     }
 
     /**
-     * Calcula la coincidencia de formación educativa
+     * Calcula la coincidencia de formaciÃƒÂ³n educativa
      */
     private function calculateEducationMatch($candidateData, $jobData)
     {
@@ -240,12 +239,12 @@ class JobMatchingService
           'doctorado' => 5
         ];
 
-        // Si no hay requisito específico, se considera cumplido
+        // Si no hay requisito especÃƒÂ­fico, se considera cumplido
         if ($requiredEducationLevel === 'ninguno') {
             return ['percentage' => 100, 'candidate_level' => $candidateEducationLevel, 'required_level' => $requiredEducationLevel];
         }
 
-        // Obtener valores numéricos de los niveles
+        // Obtener valores numÃƒÂ©ricos de los niveles
         $candidateValue = $educationLevels[$candidateEducationLevel] ?? 0;
         $requiredValue = $educationLevels[$requiredEducationLevel] ?? 0;
 
@@ -282,7 +281,7 @@ class JobMatchingService
         // Extraer idiomas requeridos para el trabajo
         $requiredLanguages = $this->extractRequiredLanguages($jobData);
 
-        // Si no hay requisito específico, se considera cumplido
+        // Si no hay requisito especÃƒÂ­fico, se considera cumplido
         if (empty($requiredLanguages)) {
             return ['percentage' => 100, 'matches' => [], 'missing' => []];
         }
@@ -291,7 +290,7 @@ class JobMatchingService
         $languageLevels = [
           '' => 0,
           'basico' => 1,
-          'básico' => 1,
+          'bÃƒÂ¡sico' => 1,
           'elemental' => 1,
           'a1' => 1,
           'a2' => 2,
@@ -303,7 +302,7 @@ class JobMatchingService
           'c2' => 6,
           'nativo' => 7,
           'bilingue' => 7,
-          'bilingüe' => 7
+          'bilingÃƒÂ¼e' => 7
         ];
 
         $matches = [];
@@ -341,11 +340,11 @@ class JobMatchingService
     }
 
     /**
-     * Determina si dos idiomas están relacionados o son equivalentes
+     * Determina si dos idiomas estÃƒÂ¡n relacionados o son equivalentes
      */
     private function areLanguagesRelated($lang1, $lang2)
     {
-        // Normalizar idiomas para comparación
+        // Normalizar idiomas para comparaciÃƒÂ³n
         $lang1 = $this->normalizeText($lang1);
         $lang2 = $this->normalizeText($lang2);
 
@@ -356,13 +355,13 @@ class JobMatchingService
 
         // Equivalencias de idiomas
         $equivalences = [
-          'espanol' => ['spanish', 'castellano', 'español'],
-          'ingles' => ['english', 'inglés'],
-          'frances' => ['french', 'francés'],
-          'aleman' => ['german', 'alemán'],
+          'espanol' => ['spanish', 'castellano', 'espaÃƒÂ±ol'],
+          'ingles' => ['english', 'inglÃƒÂ©s'],
+          'frances' => ['french', 'francÃƒÂ©s'],
+          'aleman' => ['german', 'alemÃƒÂ¡n'],
           'italiano' => ['italian'],
-          'portugues' => ['portuguese', 'portugués'],
-          'catalan' => ['catalán', 'catala']
+          'portugues' => ['portuguese', 'portuguÃƒÂ©s'],
+          'catalan' => ['catalÃƒÂ¡n', 'catala']
         ];
 
         // Verificar equivalencias
@@ -397,7 +396,7 @@ class JobMatchingService
             $skills = array_merge($skills, $candidateData['habilidades']);
         }
 
-        // Si está en otro formato, adaptarlo
+        // Si estÃƒÂ¡ en otro formato, adaptarlo
         if (empty($skills) && isset($candidateData['skills']) && is_string($candidateData['skills'])) {
             $skills = array_map('trim', explode(',', $candidateData['skills']));
         }
@@ -426,9 +425,9 @@ class JobMatchingService
             $skills = array_merge($skills, $jobData['tecnologias']);
         }
 
-        // Si está en otro formato, adaptarlo
+        // Si estÃƒÂ¡ en otro formato, adaptarlo
         if (empty($skills) && isset($jobData['requisitos']) && is_string($jobData['requisitos'])) {
-            // Extraer skills de la descripción de requisitos
+            // Extraer skills de la descripciÃƒÂ³n de requisitos
             preg_match_all('/\b(?:HTML|CSS|JavaScript|TypeScript|React|Angular|Vue|Node|PHP|Python|Java|C#|\.NET|SQL|MySQL|PostgreSQL|MongoDB|AWS|Azure|Docker|Git|Photoshop|Illustrator|InDesign|Figma|Sketch|XD|WordPress|SEO|SEM)\b/i', $jobData['requisitos'], $matches);
             $skills = array_merge($skills, $matches[0]);
         }
@@ -438,7 +437,7 @@ class JobMatchingService
     }
 
     /**
-     * Calcula los años de experiencia del candidato
+     * Calcula los aÃƒÂ±os de experiencia del candidato
      */
     private function calculateYearsOfExperience($candidateData)
     {
@@ -461,7 +460,7 @@ class JobMatchingService
     }
 
     /**
-     * Extrae los años de experiencia requeridos para el trabajo
+     * Extrae los aÃƒÂ±os de experiencia requeridos para el trabajo
      */
     private function extractRequiredYearsOfExperience($jobData)
     {
@@ -471,15 +470,15 @@ class JobMatchingService
             if (is_numeric($jobData['experiencia_requerida'])) {
                 $requiredYears = (float)$jobData['experiencia_requerida'];
             } else {
-                // Intentar extraer años de una cadena de texto
-                preg_match('/(\d+)[\s]*(?:año|anio|year)/i', $jobData['experiencia_requerida'], $matches);
+                // Intentar extraer aÃƒÂ±os de una cadena de texto
+                preg_match('/(\d+)[\s]*(?:aÃƒÂ±o|anio|year)/i', $jobData['experiencia_requerida'], $matches);
                 if (isset($matches[1])) {
                     $requiredYears = (float)$matches[1];
                 }
             }
         } elseif (isset($jobData['requisitos']) && is_string($jobData['requisitos'])) {
-            // Buscar referencias a años de experiencia en los requisitos
-            preg_match('/(?:con|al menos|mínimo|minimo|se requiere)[\s]*(\d+)[\s]*(?:año|anio|year)/i', $jobData['requisitos'], $matches);
+            // Buscar referencias a aÃƒÂ±os de experiencia en los requisitos
+            preg_match('/(?:con|al menos|mÃƒÂ­nimo|minimo|se requiere)[\s]*(\d+)[\s]*(?:aÃƒÂ±o|anio|year)/i', $jobData['requisitos'], $matches);
             if (isset($matches[1])) {
                 $requiredYears = (float)$matches[1];
             }
@@ -495,11 +494,11 @@ class JobMatchingService
     {
         $educationKeywords = [
           'doctorado' => ['doctorado', 'phd', 'doctor', 'ph.d'],
-          'master' => ['master', 'máster', 'maestría', 'maestria', 'mba'],
+          'master' => ['master', 'mÃƒÂ¡ster', 'maestrÃƒÂ­a', 'maestria', 'mba'],
           'postgrado' => ['postgrado', 'postgrad', 'posgrado'],
           'licenciatura' => ['licenciatura', 'licenciado', 'grado', 'graduado'],
           'grado' => ['grado universitario', 'degree', 'diplomatura'],
-          'tecnico' => ['tecnico', 'técnico', 'fp', 'formación profesional', 'ciclo formativo'],
+          'tecnico' => ['tecnico', 'tÃƒÂ©cnico', 'fp', 'formaciÃƒÂ³n profesional', 'ciclo formativo'],
           'secundaria' => ['bachillerato', 'secundaria', 'high school', 'eso']
         ];
 
@@ -545,11 +544,11 @@ class JobMatchingService
     {
         $educationKeywords = [
           'doctorado' => ['doctorado', 'phd', 'doctor', 'ph.d'],
-          'master' => ['master', 'máster', 'maestría', 'maestria', 'mba'],
+          'master' => ['master', 'mÃƒÂ¡ster', 'maestrÃƒÂ­a', 'maestria', 'mba'],
           'postgrado' => ['postgrado', 'postgrad', 'posgrado'],
           'licenciatura' => ['licenciatura', 'licenciado', 'grado', 'graduado'],
           'grado' => ['grado universitario', 'degree', 'diplomatura'],
-          'tecnico' => ['tecnico', 'técnico', 'fp', 'formación profesional', 'ciclo formativo'],
+          'tecnico' => ['tecnico', 'tÃƒÂ©cnico', 'fp', 'formaciÃƒÂ³n profesional', 'ciclo formativo'],
           'secundaria' => ['bachillerato', 'secundaria', 'high school', 'eso']
         ];
 
@@ -592,28 +591,28 @@ class JobMatchingService
         // Palabras clave para niveles de idioma
         $levelKeywords = [
           'nativo' => ['nativo', 'native', 'lengua materna'],
-          'bilingue' => ['bilingüe', 'bilingue', 'bilingual'],
+          'bilingue' => ['bilingÃƒÂ¼e', 'bilingue', 'bilingual'],
           'c2' => ['c2', 'proficiency', 'dominio'],
           'c1' => ['c1', 'advanced', 'avanzado'],
           'b2' => ['b2', 'upper intermediate', 'intermedio alto'],
           'b1' => ['b1', 'intermediate', 'intermedio'],
           'a2' => ['a2', 'elementary', 'elemental'],
           'a1' => ['a1', 'beginner', 'principiante'],
-          'basico' => ['básico', 'basico', 'basic']
+          'basico' => ['bÃƒÂ¡sico', 'basico', 'basic']
         ];
 
         // Idiomas comunes
         $commonLanguages = [
-          'español' => ['español', 'spanish', 'castellano'],
-          'inglés' => ['inglés', 'ingles', 'english'],
-          'francés' => ['francés', 'frances', 'french'],
-          'alemán' => ['alemán', 'aleman', 'german'],
+          'espaÃƒÂ±ol' => ['espaÃƒÂ±ol', 'spanish', 'castellano'],
+          'inglÃƒÂ©s' => ['inglÃƒÂ©s', 'ingles', 'english'],
+          'francÃƒÂ©s' => ['francÃƒÂ©s', 'frances', 'french'],
+          'alemÃƒÂ¡n' => ['alemÃƒÂ¡n', 'aleman', 'german'],
           'italiano' => ['italiano', 'italian'],
-          'portugués' => ['portugués', 'portugues', 'portuguese'],
-          'catalán' => ['catalán', 'catalan', 'catalá']
+          'portuguÃƒÂ©s' => ['portuguÃƒÂ©s', 'portugues', 'portuguese'],
+          'catalÃƒÂ¡n' => ['catalÃƒÂ¡n', 'catalan', 'catalÃƒÂ¡']
         ];
 
-        // Buscar en requisitos de idioma específicos
+        // Buscar en requisitos de idioma especÃƒÂ­ficos
         if (isset($jobData['idiomas_requeridos']) && is_array($jobData['idiomas_requeridos'])) {
             foreach ($jobData['idiomas_requeridos'] as $langReq) {
                 if (is_array($langReq) && isset($langReq['idioma'])) {
@@ -623,7 +622,7 @@ class JobMatchingService
                 }
             }
         }
-        // Buscar en descripción general o requisitos
+        // Buscar en descripciÃƒÂ³n general o requisitos
         elseif (isset($jobData['requisitos']) && is_string($jobData['requisitos'])) {
             $requisitosText = strtolower($jobData['requisitos']);
 
@@ -660,11 +659,11 @@ class JobMatchingService
         if ($percentage >= 85) {
             return 'Candidato ideal para el puesto. Recomendado para entrevista inmediata.';
         } elseif ($percentage >= 70) {
-            return 'Buen candidato. Recomendado para entrevista, con enfoque en validar las áreas de ' . implode(', ', $weaknesses);
+            return 'Buen candidato. Recomendado para entrevista, con enfoque en validar las ÃƒÂ¡reas de ' . implode(', ', $weaknesses);
         } elseif ($percentage >= 50) {
             return 'Candidato a considerar, pero verificar su capacidad en: ' . implode(', ', $weaknesses);
         } else {
-            return 'No recomendado para esta posición debido a baja coincidencia en requisitos clave.';
+            return 'No recomendado para esta posiciÃƒÂ³n debido a baja coincidencia en requisitos clave.';
         }
     }
 
@@ -677,7 +676,7 @@ class JobMatchingService
             return '';
         }
 
-        // Convertir a minúsculas
+        // Convertir a minÃƒÂºsculas
         $text = mb_strtolower($text, 'UTF-8');
 
         // Eliminar acentos
@@ -690,12 +689,12 @@ class JobMatchingService
     }
 
     /**
-     * Filtra candidatos según su coincidencia con una oferta de trabajo
+     * Filtra candidatos segÃƒÂºn su coincidencia con una oferta de trabajo
      *
      * @param array $candidates Lista de candidatos
      * @param array $jobData Datos de la oferta de trabajo
-     * @param int $threshold Umbral mínimo de coincidencia (0-100)
-     * @return array Candidatos filtrados con puntuación
+     * @param int $threshold Umbral mÃƒÂ­nimo de coincidencia (0-100)
+     * @return array Candidatos filtrados con puntuaciÃƒÂ³n
      */
     public function filterCandidatesByMatch($candidates, $jobData, $threshold = 60)
     {
@@ -728,13 +727,13 @@ class JobMatchingService
     }
 
     /**
-     * Recomienda trabajos para un candidato específico
+     * Recomienda trabajos para un candidato especÃƒÂ­fico
      *
      * @param array $candidateData Datos del candidato
      * @param array $jobs Lista de ofertas de trabajo
-     * @param int $limit Número máximo de recomendaciones
-     * @param int $threshold Umbral mínimo de coincidencia (0-100)
-     * @return array Trabajos recomendados con puntuación
+     * @param int $limit NÃƒÂºmero mÃƒÂ¡ximo de recomendaciones
+     * @param int $threshold Umbral mÃƒÂ­nimo de coincidencia (0-100)
+     * @return array Trabajos recomendados con puntuaciÃƒÂ³n
      */
     public function recommendJobs($candidateData, $jobs, $limit = 5, $threshold = 50)
     {
@@ -752,7 +751,7 @@ class JobMatchingService
                     ];
                 }
 
-                // Limitar el número de evaluaciones para rendimiento
+                // Limitar el nÃƒÂºmero de evaluaciones para rendimiento
                 if (count($recommendations) >= $limit * 2) {
                     break;
                 }
@@ -768,16 +767,16 @@ class JobMatchingService
             return $b['match']['match_percentage'] - $a['match']['match_percentage'];
         });
 
-        // Limitar el número de recomendaciones
+        // Limitar el nÃƒÂºmero de recomendaciones
         return array_slice($recommendations, 0, $limit);
     }
 
     /**
-     * Genera una explicación detallada de por qué un candidato coincide con un trabajo
+     * Genera una explicaciÃƒÂ³n detallada de por quÃƒÂ© un candidato coincide con un trabajo
      *
      * @param array $candidateData Datos del candidato
      * @param array $jobData Datos de la oferta de trabajo
-     * @return array Explicación detallada
+     * @return array ExplicaciÃƒÂ³n detallada
      */
     public function explainMatching($candidateData, $jobData)
     {
@@ -785,7 +784,7 @@ class JobMatchingService
             $matchResult = $this->evaluateMatch($candidateData, $jobData);
             $percentage = $matchResult['match_percentage'] ?? 0;
 
-            // Generar explicación basada en el porcentaje y datos disponibles
+            // Generar explicaciÃƒÂ³n basada en el porcentaje y datos disponibles
             $explanation = [
               'percentage' => $percentage,
               'level' => $this->getMatchLevel($percentage),
@@ -803,7 +802,7 @@ class JobMatchingService
               'summary' => 'Error al calcular matching: ' . $e->getMessage(),
               'strengths' => [],
               'weaknesses' => [],
-              'recommendations' => 'No se pudo generar recomendación'
+              'recommendations' => 'No se pudo generar recomendaciÃƒÂ³n'
             ];
         }
     }
@@ -839,12 +838,12 @@ class JobMatchingService
     private function generateMatchSummary($percentage, $candidateData, $jobData)
     {
         $candidateName = $candidateData['nombre'] ?? $candidateData['name'] ?? 'Candidato';
-        $jobTitle = $jobData['title'] ?? $jobData['titulo'] ?? 'Posición';
+        $jobTitle = $jobData['title'] ?? $jobData['titulo'] ?? 'PosiciÃƒÂ³n';
 
         if ($percentage >= 80) {
             return "Excelente coincidencia: {$candidateName} es un candidato altamente recomendado para {$jobTitle}.";
         } elseif ($percentage >= 60) {
-            return "Buena coincidencia: {$candidateName} cumple con la mayoría de requisitos para {$jobTitle}.";
+            return "Buena coincidencia: {$candidateName} cumple con la mayorÃƒÂ­a de requisitos para {$jobTitle}.";
         } elseif ($percentage >= 40) {
             return "Coincidencia moderada: {$candidateName} tiene potencial para {$jobTitle} con algo de desarrollo.";
         } else {
@@ -853,11 +852,11 @@ class JobMatchingService
     }
 
     /**
-     * Realiza un análisis batch de múltiples candidatos vs múltiples trabajos
+     * Realiza un anÃƒÂ¡lisis batch de mÃƒÂºltiples candidatos vs mÃƒÂºltiples trabajos
      *
      * @param array $candidates Lista de candidatos
      * @param array $jobs Lista de trabajos
-     * @param int $threshold Umbral mínimo
+     * @param int $threshold Umbral mÃƒÂ­nimo
      * @return array Matriz de matching
      */
     public function batchAnalysis($candidates, $jobs, $threshold = 50)

@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 namespace Controllers;
 
 use Utils\Logger;
@@ -25,7 +22,7 @@ abstract class BaseController
 {
     public function __construct()
     {
-        // Constructor base vacío implementado para evitar errores de llamada en hijos
+        // Constructor base vacÃƒÆ’Ã‚Â­o implementado para evitar errores de llamada en hijos
     }
 
     /**
@@ -208,7 +205,7 @@ abstract class BaseController
      */
     protected function getPaginationParams(Request $request): array
     {
-        // Leer parámetros de query de forma segura
+        // Leer parÃƒÆ’Ã‚Â¡metros de query de forma segura
         $queryParams = $_GET;
 
         $page = isset($queryParams['page'])

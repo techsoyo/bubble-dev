@@ -1,6 +1,5 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
+namespace Utils;
 
 // backend/src/Utils/InputValidator.php
 
@@ -55,7 +54,7 @@ class InputValidator
     {
         $v = (string)($value ?? '');
         if (!preg_match('/^[a-zA-Z0-9_-]+$/', $v)) {
-            $this->add($fieldName, "El campo $fieldName solo puede contener letras, números, guiones y guiones bajos");
+            $this->add($fieldName, "El campo $fieldName solo puede contener letras, nÃƒÆ’Ã‚Âºmeros, guiones y guiones bajos");
             return false;
         }
         return true;
@@ -65,7 +64,7 @@ class InputValidator
     {
         $v = is_string($value) ? trim($value) : '';
         if (filter_var($v, FILTER_VALIDATE_EMAIL) === false) {
-            $this->add($fieldName, "El campo $fieldName debe ser un email válido");
+            $this->add($fieldName, "El campo $fieldName debe ser un email vÃƒÆ’Ã‚Â¡lido");
             return false;
         }
         return true;
@@ -109,7 +108,7 @@ class InputValidator
     {
         $v = (string)($value ?? '');
         if ($this->mbLen($v) > $max) {
-            $this->add($fieldName, "El campo $fieldName no puede tener más de $max caracteres");
+            $this->add($fieldName, "El campo $fieldName no puede tener mÃƒÆ’Ã‚Â¡s de $max caracteres");
             return false;
         }
         return true;
@@ -118,7 +117,7 @@ class InputValidator
     public function validateInteger(mixed $value, string $fieldName = 'field'): bool
     {
         if (filter_var($value, FILTER_VALIDATE_INT) === false) {
-            $this->add($fieldName, "El campo $fieldName debe ser un número entero");
+            $this->add($fieldName, "El campo $fieldName debe ser un nÃƒÆ’Ã‚Âºmero entero");
             return false;
         }
         return true;
@@ -127,7 +126,7 @@ class InputValidator
     public function validateFloat(mixed $value, string $fieldName = 'field'): bool
     {
         if (filter_var($value, FILTER_VALIDATE_FLOAT) === false) {
-            $this->add($fieldName, "El campo $fieldName debe ser un número decimal");
+            $this->add($fieldName, "El campo $fieldName debe ser un nÃƒÆ’Ã‚Âºmero decimal");
             return false;
         }
         return true;
@@ -146,12 +145,12 @@ class InputValidator
     public function validateJson(mixed $value, string $fieldName = 'field'): bool
     {
         if (!is_string($value)) {
-            $this->add($fieldName, "El campo $fieldName debe ser un JSON válido");
+            $this->add($fieldName, "El campo $fieldName debe ser un JSON vÃƒÆ’Ã‚Â¡lido");
             return false;
         }
         json_decode($value, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->add($fieldName, "El campo $fieldName debe ser un JSON válido");
+            $this->add($fieldName, "El campo $fieldName debe ser un JSON vÃƒÆ’Ã‚Â¡lido");
             return false;
         }
         return true;
@@ -161,7 +160,7 @@ class InputValidator
     {
         $v = is_string($value) ? trim($value) : '';
         if (!filter_var($v, FILTER_VALIDATE_URL)) {
-            $this->add($fieldName, "El campo $fieldName debe ser una URL válida");
+            $this->add($fieldName, "El campo $fieldName debe ser una URL vÃƒÆ’Ã‚Â¡lida");
             return false;
         }
         $scheme = parse_url($v, PHP_URL_SCHEME);
@@ -185,7 +184,7 @@ class InputValidator
     public function validateRange(mixed $value, float|int $min, float|int $max, string $fieldName = 'field'): bool
     {
         if (!is_numeric($value)) {
-            $this->add($fieldName, "El campo $fieldName debe ser numérico");
+            $this->add($fieldName, "El campo $fieldName debe ser numÃƒÆ’Ã‚Â©rico");
             return false;
         }
         $num = $value + 0;
@@ -211,10 +210,10 @@ class InputValidator
     /**
      * Sanea texto:
      * - Elimina etiquetas HTML
-     * - Decodifica entidades (&nbsp; &amp; &quot; …)
+     * - Decodifica entidades (&nbsp; &amp; &quot; ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦)
      * - Sustituye saltos/tabs por espacio y compacta
      * - Elimina NBSP/zero-width/control chars
-     * - Normaliza Unicode a NFC (si intl está disponible)
+     * - Normaliza Unicode a NFC (si intl estÃƒÆ’Ã‚Â¡ disponible)
      * - Trunca a $maxLen (por defecto 2000)
      */
     public function sanitizeText(mixed $value, int $maxLen = 2000): string
@@ -227,10 +226,10 @@ class InputValidator
         // 2) Decodificar entidades
         $str = html_entity_decode($str, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8');
 
-        // 3) Normalizar saltos/tabs → espacio
+        // 3) Normalizar saltos/tabs ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ espacio
         $str = str_replace(["\r\n", "\r", "\n", "\t"], ' ', $str);
 
-        // 4) NBSP → espacio
+        // 4) NBSP ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ espacio
         $str = preg_replace('/\x{00A0}+/u', ' ', $str) ?? $str;
 
         // 5) Eliminar zero-width (ZWSP/ZWJ/ZWNJ/BOM)
@@ -245,7 +244,7 @@ class InputValidator
         // 8) Trim
         $str = trim($str);
 
-        // 9) Normalización Unicode (si intl está cargado)
+        // 9) NormalizaciÃƒÆ’Ã‚Â³n Unicode (si intl estÃƒÆ’Ã‚Â¡ cargado)
         if (class_exists('\Normalizer')) {
             $str = \Normalizer::normalize($str, \Normalizer::FORM_C) ?? $str;
         }
@@ -258,7 +257,7 @@ class InputValidator
         return $str;
     }
 
-    /** Alias por compatibilidad histórica */
+    /** Alias por compatibilidad histÃƒÆ’Ã‚Â³rica */
     public function sanitizeString(mixed $value): string
     {
         return $this->sanitizeText($value);
@@ -299,7 +298,7 @@ class InputValidator
     }
 
     /**
-     * Validación por reglas simples
+     * ValidaciÃƒÆ’Ã‚Â³n por reglas simples
      * @param array<string,mixed> $data
      * @param array<string,array<string,mixed>> $rules
      */

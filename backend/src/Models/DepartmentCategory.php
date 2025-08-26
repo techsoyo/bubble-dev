@@ -1,16 +1,13 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 namespace Models;
 
 use Utils\Logger;
 
 /**
- * Modelo para las categorías dentro de cada departamento con soporte jerárquico
+ * Modelo para las categorÃƒÆ’Ã‚Â­as dentro de cada departamento con soporte jerÃƒÆ’Ã‚Â¡rquico
  *
- * Proporciona funcionalidad completa para manejar categorías de departamentos
- * con estructura jerárquica, cache optimizado y validaciones.
+ * Proporciona funcionalidad completa para manejar categorÃƒÆ’Ã‚Â­as de departamentos
+ * con estructura jerÃƒÆ’Ã‚Â¡rquica, cache optimizado y validaciones.
  *
  * @package Models
  * @author Bubble of Talents Development Team
@@ -21,14 +18,14 @@ class DepartmentCategory extends BaseModel
 {
     protected string $table = 'department_categories';
     /*
-     * 🔧 CORRECCIÓN AUTOMÁTICA APLICADA
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÃƒÆ’Ã¢â‚¬Å“N AUTOMÃƒÆ’Ã‚ÂTICA APLICADA
      * Modelo: DepartmentCategory
      * Fecha: 2025-08-23
      * 
      * Cambios realizados:
-     * ➕ Campos añadidos: ['department_id']
-     * ❌ Campos removidos: ['description', 'parent_id', 'sort_order', 'status']
-     * 📊 Total campos fillable: 2
+     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aÃƒÆ’Ã‚Â±adidos: ['department_id']
+     * ÃƒÂ¢Ã‚ÂÃ…â€™ Campos removidos: ['description', 'parent_id', 'sort_order', 'status']
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Total campos fillable: 2
      * 
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
@@ -43,25 +40,25 @@ class DepartmentCategory extends BaseModel
     protected array $hidden = [];
 
     /**
-     * Cache TTL para jerarquías de categorías en segundos
+     * Cache TTL para jerarquÃƒÆ’Ã‚Â­as de categorÃƒÆ’Ã‚Â­as en segundos
      */
     private const HIERARCHY_CACHE_TTL = 3600; // 1 hora
 
     /**
-     * Cache TTL para categorías con departamentos en segundos
+     * Cache TTL para categorÃƒÆ’Ã‚Â­as con departamentos en segundos
      */
     private const DEPARTMENT_CACHE_TTL = 1800; // 30 minutos
 
     /**
-     * Estados válidos para categorías
+     * Estados vÃƒÆ’Ã‚Â¡lidos para categorÃƒÆ’Ã‚Â­as
      */
     private const VALID_STATUSES = ['active', 'inactive', 'draft'];
 
     /**
-     * Devuelve las categorías de un departamento concreto (método original)
+     * Devuelve las categorÃƒÆ’Ã‚Â­as de un departamento concreto (mÃƒÆ’Ã‚Â©todo original)
      *
      * @param int $departmentId ID del departamento
-     * @return array Lista de categorías
+     * @return array Lista de categorÃƒÆ’Ã‚Â­as
      */
     public function findByDepartmentId(int $departmentId): array
     {
@@ -80,14 +77,14 @@ class DepartmentCategory extends BaseModel
     }
 
     /**
-     * Obtiene la estructura jerárquica completa de categorías
+     * Obtiene la estructura jerÃƒÆ’Ã‚Â¡rquica completa de categorÃƒÆ’Ã‚Â­as
      *
-     * Construye un árbol jerárquico de todas las categorías activas
+     * Construye un ÃƒÆ’Ã‚Â¡rbol jerÃƒÆ’Ã‚Â¡rquico de todas las categorÃƒÆ’Ã‚Â­as activas
      * con soporte de cache para optimizar rendimiento.
      *
-     * @param bool $includeInactive Incluir categorías inactivas
+     * @param bool $includeInactive Incluir categorÃƒÆ’Ã‚Â­as inactivas
      * @param int $cacheTtl TTL del cache en segundos
-     * @return array Estructura jerárquica de categorías
+     * @return array Estructura jerÃƒÆ’Ã‚Â¡rquica de categorÃƒÆ’Ã‚Â­as
      */
     public function getCategoriesHierarchy(bool $includeInactive = false, int $cacheTtl = self::HIERARCHY_CACHE_TTL): array
     {
@@ -96,7 +93,7 @@ class DepartmentCategory extends BaseModel
         ]);
 
         try {
-            // Intentar obtener desde cache si está habilitado
+            // Intentar obtener desde cache si estÃƒÆ’Ã‚Â¡ habilitado
             if ($cacheTtl > 0 && class_exists('\Utils\Cache')) {
                 return \Utils\Cache::get($cacheKey, $cacheTtl, function () use ($includeInactive) {
                     return $this->buildCategoriesHierarchy($includeInactive);
@@ -114,14 +111,14 @@ class DepartmentCategory extends BaseModel
     }
 
     /**
-     * Obtiene una categoría con sus departamentos relacionados
+     * Obtiene una categorÃƒÆ’Ã‚Â­a con sus departamentos relacionados
      *
-     * Incluye información completa de la categoría junto con
+     * Incluye informaciÃƒÆ’Ã‚Â³n completa de la categorÃƒÆ’Ã‚Â­a junto con
      * todos los departamentos que pertenecen a ella.
      *
-     * @param int $categoryId ID de la categoría
+     * @param int $categoryId ID de la categorÃƒÆ’Ã‚Â­a
      * @param int $cacheTtl TTL del cache en segundos
-     * @return array|null Categoría con departamentos o null si no existe
+     * @return array|null CategorÃƒÆ’Ã‚Â­a con departamentos o null si no existe
      */
     public function getCategoryWithDepartments(int $categoryId, int $cacheTtl = self::DEPARTMENT_CACHE_TTL): ?array
     {
@@ -148,13 +145,13 @@ class DepartmentCategory extends BaseModel
     }
 
     /**
-     * Obtiene las categorías de nivel superior (sin parent)
+     * Obtiene las categorÃƒÆ’Ã‚Â­as de nivel superior (sin parent)
      *
-     * Devuelve solo las categorías raíz que no tienen categoría padre,
+     * Devuelve solo las categorÃƒÆ’Ã‚Â­as raÃƒÆ’Ã‚Â­z que no tienen categorÃƒÆ’Ã‚Â­a padre,
      * ordenadas por sort_order y nombre.
      *
-     * @param bool $includeInactive Incluir categorías inactivas
-     * @return array Lista de categorías principales
+     * @param bool $includeInactive Incluir categorÃƒÆ’Ã‚Â­as inactivas
+     * @return array Lista de categorÃƒÆ’Ã‚Â­as principales
      */
     public function getTopLevelCategories(bool $includeInactive = false): array
     {
@@ -179,14 +176,14 @@ class DepartmentCategory extends BaseModel
     }
 
     /**
-     * Obtiene candidatos agrupados por categoría usando vistas de BD
+     * Obtiene candidatos agrupados por categorÃƒÆ’Ã‚Â­a usando vistas de BD
      *
-     * Utiliza las vistas optimizadas para obtener estadísticas de candidatos
-     * por categoría de departamento.
+     * Utiliza las vistas optimizadas para obtener estadÃƒÆ’Ã‚Â­sticas de candidatos
+     * por categorÃƒÆ’Ã‚Â­a de departamento.
      *
-     * @param int|null $categoryId ID específico de categoría (null para todas)
+     * @param int|null $categoryId ID especÃƒÆ’Ã‚Â­fico de categorÃƒÆ’Ã‚Â­a (null para todas)
      * @param array $filters Filtros adicionales para candidatos
-     * @return array Candidatos agrupados por categoría
+     * @return array Candidatos agrupados por categorÃƒÆ’Ã‚Â­a
      */
     public function getCandidatesByCategory(?int $categoryId = null, array $filters = []): array
     {
@@ -239,48 +236,48 @@ class DepartmentCategory extends BaseModel
     }
 
     /**
-     * Valida la estructura jerárquica antes de guardar
+     * Valida la estructura jerÃƒÆ’Ã‚Â¡rquica antes de guardar
      *
-     * Previene loops circulares y valida la integridad de la jerarquía.
+     * Previene loops circulares y valida la integridad de la jerarquÃƒÆ’Ã‚Â­a.
      *
-     * @param int|null $parentId ID de la categoría padre
-     * @param int|null $currentId ID de la categoría actual (para updates)
-     * @return bool True si la estructura es válida
-     * @throws \InvalidArgumentException Si la estructura no es válida
+     * @param int|null $parentId ID de la categorÃƒÆ’Ã‚Â­a padre
+     * @param int|null $currentId ID de la categorÃƒÆ’Ã‚Â­a actual (para updates)
+     * @return bool True si la estructura es vÃƒÆ’Ã‚Â¡lida
+     * @throws \InvalidArgumentException Si la estructura no es vÃƒÆ’Ã‚Â¡lida
      */
     public function validateHierarchy(?int $parentId, ?int $currentId = null): bool
     {
         if ($parentId === null) {
-            return true; // Categoría raíz, siempre válida
+            return true; // CategorÃƒÆ’Ã‚Â­a raÃƒÆ’Ã‚Â­z, siempre vÃƒÆ’Ã‚Â¡lida
         }
 
         if ($parentId === $currentId) {
-            throw new \InvalidArgumentException('Una categoría no puede ser padre de sí misma');
+            throw new \InvalidArgumentException('Una categorÃƒÆ’Ã‚Â­a no puede ser padre de sÃƒÆ’Ã‚Â­ misma');
         }
 
         try {
-            // Verificar que el padre existe y está activo
+            // Verificar que el padre existe y estÃƒÆ’Ã‚Â¡ activo
             $parent = $this->findById($parentId);
             if (!$parent) {
-                throw new \InvalidArgumentException('La categoría padre especificada no existe');
+                throw new \InvalidArgumentException('La categorÃƒÆ’Ã‚Â­a padre especificada no existe');
             }
 
             if ($parent['status'] !== 'active') {
-                throw new \InvalidArgumentException('La categoría padre debe estar activa');
+                throw new \InvalidArgumentException('La categorÃƒÆ’Ã‚Â­a padre debe estar activa');
             }
 
             // Verificar loops circulares
             if ($currentId !== null) {
                 $ancestors = $this->getAncestors($parentId);
                 if (in_array($currentId, array_column($ancestors, 'id'))) {
-                    throw new \InvalidArgumentException('La jerarquía propuesta crearía un bucle circular');
+                    throw new \InvalidArgumentException('La jerarquÃƒÆ’Ã‚Â­a propuesta crearÃƒÆ’Ã‚Â­a un bucle circular');
                 }
             }
 
-            // Validar profundidad máxima (por ejemplo, 5 niveles)
+            // Validar profundidad mÃƒÆ’Ã‚Â¡xima (por ejemplo, 5 niveles)
             $depth = $this->getCategoryDepth($parentId);
             if ($depth >= 5) {
-                throw new \InvalidArgumentException('La profundidad máxima de jerarquía es 5 niveles');
+                throw new \InvalidArgumentException('La profundidad mÃƒÆ’Ã‚Â¡xima de jerarquÃƒÆ’Ã‚Â­a es 5 niveles');
             }
 
             return true;
@@ -294,23 +291,23 @@ class DepartmentCategory extends BaseModel
     }
 
     /**
-     * Crea o actualiza una categoría con validaciones
+     * Crea o actualiza una categorÃƒÆ’Ã‚Â­a con validaciones
      *
-     * @param array $data Datos de la categoría
-     * @param int|null $id ID para actualización (null para crear)
-     * @return mixed ID de la categoría creada o true para actualización
-     * @throws \InvalidArgumentException Si los datos no son válidos
+     * @param array $data Datos de la categorÃƒÆ’Ã‚Â­a
+     * @param int|null $id ID para actualizaciÃƒÆ’Ã‚Â³n (null para crear)
+     * @return mixed ID de la categorÃƒÆ’Ã‚Â­a creada o true para actualizaciÃƒÆ’Ã‚Â³n
+     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
      */
     public function createOrUpdate(array $data, ?int $id = null)
     {
         // Validar datos requeridos
         if (empty($data['name'])) {
-            throw new \InvalidArgumentException('El nombre de la categoría es requerido');
+            throw new \InvalidArgumentException('El nombre de la categorÃƒÆ’Ã‚Â­a es requerido');
         }
 
         // Validar estado
         if (isset($data['status']) && !in_array($data['status'], self::VALID_STATUSES)) {
-            throw new \InvalidArgumentException('Estado no válido. Debe ser: ' . implode(', ', self::VALID_STATUSES));
+            throw new \InvalidArgumentException('Estado no vÃƒÆ’Ã‚Â¡lido. Debe ser: ' . implode(', ', self::VALID_STATUSES));
         }
 
         // Establecer valores por defecto
@@ -318,7 +315,7 @@ class DepartmentCategory extends BaseModel
         $data['sort_order'] = $data['sort_order'] ?? 0;
 
         try {
-            // Validar jerarquía
+            // Validar jerarquÃƒÆ’Ã‚Â­a
             $parentId = $data['parent_id'] ?? null;
             $this->validateHierarchy($parentId, $id);
 
@@ -345,11 +342,11 @@ class DepartmentCategory extends BaseModel
     }
 
     /**
-     * Elimina una categoría y reorganiza la jerarquía
+     * Elimina una categorÃƒÆ’Ã‚Â­a y reorganiza la jerarquÃƒÆ’Ã‚Â­a
      *
-     * @param int $id ID de la categoría a eliminar
+     * @param int $id ID de la categorÃƒÆ’Ã‚Â­a a eliminar
      * @param bool $promoteChildren Si promover hijos al padre o eliminarlos
-     * @return bool True si se eliminó correctamente
+     * @return bool True si se eliminÃƒÆ’Ã‚Â³ correctamente
      */
     public function deleteWithHierarchy(int $id, bool $promoteChildren = true): bool
     {
@@ -358,13 +355,13 @@ class DepartmentCategory extends BaseModel
         }
 
         try {
-            // Obtener la categoría a eliminar
+            // Obtener la categorÃƒÆ’Ã‚Â­a a eliminar
             $category = $this->findById($id);
             if (!$category) {
                 throw new \InvalidArgumentException('Category not found');
             }
 
-            // Obtener categorías hijas
+            // Obtener categorÃƒÆ’Ã‚Â­as hijas
             $children = $this->findAll(['parent_id' => $id]);
 
             if ($promoteChildren && !empty($children)) {
@@ -380,7 +377,7 @@ class DepartmentCategory extends BaseModel
                 }
             }
 
-            // Eliminar la categoría
+            // Eliminar la categorÃƒÆ’Ã‚Â­a
             $result = $this->delete($id);
 
             // Invalidar cache
@@ -399,7 +396,7 @@ class DepartmentCategory extends BaseModel
     }
 
     /**
-     * Construye la estructura jerárquica de categorías
+     * Construye la estructura jerÃƒÆ’Ã‚Â¡rquica de categorÃƒÆ’Ã‚Â­as
      */
     private function buildCategoriesHierarchy(bool $includeInactive): array
     {
@@ -414,7 +411,7 @@ class DepartmentCategory extends BaseModel
     }
 
     /**
-     * Construye árbol jerárquico desde lista plana
+     * Construye ÃƒÆ’Ã‚Â¡rbol jerÃƒÆ’Ã‚Â¡rquico desde lista plana
      */
     private function buildTreeFromFlat(array $categories): array
     {
@@ -427,7 +424,7 @@ class DepartmentCategory extends BaseModel
             $indexed[$category['id']] = $category;
         }
 
-        // Construir árbol
+        // Construir ÃƒÆ’Ã‚Â¡rbol
         foreach ($indexed as $category) {
             if ($category['parent_id'] === null) {
                 $tree[] = &$indexed[$category['id']];
@@ -442,7 +439,7 @@ class DepartmentCategory extends BaseModel
     }
 
     /**
-     * Ejecuta query para obtener categoría con departamentos
+     * Ejecuta query para obtener categorÃƒÆ’Ã‚Â­a con departamentos
      */
     private function executeCategoryWithDepartmentsQuery(int $categoryId): ?array
     {
@@ -484,7 +481,7 @@ class DepartmentCategory extends BaseModel
     }
 
     /**
-     * Obtiene los ancestros de una categoría
+     * Obtiene los ancestros de una categorÃƒÆ’Ã‚Â­a
      */
     private function getAncestors(int $categoryId): array
     {
@@ -504,7 +501,7 @@ class DepartmentCategory extends BaseModel
     }
 
     /**
-     * Calcula la profundidad de una categoría en la jerarquía
+     * Calcula la profundidad de una categorÃƒÆ’Ã‚Â­a en la jerarquÃƒÆ’Ã‚Â­a
      */
     private function getCategoryDepth(int $categoryId): int
     {
@@ -512,7 +509,7 @@ class DepartmentCategory extends BaseModel
     }
 
     /**
-     * Invalida el cache específico de categorías
+     * Invalida el cache especÃƒÆ’Ã‚Â­fico de categorÃƒÆ’Ã‚Â­as
      */
     public function invalidateCategoryCache(): int
     {
@@ -532,7 +529,7 @@ class DepartmentCategory extends BaseModel
     }
 
     /**
-     * Obtiene estadísticas de uso de categorías
+     * Obtiene estadÃƒÆ’Ã‚Â­sticas de uso de categorÃƒÆ’Ã‚Â­as
      */
     public function getCategoryStats(): array
     {
@@ -554,7 +551,7 @@ class DepartmentCategory extends BaseModel
     }
 
     // ==========================================
-    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // MÃƒÆ’Ã¢â‚¬Â°TODOS CRUD ENCAPSULADOS ESTÃƒÆ’Ã‚ÂNDAR
     // ==========================================
 
     /**
@@ -608,7 +605,7 @@ class DepartmentCategory extends BaseModel
      * Actualizar department_category con validaciones
      * @param mixed $id ID del department_category a actualizar
      * @param array $data Nuevos datos
-     * @return bool True si la actualización fue exitosa
+     * @return bool True si la actualizaciÃƒÆ’Ã‚Â³n fue exitosa
      */
     public function updateDepartmentCategory($id, array $data): bool
     {
@@ -640,7 +637,7 @@ class DepartmentCategory extends BaseModel
     /**
      * Eliminar department_category con validaciones
      * @param mixed $id ID del department_category a eliminar
-     * @return bool True si la eliminación fue exitosa
+     * @return bool True si la eliminaciÃƒÆ’Ã‚Â³n fue exitosa
      */
     public function deleteDepartmentCategory($id): bool
     {
@@ -668,9 +665,9 @@ class DepartmentCategory extends BaseModel
 
     /**
      * Buscar department_categories con filtros
-     * @param array $filters Filtros de búsqueda
-     * @param int $page Página actual
-     * @param int $limit Registros por página
+     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
+     * @param int $page PÃƒÆ’Ã‚Â¡gina actual
+     * @param int $limit Registros por pÃƒÆ’Ã‚Â¡gina
      * @param array $orderBy Criterios de ordenamiento
      * @return array Array de department_categories
      */
@@ -690,8 +687,8 @@ class DepartmentCategory extends BaseModel
 
     /**
      * Contar total de department_categories con filtros
-     * @param array $filters Filtros de búsqueda
-     * @return int Número total de department_categories
+     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
+     * @return int NÃƒÆ’Ã‚Âºmero total de department_categories
      */
     public function countDepartmentCategories(array $filters = []): int
     {
@@ -708,14 +705,14 @@ class DepartmentCategory extends BaseModel
     }
 
     // ==========================================
-    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // MÃƒÆ’Ã¢â‚¬Â°TODOS DE VALIDACIÃƒÆ’Ã¢â‚¬Å“N ESPECÃƒÆ’Ã‚ÂFICOS
     // ==========================================
 
     /**
-     * Validar datos específicos de department_categories
+     * Validar datos especÃƒÆ’Ã‚Â­ficos de department_categories
      * @param array $data Datos a validar
-     * @param mixed $id ID para validaciones de actualización (opcional)
-     * @throws \InvalidArgumentException Si los datos no son válidos
+     * @param mixed $id ID para validaciones de actualizaciÃƒÆ’Ã‚Â³n (opcional)
+     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
      */
     private function validateDepartmentCategoryData(array $data, $id = null): void
     {
@@ -743,7 +740,7 @@ class DepartmentCategory extends BaseModel
                     throw new \InvalidArgumentException('Parent ID must be a positive integer or null');
                 }
 
-                // Validar jerarquía si existe el método
+                // Validar jerarquÃƒÆ’Ã‚Â­a si existe el mÃƒÆ’Ã‚Â©todo
                 if (method_exists($this, 'validateHierarchy')) {
                     $this->validateHierarchy($data['parent_id'], $id);
                 }
@@ -768,7 +765,7 @@ class DepartmentCategory extends BaseModel
             ]);
 
             if (!empty($existing)) {
-                // Si es actualización, verificar que no sea el mismo registro
+                // Si es actualizaciÃƒÆ’Ã‚Â³n, verificar que no sea el mismo registro
                 if ($id === null || $existing[0]['id'] != $id) {
                     throw new \InvalidArgumentException('Department category name already exists in this department');
                 }
@@ -777,12 +774,12 @@ class DepartmentCategory extends BaseModel
     }
 
     /**
-     * Invalidar cache específico de department_categories
+     * Invalidar cache especÃƒÆ’Ã‚Â­fico de department_categories
      */
     public function invalidateDepartmentCategoryCache(): int
     {
         try {
-            // Usar el método existente si está disponible
+            // Usar el mÃƒÆ’Ã‚Â©todo existente si estÃƒÆ’Ã‚Â¡ disponible
             if (method_exists($this, 'invalidateCategoryCache')) {
                 return $this->invalidateCategoryCache();
             }

@@ -1,7 +1,4 @@
-<?php
-
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -23,7 +20,7 @@ if ((getenv('APP_ENV') ?: 'production') === 'production') {
 preflightHandle();
 sendCorsHeaders();
 
-// Proteger endpoint de diagnÃƒÂ³stico en entornos de producciÃƒÂ³n.
+// Proteger endpoint de diagnÃƒÆ’Ã‚Â³stico en entornos de producciÃƒÆ’Ã‚Â³n.
 require_once dirname(__DIR__, 2) . '/config/config.php';
 if (function_exists('isProduction') && isProduction()) {
     http_response_code(403);
@@ -31,5 +28,5 @@ if (function_exists('isProduction') && isProduction()) {
     exit;
 }
 
-// ...lÃƒÂ³gica original aquÃƒÂ­...
+// ...lÃƒÆ’Ã‚Â³gica original aquÃƒÆ’Ã‚Â­...
 

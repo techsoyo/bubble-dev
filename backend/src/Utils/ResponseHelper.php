@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Utils;
 
 class ResponseHelper
@@ -55,7 +54,7 @@ class ResponseHelper
      */
     public static function exception(\Throwable $e, int $status = 500)
     {
-        // Log de la excepción
+        // Log de la excepciÃƒÆ’Ã‚Â³n
         error_log('[EXCEPTION] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
 
         // Responder con error

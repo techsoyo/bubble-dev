@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 use Security\CsrfMiddleware;
 
 require_once __DIR__ . '/../bootstrap.php';
@@ -20,7 +17,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
   if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
     http_response_code(401);
@@ -33,7 +30,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
   session_start();
 }
 
-// Bloquear en producciÃƒÆ’Ã‚Â³n
+// Bloquear en producciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
 if ((getenv('APP_ENV') ?: 'production') === 'production') {
   http_response_code(404);
   exit;

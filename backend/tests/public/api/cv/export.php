@@ -65,8 +65,6 @@ try {
     $exp->execute([$id]);
     $edu = $pdo->prepare('SELECT institution_name as institucion, degree_title as titulo, start_date as fecha_inicio, end_date as fecha_fin, description as descripcion FROM bt_candidate_education WHERE candidate_id=? ORDER BY start_date DESC');
     $edu->execute([$id]);
-    $proj = $pdo->prepare('SELECT nombre, descripcion, tecnologias FROM bt_candidate_projects WHERE candidate_id=?');
-    $proj->execute([$id]);
 
     $data = $row + [
       'puestos_anteriores' => $exp->fetchAll(PDO::FETCH_ASSOC),

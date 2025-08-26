@@ -1,6 +1,4 @@
-<?php
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -17,13 +15,13 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// Proteger solo mÃ©todos que cambian estado
+// Proteger solo mÃƒÂ©todos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
     // double-submit cookie
 }
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
         http_response_code(401);
@@ -36,8 +34,8 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
 /**
  * Pre-Screening API Endpoint
  *
- * Endpoint para screening automÃƒÆ’Ã‚Â¡tico, generaciÃƒÆ’Ã‚Â³n de preguntas
- * y detecciÃƒÆ’Ã‚Â³n de red flags usando IA.
+ * Endpoint para screening automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡tico, generaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de preguntas
+ * y detecciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de red flags usando IA.
  *
  * @package Backend\API\AI
  * @version 1.0.0
@@ -52,7 +50,7 @@ use Services\PreScreeningService;
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['error' => 'MÃƒÆ’Ã‚Â©todo no permitido']);
+    echo json_encode(['error' => 'MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©todo no permitido']);
     exit;
 }
 
@@ -61,7 +59,7 @@ try {
 
     if (!$input) {
         http_response_code(400);
-        echo json_encode(['error' => 'Datos JSON invÃƒÆ’Ã‚Â¡lidos']);
+        echo json_encode(['error' => 'Datos JSON invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lidos']);
         exit;
     }
 
@@ -111,7 +109,7 @@ try {
             break;
 
         case 'validate_requirements':
-            // Validar requisitos mÃƒÆ’Ã‚Â­nimos
+            // Validar requisitos mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­nimos
             if (!isset($input['candidate_data']) || !isset($input['job_requirements'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Faltan candidate_data o job_requirements']);
@@ -161,7 +159,7 @@ try {
         default:
             http_response_code(400);
             echo json_encode([
-                'error' => 'AcciÃƒÆ’Ã‚Â³n no vÃƒÆ’Ã‚Â¡lida',
+                'error' => 'AcciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n no vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lida',
                 'valid_actions' => ['generate_questions', 'detect_red_flags', 'validate_requirements', 'complete_screening']
             ]);
             break;

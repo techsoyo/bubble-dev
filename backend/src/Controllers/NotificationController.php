@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Controllers;
 
 use Models\Notification;
@@ -26,7 +25,7 @@ class NotificationController extends BaseController
       $orderBy = $this->sanitizeOrder($filters['orderBy'] ?? []);
       $offset = ($page - 1) * $limit;
 
-      // Usar método existente del modelo
+      // Usar mÃƒÆ’Ã‚Â©todo existente del modelo
       $rows = Notification::searchNotificationsStandard($filters, $limit, $offset);
       $total = Notification::countNotificationsStandard($filters);
 
@@ -50,16 +49,16 @@ class NotificationController extends BaseController
         return ResponseHelper::fail('ID no proporcionado', 400);
       }
 
-      // Usar método existente del modelo
+      // Usar mÃƒÆ’Ã‚Â©todo existente del modelo
       $row = Notification::getNotificationStandard((int)$id);
       if (!$row) {
-        return ResponseHelper::fail('Notificación no encontrada', 404);
+        return ResponseHelper::fail('NotificaciÃƒÆ’Ã‚Â³n no encontrada', 404);
       }
 
-      return ResponseHelper::success('Notificación encontrada', $row, 200);
+      return ResponseHelper::success('NotificaciÃƒÆ’Ã‚Â³n encontrada', $row, 200);
     } catch (\Throwable $e) {
       Logger::error('Error retrieving notification', ['id' => $id, 'error' => $e->getMessage()]);
-      return ResponseHelper::error('Error al obtener notificación', $e, 500);
+      return ResponseHelper::error('Error al obtener notificaciÃƒÆ’Ã‚Â³n', $e, 500);
     }
   }
 
@@ -75,13 +74,13 @@ class NotificationController extends BaseController
       }
 
       Logger::info('Notification created from controller', ['id' => $id]);
-      return ResponseHelper::success('Notificación creada', ['id' => $id], 201);
+      return ResponseHelper::success('NotificaciÃƒÆ’Ã‚Â³n creada', ['id' => $id], 201);
     } catch (\InvalidArgumentException $e) {
       Logger::error('Validation failed creating notification', ['error' => $e->getMessage()]);
       return ResponseHelper::fail($e->getMessage(), 422);
     } catch (\Throwable $e) {
       Logger::error('Unexpected error creating notification', ['error' => $e->getMessage()]);
-      return ResponseHelper::error('Error al crear notificación', $e, 500);
+      return ResponseHelper::error('Error al crear notificaciÃƒÆ’Ã‚Â³n', $e, 500);
     }
   }
 
@@ -95,7 +94,7 @@ class NotificationController extends BaseController
         return ResponseHelper::fail('ID no proporcionado', 400);
       }
 
-      // Usar método existente del modelo
+      // Usar mÃƒÆ’Ã‚Â©todo existente del modelo
       $ok = Notification::updateNotificationStandard((int)$id, $data);
 
       if (!$ok) {
@@ -103,13 +102,13 @@ class NotificationController extends BaseController
       }
 
       Logger::info('Notification updated from controller', ['id' => $id]);
-      return ResponseHelper::success("Notificación $id actualizada", ['success' => true], 200);
+      return ResponseHelper::success("NotificaciÃƒÆ’Ã‚Â³n $id actualizada", ['success' => true], 200);
     } catch (\InvalidArgumentException $e) {
       Logger::error('Validation failed updating notification', ['id' => $id, 'error' => $e->getMessage()]);
       return ResponseHelper::fail($e->getMessage(), 422);
     } catch (\Throwable $e) {
       Logger::error('Unexpected error updating notification', ['id' => $id, 'error' => $e->getMessage()]);
-      return ResponseHelper::error('Error al actualizar notificación', $e, 500);
+      return ResponseHelper::error('Error al actualizar notificaciÃƒÆ’Ã‚Â³n', $e, 500);
     }
   }
 
@@ -129,10 +128,10 @@ class NotificationController extends BaseController
       }
 
       Logger::info('Notification marked as read', ['id' => $id]);
-      return ResponseHelper::success("Notificación $id marcada como leída", ['success' => true], 200);
+      return ResponseHelper::success("NotificaciÃƒÆ’Ã‚Â³n $id marcada como leÃƒÆ’Ã‚Â­da", ['success' => true], 200);
     } catch (\Throwable $e) {
       Logger::error('Unexpected error marking notification as read', ['id' => $id, 'error' => $e->getMessage()]);
-      return ResponseHelper::error('Error al marcar notificación como leída', $e, 500);
+      return ResponseHelper::error('Error al marcar notificaciÃƒÆ’Ã‚Â³n como leÃƒÆ’Ã‚Â­da', $e, 500);
     }
   }
 
@@ -151,10 +150,10 @@ class NotificationController extends BaseController
       }
 
       Logger::info('Notification deleted from controller', ['id' => $id]);
-      return ResponseHelper::success("Notificación $id eliminada", [], 204);
+      return ResponseHelper::success("NotificaciÃƒÆ’Ã‚Â³n $id eliminada", [], 204);
     } catch (\Throwable $e) {
       Logger::error('Unexpected error deleting notification', ['id' => $id, 'error' => $e->getMessage()]);
-      return ResponseHelper::error('Error al eliminar notificación', $e, 500);
+      return ResponseHelper::error('Error al eliminar notificaciÃƒÆ’Ã‚Â³n', $e, 500);
     }
   }
 

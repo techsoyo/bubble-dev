@@ -253,7 +253,6 @@ try {
     $tables = [
       'bt_candidate_experiences',
       'bt_candidate_education',
-      'bt_candidate_projects'
     ];
     foreach ($tables as $t) {
         $pdo->prepare("DELETE FROM $t WHERE candidate_id = ?")->execute([$candidateId]);
@@ -287,19 +286,6 @@ try {
               $e['fecha_inicio'] ?: null,
               $e['fecha_fin'] ?: null,
               $e['descripcion'] ?: null
-            ]);
-        }
-    }
-
-    // Proyectos
-    if (!empty($normalized['proyectos'])) {
-        $iproj = $pdo->prepare('INSERT INTO bt_candidate_projects (candidate_id, nombre, descripcion, tecnologias, created_at) VALUES (?,?,?,?,NOW())');
-        foreach ($normalized['proyectos'] as $p) {
-            $iproj->execute([
-              $candidateId,
-              $p['nombre'] ?: null,
-              $p['descripcion'] ?: null,
-              json_encode($p['tecnologias'] ?? [], JSON_UNESCAPED_UNICODE)
             ]);
         }
     }

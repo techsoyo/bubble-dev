@@ -1,6 +1,4 @@
-<?php
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -17,13 +15,13 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// Proteger solo mÃ©todos que cambian estado
+// Proteger solo mÃƒÂ©todos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
     // double-submit cookie
 }
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
         http_response_code(401);
@@ -33,8 +31,8 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
 }
 
 // ORIGINAL CODE BELOW
-// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
+// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ticamente en bootstrap.php
 require_once __DIR__ . '/../../src/Middleware/SecurityMiddleware.php';
 require_once __DIR__ . '/../../src/Services/ChatbotService.php';
 
@@ -47,7 +45,7 @@ use Utils\Validator as Val;
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 try {
     if ($method !== 'POST') {
-        Res::error('MÃƒÆ’Ã‚Â©todo no permitido', 405);
+        Res::error('MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©todo no permitido', 405);
     }
     $authUser = JWT::requireAuth();
     $payload = Request::json();
@@ -56,7 +54,7 @@ try {
         'options' => 'array'
     ]);
     if (!$ok) {
-        Res::error('ValidaciÃƒÆ’Ã‚Â³n fallida', 422, ['errors' => $errs]);
+        Res::error('ValidaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n fallida', 422, ['errors' => $errs]);
     }
     $service = new ChatbotService();
     $response = $service->chat($payload['messages'], $payload['options'] ?? []);

@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Services;
 
 /**
@@ -9,7 +8,7 @@ namespace Services;
 class ChatbotService
 {
     /**
-     * Envía un mensaje al chatbot y obtiene la respuesta
+     * EnvÃƒÆ’Ã‚Â­a un mensaje al chatbot y obtiene la respuesta
      * @param array $messages Array de mensajes (formato OpenAI Chat API)
      * @param array $options Opciones adicionales (modelo, temperatura, etc.)
      * @return string Respuesta del chatbot

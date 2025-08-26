@@ -1,16 +1,15 @@
-<?php
-
+<?php declare(strict_types=1);
 /**
- * Manejador global de errores y excepciones para producción
+ * Manejador global de errores y excepciones para producciÃ³n
  * 
  * Este archivo debe ser incluido al inicio de cada script PHP
  * para establecer un manejo uniforme y seguro de errores.
  * 
- * Características de seguridad:
- * - No revela rutas de archivos en producción
+ * CaracterÃ­sticas de seguridad:
+ * - No revela rutas de archivos en producciÃ³n
  * - Logs detallados solo en desarrollo
- * - Respuestas genéricas en producción
- * - Prevención de exposición de información sensible
+ * - Respuestas genÃ©ricas en producciÃ³n
+ * - PrevenciÃ³n de exposiciÃ³n de informaciÃ³n sensible
  * 
  * @version 2.0.0
  * @author Bubble of Talents Security Team
@@ -23,16 +22,16 @@ require_once __DIR__ . '/../src/Utils/ResponseHelper.php';
 use Utils\Logger;
 use Utils\ResponseHelper;
 
-// Configurar manejo de errores según entorno
+// Configurar manejo de errores segÃºn entorno
 if (isProduction()) {
-    // ✅ PRODUCCIÓN: Configuración segura
+    // âœ… PRODUCCIÃ“N: ConfiguraciÃ³n segura
     error_reporting(0);
     ini_set('display_errors', '0');
     ini_set('display_startup_errors', '0');
     ini_set('log_errors', '1');
     ini_set('error_log', __DIR__ . '/../logs/php_errors.log');
 } else {
-    // ✅ DESARROLLO: Configuración para debugging
+    // âœ… DESARROLLO: ConfiguraciÃ³n para debugging
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
     ini_set('display_startup_errors', '1');
@@ -81,12 +80,12 @@ set_error_handler(function ($severity, $message, $file, $line) {
         'severity' => $severity
     ]);
 
-    // En desarrollo, mostrar errores; en producción, solo logear
+    // En desarrollo, mostrar errores; en producciÃ³n, solo logear
     if (function_exists('isDevelopment') && isDevelopment()) {
         return false; // Permitir que PHP muestre el error
     }
 
-    // En producción, suprimir mostrar errores al usuario
+    // En producciÃ³n, suprimir mostrar errores al usuario
     return true;
 });
 
@@ -96,10 +95,10 @@ set_error_handler(function ($severity, $message, $file, $line) {
 set_exception_handler(function ($exception) {
     $errorId = uniqid('EXC');
 
-    // Filtrar información sensible
+    // Filtrar informaciÃ³n sensible
     $safeFile = basename($exception->getFile());
 
-    Logger::critical('Excepción no capturada', [
+    Logger::critical('ExcepciÃ³n no capturada', [
         'error_id' => $errorId,
         'message' => $exception->getMessage(),
         'file' => $safeFile,
@@ -158,7 +157,7 @@ register_shutdown_function(function () {
                 ob_clean();
             }
 
-            // Enviar respuesta de error si aún no se han enviado headers
+            // Enviar respuesta de error si aÃºn no se han enviado headers
             if (!headers_sent()) {
                 ResponseHelper::error(
                     'Error fatal del servidor',
@@ -174,7 +173,7 @@ register_shutdown_function(function () {
 });
 
 /**
- * Configurar reporte de errores según el entorno
+ * Configurar reporte de errores segÃºn el entorno
  */
 if (function_exists('isDevelopment') && isDevelopment()) {
     // Desarrollo: mostrar todos los errores
@@ -182,7 +181,7 @@ if (function_exists('isDevelopment') && isDevelopment()) {
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
 } else {
-    // Producción: no mostrar errores al usuario
+    // ProducciÃ³n: no mostrar errores al usuario
     error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
     ini_set('display_errors', 0);
     ini_set('display_startup_errors', 0);
@@ -192,7 +191,7 @@ if (function_exists('isDevelopment') && isDevelopment()) {
 /**
  * Configuraciones de seguridad adicionales
  */
-ini_set('expose_php', 0); // No exponer versión de PHP
+ini_set('expose_php', 0); // No exponer versiÃ³n de PHP
 ini_set('session.cookie_httponly', 1); // Cookies no accesibles via JavaScript
 ini_set('session.use_strict_mode', 1); // Modo estricto de sesiones
 
@@ -202,7 +201,7 @@ if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
 }
 
 /**
- * Función auxiliar para validar si estamos en desarrollo
+ * FunciÃ³n auxiliar para validar si estamos en desarrollo
  */
 if (!function_exists('isDevelopment')) {
     function isDevelopment()
@@ -212,7 +211,7 @@ if (!function_exists('isDevelopment')) {
 }
 
 /**
- * Función auxiliar para validar si estamos en producción
+ * FunciÃ³n auxiliar para validar si estamos en producciÃ³n
  */
 if (!function_exists('isProduction')) {
     function isProduction()
@@ -221,7 +220,7 @@ if (!function_exists('isProduction')) {
     }
 }
 
-// Log del inicio de la aplicación
+// Log del inicio de la aplicaciÃ³n
 Logger::info('Sistema iniciado', [
     'environment' => config('APP_ENV', 'production'),
     'php_version' => PHP_VERSION,

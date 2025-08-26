@@ -1,27 +1,26 @@
-<?php
-
-namespace BubbleTalents\Middleware;
+<?php declare(strict_types=1);
+namespace Middleware;
 
 /**
- * SecurityMiddleware - Middleware de seguridad básico
+ * SecurityMiddleware - Middleware de seguridad bÃƒÆ’Ã‚Â¡sico
  * Proporciona validaciones de seguridad y headers CORS
  */
 class SecurityMiddleware
 {
 
   /**
-   * Validar request básico
+   * Validar request bÃƒÆ’Ã‚Â¡sico
    */
   public static function validateRequest()
   {
-    // Verificar método HTTP
+    // Verificar mÃƒÆ’Ã‚Â©todo HTTP
     $allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'];
     if (!in_array($_SERVER['REQUEST_METHOD'], $allowedMethods)) {
       http_response_code(405);
       return false;
     }
 
-    // Validación básica de headers
+    // ValidaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica de headers
     return true;
   }
 

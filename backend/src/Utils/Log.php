@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 namespace Utils;
 
 final class Log
@@ -29,7 +26,7 @@ final class Log
             $base['mem_mb'] = round(memory_get_peak_usage(true) / 1048576, 2);
         }
 
-        // Normalizar campos mínimos esperados
+        // Normalizar campos mÃƒÆ’Ã‚Â­nimos esperados
         $payload = self::scrub($payload);
         if (!isset($payload['duration_ms'])) {
             $payload['duration_ms'] = null;
@@ -57,7 +54,7 @@ final class Log
         $order = ['debug' => 0, 'info' => 1, 'warn' => 2, 'error' => 3];
         $lv = $order[$lvl] ?? 99;
         $cv = $order[$cfg] ?? 1;
-        return $lv >= $cv; // mayor índice = menos verboso permitido
+        return $lv >= $cv; // mayor ÃƒÆ’Ã‚Â­ndice = menos verboso permitido
     }
 
     private static function scrub(array $data): array
@@ -70,7 +67,7 @@ final class Log
             if (is_scalar($v)) {
                 $s = (string)$v;
                 if (strlen($s) > self::MAX_LEN) {
-                    $s = substr($s, 0, self::MAX_LEN) . '…';
+                    $s = substr($s, 0, self::MAX_LEN) . 'ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦';
                 }
                 $out[$k] = $s;
             } elseif (is_array($v)) {
@@ -99,7 +96,7 @@ final class Log
     private static function ua(): string
     {
         $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
-        return strlen($ua) > 180 ? substr($ua, 0, 180) . '…' : $ua;
+        return strlen($ua) > 180 ? substr($ua, 0, 180) . 'ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦' : $ua;
     }
 
     private static function writeLine(string $line): void
@@ -110,7 +107,7 @@ final class Log
         if (!is_dir($dir)) {
             @mkdir($dir, 0775, true);
         }
-        // Intentar escritura atómica
+        // Intentar escritura atÃƒÆ’Ã‚Â³mica
         if (($fh = @fopen($file, 'ab')) !== false) {
             @flock($fh, LOCK_EX);
             @fwrite($fh, $line . PHP_EOL);

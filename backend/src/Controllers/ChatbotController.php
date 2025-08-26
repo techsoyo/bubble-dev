@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Controllers;
 
 use Models\ChatbotNode;
@@ -32,7 +31,7 @@ class ChatbotController extends BaseController
             $rootNode = !empty($rootNodes) ? $rootNodes[0] : null;
 
             return ResponseHelper::success('Datos iniciales del chatbot', [
-                'welcome' => $rootNode ? $rootNode['content'] : 'Hola, soy tu asistente virtual. ¿En qué puedo ayudarte hoy?',
+                'welcome' => $rootNode ? $rootNode['content'] : 'Hola, soy tu asistente virtual. Ãƒâ€šÃ‚Â¿En quÃƒÆ’Ã‚Â© puedo ayudarte hoy?',
                 'root_node' => $rootNode,
                 'total_nodes' => count($nodes)
             ]);
@@ -107,7 +106,7 @@ class ChatbotController extends BaseController
                 return ResponseHelper::fail('Mensaje no proporcionado', 400);
             }
             
-            // Registrar interacción en analíticas
+            // Registrar interacciÃƒÆ’Ã‚Â³n en analÃƒÆ’Ã‚Â­ticas
             $this->analyticsModel->store([
                 'message' => $message,
                 'node_id' => $currentNodeId,
@@ -115,11 +114,11 @@ class ChatbotController extends BaseController
                 'timestamp' => time()
             ]);
             
-            // Procesar la opción seleccionada y obtener el siguiente nodo
+            // Procesar la opciÃƒÆ’Ã‚Â³n seleccionada y obtener el siguiente nodo
             $result = $this->optionModel->processOptionSelection($selectedOptionId ?? '');
             
             if (!$result) {
-                // Si no hay opción seleccionada o no es válida, devolver el nodo raíz
+                // Si no hay opciÃƒÆ’Ã‚Â³n seleccionada o no es vÃƒÆ’Ã‚Â¡lida, devolver el nodo raÃƒÆ’Ã‚Â­z
                 $nextNode = $this->nodeModel->findById('root');
                 $options = $this->optionModel->getOptionsByNode('root');
             } else {
@@ -127,15 +126,15 @@ class ChatbotController extends BaseController
                 $options = $this->optionModel->getOptionsByNode($result['next_node_id']);
             }
             
-            return ResponseHelper::success('Interacción procesada', [
+            return ResponseHelper::success('InteracciÃƒÆ’Ã‚Â³n procesada', [
                 'input' => $message,
                 'reply' => $nextNode['content'] ?? "Te he entendido: $message",
                 'next_node' => $nextNode['id'] ?? 'root',
                 'options' => $options
             ]);
         } catch (\Throwable $e) {
-            Logger::error('Error al procesar interacción', ['error' => $e->getMessage()]);
-            return ResponseHelper::error('Error al procesar la interacción', $e);
+            Logger::error('Error al procesar interacciÃƒÆ’Ã‚Â³n', ['error' => $e->getMessage()]);
+            return ResponseHelper::error('Error al procesar la interacciÃƒÆ’Ã‚Â³n', $e);
         }
     }
 
@@ -167,10 +166,10 @@ class ChatbotController extends BaseController
                     break;
             }
             
-            return ResponseHelper::success('Analíticas de uso del chatbot', $data);
+            return ResponseHelper::success('AnalÃƒÆ’Ã‚Â­ticas de uso del chatbot', $data);
         } catch (\Throwable $e) {
-            Logger::error('Error al obtener analíticas', ['error' => $e->getMessage()]);
-            return ResponseHelper::error('Error al obtener analíticas', $e);
+            Logger::error('Error al obtener analÃƒÆ’Ã‚Â­ticas', ['error' => $e->getMessage()]);
+            return ResponseHelper::error('Error al obtener analÃƒÆ’Ã‚Â­ticas', $e);
         }
     }
 
@@ -257,10 +256,10 @@ class ChatbotController extends BaseController
             
             $createdOption = $this->optionModel->findById($optionId);
             
-            return ResponseHelper::success('Opción creada exitosamente', $createdOption, 201);
+            return ResponseHelper::success('OpciÃƒÆ’Ã‚Â³n creada exitosamente', $createdOption, 201);
         } catch (\Throwable $e) {
-            Logger::error('Error al crear opción', ['error' => $e->getMessage()]);
-            return ResponseHelper::error('Error al crear opción', $e);
+            Logger::error('Error al crear opciÃƒÆ’Ã‚Â³n', ['error' => $e->getMessage()]);
+            return ResponseHelper::error('Error al crear opciÃƒÆ’Ã‚Â³n', $e);
         }
     }
 
@@ -301,16 +300,16 @@ class ChatbotController extends BaseController
             
             $option = $this->optionModel->findById($id);
             if (!$option) {
-                return ResponseHelper::fail('Opción no encontrada', 404);
+                return ResponseHelper::fail('OpciÃƒÆ’Ã‚Â³n no encontrada', 404);
             }
             
             $success = $this->optionModel->update($id, $data);
             Logger::info('Chatbot option updated', ['id' => $id, 'data' => $data]);
             
-            return ResponseHelper::success("Opción $id actualizada", ['success' => $success], 200);
+            return ResponseHelper::success("OpciÃƒÆ’Ã‚Â³n $id actualizada", ['success' => $success], 200);
         } catch (\Throwable $e) {
-            Logger::error('Error al actualizar opción', ['id' => $id, 'error' => $e->getMessage()]);
-            return ResponseHelper::error('Error al actualizar opción', $e);
+            Logger::error('Error al actualizar opciÃƒÆ’Ã‚Â³n', ['id' => $id, 'error' => $e->getMessage()]);
+            return ResponseHelper::error('Error al actualizar opciÃƒÆ’Ã‚Â³n', $e);
         }
     }
 
@@ -348,17 +347,17 @@ class ChatbotController extends BaseController
             
             $option = $this->optionModel->findById($id);
             if (!$option) {
-                return ResponseHelper::fail('Opción no encontrada', 404);
+                return ResponseHelper::fail('OpciÃƒÆ’Ã‚Â³n no encontrada', 404);
             }
             
             $success = $this->optionModel->delete($id);
             Logger::info('Chatbot option deleted', ['id' => $id]);
             
-            return ResponseHelper::success("Opción $id eliminada", ['success' => $success], 204);
+            return ResponseHelper::success("OpciÃƒÆ’Ã‚Â³n $id eliminada", ['success' => $success], 204);
         } catch (\Throwable $e) {
             $id = $params['id'] ?? 'unknown';
-            Logger::error('Error al eliminar opción', ['id' => $id, 'error' => $e->getMessage()]);
-            return ResponseHelper::error('Error al eliminar opción', $e);
+            Logger::error('Error al eliminar opciÃƒÆ’Ã‚Â³n', ['id' => $id, 'error' => $e->getMessage()]);
+            return ResponseHelper::error('Error al eliminar opciÃƒÆ’Ã‚Â³n', $e);
         }
     }
 }

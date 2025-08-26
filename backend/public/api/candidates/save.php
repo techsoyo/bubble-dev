@@ -1,10 +1,7 @@
-<?php
-
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
-
+use Security\CsrfMiddleware;
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
     CsrfMiddleware::protect(); // double-submit cookie
@@ -17,15 +14,15 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 }
 
 /**
- * Endpoint para guardar datos de candidato extraÃƒÂ­dos por IA
+ * Endpoint para guardar datos de candidato extraÃƒÆ’Ã‚Â­dos por IA
  * 
- * Guarda toda la informaciÃƒÂ³n estructurada del candidato en las tablas correspondientes
+ * Guarda toda la informaciÃƒÆ’Ã‚Â³n estructurada del candidato en las tablas correspondientes
  */
 
 // cookie HttpOnly obligatoria
 // POST requiere CSRF
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
   if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
     http_response_code(401);
@@ -37,9 +34,11 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
 use Utils\ResponseHelper;
 use Utils\Database;
 
-// Solo permitir mÃƒÂ©todo POST
+// Solo permitir mÃƒÆ’Ã‚Â©todo POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-  ResponseHelper::error('MÃƒÂ©todo no permitido', 405);
+  // Opcionalmente, indica el mÃ©todo permitido:
+  header('Allow: POST');
+  ResponseHelper::error('MÃ©todo no permitido', null, 405);
   exit;
 }
 
@@ -49,20 +48,20 @@ try {
   $data = json_decode($input, true);
 
   if (json_last_error() !== JSON_ERROR_NONE) {
-    ResponseHelper::error('JSON invÃƒÂ¡lido: ' . json_last_error_msg(), 400);
+    ResponseHelper::error('JSON invÃƒÆ’Ã‚Â¡lido: ' . json_last_error_msg(), null, 400);
     exit;
   }
 
-  // Validar campos mÃƒÂ­nimos requeridos
+  // Validar campos maximos requeridos
   if (empty($data['nombre']) || empty($data['email'])) {
-    ResponseHelper::error('Faltan campos requeridos: nombre y email', 400);
+    ResponseHelper::error('Faltan campos requeridos: nombre y email', null, 422);
     exit;
   }
 
   $db = Database::getInstance();
   $pdo = $db->getConnection();
 
-  // Iniciar transacciÃƒÂ³n
+  // Iniciar transacciÃƒÆ’Ã‚Â³n
   $pdo->beginTransaction();
 
   // Insertar candidato principal (mapear campos a la estructura real)
@@ -131,7 +130,7 @@ try {
     }
   }
 
-  // Confirmar transacciÃƒÂ³n
+  // Confirmar transacciÃƒÆ’Ã‚Â³n
   $pdo->commit();
 
   ResponseHelper::success('Candidato creado exitosamente', [
@@ -139,12 +138,12 @@ try {
     'data_source' => $data['data_source'] ?? 'manual_entry'
   ], 201);
 } catch (Exception $e) {
-  // Revertir transacciÃƒÂ³n en caso de error
+  // Revertir transacciÃƒÆ’Ã‚Â³n en caso de error
   if (isset($pdo) && $pdo->inTransaction()) {
     $pdo->rollBack();
   }
 
   error_log("Error guardando candidato: " . $e->getMessage());
-  ResponseHelper::error('Error interno del servidor: ' . $e->getMessage(), 500);
+  ResponseHelper::error('Error interno del servidor', $e, 500);
+  exit;
 }
-

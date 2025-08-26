@@ -1,8 +1,7 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 namespace Controllers;
+
+require_once __DIR__ . '/../../api/bootstrap.php';
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -15,15 +14,15 @@ use Utils\ResponseHelper;
  *
  * Nota de arquitectura:
  * - El bootstrap principal se carga desde el front controller/router.
- * - NO hacer require de backend/public/api/bootstrap.php aquí.
- * - La autenticación por cookie HttpOnly se aplica en endpoints/routers con JWTMiddleware.
- * - Aquí solo generamos/limpiamos cookies y exponemos utilidades (user-info, verify, etc.).
+ * - NO hacer require de backend/public/api/bootstrap.php aquÃƒÆ’Ã‚Â­.
+ * - La autenticaciÃƒÆ’Ã‚Â³n por cookie HttpOnly se aplica en endpoints/routers con JWTMiddleware.
+ * - AquÃƒÆ’Ã‚Â­ solo generamos/limpiamos cookies y exponemos utilidades (user-info, verify, etc.).
  */
 class AuthController
 {
   public function __construct()
   {
-    // En producción no aceptamos Authorization header: solo cookie HttpOnly
+    // En producciÃƒÆ’Ã‚Â³n no aceptamos Authorization header: solo cookie HttpOnly
     if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
       http_response_code(401);
       header('Content-Type: application/json');
@@ -93,10 +92,10 @@ class AuthController
    */
   private function validateCredentials(string $email, string $password, string $targetRole = 'user'): ?array
   {
-    // Aquí iría la implementación real para validar credenciales
+    // AquÃƒÆ’Ã‚Â­ irÃƒÆ’Ã‚Â­a la implementaciÃƒÆ’Ã‚Â³n real para validar credenciales
     $user = null; // Resultado de consulta a base de datos
     
-    // Si no se encuentra el usuario o la contraseña no coincide
+    // Si no se encuentra el usuario o la contraseÃƒÆ’Ã‚Â±a no coincide
     if ($user === null) {
       return null;
     }
@@ -113,8 +112,8 @@ class AuthController
       'status'   => 'active',
     ];
     
-    // Sin implementación real -> null (no usar mocks)
-    // return null; // Código inalcanzable
+    // Sin implementaciÃƒÆ’Ã‚Â³n real -> null (no usar mocks)
+    // return null; // CÃƒÆ’Ã‚Â³digo inalcanzable
   }
 
   private function successfulLoginResponse(array $user, string $jwt): void
@@ -160,11 +159,11 @@ class AuthController
   }
 
   /**
-   * ----- Acciones públicas -----
+   * ----- Acciones pÃƒÆ’Ã‚Âºblicas -----
    */
 
   /**
-   * Login genérico (si lo usas en tu router). Recomendado usar los específicos.
+   * Login genÃƒÆ’Ã‚Â©rico (si lo usas en tu router). Recomendado usar los especÃƒÆ’Ã‚Â­ficos.
    */
   public function login(Request $request, array $params = []): void
   {
@@ -284,7 +283,7 @@ class AuthController
   }
 
   /**
-   * Información del usuario autenticado (claims del JWT)
+   * InformaciÃƒÆ’Ã‚Â³n del usuario autenticado (claims del JWT)
    */
   public function userInfo(Request $request, array $params = []): void
   {
@@ -315,7 +314,7 @@ class AuthController
   }
 
   /**
-   * Verifica si la sesión (cookie JWT) es válida
+   * Verifica si la sesiÃƒÆ’Ã‚Â³n (cookie JWT) es vÃƒÆ’Ã‚Â¡lida
    */
   public function verifySession(Request $request, array $params = []): void
   {
@@ -352,7 +351,7 @@ class AuthController
   }
 
   /**
-   * Validación básica de CSRF (double-submit) — preferible usar CsrfMiddleware en endpoints de escritura
+   * ValidaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica de CSRF (double-submit) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â preferible usar CsrfMiddleware en endpoints de escritura
    */
   public function validateCsrf(Request $request, array $params = []): void
   {
@@ -371,7 +370,7 @@ class AuthController
   }
 
   /**
-   * Ping simple (diagnóstico)
+   * Ping simple (diagnÃƒÆ’Ã‚Â³stico)
    */
   public function ping(Request $request, array $params = []): void
   {
@@ -381,8 +380,8 @@ class AuthController
   }
 
   /**
-   * Cambio de contraseña — requiere JWT (debe validarse en middleware)
-   * Implementación real pendiente (DAO).
+   * Cambio de contraseÃƒÆ’Ã‚Â±a ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â requiere JWT (debe validarse en middleware)
+   * ImplementaciÃƒÆ’Ã‚Â³n real pendiente (DAO).
    */
   public function changePassword(Request $request, array $params = []): void
   {
@@ -393,7 +392,7 @@ class AuthController
   }
 
   /**
-   * Interceptor de autenticación (debug)
+   * Interceptor de autenticaciÃƒÆ’Ã‚Â³n (debug)
    */
   public function intercept(Request $request, array $params = []): void
   {

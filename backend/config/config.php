@@ -1,8 +1,7 @@
-<?php
-
+<?php declare(strict_types=1);
 /**
  * config.php
- * Gestión de configuración segura y robusta para producción
+ * GestiÃ³n de configuraciÃ³n segura y robusta para producciÃ³n
  * @version 2.1.0
  */
 
@@ -40,7 +39,7 @@ function loadEnvironmentVars(): bool
 loadEnvironmentVars();
 
 /**
- * Obtiene valor de configuración
+ * Obtiene valor de configuraciÃ³n
  */
 function config(string $key, $default = null)
 {
@@ -80,10 +79,10 @@ if (isDevelopment() && isDebug()) {
 }
 
 /**
- * Validación de configuraciones críticas
+ * ValidaciÃ³n de configuraciones crÃ­ticas
  */
 foreach (['JWT_SECRET', 'DB_HOST', 'DB_NAME'] as $key) {
-  if (empty(config($key))) error_log("ERROR CRÍTICO: Configuración faltante: $key");
+  if (empty(config($key))) error_log("ERROR CRÃTICO: ConfiguraciÃ³n faltante: $key");
 }
 if ($jwt = config('JWT_SECRET')) {
   if (strlen($jwt) < 32) error_log('ADVERTENCIA: JWT_SECRET < 32 caracteres');

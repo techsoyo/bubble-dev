@@ -1,9 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -18,7 +13,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
     exit;
 }
 
-// Cargar dependencias especÃƒÆ’Ã‚Â­ficas
+// Cargar dependencias especÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­ficas
 require_once __DIR__ . '/../../src/Middleware/SecurityMiddleware.php';
 require_once __DIR__ . '/../../src/Middleware/ValidationMiddleware.php';
 
@@ -29,17 +24,17 @@ use Utils\ResponseHelper;
 // Inicializar logger
 Logger::init();
 
-// ConfiguraciÃƒÆ’Ã‚Â³n de seguridad especÃƒÆ’Ã‚Â­fica para candidatos
+// ConfiguraciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de seguridad especÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­fica para candidatos
 $securityConfig = [
     'rate_limit_type' => 'default',
     'allowed_methods' => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     'max_size' => 2097152, // 2MB
-    'csrf_protection' => false // HabilitarÃƒÆ’Ã‚Â­amos en producciÃƒÆ’Ã‚Â³n con frontend preparado
+    'csrf_protection' => false // HabilitarÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­amos en producciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n con frontend preparado
 ];
 
 // Aplicar middleware de seguridad
 
-// Si tienes un middleware de seguridad real, colÃƒÆ’Ã‚Â³calo aquÃƒÆ’Ã‚Â­. Si no, omite esta llamada.
+// Si tienes un middleware de seguridad real, colÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³calo aquÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­. Si no, omite esta llamada.
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -64,7 +59,7 @@ try {
             break;
 
         default:
-            ResponseHelper::error('MÃƒÆ’Ã‚Â©todo no permitido', 405);
+            ResponseHelper::error('MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©todo no permitido', 405);
             break;
     }
 } catch (PDOException $e) {
@@ -88,13 +83,13 @@ function handleGetRequest($pdo)
 }
 
 /**
- * Obtiene un candidato especÃƒÆ’Ã‚Â­fico
+ * Obtiene un candidato especÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­fico
  */
 function getSingleCandidate($pdo, $id)
 {
     // Validar ID
     if (!filter_var($id, FILTER_VALIDATE_INT) && !preg_match('/^cnd-[a-f0-9]+$/', $id)) {
-        ResponseHelper::error('ID de candidato invÃƒÆ’Ã‚Â¡lido', 400);
+        ResponseHelper::error('ID de candidato invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido', 400);
         return;
     }
 
@@ -128,11 +123,11 @@ GROUP BY c.id, d.name, dc.name
 }
 
 /**
- * Obtiene todos los candidatos con paginaciÃƒÆ’Ã‚Â³n
+ * Obtiene todos los candidatos con paginaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
  */
 function getAllCandidates($pdo)
 {
-    // Validar parÃƒÆ’Ã‚Â¡metros de paginaciÃƒÆ’Ã‚Â³n
+    // Validar parÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡metros de paginaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
     $page = filter_var($_GET['page'] ?? 1, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 1;
     $limit = filter_var($_GET['limit'] ?? 10, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 100]]) ?: 10;
     $offset = ($page - 1) * $limit;
@@ -170,7 +165,7 @@ ORDER BY c.created_at DESC
 LIMIT :limit OFFSET :offset
 ");
 
-    // Bind parameters con tipos especÃƒÆ’Ã‚Â­ficos
+    // Bind parameters con tipos especÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­ficos
     foreach ($params as $key => $value) {
         if ($key === ':limit' || $key === ':offset') {
             $stmt->bindValue($key, $value, PDO::PARAM_INT);
@@ -185,7 +180,7 @@ LIMIT :limit OFFSET :offset
     // Sanitizar todos los candidatos
     $candidatesFormatted = array_map('sanitizeCandidateOutput', $candidates);
 
-    // Contar total para paginaciÃƒÆ’Ã‚Â³n
+    // Contar total para paginaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
     $countParams = array_filter($params, function ($key) {
         return !in_array($key, [':limit', ':offset']);
     }, ARRAY_FILTER_USE_KEY);
@@ -219,12 +214,12 @@ LIMIT :limit OFFSET :offset
  */
 function handlePostRequest($pdo)
 {
-    $input = ResponseHelper::getJsonInput(1048576); // 1MB mÃƒÆ’Ã‚Â¡ximo
+    $input = ResponseHelper::getJsonInput(1048576); // 1MB mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ximo
     if ($input === null) {
-        return; // El ResponseHelper ya enviÃƒÆ’Ã‚Â³ el error
+        return; // El ResponseHelper ya enviÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ el error
     }
 
-    // ValidaciÃƒÆ’Ã‚Â³n exhaustiva con middleware mejorado
+    // ValidaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n exhaustiva con middleware mejorado
     $validationRules = [
         'name' => [
             'required' => true,
@@ -278,12 +273,12 @@ function handlePostRequest($pdo)
         ]
     ];
 
-    // Validar con middleware de validaciÃƒÆ’Ã‚Â³n mejorado
+    // Validar con middleware de validaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n mejorado
     if (!ValidationMiddleware::handle($input, $validationRules)) {
-        return; // El middleware ya enviÃƒÆ’Ã‚Â³ la respuesta de error
+        return; // El middleware ya enviÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ la respuesta de error
     }
 
-    // Validar archivos si estÃƒÆ’Ã‚Â¡n presentes
+    // Validar archivos si estÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡n presentes
     if (!empty($_FILES)) {
         $fileRules = [
             'cv_file' => [
@@ -310,27 +305,27 @@ function handlePostRequest($pdo)
 
         $fileErrors = ValidationMiddleware::validateFiles($_FILES, $fileRules);
         if (!empty($fileErrors)) {
-            Logger::warning('ValidaciÃƒÆ’Ã‚Â³n de archivos fallida al crear candidato', $fileErrors);
-            ResponseHelper::error('Error de validaciÃƒÆ’Ã‚Â³n de archivos', 422, $fileErrors);
+            Logger::warning('ValidaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de archivos fallida al crear candidato', $fileErrors);
+            ResponseHelper::error('Error de validaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de archivos', 422, $fileErrors);
             return;
         }
     }
 
-    // Los datos ya estÃƒÆ’Ã‚Â¡n validados y seguros para usar
+    // Los datos ya estÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡n validados y seguros para usar
     $validData = $input;
 
-    // Verificar email ÃƒÆ’Ã‚Âºnico
+    // Verificar email ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºnico
     $emailCheck = $pdo->prepare('SELECT id FROM bt_candidates WHERE email = :email');
     $emailCheck->bindParam(':email', $validData['email']);
     $emailCheck->execute();
 
     if ($emailCheck->fetch()) {
         Logger::warning('Intento de crear candidato con email existente', ['email' => $validData['email']]);
-        ResponseHelper::error('El email ya estÃƒÆ’Ã‚Â¡ registrado', 409);
+        ResponseHelper::error('El email ya estÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ registrado', 409);
         return;
     }
 
-    // Generar ID ÃƒÆ’Ã‚Âºnico seguro
+    // Generar ID ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºnico seguro
     $candidateId = 'cnd-' . bin2hex(random_bytes(16));
 
     // Procesar nombre
@@ -338,7 +333,7 @@ function handlePostRequest($pdo)
     $firstName = $nameParts[0];
     $lastName = $nameParts[1] ?? '';
 
-    // Hash seguro de contraseÃƒÆ’Ã‚Â±a
+    // Hash seguro de contraseÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â±a
     $passwordHash = password_hash($validData['password'] ?? bin2hex(random_bytes(8)), PASSWORD_DEFAULT);
 
     try {
@@ -398,13 +393,13 @@ phone, location, status, registration_source, created_at
 function handlePutRequest($pdo)
 {
     if (!isset($_GET['id'])) {
-        ResponseHelper::error('ID requerido para actualizaciÃƒÆ’Ã‚Â³n', 400);
+        ResponseHelper::error('ID requerido para actualizaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n', 400);
         return;
     }
 
     $id = $_GET['id'];
     if (!filter_var($id, FILTER_VALIDATE_INT) && !preg_match('/^cnd-[a-f0-9]+$/', $id)) {
-        ResponseHelper::error('ID de candidato invÃƒÆ’Ã‚Â¡lido', 400);
+        ResponseHelper::error('ID de candidato invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido', 400);
         return;
     }
 
@@ -413,7 +408,7 @@ function handlePutRequest($pdo)
         return;
     }
 
-    // ValidaciÃƒÆ’Ã‚Â³n para actualizaciÃƒÆ’Ã‚Â³n con middleware mejorado (campos opcionales)
+    // ValidaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n para actualizaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n con middleware mejorado (campos opcionales)
     $updateValidationRules = [
         'name' => [
             'required' => false,
@@ -466,12 +461,12 @@ function handlePutRequest($pdo)
         ]
     ];
 
-    // Validar con middleware de validaciÃƒÆ’Ã‚Â³n mejorado
+    // Validar con middleware de validaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n mejorado
     if (!ValidationMiddleware::handle($input, $updateValidationRules)) {
-        return; // El middleware ya enviÃƒÆ’Ã‚Â³ la respuesta de error
+        return; // El middleware ya enviÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ la respuesta de error
     }
 
-    // ValidaciÃƒÆ’Ã‚Â³n adicional para skills si estÃƒÆ’Ã‚Â¡ presente
+    // ValidaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n adicional para skills si estÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ presente
     if (isset($input['skills'])) {
         if (!is_array($input['skills'])) {
             ResponseHelper::error('Skills debe ser un array', 422);
@@ -484,12 +479,12 @@ function handlePutRequest($pdo)
             ]);
 
             if (!$skillValidation['isValid']) {
-                ResponseHelper::error("Skill en posiciÃƒÆ’Ã‚Â³n $index es invÃƒÆ’Ã‚Â¡lida: " . $skillValidation['error'], 422);
+                ResponseHelper::error("Skill en posiciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n $index es invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lida: " . $skillValidation['error'], 422);
                 return;
             }
 
             if (strlen($skill) > 100) {
-                ResponseHelper::error("Skill en posiciÃƒÆ’Ã‚Â³n $index excede 100 caracteres", 422);
+                ResponseHelper::error("Skill en posiciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n $index excede 100 caracteres", 422);
                 return;
             }
         }
@@ -511,7 +506,7 @@ function handlePutRequest($pdo)
             return;
         }
 
-        // Construir query de actualizaciÃƒÆ’Ã‚Â³n dinÃƒÆ’Ã‚Â¡micamente
+        // Construir query de actualizaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n dinÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡micamente
         $updateFields = [];
         $params = [':id' => $id];
 
@@ -564,13 +559,13 @@ function handlePutRequest($pdo)
 function handleDeleteRequest($pdo)
 {
     if (!isset($_GET['id'])) {
-        ResponseHelper::error('ID requerido para eliminaciÃƒÆ’Ã‚Â³n', 400);
+        ResponseHelper::error('ID requerido para eliminaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n', 400);
         return;
     }
 
     $id = $_GET['id'];
     if (!filter_var($id, FILTER_VALIDATE_INT) && !preg_match('/^cnd-[a-f0-9]+$/', $id)) {
-        ResponseHelper::error('ID de candidato invÃƒÆ’Ã‚Â¡lido', 400);
+        ResponseHelper::error('ID de candidato invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido', 400);
         return;
     }
 
@@ -623,7 +618,7 @@ function sanitizeCandidateOutput($candidate)
         'name' => htmlspecialchars($candidate['name'], ENT_QUOTES, 'UTF-8'),
         'email' => htmlspecialchars($candidate['email'], ENT_QUOTES, 'UTF-8'),
         'phone' => htmlspecialchars($candidate['phone'] ?? '', ENT_QUOTES, 'UTF-8'),
-        'title' => htmlspecialchars($candidate['department_category_name'] ?? 'Sin categorÃƒÆ’Ã‚Â­a', ENT_QUOTES, 'UTF-8'),
+        'title' => htmlspecialchars($candidate['department_category_name'] ?? 'Sin categorÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­a', ENT_QUOTES, 'UTF-8'),
         'department' => htmlspecialchars($candidate['department_name'] ?? 'Sin departamento', ENT_QUOTES, 'UTF-8'),
         'skills' => $candidate['skills'] ?
             array_map(function ($skill) {

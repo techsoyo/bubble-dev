@@ -1,6 +1,4 @@
-<?php
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -17,13 +15,13 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// Proteger solo mÃ©todos que cambian estado
+// Proteger solo mÃƒÂ©todos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
     // double-submit cookie
 }
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
         http_response_code(401);
@@ -36,7 +34,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
 /**
  * Candidate Matching API Endpoint
  *
- * Endpoint para scoring automÃƒÆ’Ã‚Â¡tico y anÃƒÆ’Ã‚Â¡lisis de compatibilidad
+ * Endpoint para scoring automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡tico y anÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lisis de compatibilidad
  * entre candidatos y trabajos usando IA.
  *
  * @package Backend\API\AI
@@ -67,7 +65,7 @@ use Services\MatchingService;
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['error' => 'MÃƒÆ’Ã‚Â©todo no permitido']);
+    echo json_encode(['error' => 'MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©todo no permitido']);
     exit;
 }
 
@@ -77,7 +75,7 @@ try {
 
     if (!$input) {
         http_response_code(400);
-        echo json_encode(['error' => 'Datos JSON invÃƒÆ’Ã‚Â¡lidos']);
+        echo json_encode(['error' => 'Datos JSON invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lidos']);
         exit;
     }
 
@@ -107,7 +105,7 @@ try {
             break;
 
         case 'rank_candidates':
-            // Ranking de mÃƒÆ’Ã‚Âºltiples candidatos
+            // Ranking de mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºltiples candidatos
             if (!isset($input['candidates']) || !isset($input['job_data'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Faltan candidates o job_data']);
@@ -129,7 +127,7 @@ try {
             break;
 
         case 'qualification_analysis':
-            // AnÃƒÆ’Ã‚Â¡lisis de sobre/subcalificaciÃƒÆ’Ã‚Â³n
+            // AnÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lisis de sobre/subcalificaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
             if (!isset($input['candidate_data']) || !isset($input['job_data'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Faltan candidate_data o job_data']);
@@ -150,7 +148,7 @@ try {
             break;
 
         case 'batch_analysis':
-            // AnÃƒÆ’Ã‚Â¡lisis completo: matching + qualification
+            // AnÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lisis completo: matching + qualification
             if (!isset($input['candidate_data']) || !isset($input['job_data'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Faltan candidate_data o job_data']);
@@ -185,7 +183,7 @@ try {
         default:
             http_response_code(400);
             echo json_encode([
-                'error' => 'AcciÃƒÆ’Ã‚Â³n no vÃƒÆ’Ã‚Â¡lida',
+                'error' => 'AcciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n no vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lida',
                 'valid_actions' => ['single_match', 'rank_candidates', 'qualification_analysis', 'batch_analysis']
             ]);
             break;

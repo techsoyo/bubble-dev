@@ -1,7 +1,4 @@
-<?php
-
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -33,14 +30,14 @@ try {
   }
 
   if (!$code) {
-    throw new Exception('CÃƒÂ³digo de autorizaciÃƒÂ³n no recibido');
+    throw new Exception('CÃƒÆ’Ã‚Â³digo de autorizaciÃƒÆ’Ã‚Â³n no recibido');
   }
 
   $oauth = new OAuthHandler();
   $result = $oauth->handleCallback('linkedin', $code, $state);
 
   if ($result['success']) {
-    // Crear sesiÃƒÂ³n de usuario
+    // Crear sesiÃƒÆ’Ã‚Â³n de usuario
     session_start();
     $_SESSION['user_id'] = $result['user']['id'];
     $_SESSION['user_email'] = $result['user']['email'];
@@ -52,7 +49,7 @@ try {
       $jobId = substr($state, 4);
     }
 
-    // Redirigir segÃƒÂºn el contexto
+    // Redirigir segÃƒÆ’Ã‚Âºn el contexto
     if ($jobId) {
       $redirectUrl = "http://localhost:3002/jobs/$jobId?login=success";
     } else {
@@ -65,7 +62,7 @@ try {
     throw new Exception($result['error']);
   }
 } catch (Exception $e) {
-  // Redirigir a pÃƒÂ¡gina de error
+  // Redirigir a pÃƒÆ’Ã‚Â¡gina de error
   $errorUrl = "http://localhost:3002/auth/register?error=" . urlencode($e->getMessage());
   header("Location: $errorUrl");
   exit;

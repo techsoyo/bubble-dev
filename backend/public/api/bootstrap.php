@@ -1,14 +1,11 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 /**
  * Bootstrap puente para endpoints bajo public/api/*
  *
  * - Carga el bootstrap principal (autoloader, .env, CORS, manejo global).
- * - Define alias de compatibilidad para middlewares si algún endpoint legacy los invoca
+ * - Define alias de compatibilidad para middlewares si algÃºn endpoint legacy los invoca
  *   con espacio de nombres distinto.
- * - NO ejecuta middlewares (JWT/CSRF) ni bloquea Authorization aquí.
+ * - NO ejecuta middlewares (JWT/CSRF) ni bloquea Authorization aquÃ­.
  *   Eso se hace en cada endpoint o en el router antes de despachar.
  */
 
@@ -44,8 +41,8 @@ if (!defined('API_BOOTSTRAPPED')) {
     }
 
     // 4) Preflight OPTIONS:
-    //    El bootstrap principal ya debería haber emitido CORS adecuados.
-    //    Aquí sólo respondemos 204 si llega un OPTIONS directo a /api/*.
+    //    El bootstrap principal ya deberÃ­a haber emitido CORS adecuados.
+    //    AquÃ­ sÃ³lo respondemos 204 si llega un OPTIONS directo a /api/*.
     if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
         http_response_code(204);
         exit;

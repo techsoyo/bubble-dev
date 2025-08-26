@@ -1,16 +1,13 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 namespace Models;
 
 use Utils\Logger;
 
 /**
- * Modelo para gestión de habilidades (skills)
+ * Modelo para gestiÃƒÆ’Ã‚Â³n de habilidades (skills)
  * 
- * Gestiona las habilidades del sistema con soporte para categorización,
- * niveles de competencia y extracción desde texto.
+ * Gestiona las habilidades del sistema con soporte para categorizaciÃƒÆ’Ã‚Â³n,
+ * niveles de competencia y extracciÃƒÆ’Ã‚Â³n desde texto.
  * 
  * @package Models
  * @author Bubble of Talents Development Team
@@ -32,7 +29,7 @@ class Skill extends BaseModel
   protected array $hidden = [];
 
   /**
-   * Categorías válidas de habilidades
+   * CategorÃƒÆ’Ã‚Â­as vÃƒÆ’Ã‚Â¡lidas de habilidades
    */
   const VALID_CATEGORIES = [
     'technical',
@@ -44,7 +41,7 @@ class Skill extends BaseModel
   ];
 
   /**
-   * Niveles válidos de habilidad
+   * Niveles vÃƒÆ’Ã‚Â¡lidos de habilidad
    */
   const VALID_LEVELS = [
     'beginner',
@@ -125,7 +122,7 @@ class Skill extends BaseModel
    * 
    * @param int $id ID de la habilidad
    * @param array $data Datos a actualizar
-   * @return bool True si se actualizó correctamente
+   * @return bool True si se actualizÃƒÆ’Ã‚Â³ correctamente
    */
   public function updateSkill(int $id, array $data): bool
   {
@@ -164,7 +161,7 @@ class Skill extends BaseModel
    * Eliminar una habilidad
    * 
    * @param int $id ID de la habilidad
-   * @return bool True si se eliminó correctamente
+   * @return bool True si se eliminÃƒÆ’Ã‚Â³ correctamente
    */
   public function deleteSkill(int $id): bool
   {
@@ -185,9 +182,9 @@ class Skill extends BaseModel
   /**
    * Buscar habilidades
    * 
-   * @param array $criteria Criterios de búsqueda
-   * @param int $limit Límite de resultados
-   * @param int $offset Offset para paginación
+   * @param array $criteria Criterios de bÃƒÆ’Ã‚Âºsqueda
+   * @param int $limit LÃƒÆ’Ã‚Â­mite de resultados
+   * @param int $offset Offset para paginaciÃƒÆ’Ã‚Â³n
    * @return array Lista de habilidades encontradas
    */
   public function searchSkills(array $criteria = [], int $limit = 50, int $offset = 0): array
@@ -222,10 +219,10 @@ class Skill extends BaseModel
   }
 
   /**
-   * Contar habilidades según criterios
+   * Contar habilidades segÃƒÆ’Ã‚Âºn criterios
    * 
-   * @param array $criteria Criterios de búsqueda
-   * @return int Número de habilidades encontradas
+   * @param array $criteria Criterios de bÃƒÆ’Ã‚Âºsqueda
+   * @return int NÃƒÆ’Ã‚Âºmero de habilidades encontradas
    */
   public function countSkills(array $criteria = []): int
   {
@@ -258,15 +255,15 @@ class Skill extends BaseModel
   /**
    * Extraer habilidades desde texto
    * 
-   * @param string $text Texto del CV o descripción
-   * @return array Habilidades extraídas
+   * @param string $text Texto del CV o descripciÃƒÆ’Ã‚Â³n
+   * @return array Habilidades extraÃƒÆ’Ã‚Â­das
    */
   public function extractSkillsFromText(string $text): array
   {
     try {
-      // Lista básica de habilidades técnicas comunes
+      // Lista bÃƒÆ’Ã‚Â¡sica de habilidades tÃƒÆ’Ã‚Â©cnicas comunes
       $commonSkills = [
-        // Lenguajes de programación
+        // Lenguajes de programaciÃƒÆ’Ã‚Â³n
         'PHP',
         'JavaScript',
         'Python',
@@ -316,7 +313,7 @@ class Skill extends BaseModel
           $foundSkills[] = [
             'name' => $skill,
             'category' => $this->categorizeSkill($skill),
-            'confidence' => 0.8 // Confidence score básico
+            'confidence' => 0.8 // Confidence score bÃƒÆ’Ã‚Â¡sico
           ];
         }
       }
@@ -337,8 +334,8 @@ class Skill extends BaseModel
    * Validar datos de habilidad
    * 
    * @param array $data Datos a validar
-   * @param bool $isCreation Si es una creación (requiere todos los campos)
-   * @throws \InvalidArgumentException Si los datos no son válidos
+   * @param bool $isCreation Si es una creaciÃƒÆ’Ã‚Â³n (requiere todos los campos)
+   * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
    */
   private function validateSkillData(array $data, bool $isCreation = true): void
   {
@@ -351,25 +348,25 @@ class Skill extends BaseModel
     }
 
     if (isset($data['category']) && !in_array($data['category'], self::VALID_CATEGORIES)) {
-      throw new \InvalidArgumentException('Categoría de habilidad no válida');
+      throw new \InvalidArgumentException('CategorÃƒÆ’Ã‚Â­a de habilidad no vÃƒÆ’Ã‚Â¡lida');
     }
 
     if (isset($data['level']) && !in_array($data['level'], self::VALID_LEVELS)) {
-      throw new \InvalidArgumentException('Nivel de habilidad no válido');
+      throw new \InvalidArgumentException('Nivel de habilidad no vÃƒÆ’Ã‚Â¡lido');
     }
   }
 
   /**
-   * Categorizar automáticamente una habilidad
+   * Categorizar automÃƒÆ’Ã‚Â¡ticamente una habilidad
    * 
    * @param string $skillName Nombre de la habilidad
-   * @return string Categoría asignada
+   * @return string CategorÃƒÆ’Ã‚Â­a asignada
    */
   private function categorizeSkill(string $skillName): string
   {
     $skillUpper = strtoupper($skillName);
 
-    // Lenguajes de programación
+    // Lenguajes de programaciÃƒÆ’Ã‚Â³n
     $languages = ['PHP', 'JAVASCRIPT', 'PYTHON', 'JAVA', 'C#', 'C++', 'RUBY', 'GO', 'RUST'];
     if (in_array($skillUpper, $languages)) {
       return 'technical';

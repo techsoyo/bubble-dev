@@ -1,7 +1,4 @@
-
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 use Models\Candidate;
 use PDO;
@@ -248,26 +245,6 @@ try {
                     $edu['descripcion'] ?: null
                 ]);
             }
-        }    // 5. Insertar proyectos (si existen)
-        if (!empty($candidateData['proyectos'])) {
-            // Limpiar proyectos anteriores
-            $stmt = $pdo->prepare('DELETE FROM bt_candidate_projects WHERE candidate_id = ?');
-            $stmt->execute([$candidateId]);
-
-            $stmt = $pdo->prepare('
-                INSERT INTO bt_candidate_projects (
-                    candidate_id, nombre, descripcion, tecnologias, created_at
-                ) VALUES (?, ?, ?, ?, NOW())
-            ');
-
-            foreach ($candidateData['proyectos'] as $proyecto) {
-                $stmt->execute([
-                    $candidateId,
-                    $proyecto['nombre'],
-                    $proyecto['descripcion'] ?: null,
-                    json_encode($proyecto['tecnologias'] ?? [], JSON_UNESCAPED_UNICODE)
-                ]);
-            }
         }
 
         // Confirmar transacción
@@ -287,7 +264,6 @@ try {
                 'education_entries' => count($candidateData['educacion'] ?? []),
                 'hard_skills_count' => count($candidateData['hard_skills'] ?? []),
                 'soft_skills_count' => count($candidateData['soft_skills'] ?? []),
-                'projects_count' => count($candidateData['proyectos'] ?? [])
             ],
             'timestamp' => date('Y-m-d H:i:s')
         ]);
@@ -305,5 +281,3 @@ try {
         'timestamp' => date('Y-m-d H:i:s')
     ]);
 }
-
-```

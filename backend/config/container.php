@@ -1,9 +1,6 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 // ====================================================================
-// CONFIGURACIÓN DEL CONTENEDOR DE DEPENDENCY INJECTION
+// CONFIGURACIÃ“N DEL CONTENEDOR DE DEPENDENCY INJECTION
 // Arquitectura moderna con Symfony DI Container
 // ====================================================================
 
@@ -15,10 +12,10 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 $container = new ContainerBuilder();
 
 // ====================================================================
-// 1. CONFIGURACIÓN DE BASE DE DATOS (DOCTRINE)
+// 1. CONFIGURACIÃ“N DE BASE DE DATOS (DOCTRINE)
 // ====================================================================
 
-// Configuración de conexión a BD
+// ConfiguraciÃ³n de conexiÃ³n a BD
 $container->setParameter('database.host', $_ENV['DB_HOST'] ?? 'localhost');
 $container->setParameter('database.port', $_ENV['DB_PORT'] ?? 3306);
 $container->setParameter('database.name', $_ENV['DB_NAME'] ?? 'bubble_talents');
@@ -51,7 +48,7 @@ $container->register('http.client', \GuzzleHttp\Client::class)
     ]
   ]]);
 
-// Configuración de IA
+// ConfiguraciÃ³n de IA
 $container->setParameter('ai.ollama.base_url', $_ENV['OLLAMA_API_URL'] ?? 'http://localhost:11434');
 $container->setParameter('ai.ollama.model', $_ENV['OLLAMA_MODEL'] ?? 'llama3.2');
 $container->setParameter('ai.ollama.timeout', (int)($_ENV['OLLAMA_TIMEOUT_MS'] ?? 180000));
@@ -94,7 +91,7 @@ $container->register('repository.cv_metrics', \Repositories\CvMetricsRepository:
   ->setArguments([new Reference('doctrine.entity_manager')]);
 
 // ====================================================================
-// 6. SERVICIOS DE APLICACIÓN
+// 6. SERVICIOS DE APLICACIÃ“N
 // ====================================================================
 
 // Servicio principal de procesamiento de CV
@@ -109,13 +106,13 @@ $container->register('cv.processing_service', \Services\CvProcessingService::cla
     new Reference('cache.service'),
   ]);
 
-// Servicio de caché
+// Servicio de cachÃ©
 $container->register('cache.service', \Services\Cache\CvCacheService::class)
   ->setArguments([
     new Reference('cache.adapter')
   ]);
 
-// Adaptador de caché (Redis)
+// Adaptador de cachÃ© (Redis)
 $container->register('cache.adapter', \Predis\Client::class)
   ->setArguments([[
     'host' => $_ENV['REDIS_HOST'] ?? 'localhost',
@@ -138,13 +135,13 @@ $container->register('logger', \Monolog\Logger::class)
   ->addMethodCall('pushHandler', [
     new \Monolog\Handler\RotatingFileHandler(
       $_ENV['LOG_PATH'] ?? __DIR__ . '/../logs/app.log',
-      30, // mantener 30 días
+      30, // mantener 30 dÃ­as
       \Monolog\Level::Warning
     )
   ]);
 
 // ====================================================================
-// 8. VALIDACIÓN
+// 8. VALIDACIÃ“N
 // ====================================================================
 
 $container->register('validator', \Symfony\Component\Validator\Validator\ValidatorInterface::class)

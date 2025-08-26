@@ -1,12 +1,11 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Services;
 
 /**
  * AI-Powered Candidate Matching Service
  *
- * Servicio para scoring automático y matching inteligente de candidatos
- * usando Ollama local para análisis avanzado de compatibilidad.
+ * Servicio para scoring automÃƒÆ’Ã‚Â¡tico y matching inteligente de candidatos
+ * usando Ollama local para anÃƒÆ’Ã‚Â¡lisis avanzado de compatibilidad.
  *
  * @package Backend\Services
  * @version 2.0.0
@@ -24,9 +23,9 @@ class MatchingService
   /**
    * Calcula el score de matching entre candidato y trabajo
    *
-   * @param array $candidateData Datos extraídos del CV
+   * @param array $candidateData Datos extraÃƒÆ’Ã‚Â­dos del CV
    * @param array $jobData Datos del trabajo
-   * @return array Score y análisis detallado
+   * @return array Score y anÃƒÆ’Ã‚Â¡lisis detallado
    */
   public function calculateMatchingScore($candidateData, $jobData)
   {
@@ -52,7 +51,7 @@ class MatchingService
   }
 
   /**
-   * Analiza múltiples candidatos contra una posición
+   * Analiza mÃƒÆ’Ã‚Âºltiples candidatos contra una posiciÃƒÆ’Ã‚Â³n
    *
    * @param array $candidates Lista de candidatos
    * @param array $jobData Datos del trabajo
@@ -86,23 +85,23 @@ class MatchingService
    */
   public function analyzeQualificationFit($candidateData, $jobData)
   {
-    $prompt = 'Analiza si este candidato está sobrecalificado, subcalificado o perfectamente calificado para esta posición.
+    $prompt = 'Analiza si este candidato estÃƒÆ’Ã‚Â¡ sobrecalificado, subcalificado o perfectamente calificado para esta posiciÃƒÆ’Ã‚Â³n.
 
 CANDIDATO:
 Experiencia: ' . ($candidateData['puestos_anteriores'] ? count($candidateData['puestos_anteriores']) . ' posiciones anteriores' : 'Sin experiencia registrada') . '
 Skills: ' . implode(', ', $candidateData['hard_skills'] ?? []) . '
-Educación: ' . (isset($candidateData['educacion'][0]['titulo']) ? $candidateData['educacion'][0]['titulo'] : 'No especificada') . '
+EducaciÃƒÆ’Ã‚Â³n: ' . (isset($candidateData['educacion'][0]['titulo']) ? $candidateData['educacion'][0]['titulo'] : 'No especificada') . '
 
 TRABAJO:
-Título: ' . ($jobData['title'] ?? 'No especificado') . '
+TÃƒÆ’Ã‚Â­tulo: ' . ($jobData['title'] ?? 'No especificado') . '
 Nivel requerido: ' . ($jobData['level'] ?? 'No especificado') . '
 Skills requeridas: ' . implode(', ', $jobData['required_skills'] ?? []) . '
-Experiencia mínima: ' . ($jobData['min_experience'] ?? 'No especificada') . '
+Experiencia mÃƒÆ’Ã‚Â­nima: ' . ($jobData['min_experience'] ?? 'No especificada') . '
 
-Responde ÚNICAMENTE con JSON válido en este formato:
+Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido en este formato:
 {
   "qualification_level": "perfect_fit|overqualified|underqualified",
-  "explanation": "Razón detallada del análisis",
+  "explanation": "RazÃƒÆ’Ã‚Â³n detallada del anÃƒÆ’Ã‚Â¡lisis",
   "risk_level": "low|medium|high",
   "recommendations": ["lista de recomendaciones"],
   "salary_expectation": "below_range|in_range|above_range|unknown"
@@ -119,7 +118,7 @@ Responde ÚNICAMENTE con JSON válido en este formato:
 
     return [
       'qualification_level' => 'unknown',
-      'explanation' => 'No se pudo analizar el nivel de calificación',
+      'explanation' => 'No se pudo analizar el nivel de calificaciÃƒÆ’Ã‚Â³n',
       'risk_level' => 'medium',
       'recommendations' => ['Revisar manualmente'],
       'salary_expectation' => 'unknown'
@@ -127,34 +126,34 @@ Responde ÚNICAMENTE con JSON válido en este formato:
   }
 
   /**
-   * Construye el prompt para análisis de matching
+   * Construye el prompt para anÃƒÆ’Ã‚Â¡lisis de matching
    */
   private function buildMatchingPrompt($candidateData, $jobData)
   {
-    return 'Analiza la compatibilidad entre este candidato y trabajo. Calcula un score detallado considerando múltiples factores.
+    return 'Analiza la compatibilidad entre este candidato y trabajo. Calcula un score detallado considerando mÃƒÆ’Ã‚Âºltiples factores.
 
 DATOS DEL CANDIDATO:
 Nombre: ' . ($candidateData['nombre'] ?? 'No especificado') . '
 Email: ' . ($candidateData['email'] ?? 'No especificado') . '
-Ubicación: ' . ($candidateData['ubicacion_actual'] ?? 'No especificada') . '
+UbicaciÃƒÆ’Ã‚Â³n: ' . ($candidateData['ubicacion_actual'] ?? 'No especificada') . '
 Experiencia: ' . json_encode($candidateData['puestos_anteriores'] ?? []) . '
-Educación: ' . json_encode($candidateData['educacion'] ?? []) . '
+EducaciÃƒÆ’Ã‚Â³n: ' . json_encode($candidateData['educacion'] ?? []) . '
 Hard Skills: ' . implode(', ', $candidateData['hard_skills'] ?? []) . '
 Soft Skills: ' . implode(', ', $candidateData['soft_skills'] ?? []) . '
 Idiomas: ' . implode(', ', $candidateData['idiomas'] ?? []) . '
 Disponibilidad: ' . ($candidateData['disponibilidad'] ?? 'No especificada') . '
 
 DATOS DEL TRABAJO:
-Título: ' . ($jobData['title'] ?? 'No especificado') . '
-Descripción: ' . ($jobData['description'] ?? 'No especificada') . '
-Ubicación: ' . ($jobData['location'] ?? 'No especificada') . '
+TÃƒÆ’Ã‚Â­tulo: ' . ($jobData['title'] ?? 'No especificado') . '
+DescripciÃƒÆ’Ã‚Â³n: ' . ($jobData['description'] ?? 'No especificada') . '
+UbicaciÃƒÆ’Ã‚Â³n: ' . ($jobData['location'] ?? 'No especificada') . '
 Modalidad: ' . ($jobData['remote_type'] ?? 'No especificada') . '
 Salario: ' . ($jobData['salary_range'] ?? 'No especificado') . '
 Skills requeridas: ' . implode(', ', $jobData['required_skills'] ?? []) . '
-Experiencia mínima: ' . ($jobData['min_experience'] ?? 'No especificada') . ' años
+Experiencia mÃƒÆ’Ã‚Â­nima: ' . ($jobData['min_experience'] ?? 'No especificada') . ' aÃƒÆ’Ã‚Â±os
 Nivel: ' . ($jobData['level'] ?? 'No especificado') . '
 
-Responde ÚNICAMENTE con JSON válido en este formato exacto:
+Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido en este formato exacto:
 {
   "overall_score": 85,
   "breakdown_scores": {
@@ -177,7 +176,7 @@ Responde ÚNICAMENTE con JSON válido en este formato exacto:
     "Acciones recomendadas para el proceso"
   ],
   "interview_focus_areas": [
-    "Áreas específicas a explorar en entrevista"
+    "ÃƒÆ’Ã‚Âreas especÃƒÆ’Ã‚Â­ficas a explorar en entrevista"
   ],
   "estimated_fit_probability": 85,
   "risk_factors": [
@@ -196,7 +195,7 @@ Responde ÚNICAMENTE con JSON válido en este formato exacto:
       'messages' => [
         [
           'role' => 'system',
-          'content' => 'Eres un experto en recruitment y talent matching. Analiza candidatos vs trabajos con precisión profesional. Responde ÚNICAMENTE con JSON válido sin explicaciones adicionales.'
+          'content' => 'Eres un experto en recruitment y talent matching. Analiza candidatos vs trabajos con precisiÃƒÆ’Ã‚Â³n profesional. Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido sin explicaciones adicionales.'
         ],
         [
           'role' => 'user',
@@ -252,7 +251,7 @@ Responde ÚNICAMENTE con JSON válido en este formato exacto:
    */
   public function createFallbackScore($candidateData, $jobData)
   {
-    // Análisis básico por reglas simples
+    // AnÃƒÆ’Ã‚Â¡lisis bÃƒÆ’Ã‚Â¡sico por reglas simples
     $score = 50; // Base score
 
     // Boost por skills match
@@ -279,13 +278,13 @@ Responde ÚNICAMENTE con JSON válido en este formato exacto:
         'language_requirements' => 50,
         'salary_expectations' => 50
       ],
-      'strengths' => ['Análisis automático básico realizado'],
-      'concerns' => ['Requiere revisión manual detallada'],
+      'strengths' => ['AnÃƒÆ’Ã‚Â¡lisis automÃƒÆ’Ã‚Â¡tico bÃƒÆ’Ã‚Â¡sico realizado'],
+      'concerns' => ['Requiere revisiÃƒÆ’Ã‚Â³n manual detallada'],
       'recommendation' => 'potential_match',
       'next_steps' => ['Revisar manualmente', 'Agendar screening call'],
-      'interview_focus_areas' => ['Verificar skills técnicas', 'Evaluar fit cultural'],
+      'interview_focus_areas' => ['Verificar skills tÃƒÆ’Ã‚Â©cnicas', 'Evaluar fit cultural'],
       'estimated_fit_probability' => min(95, max(15, $score)),
-      'risk_factors' => ['Score calculado con algoritmo básico'],
+      'risk_factors' => ['Score calculado con algoritmo bÃƒÆ’Ã‚Â¡sico'],
       'fallback_analysis' => true,
       'processed_at' => date('Y-m-d H:i:s')
     ];
@@ -347,13 +346,13 @@ Responde ÚNICAMENTE con JSON válido en este formato exacto:
         'language_requirements' => 50,
         'salary_expectations' => 50
       ],
-      'strengths' => ['Requiere análisis manual'],
+      'strengths' => ['Requiere anÃƒÆ’Ã‚Â¡lisis manual'],
       'concerns' => ['Score incompleto'],
       'recommendation' => 'potential_match',
       'next_steps' => ['Revisar manualmente'],
-      'interview_focus_areas' => ['Evaluación general'],
+      'interview_focus_areas' => ['EvaluaciÃƒÆ’Ã‚Â³n general'],
       'estimated_fit_probability' => 50,
-      'risk_factors' => ['Análisis incompleto']
+      'risk_factors' => ['AnÃƒÆ’Ã‚Â¡lisis incompleto']
     ];
 
     return $defaults[$field] ?? null;

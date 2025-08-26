@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 use Security\CsrfMiddleware;
 // Usar alias global de JWTMiddleware creado en bootstrap.php
 

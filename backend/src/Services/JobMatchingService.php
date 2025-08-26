@@ -1,11 +1,10 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Services;
 
 use Utils\TranslationService as T;
 
 /**
- * Servicio para la comparación y matching entre candidatos y ofertas de trabajo
+ * Servicio para la comparaciÃƒÆ’Ã‚Â³n y matching entre candidatos y ofertas de trabajo
  */
 class JobMatchingService
 {
@@ -24,37 +23,37 @@ class JobMatchingService
     }
 
     /**
-     * Evalúa la coincidencia entre un candidato y una oferta de trabajo
+     * EvalÃƒÆ’Ã‚Âºa la coincidencia entre un candidato y una oferta de trabajo
      *
      * @param array $candidateData Datos del candidato
      * @param array $jobData Datos de la oferta de trabajo
-     * @return array Resultado de la evaluación
+     * @return array Resultado de la evaluaciÃƒÆ’Ã‚Â³n
      */
     public function evaluateMatch($candidateData, $jobData)
     {
-        // TODO: Implementar lógica de matching con IA
+        // TODO: Implementar lÃƒÆ’Ã‚Â³gica de matching con IA
         // return $this->ollamaService->calculateMatching(
         //     $candidateData['id'] ?? 1,
         //     $jobData['id'] ?? 1
         // );
 
-        // Implementación temporal para el MVP
+        // ImplementaciÃƒÆ’Ã‚Â³n temporal para el MVP
         return [
             'match_percentage' => 75, // Valor por defecto para pruebas
             'confidence' => 0.8,
-            'strengths' => ['Experiencia relevante', 'Habilidades técnicas'],
-            'weaknesses' => ['Falta experiencia específica'],
+            'strengths' => ['Experiencia relevante', 'Habilidades tÃƒÆ’Ã‚Â©cnicas'],
+            'weaknesses' => ['Falta experiencia especÃƒÆ’Ã‚Â­fica'],
             'explanation' => 'Coincidencia basada en perfil general'
         ];
     }
 
     /**
-     * Filtra candidatos según su coincidencia con una oferta de trabajo
+     * Filtra candidatos segÃƒÆ’Ã‚Âºn su coincidencia con una oferta de trabajo
      *
      * @param array $candidates Lista de candidatos
      * @param array $jobData Datos de la oferta de trabajo
-     * @param int $threshold Umbral mínimo de coincidencia (0-100)
-     * @return array Candidatos filtrados con puntuación
+     * @param int $threshold Umbral mÃƒÆ’Ã‚Â­nimo de coincidencia (0-100)
+     * @return array Candidatos filtrados con puntuaciÃƒÆ’Ã‚Â³n
      */
     public function filterCandidatesByMatch($candidates, $jobData, $threshold = 60)
     {
@@ -81,13 +80,13 @@ class JobMatchingService
     }
 
     /**
-     * Recomienda trabajos para un candidato específico
+     * Recomienda trabajos para un candidato especÃƒÆ’Ã‚Â­fico
      *
      * @param array $candidateData Datos del candidato
      * @param array $jobs Lista de ofertas de trabajo
-     * @param int $limit Número máximo de recomendaciones
-     * @param int $threshold Umbral mínimo de coincidencia (0-100)
-     * @return array Trabajos recomendados con puntuación
+     * @param int $limit NÃƒÆ’Ã‚Âºmero mÃƒÆ’Ã‚Â¡ximo de recomendaciones
+     * @param int $threshold Umbral mÃƒÆ’Ã‚Â­nimo de coincidencia (0-100)
+     * @return array Trabajos recomendados con puntuaciÃƒÆ’Ã‚Â³n
      */
     public function recommendJobs($candidateData, $jobs, $limit = 5, $threshold = 50)
     {
@@ -104,7 +103,7 @@ class JobMatchingService
                 ];
             }
 
-            // Limitar el número de evaluaciones para el MVP
+            // Limitar el nÃƒÆ’Ã‚Âºmero de evaluaciones para el MVP
             if (count($recommendations) >= $limit * 2) {
                 break;
             }
@@ -115,31 +114,31 @@ class JobMatchingService
             return $b['match']['match_percentage'] - $a['match']['match_percentage'];
         });
 
-        // Limitar el número de recomendaciones
+        // Limitar el nÃƒÆ’Ã‚Âºmero de recomendaciones
         return array_slice($recommendations, 0, $limit);
     }
 
     /**
-     * Genera una explicación detallada de por qué un candidato coincide con un trabajo
+     * Genera una explicaciÃƒÆ’Ã‚Â³n detallada de por quÃƒÆ’Ã‚Â© un candidato coincide con un trabajo
      *
      * @param array $candidateData Datos del candidato
      * @param array $jobData Datos de la oferta de trabajo
-     * @return string Explicación detallada
+     * @return string ExplicaciÃƒÆ’Ã‚Â³n detallada
      */
     public function explainMatching($candidateData, $jobData)
     {
-        // Crear un prompt para generar la explicación
-        $prompt = 'Explica detalladamente por qué este candidato coincide o no con esta oferta de trabajo. ' .
-            'Analiza punto por punto las habilidades, experiencia, educación y otros requisitos. ' .
-            "Proporciona una explicación clara y completa.\n\n" .
-            "Información del candidato:\n" . json_encode($candidateData, JSON_PRETTY_PRINT) . "\n\n" .
-            "Información del trabajo:\n" . json_encode($jobData, JSON_PRETTY_PRINT);
+        // Crear un prompt para generar la explicaciÃƒÆ’Ã‚Â³n
+        $prompt = 'Explica detalladamente por quÃƒÆ’Ã‚Â© este candidato coincide o no con esta oferta de trabajo. ' .
+            'Analiza punto por punto las habilidades, experiencia, educaciÃƒÆ’Ã‚Â³n y otros requisitos. ' .
+            "Proporciona una explicaciÃƒÆ’Ã‚Â³n clara y completa.\n\n" .
+            "InformaciÃƒÆ’Ã‚Â³n del candidato:\n" . json_encode($candidateData, JSON_PRETTY_PRINT) . "\n\n" .
+            "InformaciÃƒÆ’Ã‚Â³n del trabajo:\n" . json_encode($jobData, JSON_PRETTY_PRINT);
 
-        // Evaluación basada en datos recibidos (implementación del proveedor IA)
+        // EvaluaciÃƒÆ’Ã‚Â³n basada en datos recibidos (implementaciÃƒÆ’Ã‚Â³n del proveedor IA)
         $matchResult = $this->evaluateMatch($candidateData, $jobData);
         $percentage = $matchResult['match_percentage'];
 
-        // Generar una explicación basada en el porcentaje
+        // Generar una explicaciÃƒÆ’Ã‚Â³n basada en el porcentaje
         if ($percentage >= 80) {
             $skills = implode(', ', array_slice($candidateData['skills'] ?? [T::t('habilidades_relevantes')], 0, 3));
             $position = $candidateData['experience'][0]['position'] ?? T::t('el_sector');

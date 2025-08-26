@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 namespace Models;
 
 use Utils\Logger;
@@ -10,7 +7,7 @@ use Utils\Logger;
  * Modelo para referencias de candidatos
  *
  * Gestiona las referencias laborales y profesionales proporcionadas por los candidatos,
- * incluyendo información de contacto de antiguos empleadores, supervisores y colegas.
+ * incluyendo informaciÃƒÆ’Ã‚Â³n de contacto de antiguos empleadores, supervisores y colegas.
  *
  * @package Models
  * @author Bubble of Talents Development Team
@@ -24,14 +21,14 @@ class CandidateReference extends BaseModel
      */
     protected string $table = 'candidate_references';
     /*
-     * 🔧 CORRECCIÓN AUTOMÁTICA APLICADA
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÃƒÆ’Ã¢â‚¬Å“N AUTOMÃƒÆ’Ã‚ÂTICA APLICADA
      * Modelo: CandidateReference
      * Fecha: 2025-08-23
      * 
      * Cambios realizados:
-     * ➕ Campos añadidos: ['reference_name', 'reference_email', 'reference_phone']
-     * ❌ Campos removidos: ['name', 'position', 'email', 'phone']
-     * 📊 Total campos fillable: 6
+     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aÃƒÆ’Ã‚Â±adidos: ['reference_name', 'reference_email', 'reference_phone']
+     * ÃƒÂ¢Ã‚ÂÃ…â€™ Campos removidos: ['name', 'position', 'email', 'phone']
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Total campos fillable: 6
      * 
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
@@ -56,7 +53,7 @@ class CandidateReference extends BaseModel
     ];
 
     /**
-     * Campos que deben ocultarse en arrays/JSON (información sensible de contacto)
+     * Campos que deben ocultarse en arrays/JSON (informaciÃƒÆ’Ã‚Â³n sensible de contacto)
      */
     protected array $hidden = [
         'phone',
@@ -64,11 +61,11 @@ class CandidateReference extends BaseModel
     ];
 
     /**
-     * Encontrar todas las referencias de un candidato ordenadas por fecha de creación
+     * Encontrar todas las referencias de un candidato ordenadas por fecha de creaciÃƒÆ’Ã‚Â³n
      *
      * @param int $candidateId ID del candidato
      * @return array Lista de referencias del candidato
-     * @throws \InvalidArgumentException Si el candidateId es inválido
+     * @throws \InvalidArgumentException Si el candidateId es invÃƒÆ’Ã‚Â¡lido
      * @throws \RuntimeException Si ocurre un error en la base de datos
      */
     public function findByCandidate(int $candidateId): array
@@ -101,7 +98,7 @@ class CandidateReference extends BaseModel
      * @param int $candidateId ID del candidato
      * @param array $referenceData Datos de la referencia
      * @return mixed ID de la referencia creada
-     * @throws \InvalidArgumentException Si los datos son inválidos
+     * @throws \InvalidArgumentException Si los datos son invÃƒÆ’Ã‚Â¡lidos
      * @throws \RuntimeException Si ocurre un error en la base de datos
      */
     public function createReference(int $candidateId, array $referenceData)
@@ -148,8 +145,8 @@ class CandidateReference extends BaseModel
      *
      * @param mixed $referenceId ID de la referencia
      * @param array $referenceData Datos actualizados
-     * @return bool True si la actualización fue exitosa
-     * @throws \InvalidArgumentException Si los datos son inválidos
+     * @return bool True si la actualizaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @throws \InvalidArgumentException Si los datos son invÃƒÆ’Ã‚Â¡lidos
      * @throws \RuntimeException Si ocurre un error en la base de datos
      */
     public function updateReference($referenceId, array $referenceData): bool
@@ -184,8 +181,8 @@ class CandidateReference extends BaseModel
      * Eliminar una referencia
      *
      * @param mixed $referenceId ID de la referencia
-     * @return bool True si la eliminación fue exitosa
-     * @throws \InvalidArgumentException Si el ID es inválido
+     * @return bool True si la eliminaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @throws \InvalidArgumentException Si el ID es invÃƒÆ’Ã‚Â¡lido
      * @throws \RuntimeException Si ocurre un error en la base de datos
      */
     public function deleteReference($referenceId): bool
@@ -211,11 +208,11 @@ class CandidateReference extends BaseModel
     }
 
     /**
-     * Contar el número total de referencias de un candidato
+     * Contar el nÃƒÆ’Ã‚Âºmero total de referencias de un candidato
      *
      * @param int $candidateId ID del candidato
-     * @return int Número de referencias
-     * @throws \InvalidArgumentException Si el candidateId es inválido
+     * @return int NÃƒÆ’Ã‚Âºmero de referencias
+     * @throws \InvalidArgumentException Si el candidateId es invÃƒÆ’Ã‚Â¡lido
      * @throws \RuntimeException Si ocurre un error en la base de datos
      */
     public function countByCandidateId(int $candidateId): int
@@ -235,11 +232,11 @@ class CandidateReference extends BaseModel
     }
 
     /**
-     * Validar si un candidato puede agregar más referencias
+     * Validar si un candidato puede agregar mÃƒÆ’Ã‚Â¡s referencias
      *
      * @param int $candidateId ID del candidato
-     * @param int $maxReferences Número máximo de referencias permitidas (por defecto 5)
-     * @return bool True si puede agregar más referencias
+     * @param int $maxReferences NÃƒÆ’Ã‚Âºmero mÃƒÆ’Ã‚Â¡ximo de referencias permitidas (por defecto 5)
+     * @return bool True si puede agregar mÃƒÆ’Ã‚Â¡s referencias
      */
     public function canAddMoreReferences(int $candidateId, int $maxReferences = 5): bool
     {
@@ -256,12 +253,12 @@ class CandidateReference extends BaseModel
     }
 
     /**
-     * Obtener referencias con información de contacto (solo para usuarios autorizados)
+     * Obtener referencias con informaciÃƒÆ’Ã‚Â³n de contacto (solo para usuarios autorizados)
      *
      * @param int $candidateId ID del candidato
-     * @param bool $includeContactInfo Si incluir información de contacto sensible
+     * @param bool $includeContactInfo Si incluir informaciÃƒÆ’Ã‚Â³n de contacto sensible
      * @return array Lista de referencias
-     * @throws \InvalidArgumentException Si el candidateId es inválido
+     * @throws \InvalidArgumentException Si el candidateId es invÃƒÆ’Ã‚Â¡lido
      * @throws \RuntimeException Si ocurre un error en la base de datos
      */
     public function findByCandidateWithContactInfo(int $candidateId, bool $includeContactInfo = false): array
@@ -274,7 +271,7 @@ class CandidateReference extends BaseModel
             $sql = "SELECT * FROM `{$this->table}` WHERE `candidate_id` = ? ORDER BY `created_at` DESC";
             $results = $this->query($sql, [$candidateId]);
 
-            // Si no se incluye información de contacto, usar el método estándar con campos ocultos
+            // Si no se incluye informaciÃƒÆ’Ã‚Â³n de contacto, usar el mÃƒÆ’Ã‚Â©todo estÃƒÆ’Ã‚Â¡ndar con campos ocultos
             if (!$includeContactInfo) {
                 return $this->hideFields($results);
             }
@@ -294,7 +291,7 @@ class CandidateReference extends BaseModel
         }
     }
     // ==========================================
-    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // MÃƒÆ’Ã¢â‚¬Â°TODOS CRUD ENCAPSULADOS ESTÃƒÆ’Ã‚ÂNDAR
     // ==========================================
 
     /**
@@ -348,7 +345,7 @@ class CandidateReference extends BaseModel
      * Actualizar candidate_reference con validaciones
      * @param mixed $id ID del candidate_reference a actualizar
      * @param array $data Nuevos datos
-     * @return bool True si la actualización fue exitosa
+     * @return bool True si la actualizaciÃƒÆ’Ã‚Â³n fue exitosa
      */
     public function updateCandidateReference($id, array $data): bool
     {
@@ -380,7 +377,7 @@ class CandidateReference extends BaseModel
     /**
      * Eliminar candidate_reference con validaciones
      * @param mixed $id ID del candidate_reference a eliminar
-     * @return bool True si la eliminación fue exitosa
+     * @return bool True si la eliminaciÃƒÆ’Ã‚Â³n fue exitosa
      */
     public function deleteCandidateReference($id): bool
     {
@@ -408,9 +405,9 @@ class CandidateReference extends BaseModel
 
     /**
      * Buscar candidate_references con filtros
-     * @param array $filters Filtros de búsqueda
-     * @param int $page Página actual
-     * @param int $limit Registros por página
+     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
+     * @param int $page PÃƒÆ’Ã‚Â¡gina actual
+     * @param int $limit Registros por pÃƒÆ’Ã‚Â¡gina
      * @param array $orderBy Criterios de ordenamiento
      * @return array Array de candidate_references
      */
@@ -430,8 +427,8 @@ class CandidateReference extends BaseModel
 
     /**
      * Contar total de candidate_references con filtros
-     * @param array $filters Filtros de búsqueda
-     * @return int Número total de candidate_references
+     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
+     * @return int NÃƒÆ’Ã‚Âºmero total de candidate_references
      */
     public function countCandidateReferences(array $filters = []): int
     {
@@ -448,22 +445,22 @@ class CandidateReference extends BaseModel
     }
 
     // ==========================================
-    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // MÃƒÆ’Ã¢â‚¬Â°TODOS DE VALIDACIÃƒÆ’Ã¢â‚¬Å“N ESPECÃƒÆ’Ã‚ÂFICOS
     // ==========================================
 
     /**
-     * Validar datos específicos de candidate_references
+     * Validar datos especÃƒÆ’Ã‚Â­ficos de candidate_references
      * @param array $data Datos a validar
-     * @param mixed $id ID para validaciones de actualización (opcional)
-     * @throws \InvalidArgumentException Si los datos no son válidos
+     * @param mixed $id ID para validaciones de actualizaciÃƒÆ’Ã‚Â³n (opcional)
+     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
      */
     private function validateCandidateReferenceData(array $data, $id = null): void
     {
-        // TODO: Implementar validaciones específicas del modelo
+        // TODO: Implementar validaciones especÃƒÆ’Ã‚Â­ficas del modelo
     }
 
     /**
-     * Invalidar cache específico de candidate_references
+     * Invalidar cache especÃƒÆ’Ã‚Â­fico de candidate_references
      */
     public function invalidateCandidateReferenceCache(): int
     {

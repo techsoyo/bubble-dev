@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 // Ruta: backend/config/routes/pdf_routes.php
 
 use Controllers\PDFController;

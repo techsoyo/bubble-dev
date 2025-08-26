@@ -1,6 +1,5 @@
-<?php
-
-namespace Utils;
+<?php declare(strict_types=1);
+namespace Parsers;
 
 class CVTextParser
 {
@@ -52,7 +51,7 @@ class CVTextParser
 
     private function extractDireccion(): string
     {
-        preg_match("/(?:Direcci[oó]n|Domicilio)[:\s]+(.+)/i", $this->text, $matches);
+        preg_match("/(?:Direcci[oÃƒÆ’Ã‚Â³]n|Domicilio)[:\s]+(.+)/i", $this->text, $matches);
         return $matches[1] ?? '';
     }
 
@@ -73,7 +72,7 @@ class CVTextParser
 
     private function extractFormacion(): string
     {
-        preg_match("/(?:Formaci[oó]n|Educaci[oó]n|Estudios)[\s:]*([\s\S]{0,600})/iu", $this->text, $matches);
+        preg_match("/(?:Formaci[oÃƒÆ’Ã‚Â³]n|Educaci[oÃƒÆ’Ã‚Â³]n|Estudios)[\s:]*([\s\S]{0,600})/iu", $this->text, $matches);
         return $matches[1] ?? '';
     }
 

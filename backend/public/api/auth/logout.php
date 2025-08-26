@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 use Security\Cookies;
 use Security\CsrfMiddleware;
 
@@ -21,7 +18,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
   if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
     http_response_code(401);
@@ -45,20 +42,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
   exit;
 }
 
-// Solo permitir mÃ©todo POST para logout
+// Solo permitir mÃƒÂ©todo POST para logout
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   http_response_code(405);
-  echo json_encode(['success' => false, 'message' => 'MÃ©todo no permitido']);
+  echo json_encode(['success' => false, 'message' => 'MÃƒÂ©todo no permitido']);
   exit;
 }
 
 try {
-  // Limpiar toda la sesiÃ³n (para compatibilidad con sistemas legacy)
+  // Limpiar toda la sesiÃƒÂ³n (para compatibilidad con sistemas legacy)
   if (session_status() === PHP_SESSION_ACTIVE) {
     session_unset();
     session_destroy();
 
-    // Limpiar cookie de sesiÃ³n
+    // Limpiar cookie de sesiÃƒÂ³n
     if (ini_get("session.use_cookies")) {
       $params = session_get_cookie_params();
       setcookie(

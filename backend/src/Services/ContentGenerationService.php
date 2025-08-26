@@ -1,12 +1,11 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Services;
 
 /**
  * AI-Powered Content Generation & Predictive Analysis Service
  *
- * Servicio para generación automática de contenido (job descriptions,
- * preguntas de entrevista) y análisis predictivo básico.
+ * Servicio para generaciÃƒÆ’Ã‚Â³n automÃƒÆ’Ã‚Â¡tica de contenido (job descriptions,
+ * preguntas de entrevista) y anÃƒÆ’Ã‚Â¡lisis predictivo bÃƒÆ’Ã‚Â¡sico.
  *
  * @package Backend\Services
  * @version 1.0.0
@@ -27,9 +26,9 @@ class ContentGenerationService
     }
 
     /**
-     * Genera job description automática basada en inputs mínimos
+     * Genera job description automÃƒÆ’Ã‚Â¡tica basada en inputs mÃƒÆ’Ã‚Â­nimos
      *
-     * @param array $jobInputs Datos básicos del trabajo
+     * @param array $jobInputs Datos bÃƒÆ’Ã‚Â¡sicos del trabajo
      * @return array Job description completa generada
      */
     public function generateJobDescription($jobInputs)
@@ -87,12 +86,12 @@ class ContentGenerationService
     }
 
     /**
-     * Análisis predictivo de éxito en el puesto
+     * AnÃƒÆ’Ã‚Â¡lisis predictivo de ÃƒÆ’Ã‚Â©xito en el puesto
      *
      * @param array $candidateData Datos del candidato
      * @param array $jobData Datos del trabajo
-     * @param array $historicalData Datos históricos de contrataciones (opcional)
-     * @return array Predicción de éxito
+     * @param array $historicalData Datos histÃƒÆ’Ã‚Â³ricos de contrataciones (opcional)
+     * @return array PredicciÃƒÆ’Ã‚Â³n de ÃƒÆ’Ã‚Â©xito
      */
     public function predictJobSuccess($candidateData, $jobData, $historicalData = [])
     {
@@ -112,17 +111,17 @@ class ContentGenerationService
 
             return $this->validatePredictionStructure($predictionData);
         } catch (\Exception $e) {
-            error_log('Error en análisis predictivo: ' . $e->getMessage());
+            error_log('Error en anÃƒÆ’Ã‚Â¡lisis predictivo: ' . $e->getMessage());
             return $this->createFallbackPrediction();
         }
     }
 
     /**
-     * Estima tiempo para cubrir la posición
+     * Estima tiempo para cubrir la posiciÃƒÆ’Ã‚Â³n
      *
      * @param array $jobData Datos del trabajo
      * @param array $marketData Datos del mercado (opcional)
-     * @return array Estimación de tiempo
+     * @return array EstimaciÃƒÆ’Ã‚Â³n de tiempo
      */
     public function estimateTimeToFill($jobData, $marketData = [])
     {
@@ -142,7 +141,7 @@ class ContentGenerationService
 
             return $this->validateTimeEstimateStructure($estimateData);
         } catch (\Exception $e) {
-            error_log('Error estimando tiempo de contratación: ' . $e->getMessage());
+            error_log('Error estimando tiempo de contrataciÃƒÆ’Ã‚Â³n: ' . $e->getMessage());
             return $this->createFallbackTimeEstimate();
         }
     }
@@ -178,11 +177,11 @@ class ContentGenerationService
     }
 
     /**
-     * Análisis de diversidad automático
+     * AnÃƒÆ’Ã‚Â¡lisis de diversidad automÃƒÆ’Ã‚Â¡tico
      *
      * @param array $candidatesData Lista de candidatos
-     * @param array $diversityMetrics Métricas a analizar
-     * @return array Análisis de diversidad
+     * @param array $diversityMetrics MÃƒÆ’Ã‚Â©tricas a analizar
+     * @return array AnÃƒÆ’Ã‚Â¡lisis de diversidad
      */
     public function analyzeDiversity($candidatesData, $diversityMetrics = [])
     {
@@ -202,7 +201,7 @@ class ContentGenerationService
 
             return $this->validateDiversityStructure($diversityData);
         } catch (\Exception $e) {
-            error_log('Error en análisis de diversidad: ' . $e->getMessage());
+            error_log('Error en anÃƒÆ’Ã‚Â¡lisis de diversidad: ' . $e->getMessage());
             return $this->createFallbackDiversityAnalysis();
         }
     }
@@ -212,40 +211,40 @@ class ContentGenerationService
      */
     private function buildJobDescriptionPrompt($jobInputs)
     {
-        return 'Genera una job description completa y atractiva basada en estos inputs mínimos.
+        return 'Genera una job description completa y atractiva basada en estos inputs mÃƒÆ’Ã‚Â­nimos.
 
-INPUTS BÁSICOS:
-Título: ' . ($jobInputs['title'] ?? 'No especificado') . '
+INPUTS BÃƒÆ’Ã‚ÂSICOS:
+TÃƒÆ’Ã‚Â­tulo: ' . ($jobInputs['title'] ?? 'No especificado') . '
 Departamento: ' . ($jobInputs['department'] ?? 'No especificado') . '
 Nivel: ' . ($jobInputs['level'] ?? 'No especificado') . '
 Modalidad: ' . ($jobInputs['remote_type'] ?? 'No especificada') . '
-Ubicación: ' . ($jobInputs['location'] ?? 'No especificada') . '
+UbicaciÃƒÆ’Ã‚Â³n: ' . ($jobInputs['location'] ?? 'No especificada') . '
 Rango salarial: ' . ($jobInputs['salary_range'] ?? 'No especificado') . '
 Skills clave: ' . implode(', ', $jobInputs['key_skills'] ?? []) . '
-Descripción breve: ' . ($jobInputs['brief_description'] ?? 'No especificada') . '
+DescripciÃƒÆ’Ã‚Â³n breve: ' . ($jobInputs['brief_description'] ?? 'No especificada') . '
 
 INSTRUCCIONES:
-- Crea una descripción atractiva y profesional
-- Incluye responsabilidades específicas y realistas
-- Detalla requisitos técnicos y experiencia
-- Añade beneficios y cultura de empresa
+- Crea una descripciÃƒÆ’Ã‚Â³n atractiva y profesional
+- Incluye responsabilidades especÃƒÆ’Ã‚Â­ficas y realistas
+- Detalla requisitos tÃƒÆ’Ã‚Â©cnicos y experiencia
+- AÃƒÆ’Ã‚Â±ade beneficios y cultura de empresa
 - Optimiza para atraer candidatos quality
 
-Responde ÚNICAMENTE con JSON válido:
+Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido:
 {
-  "title": "Título optimizado del puesto",
+  "title": "TÃƒÆ’Ã‚Â­tulo optimizado del puesto",
   "summary": "Resumen atractivo del rol",
   "responsibilities": ["Lista de responsabilidades principales"],
-  "required_skills": ["Skills técnicas requeridas"],
+  "required_skills": ["Skills tÃƒÆ’Ã‚Â©cnicas requeridas"],
   "preferred_skills": ["Skills deseables"],
-  "experience_requirements": "Experiencia mínima requerida",
-  "education_requirements": "Educación requerida",
+  "experience_requirements": "Experiencia mÃƒÆ’Ã‚Â­nima requerida",
+  "education_requirements": "EducaciÃƒÆ’Ã‚Â³n requerida",
   "benefits": ["Lista de beneficios"],
-  "company_culture": "Descripción de cultura empresarial",
+  "company_culture": "DescripciÃƒÆ’Ã‚Â³n de cultura empresarial",
   "growth_opportunities": ["Oportunidades de crecimiento"],
-  "application_process": "Proceso de aplicación",
+  "application_process": "Proceso de aplicaciÃƒÆ’Ã‚Â³n",
   "keywords_seo": ["Keywords para SEO y sourcing"],
-  "estimated_applications": "Número estimado de aplicaciones esperadas"
+  "estimated_applications": "NÃƒÆ’Ã‚Âºmero estimado de aplicaciones esperadas"
 }';
     }
 
@@ -254,116 +253,116 @@ Responde ÚNICAMENTE con JSON válido:
      */
     private function buildInterviewQuestionsPrompt($candidateData, $jobData, $interviewType)
     {
-        return 'Genera preguntas de entrevista específicas y efectivas para este candidato y posición.
+        return 'Genera preguntas de entrevista especÃƒÆ’Ã‚Â­ficas y efectivas para este candidato y posiciÃƒÆ’Ã‚Â³n.
 
 CANDIDATO:
 Nombre: ' . ($candidateData['nombre'] ?? 'No especificado') . '
 Experiencia: ' . json_encode($candidateData['puestos_anteriores'] ?? []) . '
 Skills: ' . implode(', ', $candidateData['hard_skills'] ?? []) . '
-Educación: ' . json_encode($candidateData['educacion'] ?? []) . '
+EducaciÃƒÆ’Ã‚Â³n: ' . json_encode($candidateData['educacion'] ?? []) . '
 
 TRABAJO:
-Título: ' . ($jobData['title'] ?? 'No especificado') . '
+TÃƒÆ’Ã‚Â­tulo: ' . ($jobData['title'] ?? 'No especificado') . '
 Responsabilidades: ' . implode(', ', $jobData['responsibilities'] ?? []) . '
 Skills requeridas: ' . implode(', ', $jobData['required_skills'] ?? []) . "
 
 TIPO DE ENTREVISTA: {$interviewType}
 
 INSTRUCCIONES:
-- Genera preguntas específicas para este candidato
-- Incluye preguntas técnicas relevantes
-- Añade preguntas comportamentales (STAR method)
+- Genera preguntas especÃƒÆ’Ã‚Â­ficas para este candidato
+- Incluye preguntas tÃƒÆ’Ã‚Â©cnicas relevantes
+- AÃƒÆ’Ã‚Â±ade preguntas comportamentales (STAR method)
 - Incluye preguntas para evaluar fit cultural
 - Evita preguntas discriminatorias o ilegales
 
-Responde ÚNICAMENTE con JSON válido:
+Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido:
 {
   \"technical_questions\": [
     {
-      \"question\": \"Pregunta técnica específica\",
-      \"purpose\": \"Qué evalúa esta pregunta\",
+      \"question\": \"Pregunta tÃƒÆ’Ã‚Â©cnica especÃƒÆ’Ã‚Â­fica\",
+      \"purpose\": \"QuÃƒÆ’Ã‚Â© evalÃƒÆ’Ã‚Âºa esta pregunta\",
       \"follow_up\": \"Pregunta de seguimiento\",
-      \"red_flags\": [\"Respuestas que serían preocupantes\"]
+      \"red_flags\": [\"Respuestas que serÃƒÆ’Ã‚Â­an preocupantes\"]
     }
   ],
   \"behavioral_questions\": [
     {
       \"question\": \"Pregunta comportamental\",
-      \"star_framework\": \"Cómo aplicar STAR\",
+      \"star_framework\": \"CÃƒÆ’Ã‚Â³mo aplicar STAR\",
       \"ideal_answer_elements\": [\"Elementos de una respuesta ideal\"]
     }
   ],
   \"cultural_fit_questions\": [\"Preguntas para evaluar fit cultural\"],
-  \"candidate_specific_questions\": [\"Preguntas específicas basadas en el CV\"],
+  \"candidate_specific_questions\": [\"Preguntas especÃƒÆ’Ã‚Â­ficas basadas en el CV\"],
   \"interview_flow\": [\"Orden sugerido de preguntas\"],
-  \"estimated_duration\": \"Duración estimada en minutos\",
+  \"estimated_duration\": \"DuraciÃƒÆ’Ã‚Â³n estimada en minutos\",
   \"evaluation_criteria\": [\"Criterios para evaluar respuestas\"]
 }";
     }
 
     /**
-     * Construye prompt para análisis predictivo
+     * Construye prompt para anÃƒÆ’Ã‚Â¡lisis predictivo
      */
     private function buildPredictivePrompt($candidateData, $jobData, $historicalData)
     {
         $historicalInfo = !empty($historicalData) ?
-          "DATOS HISTÓRICOS:\n" . json_encode($historicalData) . "\n" :
-          "No hay datos históricos disponibles.\n";
+          "DATOS HISTÃƒÆ’Ã¢â‚¬Å“RICOS:\n" . json_encode($historicalData) . "\n" :
+          "No hay datos histÃƒÆ’Ã‚Â³ricos disponibles.\n";
 
-        return 'Analiza y predice la probabilidad de éxito de este candidato en el puesto.
+        return 'Analiza y predice la probabilidad de ÃƒÆ’Ã‚Â©xito de este candidato en el puesto.
 
 CANDIDATO:
 Experiencia: ' . json_encode($candidateData['puestos_anteriores'] ?? []) . '
 Skills: ' . implode(', ', $candidateData['hard_skills'] ?? []) . '
-Educación: ' . json_encode($candidateData['educacion'] ?? []) . '
-Ubicación: ' . ($candidateData['ubicacion_actual'] ?? 'No especificada') . '
+EducaciÃƒÆ’Ã‚Â³n: ' . json_encode($candidateData['educacion'] ?? []) . '
+UbicaciÃƒÆ’Ã‚Â³n: ' . ($candidateData['ubicacion_actual'] ?? 'No especificada') . '
 
 TRABAJO:
-Título: ' . ($jobData['title'] ?? 'No especificado') . '
+TÃƒÆ’Ã‚Â­tulo: ' . ($jobData['title'] ?? 'No especificado') . '
 Responsabilidades: ' . implode(', ', $jobData['responsibilities'] ?? []) . '
 Skills requeridas: ' . implode(', ', $jobData['required_skills'] ?? []) . '
-Ubicación: ' . ($jobData['location'] ?? 'No especificada') . "
+UbicaciÃƒÆ’Ã‚Â³n: ' . ($jobData['location'] ?? 'No especificada') . "
 
 {$historicalInfo}
 
 INSTRUCCIONES:
-- Analiza factores de éxito predictivos
+- Analiza factores de ÃƒÆ’Ã‚Â©xito predictivos
 - Considera experiencia, skills, fit, estabilidad laboral
-- Evalúa riesgos y fortalezas
+- EvalÃƒÆ’Ã‚Âºa riesgos y fortalezas
 - Proporciona recomendaciones accionables
 
-Responde ÚNICAMENTE con JSON válido:
+Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido:
 {
   \"success_probability\": 85,
   \"performance_prediction\": \"high|medium|low\",
   \"retention_probability\": 80,
   \"time_to_productivity\": \"Tiempo estimado hasta ser productivo\",
-  \"success_factors\": [\"Factores que favorecen el éxito\"],
+  \"success_factors\": [\"Factores que favorecen el ÃƒÆ’Ã‚Â©xito\"],
   \"risk_factors\": [\"Factores de riesgo identificados\"],
-  \"recommendations\": [\"Recomendaciones para maximizar éxito\"],
+  \"recommendations\": [\"Recomendaciones para maximizar ÃƒÆ’Ã‚Â©xito\"],
   \"confidence_level\": 75,
   \"key_indicators_to_monitor\": [\"Indicadores a seguir post-hiring\"],
-  \"similar_profiles_performance\": \"Rendimiento de perfiles similares históricos\"
+  \"similar_profiles_performance\": \"Rendimiento de perfiles similares histÃƒÆ’Ã‚Â³ricos\"
 }";
     }
 
     /**
-     * Métodos de fallback y validación
+     * MÃƒÆ’Ã‚Â©todos de fallback y validaciÃƒÆ’Ã‚Â³n
      */
     private function createFallbackJobDescription($jobInputs)
     {
         return [
-          'title' => $jobInputs['title'] ?? 'Posición Vacante',
+          'title' => $jobInputs['title'] ?? 'PosiciÃƒÆ’Ã‚Â³n Vacante',
           'summary' => 'Excelente oportunidad de crecimiento profesional',
           'responsibilities' => ['Responsabilidades a definir'],
           'required_skills' => $jobInputs['key_skills'] ?? ['Por definir'],
           'preferred_skills' => ['Habilidades adicionales valoradas'],
-          'experience_requirements' => 'Experiencia relevante en el área',
-          'education_requirements' => 'Educación acorde al nivel del puesto',
+          'experience_requirements' => 'Experiencia relevante en el ÃƒÆ’Ã‚Â¡rea',
+          'education_requirements' => 'EducaciÃƒÆ’Ã‚Â³n acorde al nivel del puesto',
           'benefits' => ['Beneficios competitivos'],
           'company_culture' => 'Ambiente de trabajo colaborativo',
           'growth_opportunities' => ['Oportunidades de desarrollo'],
-          'application_process' => 'Aplicar a través de nuestra plataforma',
+          'application_process' => 'Aplicar a travÃƒÆ’Ã‚Â©s de nuestra plataforma',
           'keywords_seo' => [$jobInputs['title'] ?? 'trabajo'],
           'estimated_applications' => 'Por determinar',
           'fallback_generated' => true
@@ -375,24 +374,24 @@ Responde ÚNICAMENTE con JSON válido:
         return [
           'technical_questions' => [
             [
-              'question' => '¿Puedes describir tu experiencia más relevante para este puesto?',
-              'purpose' => 'Evaluar experiencia técnica',
-              'follow_up' => '¿Qué desafíos enfrentaste y cómo los resolviste?',
+              'question' => 'Ãƒâ€šÃ‚Â¿Puedes describir tu experiencia mÃƒÆ’Ã‚Â¡s relevante para este puesto?',
+              'purpose' => 'Evaluar experiencia tÃƒÆ’Ã‚Â©cnica',
+              'follow_up' => 'Ãƒâ€šÃ‚Â¿QuÃƒÆ’Ã‚Â© desafÃƒÆ’Ã‚Â­os enfrentaste y cÃƒÆ’Ã‚Â³mo los resolviste?',
               'red_flags' => ['Respuestas vagas', 'Falta de ejemplos concretos']
             ]
           ],
           'behavioral_questions' => [
             [
-              'question' => 'Cuéntame sobre un proyecto desafiante que hayas liderado',
-              'star_framework' => 'Situación, Tarea, Acción, Resultado',
-              'ideal_answer_elements' => ['Contexto claro', 'Acciones específicas', 'Resultados medibles']
+              'question' => 'CuÃƒÆ’Ã‚Â©ntame sobre un proyecto desafiante que hayas liderado',
+              'star_framework' => 'SituaciÃƒÆ’Ã‚Â³n, Tarea, AcciÃƒÆ’Ã‚Â³n, Resultado',
+              'ideal_answer_elements' => ['Contexto claro', 'Acciones especÃƒÆ’Ã‚Â­ficas', 'Resultados medibles']
             ]
           ],
-          'cultural_fit_questions' => ['¿Cómo prefieres trabajar en equipo?'],
-          'candidate_specific_questions' => ['Preguntas basadas en revisión de CV'],
-          'interview_flow' => ['Rapport building', 'Preguntas técnicas', 'Preguntas comportamentales', 'Q&A'],
+          'cultural_fit_questions' => ['Ãƒâ€šÃ‚Â¿CÃƒÆ’Ã‚Â³mo prefieres trabajar en equipo?'],
+          'candidate_specific_questions' => ['Preguntas basadas en revisiÃƒÆ’Ã‚Â³n de CV'],
+          'interview_flow' => ['Rapport building', 'Preguntas tÃƒÆ’Ã‚Â©cnicas', 'Preguntas comportamentales', 'Q&A'],
           'estimated_duration' => '60',
-          'evaluation_criteria' => ['Competencia técnica', 'Fit cultural', 'Comunicación'],
+          'evaluation_criteria' => ['Competencia tÃƒÆ’Ã‚Â©cnica', 'Fit cultural', 'ComunicaciÃƒÆ’Ã‚Â³n'],
           'fallback_generated' => true
         ];
     }
@@ -404,11 +403,11 @@ Responde ÚNICAMENTE con JSON válido:
           'performance_prediction' => 'medium',
           'retention_probability' => 70,
           'time_to_productivity' => '3-6 meses',
-          'success_factors' => ['Requiere análisis más detallado'],
-          'risk_factors' => ['Análisis limitado sin datos históricos'],
-          'recommendations' => ['Realizar entrevista técnica detallada'],
+          'success_factors' => ['Requiere anÃƒÆ’Ã‚Â¡lisis mÃƒÆ’Ã‚Â¡s detallado'],
+          'risk_factors' => ['AnÃƒÆ’Ã‚Â¡lisis limitado sin datos histÃƒÆ’Ã‚Â³ricos'],
+          'recommendations' => ['Realizar entrevista tÃƒÆ’Ã‚Â©cnica detallada'],
           'confidence_level' => 50,
-          'key_indicators_to_monitor' => ['Progreso en primeros 90 días'],
+          'key_indicators_to_monitor' => ['Progreso en primeros 90 dÃƒÆ’Ã‚Â­as'],
           'similar_profiles_performance' => 'Datos insuficientes',
           'fallback_analysis' => true
         ];
@@ -418,7 +417,7 @@ Responde ÚNICAMENTE con JSON válido:
     {
         return [
           'estimated_days' => 45,
-          'confidence_range' => '30-60 días',
+          'confidence_range' => '30-60 dÃƒÆ’Ã‚Â­as',
           'factors_affecting_timeline' => ['Disponibilidad de candidatos', 'Complejidad del rol'],
           'recommendations_to_accelerate' => ['Optimizar job posting', 'Ampliar canales de sourcing'],
           'fallback_analysis' => true
@@ -430,10 +429,10 @@ Responde ÚNICAMENTE con JSON válido:
         return [
           'templates' => [
             [
-              'name' => 'Template básico ' . $sourceType,
-              'subject' => 'Oportunidad profesional que podría interesarte',
-              'message' => 'Hola [NOMBRE], he visto tu perfil y creo que podrías estar interesado/a en esta oportunidad...',
-              'personalization_tips' => ['Mencionar experiencia específica', 'Conectar con intereses del candidato']
+              'name' => 'Template bÃƒÆ’Ã‚Â¡sico ' . $sourceType,
+              'subject' => 'Oportunidad profesional que podrÃƒÆ’Ã‚Â­a interesarte',
+              'message' => 'Hola [NOMBRE], he visto tu perfil y creo que podrÃƒÆ’Ã‚Â­as estar interesado/a en esta oportunidad...',
+              'personalization_tips' => ['Mencionar experiencia especÃƒÆ’Ã‚Â­fica', 'Conectar con intereses del candidato']
             ]
           ],
           'fallback_generated' => true
@@ -444,13 +443,13 @@ Responde ÚNICAMENTE con JSON válido:
     {
         return [
           'diversity_score' => 50,
-          'analysis' => 'Análisis de diversidad requiere datos más específicos',
-          'recommendations' => ['Ampliar fuentes de reclutamiento', 'Revisar criterios de selección'],
+          'analysis' => 'AnÃƒÆ’Ã‚Â¡lisis de diversidad requiere datos mÃƒÆ’Ã‚Â¡s especÃƒÆ’Ã‚Â­ficos',
+          'recommendations' => ['Ampliar fuentes de reclutamiento', 'Revisar criterios de selecciÃƒÆ’Ã‚Â³n'],
           'fallback_analysis' => true
         ];
     }
 
-    // Métodos de validación de estructura (similares a otros servicios)
+    // MÃƒÆ’Ã‚Â©todos de validaciÃƒÆ’Ã‚Â³n de estructura (similares a otros servicios)
     private function validateJobDescriptionStructure($data)
     {
         $data['generated_with'] = 'OpenAI GPT-4 Content Generation Service';
@@ -498,22 +497,22 @@ Responde ÚNICAMENTE con JSON válido:
      */
     private function buildTimeToFillPrompt($jobData, $marketData)
     {
-        return 'Estima el tiempo necesario para cubrir esta posición basándote en las características del rol.
+        return 'Estima el tiempo necesario para cubrir esta posiciÃƒÆ’Ã‚Â³n basÃƒÆ’Ã‚Â¡ndote en las caracterÃƒÆ’Ã‚Â­sticas del rol.
 
 TRABAJO:
-Título: ' . ($jobData['title'] ?? 'No especificado') . '
+TÃƒÆ’Ã‚Â­tulo: ' . ($jobData['title'] ?? 'No especificado') . '
 Nivel: ' . ($jobData['level'] ?? 'No especificado') . '
 Skills requeridas: ' . implode(', ', $jobData['required_skills'] ?? []) . '
-Ubicación: ' . ($jobData['location'] ?? 'No especificada') . '
+UbicaciÃƒÆ’Ã‚Â³n: ' . ($jobData['location'] ?? 'No especificada') . '
 Modalidad: ' . ($jobData['remote_type'] ?? 'No especificada') . '
 Salario: ' . ($jobData['salary_range'] ?? 'No especificado') . '
 
-Responde ÚNICAMENTE con JSON válido:
+Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido:
 {
   "estimated_days": 30,
-  "confidence_range": "Rango en días",
+  "confidence_range": "Rango en dÃƒÆ’Ã‚Â­as",
   "factors_affecting_timeline": ["Factores que afectan el tiempo"],
-  "recommendations_to_accelerate": ["Cómo acelerar el proceso"],
+  "recommendations_to_accelerate": ["CÃƒÆ’Ã‚Â³mo acelerar el proceso"],
   "market_difficulty": "easy|medium|hard",
   "candidate_availability": "high|medium|low"
 }';
@@ -524,11 +523,11 @@ Responde ÚNICAMENTE con JSON válido:
         return "Genera templates de outreach efectivos para sourcing pasivo en {$sourceType}.
 
 TRABAJO:
-Título: " . ($jobData['title'] ?? 'No especificado') . '
+TÃƒÆ’Ã‚Â­tulo: " . ($jobData['title'] ?? 'No especificado') . '
 Empresa: ' . ($jobData['company'] ?? 'No especificada') . '
 Beneficios clave: ' . implode(', ', $jobData['benefits'] ?? []) . "
 
-Responde ÚNICAMENTE con JSON válido:
+Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido:
 {
   \"templates\": [
     {
@@ -536,10 +535,10 @@ Responde ÚNICAMENTE con JSON válido:
       \"subject\": \"Asunto del mensaje\",
       \"message\": \"Mensaje completo con placeholders\",
       \"personalization_tips\": [\"Tips para personalizar\"],
-      \"best_practices\": [\"Mejores prácticas de uso\"]
+      \"best_practices\": [\"Mejores prÃƒÆ’Ã‚Â¡cticas de uso\"]
     }
   ],
-  \"platform_specific_tips\": [\"Tips específicos para {$sourceType}\"],
+  \"platform_specific_tips\": [\"Tips especÃƒÆ’Ã‚Â­ficos para {$sourceType}\"],
   \"response_rate_expectations\": \"Tasa de respuesta esperada\"
 }";
     }
@@ -549,27 +548,27 @@ Responde ÚNICAMENTE con JSON válido:
         return 'Analiza la diversidad de este grupo de candidatos de manera objetiva y constructiva.
 
 CANDIDATOS: ' . count($candidatesData) . ' candidatos en el pipeline
-MÉTRICAS A ANALIZAR: ' . implode(', ', $diversityMetrics) . '
+MÃƒÆ’Ã¢â‚¬Â°TRICAS A ANALIZAR: ' . implode(', ', $diversityMetrics) . '
 
 INSTRUCCIONES:
-- Analiza patrones sin hacer identificaciones específicas
+- Analiza patrones sin hacer identificaciones especÃƒÆ’Ã‚Â­ficas
 - Proporciona insights constructivos
 - Sugiere mejoras para aumentar diversidad
-- Mantén enfoque profesional y legal
+- MantÃƒÆ’Ã‚Â©n enfoque profesional y legal
 
-Responde ÚNICAMENTE con JSON válido:
+Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido:
 {
   "diversity_score": 75,
-  "analysis": "Análisis general de diversidad",
+  "analysis": "AnÃƒÆ’Ã‚Â¡lisis general de diversidad",
   "strengths": ["Aspectos positivos de diversidad"],
-  "improvement_areas": ["Áreas de mejora"],
-  "recommendations": ["Recomendaciones específicas"],
-  "benchmark_comparison": "Comparación con estándares de industria"
+  "improvement_areas": ["ÃƒÆ’Ã‚Âreas de mejora"],
+  "recommendations": ["Recomendaciones especÃƒÆ’Ã‚Â­ficas"],
+  "benchmark_comparison": "ComparaciÃƒÆ’Ã‚Â³n con estÃƒÆ’Ã‚Â¡ndares de industria"
 }';
     }
 
     /**
-     * Llamada a OpenAI (método estándar)
+     * Llamada a OpenAI (mÃƒÆ’Ã‚Â©todo estÃƒÆ’Ã‚Â¡ndar)
      */
     private function callOpenAI($prompt)
     {
@@ -578,7 +577,7 @@ Responde ÚNICAMENTE con JSON válido:
           'messages' => [
             [
               'role' => 'system',
-              'content' => 'Eres un experto en recruitment, generación de contenido profesional y análisis predictivo de talento. Generas contenido de alta calidad, útil y accionable. Responde ÚNICAMENTE con JSON válido.'
+              'content' => 'Eres un experto en recruitment, generaciÃƒÆ’Ã‚Â³n de contenido profesional y anÃƒÆ’Ã‚Â¡lisis predictivo de talento. Generas contenido de alta calidad, ÃƒÆ’Ã‚Âºtil y accionable. Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido.'
             ],
             [
               'role' => 'user',

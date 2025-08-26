@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 use Firebase\JWT\JWT;
 use Utils\Logger;
 use Security\Cookies;
@@ -32,7 +29,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
 // Solo POST
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
   http_response_code(405);
-  echo json_encode(['success' => false, 'message' => 'MÃ©todo no permitido']);
+  echo json_encode(['success' => false, 'message' => 'MÃƒÂ©todo no permitido']);
   exit;
 }
 
@@ -49,10 +46,10 @@ try {
   $password = trim($input['password'] ?? '');
 
   if ($email === '' || $password === '') {
-    throw new Exception('Email y contraseÃ±a son requeridos');
+    throw new Exception('Email y contraseÃƒÂ±a son requeridos');
   }
   if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    throw new Exception('Email no vÃ¡lido');
+    throw new Exception('Email no vÃƒÂ¡lido');
   }
 
   // (Opcional) forzar dominio por ENV
@@ -61,7 +58,7 @@ try {
     throw new Exception("Solo emails del dominio $reqDomain");
   }
 
-  // ConexiÃ³n a la base de datos
+  // ConexiÃƒÂ³n a la base de datos
   $db = getDbConnection();
 
   // Busca usuario activo
@@ -88,7 +85,7 @@ try {
   ];
   $token = JWT::encode($payload, $jwt_secret, 'HS256');
 
-  // (Opcional) registrar sesiÃ³n en tabla si la usas
+  // (Opcional) registrar sesiÃƒÂ³n en tabla si la usas
   // ...
 
   // Establecer cookie httpOnly usando clase centralizada
@@ -97,7 +94,7 @@ try {
   // Generar y establecer token CSRF
   $csrfToken = CsrfMiddleware::generateToken();
 
-  // En producciÃ³n, opcional: no devolver token en body por seguridad extra
+  // En producciÃƒÂ³n, opcional: no devolver token en body por seguridad extra
   if (($_ENV['APP_ENV'] ?? 'development') === 'production' && ($_ENV['HIDE_TOKEN_IN_RESPONSE'] ?? false)) {
     echo json_encode([
       'success' => true,

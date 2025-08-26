@@ -1,6 +1,4 @@
-<?php
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -17,13 +15,13 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// Proteger solo mÃ©todos que cambian estado
+// Proteger solo mÃƒÂ©todos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
     // double-submit cookie
 }
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
         http_response_code(401);
@@ -60,7 +58,7 @@ $content = file_get_contents($filePath);
 // use Backend\Services\OllamaService;
 
 // Construir el prompt exactamente como en analyzeCV, pero solo hasta el armado del prompt
-$prompt = "Analiza el siguiente CV en texto plano y extrae la informaciÃƒÂ³n en formato JSON estructurado con los siguientes campos:aunque algunos estÃƒÂ©n vacÃƒÂ­os):\n\n" .
+$prompt = "Analiza el siguiente CV en texto plano y extrae la informaciÃƒÆ’Ã‚Â³n en formato JSON estructurado con los siguientes campos:aunque algunos estÃƒÆ’Ã‚Â©n vacÃƒÆ’Ã‚Â­os):\n\n" .
     "{\n" .
     "  \"nombre\": \"\",\n" .
     "  \"email\": \"\",\n" .
@@ -105,7 +103,7 @@ $prompt = "Analiza el siguiente CV en texto plano y extrae la informaciÃƒÂ³n
     "  \"subcategoria\": \"\",\n" .
     "  \"otros\": \"\"\n" .
     "}\n\n" .
-    "Asocia el perfil a una de las siguientes categorÃƒÂ­as y subcategorÃƒÂ­as segÃƒÂºn la experiencia y habilidades detectadas:\n\n" .
+    "Asocia el perfil a una de las siguientes categorÃƒÆ’Ã‚Â­as y subcategorÃƒÆ’Ã‚Â­as segÃƒÆ’Ã‚Âºn la experiencia y habilidades detectadas:\n\n" .
     "[\n" .
     "  { categoria: 'Management', subcategorias: ['Account Manager', 'Account Director', 'Medical Strategist/Planner', 'Scientific Account Executive'] },\n" .
     "  { categoria: 'Creativity (Art & Design)', subcategorias: ['Copywriter (health)', 'Art Director', 'Graphic Designer', 'Content Creator/Content Strategist'] },\n" .
@@ -119,10 +117,10 @@ $prompt = "Analiza el siguiente CV en texto plano y extrae la informaciÃƒÂ³n
     "Texto del CV:\n---\n" . $content . "\n---";
 
 // PASO 2: Enviar el prompt a Ollama y recibir respuesta
-// Ã¢Å¡Â Ã¯Â¸Â Este cÃƒÂ³digo solo debe ejecutarse cuando el prompt del PASO 1 haya sido verificado.
+// ÃƒÂ¢Ã…Â¡Ã‚Â ÃƒÂ¯Ã‚Â¸Ã‚Â Este cÃƒÆ’Ã‚Â³digo solo debe ejecutarse cuando el prompt del PASO 1 haya sido verificado.
 
 $ollamaHost = 'http://localhost:11434';
-$model = 'recruitment-ai'; // o el modelo que estÃƒÂ©s usando
+$model = 'recruitment-ai'; // o el modelo que estÃƒÆ’Ã‚Â©s usando
 
 $curl = curl_init("$ollamaHost/api/generate");
 
@@ -149,10 +147,10 @@ if (curl_errno($curl)) {
 
 curl_close($curl);
 
-// Verificar que Ollama respondiÃƒÂ³
+// Verificar que Ollama respondiÃƒÆ’Ã‚Â³
 $data = json_decode($response, true);
 if (!isset($data['response'])) {
-    echo json_encode(['error' => 'Respuesta invÃƒÂ¡lida de Ollama', 'raw' => $response]);
+    echo json_encode(['error' => 'Respuesta invÃƒÆ’Ã‚Â¡lida de Ollama', 'raw' => $response]);
     exit;
 }
 

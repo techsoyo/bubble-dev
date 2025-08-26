@@ -1,6 +1,4 @@
-<?php
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -17,13 +15,13 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// Proteger solo mÃ©todos que cambian estado
+// Proteger solo mÃƒÂ©todos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
     // double-submit cookie
 }
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
         http_response_code(401);
@@ -36,8 +34,8 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
 /**
  * API Endpoint: Recruitment Insights & Analytics
  *
- * Endpoint para anÃƒÆ’Ã‚Â¡lisis avanzado de mÃƒÆ’Ã‚Â©tricas de reclutamiento,
- * insights del mercado laboral, optimizaciÃƒÆ’Ã‚Â³n de procesos y reportes ejecutivos.
+ * Endpoint para anÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lisis avanzado de mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tricas de reclutamiento,
+ * insights del mercado laboral, optimizaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de procesos y reportes ejecutivos.
  *
  * @package Backend\API\AI
  * @version 1.0.0
@@ -52,7 +50,7 @@ require_once __DIR__ . '/../../src/Services/RecruitmentInsightsService.php';
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode([
-        'error' => 'MÃƒÆ’Ã‚Â©todo no permitido',
+        'error' => 'MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©todo no permitido',
         'message' => 'Este endpoint solo acepta POST requests'
     ]);
     exit();
@@ -63,10 +61,10 @@ try {
     $inputData = json_decode(file_get_contents('php://input'), true);
 
     if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('JSON invÃƒÆ’Ã‚Â¡lido en request body');
+        throw new Exception('JSON invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido en request body');
     }
 
-    // Validar acciÃƒÆ’Ã‚Â³n requerida
+    // Validar acciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n requerida
     if (!isset($inputData['action'])) {
         throw new Exception('Campo "action" es requerido');
     }
@@ -75,7 +73,7 @@ try {
     $insightsService = new \Services\RecruitmentInsightsService();
     $action = $inputData['action'];
 
-    // Enrutamiento por acciÃƒÆ’Ã‚Â³n
+    // Enrutamiento por acciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
     switch ($action) {
         case 'analyze_pipeline':
             $result = handlePipelineAnalysis($insightsService, $inputData);
@@ -106,7 +104,7 @@ try {
             break;
 
         default:
-            throw new Exception("AcciÃƒÆ’Ã‚Â³n no vÃƒÆ’Ã‚Â¡lida: {$action}");
+            throw new Exception("AcciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n no vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lida: {$action}");
     }
 
     // Respuesta exitosa
@@ -123,14 +121,14 @@ try {
 
     http_response_code(400);
     echo json_encode([
-        'error' => 'Error en anÃƒÆ’Ã‚Â¡lisis de insights',
+        'error' => 'Error en anÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lisis de insights',
         'message' => $e->getMessage(),
         'timestamp' => date('Y-m-d H:i:s')
     ]);
 }
 
 /**
- * Maneja anÃƒÆ’Ã‚Â¡lisis de pipeline
+ * Maneja anÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lisis de pipeline
  */
 function handlePipelineAnalysis($service, $inputData)
 {
@@ -141,7 +139,7 @@ function handlePipelineAnalysis($service, $inputData)
     $pipelineData = $inputData['pipeline_data'];
     $historicalData = $inputData['historical_data'] ?? [];
 
-    // Validaciones bÃƒÆ’Ã‚Â¡sicas
+    // Validaciones bÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡sicas
     if (!isset($pipelineData['total_candidates'])) {
         throw new Exception('Total de candidatos es requerido en pipeline_data');
     }
@@ -160,7 +158,7 @@ function handlePipelineAnalysis($service, $inputData)
 }
 
 /**
- * Maneja optimizaciÃƒÆ’Ã‚Â³n de procesos
+ * Maneja optimizaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de procesos
  */
 function handleProcessOptimization($service, $inputData)
 {
@@ -185,7 +183,7 @@ function handleProcessOptimization($service, $inputData)
 }
 
 /**
- * Maneja anÃƒÆ’Ã‚Â¡lisis de calidad de candidatos
+ * Maneja anÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lisis de calidad de candidatos
  */
 function handleCandidateQualityAnalysis($service, $inputData)
 {
@@ -197,7 +195,7 @@ function handleCandidateQualityAnalysis($service, $inputData)
     $qualityMetrics = $inputData['quality_metrics'] ?? ['experience', 'skills', 'education'];
 
     if (!is_array($candidatesData) || empty($candidatesData)) {
-        throw new Exception('Se requiere al menos un candidato para el anÃƒÆ’Ã‚Â¡lisis');
+        throw new Exception('Se requiere al menos un candidato para el anÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lisis');
     }
 
     $result = $service->analyzeCandidateQuality($candidatesData, $qualityMetrics);
@@ -214,7 +212,7 @@ function handleCandidateQualityAnalysis($service, $inputData)
 }
 
 /**
- * Maneja predicciÃƒÆ’Ã‚Â³n de necesidades futuras
+ * Maneja predicciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de necesidades futuras
  */
 function handleFutureNeedsPrediction($service, $inputData)
 {
@@ -239,7 +237,7 @@ function handleFutureNeedsPrediction($service, $inputData)
 }
 
 /**
- * Maneja anÃƒÆ’Ã‚Â¡lisis de competitividad
+ * Maneja anÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lisis de competitividad
  */
 function handleCompetitivenessAnalysis($service, $inputData)
 {
@@ -250,9 +248,9 @@ function handleCompetitivenessAnalysis($service, $inputData)
     $positionData = $inputData['position_data'];
     $marketData = $inputData['market_data'] ?? [];
 
-    // ValidaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica
+    // ValidaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n bÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡sica
     if (empty($positionData['title'])) {
-        throw new Exception('TÃƒÆ’Ã‚Â­tulo de la posiciÃƒÆ’Ã‚Â³n es requerido');
+        throw new Exception('TÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­tulo de la posiciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n es requerido');
     }
 
     $result = $service->analyzeCompetitiveness($positionData, $marketData);
@@ -270,7 +268,7 @@ function handleCompetitivenessAnalysis($service, $inputData)
 }
 
 /**
- * Maneja generaciÃƒÆ’Ã‚Â³n de reportes ejecutivos
+ * Maneja generaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de reportes ejecutivos
  */
 function handleExecutiveReportGeneration($service, $inputData)
 {
@@ -296,14 +294,14 @@ function handleExecutiveReportGeneration($service, $inputData)
 }
 
 /**
- * Maneja anÃƒÆ’Ã‚Â¡lisis comprehensivo de insights
+ * Maneja anÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lisis comprehensivo de insights
  */
 function handleComprehensiveInsights($service, $inputData)
 {
     $results = [];
     $errors = [];
 
-    // AnÃƒÆ’Ã‚Â¡lisis de pipeline si hay datos
+    // AnÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lisis de pipeline si hay datos
     if (isset($inputData['pipeline_data'])) {
         try {
             $results['pipeline_analysis'] = $service->analyzePipeline(
@@ -315,7 +313,7 @@ function handleComprehensiveInsights($service, $inputData)
         }
     }
 
-    // AnÃƒÆ’Ã‚Â¡lisis de calidad si hay datos de candidatos
+    // AnÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lisis de calidad si hay datos de candidatos
     if (isset($inputData['candidates_data'])) {
         try {
             $results['quality_analysis'] = $service->analyzeCandidateQuality(
@@ -327,7 +325,7 @@ function handleComprehensiveInsights($service, $inputData)
         }
     }
 
-    // OptimizaciÃƒÆ’Ã‚Â³n de proceso si hay datos
+    // OptimizaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de proceso si hay datos
     if (isset($inputData['process_data'])) {
         try {
             $results['process_optimization'] = $service->optimizeRecruitmentProcess(
@@ -339,7 +337,7 @@ function handleComprehensiveInsights($service, $inputData)
         }
     }
 
-    // Reporte ejecutivo si hay mÃƒÆ’Ã‚Â©tricas
+    // Reporte ejecutivo si hay mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tricas
     if (isset($inputData['recruitment_metrics'])) {
         try {
             $results['executive_report'] = $service->generateExecutiveReport(

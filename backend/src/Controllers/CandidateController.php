@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Controllers;
 
 use Models\Candidate;
@@ -15,7 +14,7 @@ class CandidateController
     {
         $this->candidateModel = new Candidate();
     }
-    // Métodos CRUD - llamadas directas al modelo
+    // MÃƒÆ’Ã‚Â©todos CRUD - llamadas directas al modelo
     public function searchCandidates($filters = [], $page = 1, $limit = 20)
     {
         return $this->candidateModel->searchCandidates($filters, $page, $limit);
@@ -31,7 +30,7 @@ class CandidateController
         return $this->candidateModel->createCandidate($data);
     }
 
-    // Métodos específicos que mantienen lógica de negocio del controller
+    // MÃƒÆ’Ã‚Â©todos especÃƒÆ’Ã‚Â­ficos que mantienen lÃƒÆ’Ã‚Â³gica de negocio del controller
     public function register(Request $request, array $params = [])
     {
         try {
@@ -50,11 +49,11 @@ class CandidateController
             $data['registration_source'] = 'self-registration';
             $data['status'] = 'pending';
 
-            // Usar método encapsulado del modelo
+            // Usar mÃƒÆ’Ã‚Â©todo encapsulado del modelo
             $id = $this->candidateModel->createCandidate($data);
 
             if ($id === false) {
-                return ResponseHelper::fail("Error en el registro - datos inválidos", 422);
+                return ResponseHelper::fail("Error en el registro - datos invÃƒÆ’Ã‚Â¡lidos", 422);
             }
 
             return ResponseHelper::success("Registro de candidato exitoso", [
@@ -102,7 +101,7 @@ class CandidateController
                 return ResponseHelper::fail("Se requiere 'cv' (archivo) o 'cv_base64'", 422);
             }
 
-            // TODO: Validaciones de tipo/tamaño y almacenamiento
+            // TODO: Validaciones de tipo/tamaÃƒÆ’Ã‚Â±o y almacenamiento
             // $storedPath = storeCv($fileInfo || $body['cv_base64'])
 
             return ResponseHelper::success("CV subido correctamente", [
@@ -124,7 +123,7 @@ class CandidateController
                 return ResponseHelper::fail("ID no proporcionado", 400);
             }
 
-            // TODO: Unir datos de varias tablas (experiencia, edu, skills…)
+            // TODO: Unir datos de varias tablas (experiencia, edu, skillsÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦)
             $profile = [
                 'candidate'   => ['id' => $id, 'name' => 'Mocked Candidate'],
                 'experiences' => [],
@@ -152,17 +151,17 @@ class CandidateController
                 return ResponseHelper::fail("El campo 'status' es obligatorio", 422);
             }
 
-            // Preparar datos para actualización usando el método encapsulado
+            // Preparar datos para actualizaciÃƒÆ’Ã‚Â³n usando el mÃƒÆ’Ã‚Â©todo encapsulado
             $updateData = [
                 'status' => $status,
                 'status_notes' => $data['notes'] ?? null
             ];
 
-            // Usar método encapsulado del modelo que incluye validación de estado
+            // Usar mÃƒÆ’Ã‚Â©todo encapsulado del modelo que incluye validaciÃƒÆ’Ã‚Â³n de estado
             $result = $this->candidateModel->updateCandidate($id, $updateData);
 
             if ($result === false) {
-                return ResponseHelper::fail("Error al actualizar estado - datos inválidos", 422);
+                return ResponseHelper::fail("Error al actualizar estado - datos invÃƒÆ’Ã‚Â¡lidos", 422);
             }
 
             return ResponseHelper::success("Estado del candidato actualizado", [
@@ -189,7 +188,7 @@ class CandidateController
     public function assignedCandidates(Request $request, array $params = [])
     {
         try {
-            // Ejemplo: recruiter_id desde token/sesión o query param
+            // Ejemplo: recruiter_id desde token/sesiÃƒÆ’Ã‚Â³n o query param
             $recruiterId = $request->getQuery('recruiter_id') ?? null;
             // TODO: obtener recruiter_id real desde Auth
 
@@ -199,7 +198,7 @@ class CandidateController
                 $filters['assigned_recruiter_id'] = $recruiterId;
             }
 
-            // Usar método encapsulado del modelo
+            // Usar mÃƒÆ’Ã‚Â©todo encapsulado del modelo
             $items = $this->candidateModel->searchCandidates($filters);
 
             return ResponseHelper::success("Candidatos asignados obtenidos", [

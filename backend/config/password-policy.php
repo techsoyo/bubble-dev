@@ -1,13 +1,12 @@
-<?php
-
+<?php declare(strict_types=1);
 /**
- * Validador de políticas de contraseñas seguras
- * Implementa estándares de seguridad OWASP
+ * Validador de polÃ­ticas de contraseÃ±as seguras
+ * Implementa estÃ¡ndares de seguridad OWASP
  */
 
 class PasswordPolicyValidator
 {
-  // Configuración de políticas
+  // ConfiguraciÃ³n de polÃ­ticas
   const MIN_LENGTH = 8;
   const MAX_LENGTH = 128;
   const REQUIRE_UPPERCASE = true;
@@ -16,7 +15,7 @@ class PasswordPolicyValidator
   const REQUIRE_SPECIAL_CHARS = true;
   const MIN_SPECIAL_CHARS = 1;
 
-  // Lista de contraseñas comunes prohibidas
+  // Lista de contraseÃ±as comunes prohibidas
   private static $commonPasswords = [
     '123456',
     'password',
@@ -46,7 +45,7 @@ class PasswordPolicyValidator
   ];
 
   /**
-   * Validar contraseña contra todas las políticas
+   * Validar contraseÃ±a contra todas las polÃ­ticas
    */
   public static function validate($password)
   {
@@ -54,49 +53,49 @@ class PasswordPolicyValidator
 
     // Verificar longitud
     if (strlen($password) < self::MIN_LENGTH) {
-      $errors[] = "La contraseña debe tener al menos " . self::MIN_LENGTH . " caracteres";
+      $errors[] = "La contraseÃ±a debe tener al menos " . self::MIN_LENGTH . " caracteres";
     }
 
     if (strlen($password) > self::MAX_LENGTH) {
-      $errors[] = "La contraseña no puede exceder " . self::MAX_LENGTH . " caracteres";
+      $errors[] = "La contraseÃ±a no puede exceder " . self::MAX_LENGTH . " caracteres";
     }
 
-    // Verificar mayúsculas
+    // Verificar mayÃºsculas
     if (self::REQUIRE_UPPERCASE && !preg_match('/[A-Z]/', $password)) {
-      $errors[] = "La contraseña debe incluir al menos una letra mayúscula";
+      $errors[] = "La contraseÃ±a debe incluir al menos una letra mayÃºscula";
     }
 
-    // Verificar minúsculas
+    // Verificar minÃºsculas
     if (self::REQUIRE_LOWERCASE && !preg_match('/[a-z]/', $password)) {
-      $errors[] = "La contraseña debe incluir al menos una letra minúscula";
+      $errors[] = "La contraseÃ±a debe incluir al menos una letra minÃºscula";
     }
 
-    // Verificar números
+    // Verificar nÃºmeros
     if (self::REQUIRE_NUMBERS && !preg_match('/[0-9]/', $password)) {
-      $errors[] = "La contraseña debe incluir al menos un número";
+      $errors[] = "La contraseÃ±a debe incluir al menos un nÃºmero";
     }
 
     // Verificar caracteres especiales
     if (self::REQUIRE_SPECIAL_CHARS) {
       $specialCount = preg_match_all('/[^a-zA-Z0-9]/', $password);
       if ($specialCount < self::MIN_SPECIAL_CHARS) {
-        $errors[] = "La contraseña debe incluir al menos " . self::MIN_SPECIAL_CHARS . " caracter(es) especial(es)";
+        $errors[] = "La contraseÃ±a debe incluir al menos " . self::MIN_SPECIAL_CHARS . " caracter(es) especial(es)";
       }
     }
 
-    // Verificar contraseñas comunes
+    // Verificar contraseÃ±as comunes
     if (in_array(strtolower($password), array_map('strtolower', self::$commonPasswords))) {
-      $errors[] = "Esta contraseña es demasiado común y no está permitida";
+      $errors[] = "Esta contraseÃ±a es demasiado comÃºn y no estÃ¡ permitida";
     }
 
     // Verificar patrones secuenciales
     if (self::hasSequentialPattern($password)) {
-      $errors[] = "La contraseña no puede contener secuencias largas como '1234' o 'abcd'";
+      $errors[] = "La contraseÃ±a no puede contener secuencias largas como '1234' o 'abcd'";
     }
 
     // Verificar repeticiones
     if (self::hasRepeatingPattern($password)) {
-      $errors[] = "La contraseña no puede contener muchos caracteres repetidos";
+      $errors[] = "La contraseÃ±a no puede contener muchos caracteres repetidos";
     }
 
     return [
@@ -107,11 +106,11 @@ class PasswordPolicyValidator
   }
 
   /**
-   * Detectar patrones secuenciales (más de 3 caracteres consecutivos)
+   * Detectar patrones secuenciales (mÃ¡s de 3 caracteres consecutivos)
    */
   private static function hasSequentialPattern($password)
   {
-    // Buscar secuencias de 4 o más caracteres (más restrictivo pero realista)
+    // Buscar secuencias de 4 o mÃ¡s caracteres (mÃ¡s restrictivo pero realista)
     for ($i = 0; $i < strlen($password) - 3; $i++) {
       $char1 = ord($password[$i]);
       $char2 = ord($password[$i + 1]);
@@ -135,7 +134,7 @@ class PasswordPolicyValidator
    */
   private static function hasRepeatingPattern($password)
   {
-    // Verificar si más del 50% de la contraseña son caracteres repetidos
+    // Verificar si mÃ¡s del 50% de la contraseÃ±a son caracteres repetidos
     $chars = array_count_values(str_split($password));
     $maxRepeat = max($chars);
 
@@ -143,7 +142,7 @@ class PasswordPolicyValidator
   }
 
   /**
-   * Calcular fuerza de la contraseña (0-100)
+   * Calcular fuerza de la contraseÃ±a (0-100)
    */
   private static function calculateStrength($password)
   {
@@ -172,7 +171,7 @@ class PasswordPolicyValidator
   }
 
   /**
-   * Obtener recomendaciones para mejorar la contraseña
+   * Obtener recomendaciones para mejorar la contraseÃ±a
    */
   public static function getRecommendations($password)
   {
@@ -183,30 +182,30 @@ class PasswordPolicyValidator
     }
 
     if (!preg_match('/[A-Z]/', $password)) {
-      $recommendations[] = "Incluye letras mayúsculas";
+      $recommendations[] = "Incluye letras mayÃºsculas";
     }
 
     if (!preg_match('/[a-z]/', $password)) {
-      $recommendations[] = "Incluye letras minúsculas";
+      $recommendations[] = "Incluye letras minÃºsculas";
     }
 
     if (!preg_match('/[0-9]/', $password)) {
-      $recommendations[] = "Incluye números";
+      $recommendations[] = "Incluye nÃºmeros";
     }
 
     if (!preg_match('/[^a-zA-Z0-9]/', $password)) {
-      $recommendations[] = "Incluye símbolos (!@#$%^&*)";
+      $recommendations[] = "Incluye sÃ­mbolos (!@#$%^&*)";
     }
 
-    $recommendations[] = "Evita información personal (nombres, fechas)";
-    $recommendations[] = "No reutilices contraseñas de otras cuentas";
+    $recommendations[] = "Evita informaciÃ³n personal (nombres, fechas)";
+    $recommendations[] = "No reutilices contraseÃ±as de otras cuentas";
 
     return $recommendations;
   }
 }
 
 /**
- * Funciones helper para integración
+ * Funciones helper para integraciÃ³n
  */
 function validatePassword($password)
 {

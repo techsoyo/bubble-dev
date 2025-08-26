@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Services;
 
 use Exception;
@@ -12,7 +11,7 @@ class ResumeService
     /**
      * Procesa un CV PDF o DOCX, extrae texto, consulta IA y guarda resultado
      * @param string $filePath Ruta absoluta al archivo
-     * @return array Resultado del análisis
+     * @return array Resultado del anÃƒÆ’Ã‚Â¡lisis
      * @throws Exception
      */
     public function processResume(string $filePath): array
@@ -32,7 +31,7 @@ class ResumeService
             throw new Exception('Tipo de archivo no soportado');
         }
         if (trim($text) === '') {
-            throw new Exception('El archivo está vacío o no se pudo extraer texto');
+            throw new Exception('El archivo estÃƒÆ’Ã‚Â¡ vacÃƒÆ’Ã‚Â­o o no se pudo extraer texto');
         }
         // Llamada a API de IA (ejemplo OpenAI)
         $aiResult = $this->analyzeWithAI($text);
@@ -65,7 +64,7 @@ class ResumeService
 
     private function analyzeWithAI(string $text): array
     {
-        // Implementación real pendiente: invocar proveedor de IA y procesar la respuesta
+        // ImplementaciÃƒÆ’Ã‚Â³n real pendiente: invocar proveedor de IA y procesar la respuesta
         throw new Exception('analyzeWithAI no implementado');
     }
 

@@ -1,8 +1,7 @@
-<?php
-
+<?php declare(strict_types=1);
 /**
  * Sanitizador y validador de entrada para prevenir SQL Injection
- * Implementa múltiples capas de protección
+ * Implementa mÃºltiples capas de protecciÃ³n
  */
 
 class InputSanitizer
@@ -10,7 +9,7 @@ class InputSanitizer
   // Patrones de SQL injection conocidos
   private static $sqlPatterns = [
     '/(\%27)|(\')|(\-\-)|(\%23)|(#)/i',           // Meta caracteres SQL
-    '/((\%3D)|(=))[^\n]*((\%27)|(\')|(\-\-)|(\%3B)|(;))/i',  // Inyecciones típicas
+    '/((\%3D)|(=))[^\n]*((\%27)|(\')|(\-\-)|(\%3B)|(;))/i',  // Inyecciones tÃ­picas
     '/\w*((\%27)|(\'))((\%6F)|o|(\%4F))((\%72)|r|(\%52))/i', // union + select
     '/((\%27)|(\'))union/i',                      // union
     '/exec(\s|\+)+(s|x)p\w+/i',                   // stored procedures
@@ -51,10 +50,10 @@ class InputSanitizer
    */
   public static function sanitizeEmail($email)
   {
-    // Remover espacios y convertir a minúsculas
+    // Remover espacios y convertir a minÃºsculas
     $email = trim(strtolower($email));
 
-    // Validar formato básico
+    // Validar formato bÃ¡sico
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
       return false;
     }
@@ -93,7 +92,7 @@ class InputSanitizer
   }
 
   /**
-   * Sanitizar ID numérico
+   * Sanitizar ID numÃ©rico
    */
   public static function sanitizeId($id)
   {
@@ -127,7 +126,7 @@ class InputSanitizer
    */
   private static function escapeForDatabase($input)
   {
-    // Esto es un fallback - PDO preparadas es la mejor opción
+    // Esto es un fallback - PDO preparadas es la mejor opciÃ³n
     return addslashes($input);
   }
 
@@ -146,9 +145,9 @@ class InputSanitizer
     if (isset($data['email'])) {
       $email = trim(strtolower($data['email']));
 
-      // Validar formato básico
+      // Validar formato bÃ¡sico
       if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $result['errors'][] = 'Email inválido';
+        $result['errors'][] = 'Email invÃ¡lido';
       } else if (self::containsSQLInjection($email)) {
         $result['errors'][] = 'Email contiene caracteres peligrosos';
         error_log("Intento de SQL injection detectado en email: $email");
@@ -157,18 +156,18 @@ class InputSanitizer
       }
     }
 
-    // Verificar contraseña (no sanitizar, solo validar)
+    // Verificar contraseÃ±a (no sanitizar, solo validar)
     if (isset($data['password'])) {
       $password = $data['password'];
 
-      // Verificar longitud mínima
+      // Verificar longitud mÃ­nima
       if (strlen($password) < 3) {
-        $result['errors'][] = 'Contraseña demasiado corta';
+        $result['errors'][] = 'ContraseÃ±a demasiado corta';
       } else if (strlen($password) > 255) {
-        $result['errors'][] = 'Contraseña demasiado larga';
+        $result['errors'][] = 'ContraseÃ±a demasiado larga';
       } else if (self::containsSQLInjection($password)) {
-        $result['errors'][] = 'Contraseña contiene caracteres no permitidos';
-        error_log("Intento de SQL injection en contraseña desde IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+        $result['errors'][] = 'ContraseÃ±a contiene caracteres no permitidos';
+        error_log("Intento de SQL injection en contraseÃ±a desde IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
       } else {
         $result['password'] = $password;
       }
@@ -215,13 +214,13 @@ class InputSanitizer
     $logEntry = "[$timestamp] SECURITY: $type - IP: $ip - UA: $userAgent - Data: " . json_encode($data);
     error_log($logEntry);
 
-    // También podrías guardarlo en una tabla de seguridad
+    // TambiÃ©n podrÃ­as guardarlo en una tabla de seguridad
     // self::saveToSecurityLog($type, $ip, $data);
   }
 }
 
 /**
- * Funciones helper para uso rápido
+ * Funciones helper para uso rÃ¡pido
  */
 function secure_email($email)
 {

@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 namespace Models;
 
 use Utils\Logger;
@@ -9,8 +6,8 @@ use Utils\Logger;
 /**
  * Modelo para enrutamiento de candidatos
  *
- * Gestiona la asignación de candidatos a departamentos, categorías de departamento
- * y recruiters específicos para optimizar el proceso de reclutamiento.
+ * Gestiona la asignaciÃƒÆ’Ã‚Â³n de candidatos a departamentos, categorÃƒÆ’Ã‚Â­as de departamento
+ * y recruiters especÃƒÆ’Ã‚Â­ficos para optimizar el proceso de reclutamiento.
  *
  * @package Models
  * @author Bubble of Talents Development Team
@@ -24,14 +21,14 @@ class CandidateRouting extends BaseModel
      */
     protected string $table = 'candidate_routing';
     /*
-     * 🔧 CORRECCIÓN AUTOMÁTICA APLICADA
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÃƒÆ’Ã¢â‚¬Å“N AUTOMÃƒÆ’Ã‚ÂTICA APLICADA
      * Modelo: CandidateRouting
      * Fecha: 2025-08-23
      * 
      * Cambios realizados:
-     * ➕ Campos añadidos: ['source_channel', 'utm_source', 'utm_medium', 'utm_campaign', 'referrer_url']
-     * ❌ Campos removidos: ['department_id', 'department_category_id', 'recruiter_id', 'assigned_at', 'status']
-     * 📊 Total campos fillable: 6
+     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aÃƒÆ’Ã‚Â±adidos: ['source_channel', 'utm_source', 'utm_medium', 'utm_campaign', 'referrer_url']
+     * ÃƒÂ¢Ã‚ÂÃ…â€™ Campos removidos: ['department_id', 'department_category_id', 'recruiter_id', 'assigned_at', 'status']
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Total campos fillable: 6
      * 
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
@@ -61,7 +58,7 @@ class CandidateRouting extends BaseModel
     protected array $hidden = [];
 
     /**
-     * Estados válidos para el enrutamiento
+     * Estados vÃƒÆ’Ã‚Â¡lidos para el enrutamiento
      */
     const VALID_STATUSES = [
         'pending',
@@ -73,11 +70,11 @@ class CandidateRouting extends BaseModel
     ];
 
     /**
-     * Encontrar el último enrutamiento de un candidato
+     * Encontrar el ÃƒÆ’Ã‚Âºltimo enrutamiento de un candidato
      *
      * @param int $candidateId ID del candidato
-     * @return array|null Último enrutamiento o null si no existe
-     * @throws \InvalidArgumentException Si el candidateId es inválido
+     * @return array|null ÃƒÆ’Ã…Â¡ltimo enrutamiento o null si no existe
+     * @throws \InvalidArgumentException Si el candidateId es invÃƒÆ’Ã‚Â¡lido
      * @throws \RuntimeException Si ocurre un error en la base de datos
      */
     public function findLatestByCandidate(int $candidateId): ?array
@@ -159,11 +156,11 @@ class CandidateRouting extends BaseModel
      *
      * @param int $candidateId ID del candidato
      * @param int $departmentId ID del departamento
-     * @param int|null $departmentCategoryId ID de la categoría de departamento (opcional)
+     * @param int|null $departmentCategoryId ID de la categorÃƒÆ’Ã‚Â­a de departamento (opcional)
      * @param int|null $recruiterId ID del recruiter (opcional)
      * @param string $status Estado inicial (por defecto 'pending')
      * @return mixed ID del enrutamiento creado
-     * @throws \InvalidArgumentException Si los datos son inválidos
+     * @throws \InvalidArgumentException Si los datos son invÃƒÆ’Ã‚Â¡lidos
      * @throws \RuntimeException Si ocurre un error en la base de datos
      */
     public function createRouting(int $candidateId, int $departmentId, ?int $departmentCategoryId = null, ?int $recruiterId = null, string $status = 'pending')
@@ -219,8 +216,8 @@ class CandidateRouting extends BaseModel
      * @param mixed $routingId ID del enrutamiento
      * @param string $newStatus Nuevo estado
      * @param int|null $newRecruiterId Nuevo recruiter (opcional)
-     * @return bool True si la actualización fue exitosa
-     * @throws \InvalidArgumentException Si los datos son inválidos
+     * @return bool True si la actualizaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @throws \InvalidArgumentException Si los datos son invÃƒÆ’Ã‚Â¡lidos
      * @throws \RuntimeException Si ocurre un error en la base de datos
      */
     public function updateRoutingStatus($routingId, string $newStatus, ?int $newRecruiterId = null): bool
@@ -239,10 +236,10 @@ class CandidateRouting extends BaseModel
                 'updated_at' => date('Y-m-d H:i:s')
             ];
 
-            // Si se proporciona nuevo recruiter, actualizar también
+            // Si se proporciona nuevo recruiter, actualizar tambiÃƒÆ’Ã‚Â©n
             if ($newRecruiterId !== null) {
                 $data['recruiter_id'] = $newRecruiterId;
-                $data['assigned_at'] = date('Y-m-d H:i:s'); // Actualizar tiempo de asignación
+                $data['assigned_at'] = date('Y-m-d H:i:s'); // Actualizar tiempo de asignaciÃƒÆ’Ã‚Â³n
             }
 
             $result = $this->update($routingId, $data);
@@ -268,9 +265,9 @@ class CandidateRouting extends BaseModel
      *
      * @param int $candidateId ID del candidato
      * @param int $newRecruiterId ID del nuevo recruiter
-     * @param string $reason Razón de la reasignación (opcional)
-     * @return bool True si la reasignación fue exitosa
-     * @throws \InvalidArgumentException Si los datos son inválidos
+     * @param string $reason RazÃƒÆ’Ã‚Â³n de la reasignaciÃƒÆ’Ã‚Â³n (opcional)
+     * @return bool True si la reasignaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @throws \InvalidArgumentException Si los datos son invÃƒÆ’Ã‚Â¡lidos
      * @throws \RuntimeException Si ocurre un error en la base de datos
      */
     public function reassignCandidate(int $candidateId, int $newRecruiterId, string $reason = ''): bool
@@ -313,13 +310,13 @@ class CandidateRouting extends BaseModel
     }
 
     /**
-     * Obtener candidatos asignados a un recruiter específico
+     * Obtener candidatos asignados a un recruiter especÃƒÆ’Ã‚Â­fico
      *
      * @param int $recruiterId ID del recruiter
      * @param array $statusFilter Filtro de estados (opcional)
-     * @param int $limit Límite de resultados (por defecto 50)
+     * @param int $limit LÃƒÆ’Ã‚Â­mite de resultados (por defecto 50)
      * @return array Lista de candidatos asignados
-     * @throws \InvalidArgumentException Si los datos son inválidos
+     * @throws \InvalidArgumentException Si los datos son invÃƒÆ’Ã‚Â¡lidos
      * @throws \RuntimeException Si ocurre un error en la base de datos
      */
     public function getCandidatesByRecruiter(int $recruiterId, array $statusFilter = [], int $limit = 50): array
@@ -372,10 +369,10 @@ class CandidateRouting extends BaseModel
     }
 
     /**
-     * Obtener estadísticas de carga de trabajo por recruiter usando vista optimizada
+     * Obtener estadÃƒÆ’Ã‚Â­sticas de carga de trabajo por recruiter usando vista optimizada
      *
      * @param int|null $departmentId Filtro por departamento (opcional)
-     * @return array Estadísticas de carga de trabajo
+     * @return array EstadÃƒÆ’Ã‚Â­sticas de carga de trabajo
      * @throws \RuntimeException Si ocurre un error en la base de datos
      */
     public function getRecruiterWorkloadStats(?int $departmentId = null): array
@@ -411,8 +408,8 @@ class CandidateRouting extends BaseModel
      * Obtener historial completo de enrutamientos de un candidato
      *
      * @param int $candidateId ID del candidato
-     * @return array Historial de enrutamientos ordenado cronológicamente
-     * @throws \InvalidArgumentException Si el candidateId es inválido
+     * @return array Historial de enrutamientos ordenado cronolÃƒÆ’Ã‚Â³gicamente
+     * @throws \InvalidArgumentException Si el candidateId es invÃƒÆ’Ã‚Â¡lido
      * @throws \RuntimeException Si ocurre un error en la base de datos
      */
     public function getRoutingHistory(int $candidateId): array
@@ -448,7 +445,7 @@ class CandidateRouting extends BaseModel
     }
 
     // ==========================================
-    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // MÃƒÆ’Ã¢â‚¬Â°TODOS CRUD ENCAPSULADOS ESTÃƒÆ’Ã‚ÂNDAR
     // ==========================================
 
     /**
@@ -502,7 +499,7 @@ class CandidateRouting extends BaseModel
      * Actualizar candidate_routing con validaciones
      * @param mixed $id ID del candidate_routing a actualizar
      * @param array $data Nuevos datos
-     * @return bool True si la actualización fue exitosa
+     * @return bool True si la actualizaciÃƒÆ’Ã‚Â³n fue exitosa
      */
     public function updateCandidateRouting($id, array $data): bool
     {
@@ -534,7 +531,7 @@ class CandidateRouting extends BaseModel
     /**
      * Eliminar candidate_routing con validaciones
      * @param mixed $id ID del candidate_routing a eliminar
-     * @return bool True si la eliminación fue exitosa
+     * @return bool True si la eliminaciÃƒÆ’Ã‚Â³n fue exitosa
      */
     public function deleteCandidateRouting($id): bool
     {
@@ -562,9 +559,9 @@ class CandidateRouting extends BaseModel
 
     /**
      * Buscar candidate_routings con filtros
-     * @param array $filters Filtros de búsqueda
-     * @param int $page Página actual
-     * @param int $limit Registros por página
+     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
+     * @param int $page PÃƒÆ’Ã‚Â¡gina actual
+     * @param int $limit Registros por pÃƒÆ’Ã‚Â¡gina
      * @param array $orderBy Criterios de ordenamiento
      * @return array Array de candidate_routings
      */
@@ -584,8 +581,8 @@ class CandidateRouting extends BaseModel
 
     /**
      * Contar total de candidate_routings con filtros
-     * @param array $filters Filtros de búsqueda
-     * @return int Número total de candidate_routings
+     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
+     * @return int NÃƒÆ’Ã‚Âºmero total de candidate_routings
      */
     public function countCandidateRoutings(array $filters = []): int
     {
@@ -602,22 +599,22 @@ class CandidateRouting extends BaseModel
     }
 
     // ==========================================
-    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // MÃƒÆ’Ã¢â‚¬Â°TODOS DE VALIDACIÃƒÆ’Ã¢â‚¬Å“N ESPECÃƒÆ’Ã‚ÂFICOS
     // ==========================================
 
     /**
-     * Validar datos específicos de candidate_routings
+     * Validar datos especÃƒÆ’Ã‚Â­ficos de candidate_routings
      * @param array $data Datos a validar
-     * @param mixed $id ID para validaciones de actualización (opcional)
-     * @throws \InvalidArgumentException Si los datos no son válidos
+     * @param mixed $id ID para validaciones de actualizaciÃƒÆ’Ã‚Â³n (opcional)
+     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
      */
     private function validateCandidateRoutingData(array $data, $id = null): void
     {
-        // TODO: Implementar validaciones específicas del modelo
+        // TODO: Implementar validaciones especÃƒÆ’Ã‚Â­ficas del modelo
     }
 
     /**
-     * Invalidar cache específico de candidate_routings
+     * Invalidar cache especÃƒÆ’Ã‚Â­fico de candidate_routings
      */
     public function invalidateCandidateRoutingCache(): int
     {

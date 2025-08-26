@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 use Security\CsrfMiddleware;
 
 require_once __DIR__ . '/./bootstrap.php';
@@ -20,13 +17,13 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// Proteger solo mÃ©todos que cambian estado
+// Proteger solo mÃƒÂ©todos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
     // double-submit cookie
 }
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
         http_response_code(401);
@@ -35,8 +32,8 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     }
 }
 
-// No dupliques CORS aquÃ­. El bootstrap ya los aplica.
-// SÃ³lo fijamos Content-Type y atendemos preflight.
+// No dupliques CORS aquÃƒÂ­. El bootstrap ya los aplica.
+// SÃƒÂ³lo fijamos Content-Type y atendemos preflight.
 header('Content-Type: application/json; charset=UTF-8');
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
     http_response_code(204);
@@ -52,23 +49,23 @@ function jsend(bool $ok, string $message, $data = null, int $code = 200): void
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-// Requiere JWT en todos los métodos
+// Requiere JWT en todos los mÃ©todos
 $userPayload = null; // Inicializar variable
-// TODO: Implementar obtención del payload JWT desde cookie
+// TODO: Implementar obtenciÃ³n del payload JWT desde cookie
 if (!$userPayload) {
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized - JWT required']);
     exit;
-} // el middleware ya habrá respondido
+} // el middleware ya habrÃ¡ respondido
 
 $userId   = $userPayload['user_id']   ?? null;
 $userRole = $userPayload['role']      ?? null;            // 'admin' | 'hr' | 'recruiter' | 'candidate' ...
-$userType = $userPayload['user_type'] ?? null;            // 'staff' | 'candidate' (segÃºn tu login)
+$userType = $userPayload['user_type'] ?? null;            // 'staff' | 'candidate' (segÃƒÂºn tu login)
 
 try {
     $db = getDbConnection();
 } catch (Throwable $e) {
-    jsend(false, 'Error de conexiÃ³n a BD', null, 500);
+    jsend(false, 'Error de conexiÃƒÂ³n a BD', null, 500);
 }
 
 /* ============================
@@ -83,12 +80,12 @@ if ($method === 'GET') {
         $offset      = (int)($_GET['offset'] ?? 0);
 
         // Control de acceso:
-        // - Candidatos: sÃ³lo sus propias aplicaciones
+        // - Candidatos: sÃƒÂ³lo sus propias aplicaciones
         // - Staff con rol admin/hr/recruiter: pueden filtrar libremente
         $staffAllowed = in_array($userRole, ['admin', 'hr', 'recruiter'], true);
 
         if (!$staffAllowed) {
-            // TrÃ¡talo como candidato: solo ve lo suyo
+            // TrÃƒÂ¡talo como candidato: solo ve lo suyo
             $candidateId = $userId;
         }
 
@@ -184,7 +181,7 @@ if ($method === 'GET') {
 /* ============================
    POST:
    - bulk_update (staff: admin/hr/recruiter)
-   - crear aplicaciÃ³n (candidato)
+   - crear aplicaciÃƒÂ³n (candidato)
    ============================ */
 if ($method === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -214,15 +211,15 @@ if ($method === 'POST') {
             }
         }
 
-        jsend(true, 'ActualizaciÃ³n masiva realizada', ['results' => $results], 200);
+        jsend(true, 'ActualizaciÃƒÂ³n masiva realizada', ['results' => $results], 200);
     }
 
-    // Rama B: crear aplicaciÃ³n (sÃ³lo candidatos)
+    // Rama B: crear aplicaciÃƒÂ³n (sÃƒÂ³lo candidatos)
     if (empty($input['job_id'])) {
         jsend(false, 'job_id es requerido', null, 400);
     }
     if ($userType !== 'candidate' && !in_array($userRole, ['candidate'], true)) {
-        jsend(false, 'SÃ³lo candidatos pueden aplicar a un trabajo', null, 403);
+        jsend(false, 'SÃƒÂ³lo candidatos pueden aplicar a un trabajo', null, 403);
     }
 
     $jobId       = $input['job_id'];
@@ -230,12 +227,12 @@ if ($method === 'POST') {
     $coverLetter = trim($input['cover_letter'] ?? '');
 
     try {
-        // Verifica que el job exista y estÃ© abierto
+        // Verifica que el job exista y estÃƒÂ© abierto
         $jobStmt = $db->prepare('SELECT id, title FROM bt_jobs WHERE id = ? AND status = "open"');
         $jobStmt->execute([$jobId]);
         $job = $jobStmt->fetch(PDO::FETCH_ASSOC);
         if (!$job) {
-            jsend(false, 'El trabajo no existe o no estÃ¡ disponible', null, 404);
+            jsend(false, 'El trabajo no existe o no estÃƒÂ¡ disponible', null, 404);
         }
 
         // Evita duplicados
@@ -252,11 +249,11 @@ if ($method === 'POST') {
         ');
         $ok = $ins->execute([$candidateId, $jobId, $coverLetter]);
         if (!$ok) {
-            jsend(false, 'Error al insertar aplicaciÃ³n', null, 500);
+            jsend(false, 'Error al insertar aplicaciÃƒÂ³n', null, 500);
         }
 
         $appId = $db->lastInsertId();
-        jsend(true, 'AplicaciÃ³n creada', [
+        jsend(true, 'AplicaciÃƒÂ³n creada', [
             'id'            => $appId,
             'candidate_id'  => $candidateId,
             'job_id'        => $jobId,
@@ -266,8 +263,8 @@ if ($method === 'POST') {
         ], 201);
     } catch (Throwable $e) {
         error_log('CREATE APPLICATION ERROR: ' . $e->getMessage());
-        jsend(false, 'Error al crear la aplicaciÃ³n', null, 500);
+        jsend(false, 'Error al crear la aplicaciÃƒÂ³n', null, 500);
     }
 }
 
-jsend(false, 'MÃ©todo no permitido', null, 405);
+jsend(false, 'MÃƒÂ©todo no permitido', null, 405);

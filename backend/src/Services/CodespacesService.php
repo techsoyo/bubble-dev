@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Services;
 
 use Exception;
@@ -22,7 +21,7 @@ class CodespacesService
   }
 
   /**
-   * Verificar si el servicio está disponible
+   * Verificar si el servicio estÃƒÆ’Ã‚Â¡ disponible
    */
   public function isAvailable(): bool
   {
@@ -60,7 +59,7 @@ class CodespacesService
   }
 
   /**
-   * Ranking de múltiples candidatos
+   * Ranking de mÃƒÆ’Ã‚Âºltiples candidatos
    */
   public function rankCandidates(array $candidates, array $jobData): ?array
   {
@@ -84,7 +83,7 @@ class CodespacesService
   }
 
   /**
-   * Obtener información del modelo
+   * Obtener informaciÃƒÆ’Ã‚Â³n del modelo
    */
   public function getModelInfo(): ?array
   {
@@ -109,7 +108,7 @@ class CodespacesService
   }
 
   /**
-   * Realizar petición HTTP al servidor IA
+   * Realizar peticiÃƒÆ’Ã‚Â³n HTTP al servidor IA
    */
   private function makeRequest(string $method, string $endpoint, ?array $data = null): ?array
   {
@@ -178,7 +177,7 @@ class CodespacesService
   }
 
   /**
-   * Test de conectividad básico
+   * Test de conectividad bÃƒÆ’Ã‚Â¡sico
    */
   public function testConnection(): array
   {

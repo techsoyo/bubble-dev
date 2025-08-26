@@ -1,6 +1,4 @@
-<?php
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -17,13 +15,13 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// Proteger solo mÃ©todos que cambian estado
+// Proteger solo mÃƒÂ©todos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
     // double-submit cookie
 }
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
         http_response_code(401);
@@ -69,19 +67,19 @@ if (!is_dir($jsonDir)) {
     }
 }
 
-// 6. Construir el prompt para estructuraciÃƒÂ³n JSON con recruitment-ai
+// 6. Construir el prompt para estructuraciÃƒÆ’Ã‚Â³n JSON con recruitment-ai
 $prompt = "Tarea: Analizar y estructurar en formato JSON el siguiente CV ya filtrado.\n\n" .
   "Instrucciones:\n" .
-  "1. Extrae los siguientes campos, si estÃƒÂ¡n disponibles:\n" .
-  "   - nombre, email, telÃƒÂ©fono\n" .
-  "   - formaciÃƒÂ³n acadÃƒÂ©mica: tÃƒÂ­tulo, instituciÃƒÂ³n, fechas\n" .
+  "1. Extrae los siguientes campos, si estÃƒÆ’Ã‚Â¡n disponibles:\n" .
+  "   - nombre, email, telÃƒÆ’Ã‚Â©fono\n" .
+  "   - formaciÃƒÆ’Ã‚Â³n acadÃƒÆ’Ã‚Â©mica: tÃƒÆ’Ã‚Â­tulo, instituciÃƒÆ’Ã‚Â³n, fechas\n" .
   "   - experiencia laboral: empresa, puesto, fechas, funciones\n" .
-  "   - tecnologÃƒÂ­as/habilidades tÃƒÂ©cnicas\n" .
+  "   - tecnologÃƒÆ’Ã‚Â­as/habilidades tÃƒÆ’Ã‚Â©cnicas\n" .
   "   - idiomas (idioma y nivel)\n" .
   "   - certificaciones\n" .
   "   - logros o formaciones adicionales relevantes\n" .
   "2. La salida debe ser un JSON bien estructurado.\n" .
-  "3. No inventes campos que no estÃƒÂ©n. Si algo no se encuentra, deja el array vacÃƒÂ­o.\n" .
+  "3. No inventes campos que no estÃƒÆ’Ã‚Â©n. Si algo no se encuentra, deja el array vacÃƒÆ’Ã‚Â­o.\n" .
   "4. Cada entrada debe ir en su array correspondiente.\n\n" .
   "Formato de salida esperado:\n" .
   "{\n" .
@@ -154,7 +152,7 @@ curl_close($curl);
 $data = json_decode($response, true);
 if (!isset($data['response'])) {
     echo json_encode([
-      'error' => 'Respuesta invÃƒÂ¡lida de Ollama (recruitment-ai)',
+      'error' => 'Respuesta invÃƒÆ’Ã‚Â¡lida de Ollama (recruitment-ai)',
       'raw' => substr($response, 0, 200)
     ]);
     exit;
@@ -171,15 +169,15 @@ if ($jsonStart !== false && $jsonEnd !== false) {
     $parsedJson = json_decode($jsonString, true);
 
     if ($parsedJson) {
-        // JSON vÃƒÂ¡lido extraÃƒÂ­do
+        // JSON vÃƒÆ’Ã‚Â¡lido extraÃƒÆ’Ã‚Â­do
         $finalJson = json_encode($parsedJson, JSON_PRETTY_PRINT);
     } else {
-        // JSON invÃƒÂ¡lido, usar respuesta cruda pero marcar como no parseado
+        // JSON invÃƒÆ’Ã‚Â¡lido, usar respuesta cruda pero marcar como no parseado
         $finalJson = $jsonResponse;
         $parsedJson = null;
     }
 } else {
-    // No se encontrÃƒÂ³ JSON, usar respuesta cruda
+    // No se encontrÃƒÆ’Ã‚Â³ JSON, usar respuesta cruda
     $finalJson = $jsonResponse;
     $parsedJson = null;
 }

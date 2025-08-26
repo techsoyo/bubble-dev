@@ -1,7 +1,5 @@
-<?php
-
-
-namespace Src\Models;
+<?php declare(strict_types=1);
+namespace Models;
 
 use Models\BaseModel;
 use Utils\Logger;
@@ -12,8 +10,8 @@ class JobSkillModel extends BaseModel
   protected string $primaryKey = 'id';
 
   /**
-   * Campos permitidos para asignación masiva
-   * Ajusta según la estructura real de la tabla
+   * Campos permitidos para asignaciÃƒÆ’Ã‚Â³n masiva
+   * Ajusta segÃƒÆ’Ã‚Âºn la estructura real de la tabla
    */
   protected array $fillable = [
     'job_id',
@@ -80,7 +78,7 @@ class JobSkillModel extends BaseModel
   }
 
   /**
-   * Validación básica de datos
+   * ValidaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica de datos
    */
   private function validateSkillData(array $data, bool $isCreation = true): void
   {
@@ -97,10 +95,10 @@ class JobSkillModel extends BaseModel
       throw new \InvalidArgumentException('skill_id debe ser un entero positivo');
     }
     if (isset($data['required_level']) && (!is_numeric($data['required_level']) || $data['required_level'] < 0)) {
-      throw new \InvalidArgumentException('required_level debe ser un número positivo');
+      throw new \InvalidArgumentException('required_level debe ser un nÃƒÆ’Ã‚Âºmero positivo');
     }
     if (isset($data['weight']) && (!is_numeric($data['weight']) || $data['weight'] < 0)) {
-      throw new \InvalidArgumentException('weight debe ser un número positivo');
+      throw new \InvalidArgumentException('weight debe ser un nÃƒÆ’Ã‚Âºmero positivo');
     }
     if (isset($data['is_required']) && !is_bool($data['is_required'])) {
       throw new \InvalidArgumentException('is_required debe ser booleano');

@@ -1,6 +1,4 @@
-<?php
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -105,17 +103,17 @@ try {
             c.created_at,
             c.status,
             
-            -- InformaciÃƒÂ³n de departamento del candidato
+            -- InformaciÃƒÆ’Ã‚Â³n de departamento del candidato
             cd.id as department_id,
             cd.name as candidateDepartment,
             cdc.name as department_category,
             
-            -- InformaciÃƒÂ³n de asignaciÃƒÂ³n
+            -- InformaciÃƒÆ’Ã‚Â³n de asignaciÃƒÆ’Ã‚Â³n
             ca.assigned_at,
             ca.status as assignment_status,
             ca.notes as assignment_notes,
             
-            -- InformaciÃƒÂ³n del reclutador
+            -- InformaciÃƒÆ’Ã‚Â³n del reclutador
             sp.name as recruiterName,
             sp.email as recruiterEmail,
             sp.department as recruiterDepartment

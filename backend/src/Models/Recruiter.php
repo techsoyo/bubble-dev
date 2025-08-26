@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 namespace Models;
 
 use Utils\Logger;
@@ -10,7 +7,7 @@ use Utils\Logger;
  * Modelo para los reclutadores de la plataforma.
  * 
  * Este modelo gestiona los perfiles del staff de reclutamiento, incluyendo
- * la distribución de carga de trabajo, métricas de rendimiento y asignación
+ * la distribuciÃƒÆ’Ã‚Â³n de carga de trabajo, mÃƒÆ’Ã‚Â©tricas de rendimiento y asignaciÃƒÆ’Ã‚Â³n
  * de candidatos. Utiliza la vista vw_recruiter_load para optimizar consultas
  * de carga de trabajo.
  * 
@@ -26,14 +23,14 @@ class Recruiter extends BaseModel
      */
     protected string $table = 'staff_profiles';
     /*
-     * 🔧 CORRECCIÓN AUTOMÁTICA APLICADA
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÃƒÆ’Ã¢â‚¬Å“N AUTOMÃƒÆ’Ã‚ÂTICA APLICADA
      * Modelo: Recruiter
      * Fecha: 2025-08-23
      * 
      * Cambios realizados:
-     * ➕ Campos añadidos: ['candidate_id', 'first_name', 'last_name', 'hire_date', 'salary_range', 'emergency_contact_name', 'emergency_contact_phone', 'notes', 'profile_photo', 'is_active', 'languages', 'certifications', 'performance_metrics', 'created_by', 'updated_by']
-     * ❌ Campos removidos: ['name', 'active', 'max_candidates']
-     * 📊 Total campos fillable: 20
+     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aÃƒÆ’Ã‚Â±adidos: ['candidate_id', 'first_name', 'last_name', 'hire_date', 'salary_range', 'emergency_contact_name', 'emergency_contact_phone', 'notes', 'profile_photo', 'is_active', 'languages', 'certifications', 'performance_metrics', 'created_by', 'updated_by']
+     * ÃƒÂ¢Ã‚ÂÃ…â€™ Campos removidos: ['name', 'active', 'max_candidates']
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Total campos fillable: 20
      * 
      * Los campos fillable ahora coinciden exactamente con las columnas
      * disponibles en la tabla de base de datos (excluyendo id, created_at, updated_at).
@@ -75,20 +72,20 @@ class Recruiter extends BaseModel
     ];
 
     /**
-     * Cache TTL por defecto para métricas (5 minutos)
+     * Cache TTL por defecto para mÃƒÆ’Ã‚Â©tricas (5 minutos)
      */
     private const CACHE_TTL = 300;
 
     /**
-     * Límite máximo de candidatos por recruiter por defecto
+     * LÃƒÆ’Ã‚Â­mite mÃƒÆ’Ã‚Â¡ximo de candidatos por recruiter por defecto
      */
     private const DEFAULT_MAX_CANDIDATES = 50;
 
     /**
      * Obtener la carga de trabajo actual de un recruiter
      * 
-     * Utiliza la vista vw_recruiter_load para obtener métricas optimizadas
-     * de candidatos activos asignados en los últimos 180 días.
+     * Utiliza la vista vw_recruiter_load para obtener mÃƒÆ’Ã‚Â©tricas optimizadas
+     * de candidatos activos asignados en los ÃƒÆ’Ã‚Âºltimos 180 dÃƒÆ’Ã‚Â­as.
      * 
      * @param int $recruiterId ID del recruiter
      * @return array|null Datos de carga de trabajo
@@ -113,14 +110,14 @@ class Recruiter extends BaseModel
     }
 
     /**
-     * Obtener métricas de rendimiento de un recruiter
+     * Obtener mÃƒÆ’Ã‚Â©tricas de rendimiento de un recruiter
      * 
-     * Incluye estadísticas de candidatos procesados, entrevistas realizadas,
+     * Incluye estadÃƒÆ’Ã‚Â­sticas de candidatos procesados, entrevistas realizadas,
      * contrataciones exitosas y tiempo promedio de procesamiento.
      * 
      * @param int $recruiterId ID del recruiter
      * @param int $cacheTtl Tiempo de vida del cache (segundos)
-     * @return array Métricas de rendimiento
+     * @return array MÃƒÆ’Ã‚Â©tricas de rendimiento
      */
     public function getRecruiterStats(int $recruiterId, int $cacheTtl = self::CACHE_TTL): array
     {
@@ -131,7 +128,7 @@ class Recruiter extends BaseModel
         $cacheKey = $this->generateCacheKey('recruiter_stats', ['id' => $recruiterId]);
 
         try {
-            // Intentar obtener desde cache si está habilitado
+            // Intentar obtener desde cache si estÃƒÆ’Ã‚Â¡ habilitado
             if ($cacheTtl > 0 && class_exists('\Utils\Cache')) {
                 return \Utils\Cache::get($cacheKey, $cacheTtl, function () use ($recruiterId) {
                     return $this->executeRecruiterStatsQuery($recruiterId);
@@ -142,7 +139,7 @@ class Recruiter extends BaseModel
             return $this->executeRecruiterStatsQuery($recruiterId);
         } catch (\Exception $e) {
             $this->logError('Error getting recruiter stats', ['recruiter_id' => $recruiterId], $e);
-            // Fallback con estadísticas básicas
+            // Fallback con estadÃƒÆ’Ã‚Â­sticas bÃƒÆ’Ã‚Â¡sicas
             return [
                 'recruiter_id' => $recruiterId,
                 'total_candidates' => 0,
@@ -159,10 +156,10 @@ class Recruiter extends BaseModel
     /**
      * Obtener lista de recruiters disponibles para asignaciones
      * 
-     * Filtra recruiters activos con capacidad disponible basándose en
-     * su carga actual versus el máximo configurado.
+     * Filtra recruiters activos con capacidad disponible basÃƒÆ’Ã‚Â¡ndose en
+     * su carga actual versus el mÃƒÆ’Ã‚Â¡ximo configurado.
      * 
-     * @param int|null $departmentId Filtrar por departamento específico
+     * @param int|null $departmentId Filtrar por departamento especÃƒÆ’Ã‚Â­fico
      * @param array $specializations Filtrar por especializaciones
      * @return array Lista de recruiters disponibles
      */
@@ -216,8 +213,8 @@ class Recruiter extends BaseModel
      * Identifica recruiters sobrecargados y redistribuye candidatos
      * a recruiters con menor carga dentro del mismo departamento.
      * 
-     * @param int|null $departmentId Balancear solo un departamento específico
-     * @return array Resultado del balanceo con estadísticas
+     * @param int|null $departmentId Balancear solo un departamento especÃƒÆ’Ã‚Â­fico
+     * @return array Resultado del balanceo con estadÃƒÆ’Ã‚Â­sticas
      */
     public function balanceRecruiterWorkload(?int $departmentId = null): array
     {
@@ -247,7 +244,7 @@ class Recruiter extends BaseModel
             foreach ($overloaded as $overloadedRecruiter) {
                 $excess = $overloadedRecruiter['active_candidates'] - $overloadedRecruiter['max_candidates'];
 
-                // Buscar candidatos más recientes para redistribuir
+                // Buscar candidatos mÃƒÆ’Ã‚Â¡s recientes para redistribuir
                 $candidatesToMove = $this->getRecentCandidatesForRedistribution(
                     $overloadedRecruiter['recruiter_id'],
                     $excess
@@ -306,7 +303,7 @@ class Recruiter extends BaseModel
     }
 
     /**
-     * Obtener recruiter con menor carga para asignación automática
+     * Obtener recruiter con menor carga para asignaciÃƒÆ’Ã‚Â³n automÃƒÆ’Ã‚Â¡tica
      * 
      * @param int|null $departmentId Filtrar por departamento
      * @param array $specializations Filtrar por especializaciones requeridas
@@ -325,11 +322,11 @@ class Recruiter extends BaseModel
     }
 
     /**
-     * Asignar candidato a un recruiter específico
+     * Asignar candidato a un recruiter especÃƒÆ’Ã‚Â­fico
      * 
      * @param int $candidateId ID del candidato
      * @param int $recruiterId ID del recruiter
-     * @return bool Resultado de la asignación
+     * @return bool Resultado de la asignaciÃƒÆ’Ã‚Â³n
      */
     public function assignCandidateToRecruiter(int $candidateId, int $recruiterId): bool
     {
@@ -380,7 +377,7 @@ class Recruiter extends BaseModel
     }
 
     /**
-     * Método auxiliar para ejecutar la query de estadísticas del recruiter
+     * MÃƒÆ’Ã‚Â©todo auxiliar para ejecutar la query de estadÃƒÆ’Ã‚Â­sticas del recruiter
      */
     private function executeRecruiterStatsQuery(int $recruiterId): array
     {
@@ -448,7 +445,7 @@ class Recruiter extends BaseModel
     }
 
     /**
-     * Obtener candidatos recientes para redistribución
+     * Obtener candidatos recientes para redistribuciÃƒÆ’Ã‚Â³n
      */
     private function getRecentCandidatesForRedistribution(int $recruiterId, int $limit): array
     {
@@ -466,7 +463,7 @@ class Recruiter extends BaseModel
     }
 
     /**
-     * Encontrar el mejor recruiter objetivo para redistribución
+     * Encontrar el mejor recruiter objetivo para redistribuciÃƒÆ’Ã‚Â³n
      */
     private function findBestTargetRecruiter(array $availableRecruiters, int $departmentId): ?array
     {
@@ -504,7 +501,7 @@ class Recruiter extends BaseModel
             ':to_recruiter_id' => $toRecruiterId
         ]);
 
-        // Log de la reasignación
+        // Log de la reasignaciÃƒÆ’Ã‚Â³n
         Logger::info('Candidate reassigned between recruiters', [
             'candidate_id' => $candidateId,
             'from_recruiter' => $fromRecruiterId,
@@ -557,7 +554,7 @@ class Recruiter extends BaseModel
     }
 
     // ==========================================
-    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
+    // MÃƒÆ’Ã¢â‚¬Â°TODOS CRUD ENCAPSULADOS ESTÃƒÆ’Ã‚ÂNDAR
     // ==========================================
 
     /**
@@ -618,7 +615,7 @@ class Recruiter extends BaseModel
      * Actualizar recruiter con validaciones
      * @param mixed $id ID del recruiter a actualizar
      * @param array $data Nuevos datos
-     * @return bool True si la actualización fue exitosa
+     * @return bool True si la actualizaciÃƒÆ’Ã‚Â³n fue exitosa
      */
     public function updateRecruiter($id, array $data): bool
     {
@@ -657,7 +654,7 @@ class Recruiter extends BaseModel
     /**
      * Eliminar recruiter con validaciones
      * @param mixed $id ID del recruiter a eliminar
-     * @return bool True si la eliminación fue exitosa
+     * @return bool True si la eliminaciÃƒÆ’Ã‚Â³n fue exitosa
      */
     public function deleteRecruiter($id): bool
     {
@@ -685,9 +682,9 @@ class Recruiter extends BaseModel
 
     /**
      * Buscar recruiters con filtros
-     * @param array $filters Filtros de búsqueda
-     * @param int $page Página actual
-     * @param int $limit Registros por página
+     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
+     * @param int $page PÃƒÆ’Ã‚Â¡gina actual
+     * @param int $limit Registros por pÃƒÆ’Ã‚Â¡gina
      * @param array $orderBy Criterios de ordenamiento
      * @return array Array de recruiters
      */
@@ -707,8 +704,8 @@ class Recruiter extends BaseModel
 
     /**
      * Contar total de recruiters con filtros
-     * @param array $filters Filtros de búsqueda
-     * @return int Número total de recruiters
+     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
+     * @return int NÃƒÆ’Ã‚Âºmero total de recruiters
      */
     public function countRecruiters(array $filters = []): int
     {
@@ -725,22 +722,22 @@ class Recruiter extends BaseModel
     }
 
     // ==========================================
-    // MÉTODOS DE VALIDACIÓN ESPECÍFICOS
+    // MÃƒÆ’Ã¢â‚¬Â°TODOS DE VALIDACIÃƒÆ’Ã¢â‚¬Å“N ESPECÃƒÆ’Ã‚ÂFICOS
     // ==========================================
 
     /**
-     * Validar datos específicos de recruiters
+     * Validar datos especÃƒÆ’Ã‚Â­ficos de recruiters
      * @param array $data Datos a validar
-     * @param mixed $id ID para validaciones de actualización (opcional)
-     * @throws \InvalidArgumentException Si los datos no son válidos
+     * @param mixed $id ID para validaciones de actualizaciÃƒÆ’Ã‚Â³n (opcional)
+     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
      */
     private function validateRecruiterData(array $data, $id = null): void
     {
-        // TODO: Implementar validaciones específicas del modelo
+        // TODO: Implementar validaciones especÃƒÆ’Ã‚Â­ficas del modelo
     }
 
     /**
-     * Invalidar cache específico de recruiters
+     * Invalidar cache especÃƒÆ’Ã‚Â­fico de recruiters
      */
     public function invalidateRecruiterCache(): int
     {

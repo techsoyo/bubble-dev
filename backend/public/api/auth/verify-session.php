@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 use Security\CsrfMiddleware;
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
@@ -19,7 +16,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
   if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
     http_response_code(401);
@@ -36,10 +33,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
   exit;
 }
 
-// Permitir tanto GET como POST para verificaciÃƒÆ’Ã‚Â³n de sesiÃƒÆ’Ã‚Â³n
+// Permitir tanto GET como POST para verificaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de sesiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
 if (!in_array($_SERVER['REQUEST_METHOD'], ['GET', 'POST'])) {
   http_response_code(405);
-  echo json_encode(['success' => false, 'message' => 'MÃƒÆ’Ã‚Â©todo no permitido']);
+  echo json_encode(['success' => false, 'message' => 'MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©todo no permitido']);
   exit;
 }
 
@@ -48,7 +45,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 try {
-  // Verificar si hay sesiÃƒÆ’Ã‚Â³n activa
+  // Verificar si hay sesiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n activa
   if (empty($_SESSION['candidate_id'])) {
     http_response_code(200);
     echo json_encode([
@@ -65,7 +62,7 @@ try {
   $candidate = $stmt->fetch(PDO::FETCH_ASSOC);
 
   if (!$candidate) {
-    // Limpiar sesiÃƒÆ’Ã‚Â³n si el candidato no existe
+    // Limpiar sesiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n si el candidato no existe
     session_destroy();
     http_response_code(200);
     echo json_encode([

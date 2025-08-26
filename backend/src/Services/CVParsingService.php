@@ -1,15 +1,14 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Services;
 
 /**
- * Servicio para el procesamiento básico de CVs (sin IA)
- * Se enfoca en extracción de texto y generación de archivos para procesamiento posterior
+ * Servicio para el procesamiento bÃƒÆ’Ã‚Â¡sico de CVs (sin IA)
+ * Se enfoca en extracciÃƒÆ’Ã‚Â³n de texto y generaciÃƒÆ’Ã‚Â³n de archivos para procesamiento posterior
  */
 class CVParsingService
 {
     /**
-     * Servicio de extracción de PDF
+     * Servicio de extracciÃƒÆ’Ã‚Â³n de PDF
      * @var PDFExtractorService
      */
     private $pdfExtractor;
@@ -26,7 +25,7 @@ class CVParsingService
      * Procesa un archivo de CV: extrae texto y guarda en formato .txt
      *
      * @param string $filePath Ruta al archivo del CV (PDF)
-     * @return array Información del procesamiento
+     * @return array InformaciÃƒÆ’Ã‚Â³n del procesamiento
      */
     public function processCV($filePath)
     {
@@ -45,7 +44,7 @@ class CVParsingService
             // 2. Generar archivo de texto
             $textFilePath = $this->saveTextFile($extractedText, $filePath);
 
-            // 3. Estadísticas básicas
+            // 3. EstadÃƒÆ’Ã‚Â­sticas bÃƒÆ’Ã‚Â¡sicas
             $stats = [
               'word_count' => str_word_count($extractedText),
               'char_count' => strlen($extractedText),
@@ -68,14 +67,14 @@ class CVParsingService
     }
 
     /**
-     * Extrae habilidades básicas del texto (sin IA)
+     * Extrae habilidades bÃƒÆ’Ã‚Â¡sicas del texto (sin IA)
      *
      * @param string $cvText Texto del CV
      * @return array Lista de habilidades detectadas
      */
     public function extractBasicSkills($cvText)
     {
-        // Lista básica de habilidades comunes
+        // Lista bÃƒÆ’Ã‚Â¡sica de habilidades comunes
         $commonSkills = [
           'php',
           'javascript',
@@ -103,7 +102,7 @@ class CVParsingService
           'scrum',
           'agile',
           'branding',
-          'diseño'
+          'diseÃƒÆ’Ã‚Â±o'
         ];
 
         $detectedSkills = [];
@@ -119,9 +118,9 @@ class CVParsingService
     }
 
     /**
-     * Guarda el texto extraído en un archivo .txt
+     * Guarda el texto extraÃƒÆ’Ã‚Â­do en un archivo .txt
      *
-     * @param string $text Texto extraído
+     * @param string $text Texto extraÃƒÆ’Ã‚Â­do
      * @param string $originalFile Archivo original
      * @return string Ruta al archivo de texto guardado
      */
@@ -138,7 +137,7 @@ class CVParsingService
 
         $textFilePath = $textDir . $textFilename;
 
-        // Guardar como JSON con metadatos (como ya lo hacías)
+        // Guardar como JSON con metadatos (como ya lo hacÃƒÆ’Ã‚Â­as)
         $data = [
           'filename' => $textFilename,
           'word_count' => str_word_count($text),
@@ -153,21 +152,21 @@ class CVParsingService
     }
 
     /**
-     * Método legacy para mantener compatibilidad (DEPRECATED)
+     * MÃƒÆ’Ã‚Â©todo legacy para mantener compatibilidad (DEPRECATED)
      * @deprecated Usar processCV
      */
     public function parseCV($cvText)
     {
-        // Solo devolver habilidades básicas para mantener compatibilidad
+        // Solo devolver habilidades bÃƒÆ’Ã‚Â¡sicas para mantener compatibilidad
         return [
           'skills' => $this->extractBasicSkills($cvText),
           'ai_enabled' => false,
-          'message' => 'Usando extracción básica - IA separada en módulo independiente'
+          'message' => 'Usando extracciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica - IA separada en mÃƒÆ’Ã‚Â³dulo independiente'
         ];
     }
 
     /**
-     * Método legacy para mantener compatibilidad (DEPRECATED)
+     * MÃƒÆ’Ã‚Â©todo legacy para mantener compatibilidad (DEPRECATED)
      * @deprecated Usar extractBasicSkills
      */
     public function extractSkills($cvText)

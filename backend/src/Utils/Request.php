@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Utils;
 
 class Request
@@ -87,7 +86,7 @@ class Request
     }
 
     /**
-     * Establecer la información del usuario autenticado
+     * Establecer la informaciÃƒÆ’Ã‚Â³n del usuario autenticado
      */
     public function setUser(?array $user): void
     {
@@ -95,7 +94,7 @@ class Request
     }
 
     /**
-     * Obtener la información del usuario autenticado
+     * Obtener la informaciÃƒÆ’Ã‚Â³n del usuario autenticado
      */
     public function getUser(): ?array
     {
@@ -103,7 +102,7 @@ class Request
     }
 
     /**
-     * Método estático para obtener datos JSON del cuerpo de la petición
+     * MÃƒÆ’Ã‚Â©todo estÃƒÆ’Ã‚Â¡tico para obtener datos JSON del cuerpo de la peticiÃƒÆ’Ã‚Â³n
      */
     public static function json(): array
     {

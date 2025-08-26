@@ -1,9 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -31,14 +26,14 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 try {
-  // Solo permitir mÃƒÂ©todo GET
+  // Solo permitir mÃƒÆ’Ã‚Â©todo GET
   if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'MÃƒÂ©todo no permitido']);
+    echo json_encode(['success' => false, 'message' => 'MÃƒÆ’Ã‚Â©todo no permitido']);
     exit;
   }
 
-  // Verificar sesiÃƒÂ³n activa
+  // Verificar sesiÃƒÆ’Ã‚Â³n activa
   if (empty($_SESSION['candidate_id'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'No authenticated']);
@@ -47,10 +42,10 @@ try {
 
   $candidateId = $_SESSION['candidate_id'];
 
-  // Obtener parÃƒÂ¡metro candidate_id desde la URL (opcional para validaciÃƒÂ³n)
+  // Obtener parÃƒÆ’Ã‚Â¡metro candidate_id desde la URL (opcional para validaciÃƒÆ’Ã‚Â³n)
   $requestedCandidateId = $_GET['candidate_id'] ?? null;
 
-  // Si se especifica un candidate_id, debe coincidir con la sesiÃƒÂ³n
+  // Si se especifica un candidate_id, debe coincidir con la sesiÃƒÆ’Ã‚Â³n
   if ($requestedCandidateId && $requestedCandidateId !== $candidateId) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Access denied']);

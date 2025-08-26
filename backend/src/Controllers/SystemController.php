@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Controllers;
 
 use Utils\Request;
@@ -26,7 +25,7 @@ class SystemController extends BaseController
 
   public function version(Request $request, array $params = [])
   {
-    // Si tienes una constante/ENV versión, úsala aquí
+    // Si tienes una constante/ENV versiÃƒÆ’Ã‚Â³n, ÃƒÆ’Ã‚Âºsala aquÃƒÆ’Ã‚Â­
     $ver = getenv('APP_VERSION') ?: '1.0.0';
     return ResponseHelper::success('System version', ['version' => $ver]);
   }

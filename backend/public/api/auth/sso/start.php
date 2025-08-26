@@ -1,10 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 // @public
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../bootstrap.php';
-// NO JWTMiddleware::requireAuth() aquí - endpoint público (start SSO)
-// NO CsrfMiddleware::protect() aquí - inicia flujo SSO (no modifica estado aún)
+// NO JWTMiddleware::requireAuth() aquÃ­ - endpoint pÃºblico (start SSO)
+// NO CsrfMiddleware::protect() aquÃ­ - inicia flujo SSO (no modifica estado aÃºn)
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
   session_start();
@@ -16,7 +16,7 @@ $scope = 'openid email profile';
 $state = bin2hex(random_bytes(16));
 $_SESSION['oidc_state'] = $state;
 
-// Redirige a Google (con restricciÃƒÂ³n de dominio)
+// Redirige a Google (con restricciÃƒÆ’Ã‚Â³n de dominio)
 header('Location: https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query([
   'client_id' => $client_id,
   'redirect_uri' => $redirect_uri,

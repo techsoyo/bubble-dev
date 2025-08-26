@@ -1,11 +1,8 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 /**
- * Archivo de inicialización de la aplicación
+ * Archivo de inicializaciÃ³n de la aplicaciÃ³n
  * 
- * Configura el autoloader, carga la configuración y establece parámetros iniciales
+ * Configura el autoloader, carga la configuraciÃ³n y establece parÃ¡metros iniciales
  */
 
 
@@ -22,33 +19,40 @@ if (file_exists($envFile)) {
     }
   }
 }
+// Cargar el autoloader de Composer con guard explÃ­cito
+$autoloadCandidates = [
+  BASE_PATH . '/vendor/autoload.php',          // backend/vendor/autoload.php
+  dirname(BASE_PATH) . '/vendor/autoload.php', // <repo>/vendor/autoload.php
+];
 
-// Definir la ruta base de la aplicación
-define('BASE_PATH', realpath(__DIR__ . '/..'));
+$__autoload = null;
+foreach ($autoloadCandidates as $cand) {
+  if (is_file($cand)) {
+    $__autoload = $cand;
+    break;
+  }
+}
 
-// Definir la ruta de subida de archivos (UPLOAD_DIR)
-define('UPLOAD_DIR', BASE_PATH . '/uploads');
-// Cargar el autoloader de Composer con guard explícito
-$__autoload = BASE_PATH . '/vendor/autoload.php';
-if (!is_file($__autoload)) {
+if (!is_file($__autoload ?? '')) {
   http_response_code(500);
-  echo 'Autoloader no encontrado: ' . $__autoload;
+  echo 'Autoloader no encontrado. Probados: ' . implode(', ', $autoloadCandidates);
   exit;
 }
 require_once $__autoload;
-// Cargar la configuración
+
+// Cargar la configuraciÃ³n
 require_once BASE_PATH . '/config/config.php';
 // CORS integrado directamente - no archivo externo
 require_once BASE_PATH . '/config/security-headers.php'; // headers de seguridad centralizados
 
 require_once BASE_PATH . '/config/database.php';
 
-// === CONFIGURACIÓN CORS ROBUSTA ===
+// === CONFIGURACIÃ“N CORS ROBUSTA ===
 // Solo se ejecuta para peticiones HTTP (no CLI)
 if (PHP_SAPI !== 'cli' && !defined('CORS_APPLIED')) {
   define('CORS_APPLIED', true);
 
-  // Obtener configuración CORS desde variables de entorno
+  // Obtener configuraciÃ³n CORS desde variables de entorno
   $corsOrigins = getenv('CORS_ALLOWED_ORIGINS') ?: 'http://localhost:3002';
   $corsCredentials = getenv('CORS_ALLOW_CREDENTIALS') === 'true';
   $corsMethods = getenv('CORS_ALLOWED_METHODS') ?: 'GET,POST,PUT,PATCH,DELETE,OPTIONS';
@@ -56,19 +60,19 @@ if (PHP_SAPI !== 'cli' && !defined('CORS_APPLIED')) {
   $corsMaxAge = (int)(getenv('CORS_MAX_AGE') ?: '86400');
   $appEnv = getenv('APP_ENV') ?: 'production';
 
-  // Convertir orígenes a array y limpiar espacios
+  // Convertir orÃ­genes a array y limpiar espacios
   $allowedOrigins = array_filter(array_map('trim', explode(',', $corsOrigins)));
 
-  // Obtener origen de la petición
+  // Obtener origen de la peticiÃ³n
   $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
-  // Verificar si el origen está permitido
+  // Verificar si el origen estÃ¡ permitido
   $isAllowedOrigin = false;
   if ($origin && in_array($origin, $allowedOrigins, true)) {
     $isAllowedOrigin = true;
   }
 
-  // Logging para development cuando el origen no está permitido
+  // Logging para development cuando el origen no estÃ¡ permitido
   if ($appEnv === 'development' && $origin && !$isAllowedOrigin) {
     error_log("CORS WARNING: Origin '{$origin}' not allowed. Allowed origins: " . implode(', ', $allowedOrigins));
   }
@@ -79,13 +83,13 @@ if (PHP_SAPI !== 'cli' && !defined('CORS_APPLIED')) {
   if ($isAllowedOrigin && $origin) {
     header('Access-Control-Allow-Origin: ' . $origin);
 
-    // Solo agregar credentials si el origen está permitido (nunca con wildcard)
+    // Solo agregar credentials si el origen estÃ¡ permitido (nunca con wildcard)
     if ($corsCredentials) {
       header('Access-Control-Allow-Credentials: true');
     }
   }
 
-  // Headers de métodos y headers permitidos (siempre presentes para preflight)
+  // Headers de mÃ©todos y headers permitidos (siempre presentes para preflight)
   header('Access-Control-Allow-Methods: ' . $corsMethods);
   header('Access-Control-Allow-Headers: ' . $corsHeaders);
 
@@ -100,12 +104,12 @@ if (PHP_SAPI !== 'cli' && !defined('CORS_APPLIED')) {
   }
 }
 
-// Autoloader manual para clases (en un proyecto real sería mejor usar Composer)
+// Autoloader manual para clases (en un proyecto real serÃ­a mejor usar Composer)
 spl_autoload_register(function ($class) {
   // Convertir namespace separados por \ a rutas de directorio
   $class = str_replace('\\', DIRECTORY_SEPARATOR, $class);
 
-  // Rutas posibles para buscar la clase (ajustar según la estructura del proyecto)
+  // Rutas posibles para buscar la clase (ajustar segÃºn la estructura del proyecto)
   $possiblePaths = [
     BASE_PATH . '/src/' . $class . '.php',
     BASE_PATH . '/' . $class . '.php',
@@ -158,7 +162,7 @@ date_default_timezone_set('Europe/Madrid');
 
 // REMOVED: header('Content-Type: application/json; charset=UTF-8'); // No Content-Type global
 
-// Función para manejo de errores críticos
+// FunciÃ³n para manejo de errores crÃ­ticos
 function handleFatalError()
 {
   $error = error_get_last();
@@ -185,7 +189,7 @@ function handleFatalError()
   }
 }
 
-// Registrar función para errores fatales
+// Registrar funciÃ³n para errores fatales
 register_shutdown_function('handleFatalError');
 
 // Registrar controlador de excepciones no capturadas

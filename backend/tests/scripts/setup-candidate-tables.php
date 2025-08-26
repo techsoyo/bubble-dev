@@ -91,21 +91,6 @@ try {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ",
 
-    'bt_candidate_projects' => "
-            CREATE TABLE IF NOT EXISTS bt_candidate_projects (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                candidate_id INT NOT NULL,
-                nombre VARCHAR(255) NOT NULL,
-                descripcion TEXT NULL,
-                tecnologias JSON NULL,
-                fecha_inicio DATE NULL,
-                fecha_fin DATE NULL,
-                url VARCHAR(500) NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (candidate_id) REFERENCES bt_candidates(id) ON DELETE CASCADE,
-                INDEX idx_candidate_id (candidate_id)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        "
   ];
 
   echo "\n🔧 Verificando estructura de tablas existentes...\n";
@@ -171,23 +156,6 @@ try {
             "
     ],
 
-    'bt_candidate_projects' => [
-      'alternative' => null,
-      'sql' => "
-                CREATE TABLE IF NOT EXISTS bt_candidate_projects (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    candidate_id INT NOT NULL,
-                    nombre VARCHAR(255) NOT NULL,
-                    descripcion TEXT NULL,
-                    tecnologias JSON NULL,
-                    fecha_inicio DATE NULL,
-                    fecha_fin DATE NULL,
-                    url VARCHAR(500) NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    INDEX idx_candidate_id (candidate_id)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-            "
-    ]
   ];
 
   echo "\n🔧 Verificando tablas relacionadas...\n";

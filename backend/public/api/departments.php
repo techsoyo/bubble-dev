@@ -1,6 +1,4 @@
-<?php
-
-
+<?php declare(strict_types=1);
 require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
@@ -17,7 +15,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // cookie HttpOnly obligatoria
 
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
+// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
         http_response_code(401);
@@ -79,7 +77,7 @@ try {
             }
             break;
         case 'POST':
-            // En producción, insertar en BD real
+            // En producciÃ³n, insertar en BD real
             if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
                 http_response_code(501);
                 echo json_encode(['error' => 'Department creation not implemented']);
@@ -90,7 +88,7 @@ try {
             $department = [
                 'id' => 1001, // ID fijo para desarrollo
                 'name' => $input['name'] ?? 'Nuevo Departamento',
-                'description' => $input['description'] ?? 'Descripción del departamento',
+                'description' => $input['description'] ?? 'DescripciÃ³n del departamento',
                 'active' => true,
                 'created_at' => date('Y-m-d H:i:s')
             ];
@@ -98,7 +96,7 @@ try {
             break;
         default:
             http_response_code(405);
-            echo json_encode(['ok' => false, 'message' => 'MÃƒÂ©todo no permitido', 'data' => null]);
+            echo json_encode(['ok' => false, 'message' => 'MÃƒÆ’Ã‚Â©todo no permitido', 'data' => null]);
     }
 } catch (Throwable $e) {
     http_response_code(500);

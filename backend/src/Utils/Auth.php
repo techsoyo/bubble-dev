@@ -1,13 +1,10 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 namespace Utils;
 
 /**
- * Autenticación básica Bearer configurable.
+ * AutenticaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica Bearer configurable.
  * REQUIRE_AUTH_FOR_CONFIRM=true obliga a Authorization: Bearer <token>.
- * Si AUTH_BEARER_TOKEN está definido, debe coincidir; si no, cualquier token no vacío se acepta (stub).
+ * Si AUTH_BEARER_TOKEN estÃƒÆ’Ã‚Â¡ definido, debe coincidir; si no, cualquier token no vacÃƒÆ’Ã‚Â­o se acepta (stub).
  */
 final class Auth
 {
@@ -39,7 +36,7 @@ final class Auth
           'success' => false,
           'error' => [
             'code' => 'AUTH_REQUIRED',
-            'message' => 'Autenticación requerida',
+            'message' => 'AutenticaciÃƒÆ’Ã‚Â³n requerida',
             'details' => (object)[]
           ]
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

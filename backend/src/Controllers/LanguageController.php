@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Controllers;
 
 use Utils\Request;
@@ -9,7 +8,7 @@ class LanguageController extends BaseController
 {
   public function getLanguage(Request $request, array $params = [])
   {
-    // TODO: leer de sesión/DB
+    // TODO: leer de sesiÃƒÆ’Ã‚Â³n/DB
     return ResponseHelper::success('Idioma actual', [
       'language' => 'es',
       'country'  => 'ES'

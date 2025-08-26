@@ -27,14 +27,14 @@
             "vite/client",
             "node"
         ],
-        // Additional strict checks for production
+        // Checks extra
         "noImplicitReturns": true,
         "noImplicitThis": true,
         "noUnusedLocals": false,
         "noUnusedParameters": false,
         "noUncheckedIndexedAccess": false,
         "noImplicitOverride": true,
-        // Path mapping for clean imports
+        // Path mapping para el frontend
         "baseUrl": ".",
         "paths": {
             "@/*": [
@@ -61,7 +61,9 @@
             "@/assets/*": [
                 "./src/assets/*"
             ]
-        }
+        },
+        // Habilita Project References
+        "composite": true
     },
     "include": [
         "src/**/*",

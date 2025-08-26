@@ -1,0 +1,14 @@
+{
+  "candidate": {
+    "email": "candidate.test2@gmail.com",
+    "password": "candi12345!"
+  },
+  "recruiter": {
+    "email": "recruiter.test@hotmail.com",
+    "password": "recruiter123!"
+  },
+  "admin": {
+    "email": "copiamedion@gmail.com",
+    "password": "copia12345!"
+  }
+}

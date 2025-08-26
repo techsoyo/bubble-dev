@@ -1,16 +1,32 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
+    "target": "ES2021",
+    "lib": [
+      "ES2021",
+      "DOM"
+    ],
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    /* Tipos solo de Cypress */
     "types": [
       "cypress",
-      "@testing-library/cypress",
-      "node"
+      "@testing-library/cypress"
     ],
-    "isolatedModules": false
+    /* Aísla el proyecto de tests */
+    "noEmit": true,
+    "baseUrl": ".",
+    "composite": true
   },
   "include": [
-    "../node_modules/cypress",
-    "./**/*.ts",
-    "./**/*.tsx"
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }

@@ -68,15 +68,6 @@ interface CVData {
     nivel_competencia?: string;
   }>;
 
-  // bt_candidate_projects
-  proyectos?: Array<{
-    nombre: string;
-    descripcion: string;
-    tecnologias?: string[];
-    fecha_inicio?: string;
-    fecha_fin?: string;
-    url?: string;
-  }>;
 
   // bt_candidate_references - Detalles expandidos
   referencias_detalle?: Array<{
@@ -662,113 +653,7 @@ export function CVValidationModal({
     );
   };
 
-  const renderProjectsSection = () => {
-    const proyectos = editedData.proyectos || [];
 
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label className="text-xs font-medium text-gray-700">Proyectos</Label>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => addArrayItem('proyectos', {
-              nombre: '',
-              descripcion: '',
-              tecnologias: [],
-              fecha_inicio: '',
-              fecha_fin: '',
-              url: ''
-            })}
-          >
-            Agregar
-          </Button>
-        </div>
-
-        {proyectos.map((proyecto, index) => (
-          <div key={index} className="p-3 border rounded-lg space-y-2">
-            <div className="flex justify-between items-start">
-              <h5 className="text-xs font-medium">Proyecto {index + 1}</h5>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => removeArrayItem('proyectos', index)}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label className="text-xs">Nombre</Label>
-                <Input
-                  className="text-xs"
-                  value={proyecto.nombre}
-                  onChange={(e) => handleArrayFieldEdit('proyectos', index, {
-                    ...proyecto,
-                    nombre: e.target.value
-                  })}
-                />
-              </div>
-              <div>
-                <Label className="text-xs">URL</Label>
-                <Input
-                  className="text-xs"
-                  value={proyecto.url}
-                  onChange={(e) => handleArrayFieldEdit('proyectos', index, {
-                    ...proyecto,
-                    url: e.target.value
-                  })}
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Fecha Inicio</Label>
-                <Input
-                  className="text-xs"
-                  type="date"
-                  value={proyecto.fecha_inicio}
-                  onChange={(e) => handleArrayFieldEdit('proyectos', index, {
-                    ...proyecto,
-                    fecha_inicio: e.target.value
-                  })}
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Fecha Fin</Label>
-                <Input
-                  className="text-xs"
-                  type="date"
-                  value={proyecto.fecha_fin}
-                  onChange={(e) => handleArrayFieldEdit('proyectos', index, {
-                    ...proyecto,
-                    fecha_fin: e.target.value
-                  })}
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label className="text-xs">Descripción</Label>
-              <Textarea
-                className="text-xs min-h-[50px]"
-                value={proyecto.descripcion}
-                onChange={(e) => handleArrayFieldEdit('proyectos', index, {
-                  ...proyecto,
-                  descripcion: e.target.value
-                })}
-              />
-            </div>
-          </div>
-        ))}
-
-        {proyectos.length === 0 && (
-          <div className="p-3 bg-gray-50 rounded text-xs text-gray-400 italic">
-            No hay proyectos registrados
-          </div>
-        )}
-      </div>
-    );
-  };
 
   const renderReferencesSection = () => {
     const referencias = editedData.referencias_detalle || [];
@@ -954,14 +839,6 @@ export function CVValidationModal({
           <div className="space-y-4">
             <h3 className="text-sm font-semibold border-b pb-2">Idiomas</h3>
             {renderLanguagesDetailSection()}
-          </div>
-
-          <Separator />
-
-          {/* Proyectos */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold border-b pb-2">Proyectos</h3>
-            {renderProjectsSection()}
           </div>
 
           <Separator />

@@ -118,14 +118,6 @@ interface ExperienceExpanded {
     current?: boolean;
 }
 
-interface ProjectData {
-    name: string;
-    description: string;
-    technologies: string[];
-    startDate?: string;
-    endDate?: string;
-    url?: string;
-}
 
 interface CertificationData {
     name: string;
@@ -154,7 +146,6 @@ interface ParsedCVDataExpanded {
     skills: string[];
     softSkills: string[];
     languages: LanguageData[];
-    projects: ProjectData[];
     certifications: CertificationData[];
     references: ReferenceData[];
     interests: string[];
@@ -195,17 +186,6 @@ function mapBackendDataToFrontend(backendData: Record<string, unknown>): ParsedC
             responsibilities: Array.isArray(exp.responsabilidades) ? exp.responsabilidades : [],
             location: exp.ubicacion || '',
             current: exp.actual || false
-        })) : [];
-
-    // Mapear proyectos
-    const projects: ProjectData[] = Array.isArray(backendData.proyectos) ?
-        (backendData.proyectos as Array<any>).map(proj => ({
-            name: proj.nombre || '',
-            description: proj.descripcion || '',
-            technologies: Array.isArray(proj.tecnologias) ? proj.tecnologias : [],
-            startDate: proj.fecha_inicio || '',
-            endDate: proj.fecha_fin || '',
-            url: proj.url || ''
         })) : [];
 
     // Mapear certificaciones
@@ -259,7 +239,6 @@ function mapBackendDataToFrontend(backendData: Record<string, unknown>): ParsedC
         skills,
         softSkills,
         languages,
-        projects,
         certifications,
         references,
         interests,
@@ -400,7 +379,6 @@ const UploadCV: React.FC<UploadCVProps> = ({ onSuccess, jobId, parsedCvData }) =
             skills: foundSkills,
             softSkills: ['Comunicación', 'Trabajo en equipo'],
             languages: foundLanguages,
-            projects: [],
             certifications: [],
             references: [],
             interests: [],
@@ -504,16 +482,6 @@ const UploadCV: React.FC<UploadCVProps> = ({ onSuccess, jobId, parsedCvData }) =
                     fecha_fin: edu.endDate || null,
                     nivel_educativo: edu.educationLevel || '',
                     descripcion: edu.description || null
-                })),
-
-                // Proyectos
-                proyectos: confirmedData.projects.map(proj => ({
-                    nombre: proj.name,
-                    descripcion: proj.description,
-                    tecnologias: proj.technologies,
-                    fecha_inicio: proj.startDate || null,
-                    fecha_fin: proj.endDate || null,
-                    url: proj.url || null
                 })),
 
                 // Certificaciones
@@ -679,11 +647,12 @@ const UploadCV: React.FC<UploadCVProps> = ({ onSuccess, jobId, parsedCvData }) =
     };
 
     return (
-        <div className="max-w-2xl mx-auto p-6">
-            <div className="bg-white rounded-lg shadow-lg p-8">
-                <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
-                    {t('dashboard.uploadCvTitle')}
-                </h2>
+        <div>
+            <div className="max-w-2xl mx-auto p-6">
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
+                        {t('dashboard.uploadCvTitle')}
+                    </h2>
 
                 {!savedCandidate ? (
                     <>
@@ -1229,47 +1198,6 @@ const UploadCV: React.FC<UploadCVProps> = ({ onSuccess, jobId, parsedCvData }) =
                                     </div>
                                 </div>
 
-                                {/* Proyectos */}
-                                {parsedData.projects.length > 0 && (
-                                    <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
-                                        <div className="flex items-center space-x-2 mb-3">
-                                            <Briefcase className="h-5 w-5 text-teal-600" />
-                                            <h4 className="font-medium text-gray-900">Proyectos</h4>
-                                        </div>
-                                        <div className="space-y-4">
-                                            {parsedData.projects.map((project, index) => (
-                                                <div key={index} className="p-3 bg-white rounded border">
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                                                        <input
-                                                            type="text"
-                                                            value={project.name}
-                                                            placeholder="Nombre del proyecto"
-                                                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500"
-                                                            readOnly
-                                                        />
-                                                        <input
-                                                            type="url"
-                                                            value={project.url || ''}
-                                                            placeholder="URL del proyecto"
-                                                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500"
-                                                            readOnly
-                                                        />
-                                                    </div>
-                                                    <textarea
-                                                        value={project.description}
-                                                        placeholder="Descripción del proyecto"
-                                                        rows={2}
-                                                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 resize-none mb-2"
-                                                        readOnly
-                                                    />
-                                                    <div className="text-sm text-gray-600">
-                                                        <strong>Tecnologías:</strong> {project.technologies.join(', ')}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
 
                                 {/* Certificaciones */}
                                 {parsedData.certifications.length > 0 && (
@@ -1380,6 +1308,7 @@ const UploadCV: React.FC<UploadCVProps> = ({ onSuccess, jobId, parsedCvData }) =
                     </div>
                 </div>
             )}
+            </div>
         </div>
     );
 };

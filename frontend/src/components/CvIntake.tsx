@@ -396,35 +396,35 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
     </div>
   );
 
-  const renderProjects = () => (
-    <div className="space-y-3" role="group" aria-labelledby="proj-label">
-      <div className="flex items-center justify-between">
-        <h4 id="proj-label" className="text-xs font-semibold flex items-center gap-1">Proyectos
-          <span className="inline-flex" aria-hidden="true" title="Añade proyectos destacados (nombre y breve descripción)." aria-label="Ayuda Proyectos">
-            <Info className="h-3 w-3 text-gray-400" />
-          </span>
-        </h4>
-        <Button size="sm" variant="ghost" onClick={(e) => {
-          e.preventDefault();
-          console.log('➕ Añadiendo proyecto');
-          proj.add({ nombre: '', descripcion: '' });
-        }}><Plus className="h-3 w-3" /></Button>
-      </div>
-      <div role="list" aria-label="Lista de proyectos">
-        {proj.items.map((p, i) => (
-          <div key={i} role="listitem" className="p-2 border rounded space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-medium">Proyecto #{i + 1}</span>
-              <Button size="sm" variant="ghost" onClick={() => proj.remove(i)}><X className="h-3 w-3" /></Button>
-            </div>
-            <Input placeholder="Nombre" className="text-xs" value={p.nombre} onChange={e => proj.update(i, { ...p, nombre: e.target.value })} />
-            <Textarea placeholder="Descripción" className="text-xs min-h-[60px]" value={p.descripcion} onChange={e => proj.update(i, { ...p, descripcion: e.target.value })} />
-          </div>
-        ))}
-        {proj.items.length === 0 && <div className="text-xs text-gray-400 italic" role="note">Sin proyectos. Usa + para añadir.</div>}
-      </div>
-    </div>
-  );
+  // const renderProjects = () => (
+  //   <div className="space-y-3" role="group" aria-labelledby="proj-label">
+  //     <div className="flex items-center justify-between">
+  //       <h4 id="proj-label" className="text-xs font-semibold flex items-center gap-1">Proyectos
+  //         <span className="inline-flex" aria-hidden="true" title="Añade proyectos destacados (nombre y breve descripción)." aria-label="Ayuda Proyectos">
+  //           <Info className="h-3 w-3 text-gray-400" />
+  //         </span>
+  //       </h4>
+  //       <Button size="sm" variant="ghost" onClick={(e) => {
+  //         e.preventDefault();
+  //         console.log('➕ Añadiendo proyecto');
+  //         proj.add({ nombre: '', descripcion: '' });
+  //       }}><Plus className="h-3 w-3" /></Button>
+  //     </div>
+  //     <div role="list" aria-label="Lista de proyectos">
+  //       {proj.items.map((p, i) => (
+  //         <div key={i} role="listitem" className="p-2 border rounded space-y-2">
+  //           <div className="flex justify-between items-center">
+  //             <span className="text-xs font-medium">Proyecto #{i + 1}</span>
+  //             <Button size="sm" variant="ghost" onClick={() => proj.remove(i)}><X className="h-3 w-3" /></Button>
+  //           </div>
+  //           <Input placeholder="Nombre" className="text-xs" value={p.nombre} onChange={e => proj.update(i, { ...p, nombre: e.target.value })} />
+  //           <Textarea placeholder="Descripción" className="text-xs min-h-[60px]" value={p.descripcion} onChange={e => proj.update(i, { ...p, descripcion: e.target.value })} />
+  //         </div>
+  //       ))}
+  //       {proj.items.length === 0 && <div className="text-xs text-gray-400 italic" role="note">Sin proyectos. Usa + para añadir.</div>}
+  //     </div>
+  //   </div>
+  // );
 
   const showProcessing = flowState === 'uploading' || flowState === 'parsing';
   const progressValue = flowState === 'uploading' ? 30 : flowState === 'parsing' ? 70 : (flowState === 'ready' || flowState === 'manual') ? 100 : 0;
@@ -556,9 +556,7 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
             {renderEducation()}
             <Separator />
             {renderCertifications()}
-            <Separator />
-            {renderProjects()}
-          </div>
+            </div>
 
           <DialogFooter className="mt-6 flex items-center justify-between">
             <div className="flex items-center gap-2">

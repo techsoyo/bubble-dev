@@ -355,7 +355,7 @@ export class CVAnalysisService {
     const sections: ExtractedSection[] = [];
     const sectionHeaders = [
       'experience', 'education', 'skills', 'objective', 'summary',
-      'achievements', 'projects', 'certifications', 'languages'
+      'achievements', 'certifications', 'languages'
     ];
 
     sectionHeaders.forEach(header => {

@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Models;
 
 use Utils\Logger;
@@ -53,20 +56,22 @@ class CandidateEducation extends BaseModel
     /**
      * Obtener historial educativo completo de un candidato con cache
      *
-     * @param string|int $candidateId ID del candidato
+     * @param int $candidateId ID del candidato (se normaliza a entero positivo)
      * @param bool $useCache Usar cache (default: true)
      * @param int $cacheTtl TTL del cache en segundos (default: 300)
      * @return array Historial educativo ordenado por fechas
      *
-     * @throws \InvalidArgumentException Si el ID del candidato estÃƒÆ’Ã‚Â¡ vacÃƒÆ’Ã‚Â­o
+     * @throws \InvalidArgumentException Si el ID del candidato estÃ¡ vacÃ­o o no es vÃ¡lido
      * @throws \RuntimeException Si falla la consulta
      */
-    public function getCandidateEducationHistory($candidateId, bool $useCache = true, int $cacheTtl = 300): array
+    public function getCandidateEducationHistory(int $candidateId, bool $useCache = true, int $cacheTtl = 300): array
     {
-        if (empty($candidateId)) {
-            throw new \InvalidArgumentException('Candidate ID cannot be empty');
+        $candidateId = (int)$candidateId;
+        if ($candidateId <= 0) {
+            throw new \InvalidArgumentException('Candidate ID must be a positive integer');
         }
 
+        // Normalizar cache key usando el entero (evita duplicados entre '123' y 123)
         $cacheKey = "education_history_{$candidateId}";
 
         // Intentar obtener desde cache interno primero
@@ -75,12 +80,13 @@ class CandidateEducation extends BaseModel
         }
 
         $sql = "SELECT * FROM {$this->table} 
-                WHERE candidate_id = ? 
-                ORDER BY 
-                    CASE WHEN end_date IS NULL THEN 0 ELSE 1 END,
-                    COALESCE(end_date, start_date) DESC,
-                    start_date DESC";
+        WHERE candidate_id = ? 
+        ORDER BY 
+            CASE WHEN end_date IS NULL THEN 0 ELSE 1 END,
+            COALESCE(end_date, start_date) DESC,
+            start_date DESC";
 
+        // Pasar el ID ya casteado como int para que BaseModel->query detecte PDO::PARAM_INT
         $results = $this->query($sql, [$candidateId]);
 
         // Procesar datos para mejorar la informaciÃƒÆ’Ã‚Â³n
@@ -131,10 +137,11 @@ class CandidateEducation extends BaseModel
      * @return array|null EducaciÃƒÆ’Ã‚Â³n actual o null si no tiene
      */
 
-    public function getCurrentEducation($candidateId): ?array  
-      {
-        if (empty($candidateId)) {
-            throw new \InvalidArgumentException('Candidate ID cannot be empty');
+    public function getCurrentEducation(int $candidateId): ?array
+    {
+        $candidateId = (int)$candidateId;
+        if ($candidateId <= 0) {
+            throw new \InvalidArgumentException('Candidate ID must be a positive integer');
         }
 
         $sql = "SELECT * FROM {$this->table} 
@@ -154,10 +161,11 @@ class CandidateEducation extends BaseModel
      * @param string $level Nivel educativo (bachelor, master, phd, etc.)
      * @return array EducaciÃƒÆ’Ã‚Â³n del nivel especificado
      */
-    public function getEducationByLevel($candidateId, string $level): array
+    public function getEducationByLevel(int $candidateId, string $level): array
     {
-        if (empty($candidateId)) {
-            throw new \InvalidArgumentException('Candidate ID cannot be empty');
+        $candidateId = (int)$candidateId;
+        if ($candidateId <= 0) {
+            throw new \InvalidArgumentException('Candidate ID must be a positive integer');
         }
 
         if (empty($level)) {
@@ -165,10 +173,11 @@ class CandidateEducation extends BaseModel
         }
 
         $sql = "SELECT * FROM {$this->table} 
-                WHERE candidate_id = ? 
-                AND degree LIKE ?
-                ORDER BY start_date DESC";
+        WHERE candidate_id = ? 
+        AND degree LIKE ?
+        ORDER BY start_date DESC";
 
+        // Pasamos el ID casteado como int
         $results = $this->query($sql, [$candidateId, "%{$level}%"]);
 
         Logger::debug('Education by level retrieved', [
@@ -266,11 +275,16 @@ class CandidateEducation extends BaseModel
      * @param string|int|null $candidateId ID especÃƒÆ’Ã‚Â­fico o null para limpiar todo
      * @return int NÃƒÆ’Ã‚Âºmero de entradas eliminadas del cache
      */
-    public function clearEducationHistoryCache($candidateId = null): int
+    public function clearEducationHistoryCache(?int $candidateId = null): int
     {
         $cleared = 0;
 
         if ($candidateId !== null) {
+            $candidateId = (int)$candidateId;
+            if ($candidateId <= 0) {
+                return 0;
+            }
+
             $cacheKey = "education_history_{$candidateId}";
             if (isset($this->educationHistoryCache[$cacheKey])) {
                 unset($this->educationHistoryCache[$cacheKey]);

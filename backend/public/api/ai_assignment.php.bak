@@ -48,7 +48,7 @@ try {
 
     // ValidaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n fuerte con tu Validator (sin Val::int inexistente)
     ['ok' => $ok, 'errors' => $errors] = Val::validate($payload, [
-        'candidate_id' => 'required|int',
+        'candidate_id' => 'required|string:1,36|regex:/^cnd-\d+$/',
         'skills'       => 'required|array',
     ]);
     if (!$ok) {
@@ -135,7 +135,7 @@ try {
     $insertRouting = $pdo->prepare('
     INSERT INTO ' . T('candidate_routing') . " 
       (id, candidate_id, department_category_id, department_id, recruiter_id, source, reason, assigned_at, created_at)
-    VALUES ( ?, ?, ?, ?, 'ai', 'ai_assignment', NOW(), NOW())
+    VALUES (UUID(), ?, ?, ?, ?, 'ai', 'ai_assignment', NOW(), NOW())
   ");
     $insertRouting->execute([
         (string)$payload['candidate_id'],

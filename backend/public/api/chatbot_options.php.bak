@@ -58,7 +58,7 @@ switch ($method) {
         break;
     case 'POST':
         $data = json_decode(file_get_contents('php://input'), true);
-        $stmt = $db->prepare('INSERT INTO bt_chatbot_options ( node_id, text, next_node_id, action_type, action_data, order_position, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+        $stmt = $db->prepare('INSERT INTO bt_chatbot_options (id, node_id, text, next_node_id, action_type, action_data, order_position, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
         $stmt->execute([
             $data['id'],
             $data['node_id'],

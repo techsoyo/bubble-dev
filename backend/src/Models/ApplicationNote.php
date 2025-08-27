@@ -58,7 +58,6 @@ class ApplicationNote extends BaseModel
      */
     protected array $fillable = [
         'application_id',
-        'note_idx',
         'note',
     ];
 

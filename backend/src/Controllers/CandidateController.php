@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Controllers;
 
 use Models\Candidate;
@@ -17,17 +20,20 @@ class CandidateController
     // MÃƒÆ’Ã‚Â©todos CRUD - llamadas directas al modelo
     public function searchCandidates($filters = [], $page = 1, $limit = 20)
     {
-        return $this->candidateModel->searchCandidates($filters, $page, $limit);
+        return $this->candidateModel->getCandidatesList($filters, $page, $limit);
     }
 
     public function countCandidates($filters = [])
     {
-        return $this->candidateModel->countCandidates($filters);
+        // Use the paginated helper to obtain the total count
+        $paginated = $this->candidateModel->getCandidatesPaginated($filters, 1, 1);
+        return $paginated['pagination']['total'] ?? 0;
     }
 
     public function createCandidate($data)
     {
-        return $this->candidateModel->createCandidate($data);
+        // Use BaseModel::store to create a record
+        return $this->candidateModel->store($data);
     }
 
     // MÃƒÆ’Ã‚Â©todos especÃƒÆ’Ã‚Â­ficos que mantienen lÃƒÆ’Ã‚Â³gica de negocio del controller
@@ -49,8 +55,8 @@ class CandidateController
             $data['registration_source'] = 'self-registration';
             $data['status'] = 'pending';
 
-            // Usar mÃƒÆ’Ã‚Â©todo encapsulado del modelo
-            $id = $this->candidateModel->createCandidate($data);
+            // Usar método genérico de creación del modelo
+            $id = $this->candidateModel->store($data);
 
             if ($id === false) {
                 return ResponseHelper::fail("Error en el registro - datos invÃƒÆ’Ã‚Â¡lidos", 422);
@@ -77,17 +83,20 @@ class CandidateController
 
     public function getCandidate($id)
     {
-        return $this->candidateModel->getCandidate($id);
+        $id = (int) $id;
+        return $this->candidateModel->getCandidateProfile((string)$id);
     }
 
     public function updateCandidate($id, $data)
     {
-        return $this->candidateModel->updateCandidate($id, $data);
+        $id = (int) $id;
+        return $this->candidateModel->update($id, $data);
     }
 
     public function deleteCandidate($id)
     {
-        return $this->candidateModel->deleteCandidate($id);
+        $id = (int) $id;
+        return $this->candidateModel->delete($id);
     }
 
     public function uploadCV(Request $request, array $params = [])
@@ -118,17 +127,24 @@ class CandidateController
     public function profile(Request $request, array $params = [])
     {
         try {
-            $id = $params['id'] ?? null;
-            if (!$id) {
+            $id = isset($params['id']) ? (int)$params['id'] : 0;
+            if ($id <= 0) {
                 return ResponseHelper::fail("ID no proporcionado", 400);
             }
 
-            // TODO: Unir datos de varias tablas (experiencia, edu, skillsÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦)
+            // Obtener datos reales desde el modelo
+            $candidate = $this->candidateModel->getCandidateProfile((string)$id);
+            if ($candidate === null) {
+                return ResponseHelper::fail("Candidato no encontrado", 404);
+            }
+
+            $skills = $this->candidateModel->getCandidateSkills((string)$id);
+
             $profile = [
-                'candidate'   => ['id' => $id, 'name' => 'Mocked Candidate'],
-                'experiences' => [],
+                'candidate'   => $candidate,
+                'experiences' => [], // mantener si se integra luego
                 'education'   => [],
-                'skills'      => [],
+                'skills'      => $skills,
             ];
 
             return ResponseHelper::success("Perfil de candidato obtenido", $profile);
@@ -140,7 +156,7 @@ class CandidateController
     public function updateStatus(Request $request, array $params = [])
     {
         try {
-            $id   = $params['id'] ?? null;
+            $id   = isset($params['id']) ? (int)$params['id'] : 0;
             $data = $request->getBody();
             $status = $data['status'] ?? null;
 
@@ -151,17 +167,11 @@ class CandidateController
                 return ResponseHelper::fail("El campo 'status' es obligatorio", 422);
             }
 
-            // Preparar datos para actualizaciÃƒÆ’Ã‚Â³n usando el mÃƒÆ’Ã‚Â©todo encapsulado
-            $updateData = [
-                'status' => $status,
-                'status_notes' => $data['notes'] ?? null
-            ];
-
-            // Usar mÃƒÆ’Ã‚Â©todo encapsulado del modelo que incluye validaciÃƒÆ’Ã‚Â³n de estado
-            $result = $this->candidateModel->updateCandidate($id, $updateData);
+            // Usar el método específico del modelo
+            $result = $this->candidateModel->updateStatus($id, $status, $data['notes'] ?? null);
 
             if ($result === false) {
-                return ResponseHelper::fail("Error al actualizar estado - datos invÃƒÆ’Ã‚Â¡lidos", 422);
+                return ResponseHelper::fail("Error al actualizar estado - datos inválidos", 422);
             }
 
             return ResponseHelper::success("Estado del candidato actualizado", [
@@ -190,7 +200,7 @@ class CandidateController
         try {
             // Ejemplo: recruiter_id desde token/sesiÃƒÆ’Ã‚Â³n o query param
             $recruiterId = $request->getQuery('recruiter_id') ?? null;
-            // TODO: obtener recruiter_id real desde Auth
+            $recruiterId = $recruiterId !== null ? (int)$recruiterId : null;
 
             // Construir filtros para candidatos asignados
             $filters = [];
@@ -198,8 +208,8 @@ class CandidateController
                 $filters['assigned_recruiter_id'] = $recruiterId;
             }
 
-            // Usar mÃƒÆ’Ã‚Â©todo encapsulado del modelo
-            $items = $this->candidateModel->searchCandidates($filters);
+            // Usar método del modelo
+            $items = $this->candidateModel->getCandidatesList($filters);
 
             return ResponseHelper::success("Candidatos asignados obtenidos", [
                 'recruiter_id' => $recruiterId,

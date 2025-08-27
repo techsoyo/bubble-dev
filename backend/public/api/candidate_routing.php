@@ -55,13 +55,13 @@ try {
             $candidateId = $_GET['candidate_id'] ?? null;
 
             ['ok' => $ok, 'errors' => $errs] = Val::validate(['candidate_id' => $candidateId], [
-                'candidate_id' => 'required|string:1,36|regex:/^cnd-\d+$/'
+                'candidate_id' => 'required|int'
             ]);
             if (!$ok) {
                 Res::error('ValidaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n fallida', 422, ['errors' => $errs]);
             }
 
-            Sec::assertReadAccessForCandidate((string)$candidateId, $authUser);
+            Sec::assertReadAccessForCandidate((int)$candidateId, $authUser);
 
             $st = $pdo->prepare('SELECT id, candidate_id, department_category_id, department_id, recruiter_id, source, reason, assigned_at, created_at
          FROM ' . T('candidate_routing') . '
@@ -77,7 +77,7 @@ try {
             $payload = Request::json();
 
             ['ok' => $ok, 'errors' => $errs] = Val::validate($payload, [
-                'candidate_id'           => 'required|string:1,36|regex:/^cnd-\d+$/',
+                'candidate_id'           => 'required|int',
                 'department_category_id' => 'required|int',
                 'department_id'          => 'required|int',
                 'recruiter_id'           => 'int',
@@ -92,7 +92,7 @@ try {
 
             $st = $pdo->prepare('INSERT INTO ' . T('candidate_routing') . '
         (id, candidate_id, department_category_id, department_id, recruiter_id, source, reason, assigned_at, created_at)
-        VALUES (UUID(), ?, ?, ?, ?, ?, ?, NOW(), NOW())');
+        VALUES ( ?, ?, ?, ?, ?, ?, NOW(), NOW())');
             $st->execute([
                 $payload['candidate_id'],
                 (int)$payload['department_category_id'],

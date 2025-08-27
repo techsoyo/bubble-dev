@@ -54,13 +54,13 @@ try {
         case 'GET': {
             $candidateId = $_GET['candidate_id'] ?? null;
             ['ok' => $ok, 'errors' => $errs] = Val::validate(['candidate_id' => $candidateId], [
-                'candidate_id' => 'required|string:1,36|regex:/^cnd-\d+$/'
+                'candidate_id' => 'required|int'
             ]);
             if (!$ok) {
                 Res::error('ValidaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n fallida', 422, ['errors' => $errs]);
             }
 
-            Sec::assertReadAccessForCandidate((string)$candidateId, $authUser);
+            Sec::assertReadAccessForCandidate((int)$candidateId, $authUser);
 
             $st = $pdo->prepare('SELECT id, candidate_id, language, proficiency_level, created_at
          FROM ' . T('candidate_languages') . '
@@ -76,7 +76,7 @@ try {
             $payload = Request::json();
 
             ['ok' => $ok, 'errors' => $errs] = Val::validate($payload, [
-                'candidate_id'      => 'required|string:1,36|regex:/^cnd-\d+$/',
+                'candidate_id'      => 'required|int',
                 'language'          => 'required|string:1,100',
                 'proficiency_level' => 'required|string:1,50'
             ]);
@@ -88,7 +88,7 @@ try {
 
             $st = $pdo->prepare('INSERT INTO ' . T('candidate_languages') . '
         (id, candidate_id, language, proficiency_level, created_at)
-        VALUES (UUID(), ?, ?, ?, NOW())');
+        VALUES ( ?, ?, ?, NOW())');
             $st->execute([
                 $payload['candidate_id'],
                 trim($payload['language']),

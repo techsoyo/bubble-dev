@@ -83,7 +83,7 @@ try {
     // Crear nuevas preferencias
     $preferenceId = 'pref-' . substr(uniqid(), -8);
     $stmt = $db->prepare("
-            INSERT INTO bt_notification_preferences ( candidate_id, application_updates, new_jobs, reminders)
+            INSERT INTO bt_notification_preferences (id, candidate_id, application_updates, new_jobs, reminders)
             VALUES (?, ?, ?, ?, ?)
         ");
     $stmt->execute([$preferenceId, $candidateId, $applicationUpdates, $newJobs, $reminders]);

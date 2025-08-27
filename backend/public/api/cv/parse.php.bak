@@ -132,7 +132,7 @@ if ($mime !== 'application/pdf') {
 
 // ===== Guardar PDF
 $t0 = microtime(true);
-/* ID AUTO_INCREMENT */
+$uuid       = bin2hex(random_bytes(16));
 $storageDir = BASE_PATH . '/storage/private/cv';
 $safePath   = $storageDir . '/' . $uuid . '.pdf';
 if (!is_dir($storageDir)) {

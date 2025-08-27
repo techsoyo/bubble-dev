@@ -55,13 +55,13 @@ try {
             $candidateId = $_GET['candidate_id'] ?? null;
 
             ['ok' => $ok, 'errors' => $errs] = Val::validate(['candidate_id' => $candidateId], [
-                'candidate_id' => 'required|string:1,36|regex:/^cnd-\d+$/'
+                'candidate_id' => 'required|int'
             ]);
             if (!$ok) {
                 Res::error('ValidaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n fallida', 422, ['errors' => $errs]);
             }
 
-            Sec::assertReadAccessForCandidate((string)$candidateId, $authUser);
+            Sec::assertReadAccessForCandidate((int)$candidateId, $authUser);
 
             $st = $pdo->prepare('SELECT id, candidate_id, degree, field_of_study, institution, start_date, end_date, education_level, created_at
          FROM ' . T('candidate_education') . '
@@ -77,7 +77,7 @@ try {
             $payload = Request::json();
 
             ['ok' => $ok, 'errors' => $errs] = Val::validate($payload, [
-                'candidate_id'     => 'required|string:1,36|regex:/^cnd-\d+$/',
+                'candidate_id'     => 'required|int',
                 'degree'           => 'required|string:1,255',
                 'field_of_study'   => 'string:0,255',
                 'institution'      => 'required|string:1,255',
@@ -94,7 +94,7 @@ try {
             Sec::assertWriteAccessForCandidate((string)$payload['candidate_id'], $authUser);
             $st = $pdo->prepare('INSERT INTO ' . T('candidate_education') . '
         (id, candidate_id, degree, field_of_study, institution, start_date, end_date, education_level, created_at)
-        VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, NOW())');
+        VALUES ( ?, ?, ?, ?, ?, ?, ?, NOW())');
             $st->execute([
                 $payload['candidate_id'],
                 trim($payload['degree']),

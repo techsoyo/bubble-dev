@@ -30,7 +30,7 @@ try {
     case 'GET': {
         $applicationId = $_GET['application_id'] ?? $_GET['applicationId'] ?? null;
         ['ok' => $ok, 'errors' => $errs] = Val::validate(['application_id' => $applicationId], [
-          'application_id' => 'required|int'
+          'application_id' => 'required|string:1,36'
         ]);
         if (!$ok) {
           Res::fail('ValidaciÃ³n fallida', 422, ['errors' => $errs]);
@@ -44,7 +44,7 @@ try {
     case 'POST': {
         $input = Request::json();
         ['ok' => $ok, 'errors' => $errs] = Val::validate($input, [
-          'application_id' => 'required|int',
+          'application_id' => 'required|string:1,36',
           'note'           => 'required|string:1,1000'
         ]);
         if (!$ok) {

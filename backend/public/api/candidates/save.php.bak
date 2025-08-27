@@ -66,12 +66,14 @@ try {
 
   // Insertar candidato principal (mapear campos a la estructura real)
   $stmt = $pdo->prepare("
-        INSERT INTO bt_candidates ( name, email, phone, location, date_of_birth,
+        INSERT INTO bt_candidates (
+            id, name, email, phone, location, date_of_birth,
             portfolio_url, linkedin_url, professional_summary,
             soft_skills, hard_skills, languages, interests, `references`,
             availability, data_source, cv_original_file, cv_text_file, cv_json_file,
             created_at
-        ) VALUES ( :name, :email, :phone, :location, :date_of_birth,
+        ) VALUES (
+            UUID(), :name, :email, :phone, :location, :date_of_birth,
             :portfolio_url, :linkedin_url, :professional_summary,
             :soft_skills, :hard_skills, :languages, :interests, :references,
             :availability, :data_source, :cv_original_file, :cv_text_file, :cv_json_file,

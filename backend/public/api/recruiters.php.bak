@@ -71,7 +71,7 @@ try {
             $id = $_GET['id'] ?? null;
             if ($id) {
                 ['ok' => $ok, 'errors' => $errs] = Val::validate(['id' => $id], [
-                    'id' => 'required|int'
+                    'id' => 'required|string:1,36|regex:/^rec-\w+$/'
                 ]);
                 if (!$ok) {
                     Res::error('ValidaciÃƒÆ’Ã‚Â³n fallida', 422, ['errors' => $errs]);
@@ -172,7 +172,7 @@ try {
             $payload = Request::json();
             $id = $_GET['id'] ?? null;
             ['ok' => $ok, 'errors' => $errs] = Val::validate(['id' => $id], [
-                'id' => 'required|int'
+                'id' => 'required|string:1,36|regex:/^rec-\w+$/'
             ]);
             if (!$ok) {
                 Res::error('ID invÃƒÆ’Ã‚Â¡lido', 422, ['errors' => $errs]);
@@ -205,7 +205,7 @@ try {
         case 'DELETE': {
             $id = $_GET['id'] ?? null;
             ['ok' => $ok, 'errors' => $errs] = Val::validate(['id' => $id], [
-                'id' => 'required|int'
+                'id' => 'required|string:1,36|regex:/^rec-\w+$/'
             ]);
             if (!$ok) {
                 Res::error('ID invÃƒÆ’Ã‚Â¡lido', 422, ['errors' => $errs]);

@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Models;
 
 use PDO;
@@ -305,18 +308,34 @@ abstract class BaseModel
      * $user = $model->findById(123);
      * ```
      */
+    /**
+     * Find a single record by its primary key
+     *
+     * Accepts numeric IDs or string keys (for tables using non-integer PKs).
+     * Numeric values are validated via validateId().
+     *
+     * @param mixed $id
+     * @return array<string, mixed>|null
+     */
     public function findById($id): ?array
     {
-        if (empty($id)) {
-            throw new \InvalidArgumentException('ID cannot be empty');
+        // Handle numeric IDs (int or numeric string)
+        if (is_int($id) || (is_string($id) && ctype_digit($id))) {
+            $id = $this->validateId($id);
+        } else {
+            // Allow non-numeric primary keys (UUIDs, slugs, etc.) as strings
+            $id = (string)$id;
+            if ($id === '') {
+                throw new \InvalidArgumentException('ID cannot be empty');
+            }
         }
 
         $this->validateTable();
 
         try {
-            $query = "SELECT * FROM `{$this->table}` WHERE `{$this->primaryKey}` = :id LIMIT 1";
+            $sql = "SELECT * FROM `$this->table` WHERE `$this->primaryKey` = :id LIMIT 1";
 
-            $stmt = $this->db->prepare($query);
+            $stmt = $this->db->prepare($sql);
             $stmt->bindValue(':id', $id, $this->getPdoType($id));
             $stmt->execute();
 
@@ -525,9 +544,7 @@ abstract class BaseModel
      */
     public function update($id, array $data): bool
     {
-        if (empty($id)) {
-            throw new \InvalidArgumentException('ID cannot be empty');
-        }
+        $id = $this->validateId($id);
 
         if (empty($data)) {
             throw new \InvalidArgumentException('Data cannot be empty');
@@ -602,9 +619,7 @@ abstract class BaseModel
      */
     public function delete($id): bool
     {
-        if (empty($id)) {
-            throw new \InvalidArgumentException('ID cannot be empty');
-        }
+        $id = $this->validateId($id);
 
         $this->validateTable();
 
@@ -774,6 +789,22 @@ abstract class BaseModel
         }
 
         return PDO::PARAM_STR;
+    }
+
+    /**
+     * Validate and normalize an ID value to a positive integer
+     *
+     * @param mixed $id
+     * @return int
+     * @throws \InvalidArgumentException
+     */
+    protected function validateId($id): int
+    {
+        $id = filter_var($id, FILTER_VALIDATE_INT);
+        if ($id === false || $id <= 0) {
+            throw new \InvalidArgumentException('Invalid ID: must be positive integer');
+        }
+        return (int)$id;
     }
 
     /**

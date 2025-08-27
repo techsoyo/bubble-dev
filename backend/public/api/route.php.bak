@@ -274,11 +274,11 @@ try {
   }
 
   // 3. CREAR REGISTRO DE ROUTING
-  /* ID AUTO_INCREMENT */ // UUID simplificado
+  $routingId = bin2hex(random_bytes(18)); // UUID simplificado
 
   $stmt = $pdo->prepare("
         INSERT INTO bt_candidate_routing 
-        ( candidate_id, department_category_id, department_id, recruiter_id, source, reason, assigned_at)
+        (id, candidate_id, department_category_id, department_id, recruiter_id, source, reason, assigned_at)
         VALUES (?, ?, ?, ?, ?, 'ai', ?, NOW())
     ");
 

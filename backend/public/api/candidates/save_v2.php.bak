@@ -68,7 +68,7 @@ try {
   $pdo->beginTransaction();
 
   // Generar ID ÃƒÆ’Ã‚Âºnico para el candidato
-  /* ID AUTO_INCREMENT */
+  $candidateId = uniqid('cnd-');
 
   // Extraer nombre y apellido del nombre completo
   $nombreParts = explode(' ', $data['nombre'], 2);
@@ -77,7 +77,8 @@ try {
 
   // Insertar candidato principal con campos correctos de la BD
   $stmt = $pdo->prepare("
-        INSERT INTO bt_candidates ( first_name, last_name, name, email, password_hash,
+        INSERT INTO bt_candidates (
+            id, first_name, last_name, name, email, password_hash,
             phone, linkedin_url, portfolio_url, date_of_birth, location,
             professional_summary, soft_skills, hard_skills, languages, interests,
             `references`, availability, certifications, cv_original_file, cv_text_file, cv_json_file,
@@ -153,9 +154,10 @@ try {
   // Insertar educaciÃƒÆ’Ã‚Â³n
   if (!empty($data['educacion']) && is_array($data['educacion'])) {
     $eduStmt = $pdo->prepare("
-            INSERT INTO bt_candidate_education ( candidate_id, degree, field_of_study, institution,
+            INSERT INTO bt_candidate_education (
+                id, candidate_id, degree, field_of_study, institution,
                 start_date, end_date, education_level
-            ) VALUES ( ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?)
         ");
 
     foreach ($data['educacion'] as $edu) {
@@ -178,9 +180,10 @@ try {
   // Insertar certificaciones detalladas
   if (!empty($data['certificaciones_detalle']) && is_array($data['certificaciones_detalle'])) {
     $certStmt = $pdo->prepare("
-            INSERT INTO bt_candidate_certifications ( candidate_id, certification_name, issuer,
+            INSERT INTO bt_candidate_certifications (
+                id, candidate_id, certification_name, issuer,
                 issue_date, expiry_date
-            ) VALUES ( ?, ?, ?, ?, ?)
+            ) VALUES (UUID(), ?, ?, ?, ?, ?)
         ");
 
     foreach ($data['certificaciones_detalle'] as $cert) {
@@ -201,8 +204,9 @@ try {
   // Insertar idiomas detallados
   if (!empty($data['idiomas_detalle']) && is_array($data['idiomas_detalle'])) {
     $langStmt = $pdo->prepare("
-            INSERT INTO bt_candidate_languages ( candidate_id, language, proficiency_level
-            ) VALUES ( ?, ?, ?)
+            INSERT INTO bt_candidate_languages (
+                id, candidate_id, language, proficiency_level
+            ) VALUES (UUID(), ?, ?, ?)
         ");
 
     foreach ($data['idiomas_detalle'] as $idioma) {
@@ -218,9 +222,10 @@ try {
   // Insertar referencias detalladas
   if (!empty($data['referencias_detalle']) && is_array($data['referencias_detalle'])) {
     $refStmt = $pdo->prepare("
-            INSERT INTO bt_candidate_references ( candidate_id, ref_name, ref_company,
+            INSERT INTO bt_candidate_references (
+                id, candidate_id, ref_name, ref_company,
                 ref_email, ref_phone
-            ) VALUES ( ?, ?, ?, ?, ?)
+            ) VALUES (UUID(), ?, ?, ?, ?, ?)
         ");
 
     foreach ($data['referencias_detalle'] as $ref) {

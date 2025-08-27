@@ -69,13 +69,22 @@ class Validator
         }
     }
 
-    public static function uuidLike($v, string $field = 'id'): void
+    // NUEVO - Validación para INT
+    public static function intId($v, string $field = 'id'): void
     {
-        if (!is_string($v) || $v === '' || strlen($v) > 36) {
-            throw new \InvalidArgumentException("$field invÃƒÆ’Ã‚Â¡lido (esperado tipo char(36))");
+        if (!is_numeric($v) || (int)$v <= 0) {
+            throw new \InvalidArgumentException("$field debe ser un entero positivo");
         }
     }
 
+    // MANTENER para compatibilidad temporal
+    public static function uuidLike($v, string $field = 'id'): void
+    {
+        // Deprecado: será removido en versión futura
+        if (!is_string($v) || $v === '' || strlen($v) != 36) {
+            throw new \InvalidArgumentException("$field inválido (esperado tipo char(36))");
+        }
+    }
     public static function email($v, string $field = 'email'): void
     {
         if (!filter_var($v, FILTER_VALIDATE_EMAIL)) {

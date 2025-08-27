@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Models;
 
 use Utils\Logger;
@@ -55,8 +58,13 @@ class CandidateExperience extends BaseModel
      * Obtiene el historial completo de experiencias de un candidato
      * ordenado por fecha de inicio (mÃƒÆ’Ã‚Â¡s reciente primero)
      */
-    public function getCandidateExperienceHistory(string $candidateId): array
+    public function getCandidateExperienceHistory(int $candidateId): array
     {
+        $candidateId = (int)$candidateId;
+        if ($candidateId <= 0) {
+            throw new \InvalidArgumentException('Candidate ID must be a positive integer');
+        }
+
         return $this->findAll(
             ['candidate_id' => $candidateId],
             1,
@@ -69,16 +77,28 @@ class CandidateExperience extends BaseModel
      * Obtiene la posiciÃƒÆ’Ã‚Â³n actual del candidato
      * (experiencia marcada como current = true)
      */
-    public function getCurrentPosition(string $candidateId): ?array
+    public function getCurrentPosition(int $candidateId): ?array
     {
-        return $this->findOneBy('candidate_id', $candidateId, ['current' => 1]);
+        $candidateId = (int)$candidateId;
+        if ($candidateId <= 0) {
+            throw new \InvalidArgumentException('Candidate ID must be a positive integer');
+        }
+
+        $sql = "SELECT * FROM {$this->table} WHERE candidate_id = ? AND current = 1 ORDER BY start_date DESC LIMIT 1";
+        $results = $this->query($sql, [$candidateId]);
+        return $results[0] ?? null;
     }
 
     /**
      * Obtiene todas las experiencias de un candidato en una empresa especÃƒÆ’Ã‚Â­fica
      */
-    public function getExperienceByCompany(string $candidateId, string $company): array
+    public function getExperienceByCompany(int $candidateId, string $company): array
     {
+        $candidateId = (int)$candidateId;
+        if ($candidateId <= 0) {
+            throw new \InvalidArgumentException('Candidate ID must be a positive integer');
+        }
+
         return $this->findAll(
             [
                 'candidate_id' => $candidateId,
@@ -94,8 +114,13 @@ class CandidateExperience extends BaseModel
      * Calcula la experiencia total del candidato en aÃƒÆ’Ã‚Â±os
      * considerando posiciones concurrentes y gaps
      */
-    public function calculateTotalExperience(string $candidateId): array
+    public function calculateTotalExperience(int $candidateId): array
     {
+        $candidateId = (int)$candidateId;
+        if ($candidateId <= 0) {
+            throw new \InvalidArgumentException('Candidate ID must be a positive integer');
+        }
+
         $experiences = $this->getCandidateExperienceHistory($candidateId);
 
         if (empty($experiences)) {
@@ -209,8 +234,13 @@ class CandidateExperience extends BaseModel
     /**
      * Valida que un candidato no tenga mÃƒÆ’Ã‚Âºltiples posiciones actuales
      */
-    public function validateSingleCurrentPosition(string $candidateId, ?string $excludeId = null): bool
+    public function validateSingleCurrentPosition(int $candidateId, ?int $excludeId = null): bool
     {
+        $candidateId = (int)$candidateId;
+        if ($candidateId <= 0) {
+            throw new \InvalidArgumentException('Candidate ID must be a positive integer');
+        }
+
         $filters = [
             'candidate_id' => $candidateId,
             'current' => 1
@@ -218,10 +248,11 @@ class CandidateExperience extends BaseModel
 
         $currentPositions = $this->findAll($filters);
 
-        // Si se excluye un ID, filtrarlo
-        if ($excludeId) {
+        // Si se excluye un ID, filtrarlo (comparaciÃ³n segura casteando a int)
+        if ($excludeId !== null) {
+            $excludeId = (int)$excludeId;
             $currentPositions = array_filter($currentPositions, function ($pos) use ($excludeId) {
-                return $pos['id'] != $excludeId;
+                return (int)($pos['id'] ?? 0) !== $excludeId;
             });
         }
 
@@ -235,8 +266,13 @@ class CandidateExperience extends BaseModel
     /**
      * Analiza la estabilidad laboral del candidato
      */
-    public function analyzeJobStability(string $candidateId): array
+    public function analyzeJobStability(int $candidateId): array
     {
+        $candidateId = (int)$candidateId;
+        if ($candidateId <= 0) {
+            throw new \InvalidArgumentException('Candidate ID must be a positive integer');
+        }
+
         $experiences = $this->getCandidateExperienceHistory($candidateId);
 
         if (count($experiences) < 2) {
@@ -331,7 +367,7 @@ class CandidateExperience extends BaseModel
      * Devuelve todas las experiencias asociadas a un candidato
      * (Mantiene compatibilidad con versiÃƒÆ’Ã‚Â³n anterior)
      */
-    public function findByCandidateId(string $candidateId): array
+    public function findByCandidateId(int $candidateId): array
     {
         return $this->getCandidateExperienceHistory($candidateId);
     }
@@ -388,8 +424,13 @@ class CandidateExperience extends BaseModel
     /**
      * Obtiene estadÃƒÆ’Ã‚Â­sticas rÃƒÆ’Ã‚Â¡pidas de experiencia para un candidato
      */
-    public function getExperienceStats(string $candidateId): array
+    public function getExperienceStats(int $candidateId): array
     {
+        $candidateId = (int)$candidateId;
+        if ($candidateId <= 0) {
+            throw new \InvalidArgumentException('Candidate ID must be a positive integer');
+        }
+
         $totalExp = $this->calculateTotalExperience($candidateId);
         $stability = $this->analyzeJobStability($candidateId);
 

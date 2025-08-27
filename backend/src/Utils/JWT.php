@@ -97,22 +97,21 @@ class JWT
 
         // Crear firma usando el algoritmo especificado
         $signature = self::createSignature("$headerEncoded.$payloadEncoded", $secret, $algorithm);
-        $signatureEncoded = self::base64UrlEncode($signature);
+    $signatureEncoded = self::base64UrlEncode($signature);
 
-        // Crear token
-        $token = "$headerEncoded.$payloadEncoded.$signatureEncoded";
+    // Crear token
+    $token = "$headerEncoded.$payloadEncoded.$signatureEncoded";
 
-        // Log para auditorÃƒÆ’Ã‚Â­a (sin informaciÃƒÆ’Ã‚Â³n sensible)
-        if (class_exists('\Utils\Logger')) {
-            \Utils\Logger::info('JWT token generado', [
-              'algorithm' => $algorithm,
-              'expiry' => $expiry,
-              'user_id' => $payload['user_id'] ?? 'unknown'
-            ]);
-        }
-
-        return $token;
+    // Log para auditoría (sin información sensible)
+    if (class_exists('\Utils\Logger')) {
+        \Utils\Logger::info('JWT token generado', [
+            'algorithm' => $algorithm,
+            'user_id' => (int)($payload['user_id'] ?? 0)  // ← Forzar a INT
+        ]);
     }
+
+    return $token;
+}
 
     /**
      * Verifica y decodifica un token JWT de manera segura

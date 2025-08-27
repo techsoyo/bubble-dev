@@ -88,7 +88,7 @@ try {
         case 'POST': {
                 $payload = Request::json();
                 ['ok' => $ok, 'errors' => $errs] = Val::validate($payload, [
-                    'application_id' => 'required|int',
+                    'application_id' => 'required|string:1,36',
                     'scheduled_at' => 'required|date',
                     'duration_minutes' => 'required|int:1,1440',
                     'recruiter_id' => 'string:0,36',

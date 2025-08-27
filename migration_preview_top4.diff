@@ -1,0 +1,205 @@
+--- a/public/api/candidates/save_v2.php
+
++++ b/public/api/candidates/save_v2.php
+
+@@ -68,7 +68,7 @@
+
+   $pdo->beginTransaction();
+ 
+   // Generar ID ÃƒÆ’Ã‚Âºnico para el candidato
+-  $candidateId = uniqid('cnd-');
++  /* ID AUTO_INCREMENT */
+ 
+   // Extraer nombre y apellido del nombre completo
+   $nombreParts = explode(' ', $data['nombre'], 2);
+@@ -77,8 +77,7 @@
+
+ 
+   // Insertar candidato principal con campos correctos de la BD
+   $stmt = $pdo->prepare("
+-        INSERT INTO bt_candidates (
+-            id, first_name, last_name, name, email, password_hash,
++        INSERT INTO bt_candidates ( first_name, last_name, name, email, password_hash,
+             phone, linkedin_url, portfolio_url, date_of_birth, location,
+             professional_summary, soft_skills, hard_skills, languages, interests,
+             `references`, availability, certifications, cv_original_file, cv_text_file, cv_json_file,
+@@ -154,10 +153,9 @@
+
+   // Insertar educaciÃƒÆ’Ã‚Â³n
+   if (!empty($data['educacion']) && is_array($data['educacion'])) {
+     $eduStmt = $pdo->prepare("
+-            INSERT INTO bt_candidate_education (
+-                id, candidate_id, degree, field_of_study, institution,
++            INSERT INTO bt_candidate_education ( candidate_id, degree, field_of_study, institution,
+                 start_date, end_date, education_level
+-            ) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?)
++            ) VALUES ( ?, ?, ?, ?, ?, ?, ?)
+         ");
+ 
+     foreach ($data['educacion'] as $edu) {
+@@ -180,10 +178,9 @@
+
+   // Insertar certificaciones detalladas
+   if (!empty($data['certificaciones_detalle']) && is_array($data['certificaciones_detalle'])) {
+     $certStmt = $pdo->prepare("
+-            INSERT INTO bt_candidate_certifications (
+-                id, candidate_id, certification_name, issuer,
++            INSERT INTO bt_candidate_certifications ( candidate_id, certification_name, issuer,
+                 issue_date, expiry_date
+-            ) VALUES (UUID(), ?, ?, ?, ?, ?)
++            ) VALUES ( ?, ?, ?, ?, ?)
+         ");
+ 
+     foreach ($data['certificaciones_detalle'] as $cert) {
+@@ -204,9 +201,8 @@
+
+   // Insertar idiomas detallados
+   if (!empty($data['idiomas_detalle']) && is_array($data['idiomas_detalle'])) {
+     $langStmt = $pdo->prepare("
+-            INSERT INTO bt_candidate_languages (
+-                id, candidate_id, language, proficiency_level
+-            ) VALUES (UUID(), ?, ?, ?)
++            INSERT INTO bt_candidate_languages ( candidate_id, language, proficiency_level
++            ) VALUES ( ?, ?, ?)
+         ");
+ 
+     foreach ($data['idiomas_detalle'] as $idioma) {
+@@ -222,10 +218,9 @@
+
+   // Insertar referencias detalladas
+   if (!empty($data['referencias_detalle']) && is_array($data['referencias_detalle'])) {
+     $refStmt = $pdo->prepare("
+-            INSERT INTO bt_candidate_references (
+-                id, candidate_id, ref_name, ref_company,
++            INSERT INTO bt_candidate_references ( candidate_id, ref_name, ref_company,
+                 ref_email, ref_phone
+-            ) VALUES (UUID(), ?, ?, ?, ?, ?)
++            ) VALUES ( ?, ?, ?, ?, ?)
+         ");
+ 
+     foreach ($data['referencias_detalle'] as $ref) {
+
+--- a/public/api/candidate_certifications.php
+
++++ b/public/api/candidate_certifications.php
+
+@@ -52,12 +52,12 @@
+
+         case 'GET': {
+             $candidateId = $_GET['candidate_id'] ?? null;
+             ['ok' => $ok, 'errors' => $errs] = Val::validate(['candidate_id' => $candidateId], [
+-                'candidate_id' => 'required|string:1,36|regex:/^cnd-\d+$/'
++                'candidate_id' => 'required|int'
+             ]);
+             if (!$ok) {
+                 Res::error('ValidaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n fallida', 422, ['errors' => $errs]);
+             }
+-            Sec::assertReadAccessForCandidate((string)$candidateId, $authUser);
++            Sec::assertReadAccessForCandidate((int)$candidateId, $authUser);
+             $st = $pdo->prepare('SELECT id, candidate_id, certification_name, issuer, issue_date, expiry_date, created_at
+         FROM ' . T('candidate_certifications') . '
+         WHERE candidate_id = ?
+@@ -70,7 +70,7 @@
+
+         case 'POST': {
+             $payload = Request::json();
+             ['ok' => $ok, 'errors' => $errs] = Val::validate($payload, [
+-                'candidate_id'        => 'required|string:1,36|regex:/^cnd-\d+$/',
++                'candidate_id'        => 'required|int',
+                 'certification_name'  => 'required|string:1,255',
+                 'issuer'              => 'required|string:1,255',
+                 'issue_date'          => 'required|date',
+@@ -82,7 +82,7 @@
+
+             Sec::assertWriteAccessForCandidate((string)$payload['candidate_id'], $authUser);
+             $st = $pdo->prepare('INSERT INTO ' . T('candidate_certifications') . '
+         (id, candidate_id, certification_name, issuer, issue_date, expiry_date, created_at)
+-        VALUES (UUID(), ?, ?, ?, ?, ?, NOW())');
++        VALUES ( ?, ?, ?, ?, ?, NOW())');
+             $st->execute([
+                 $payload['candidate_id'],
+                 trim($payload['certification_name']),
+
+--- a/public/api/candidate_education.php
+
++++ b/public/api/candidate_education.php
+
+@@ -55,13 +55,13 @@
+
+             $candidateId = $_GET['candidate_id'] ?? null;
+ 
+             ['ok' => $ok, 'errors' => $errs] = Val::validate(['candidate_id' => $candidateId], [
+-                'candidate_id' => 'required|string:1,36|regex:/^cnd-\d+$/'
++                'candidate_id' => 'required|int'
+             ]);
+             if (!$ok) {
+                 Res::error('ValidaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n fallida', 422, ['errors' => $errs]);
+             }
+ 
+-            Sec::assertReadAccessForCandidate((string)$candidateId, $authUser);
++            Sec::assertReadAccessForCandidate((int)$candidateId, $authUser);
+ 
+             $st = $pdo->prepare('SELECT id, candidate_id, degree, field_of_study, institution, start_date, end_date, education_level, created_at
+          FROM ' . T('candidate_education') . '
+@@ -77,7 +77,7 @@
+
+             $payload = Request::json();
+ 
+             ['ok' => $ok, 'errors' => $errs] = Val::validate($payload, [
+-                'candidate_id'     => 'required|string:1,36|regex:/^cnd-\d+$/',
++                'candidate_id'     => 'required|int',
+                 'degree'           => 'required|string:1,255',
+                 'field_of_study'   => 'string:0,255',
+                 'institution'      => 'required|string:1,255',
+@@ -94,7 +94,7 @@
+
+             Sec::assertWriteAccessForCandidate((string)$payload['candidate_id'], $authUser);
+             $st = $pdo->prepare('INSERT INTO ' . T('candidate_education') . '
+         (id, candidate_id, degree, field_of_study, institution, start_date, end_date, education_level, created_at)
+-        VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, NOW())');
++        VALUES ( ?, ?, ?, ?, ?, ?, ?, NOW())');
+             $st->execute([
+                 $payload['candidate_id'],
+                 trim($payload['degree']),
+
+--- a/public/api/candidate_languages.php
+
++++ b/public/api/candidate_languages.php
+
+@@ -54,13 +54,13 @@
+
+         case 'GET': {
+             $candidateId = $_GET['candidate_id'] ?? null;
+             ['ok' => $ok, 'errors' => $errs] = Val::validate(['candidate_id' => $candidateId], [
+-                'candidate_id' => 'required|string:1,36|regex:/^cnd-\d+$/'
++                'candidate_id' => 'required|int'
+             ]);
+             if (!$ok) {
+                 Res::error('ValidaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n fallida', 422, ['errors' => $errs]);
+             }
+ 
+-            Sec::assertReadAccessForCandidate((string)$candidateId, $authUser);
++            Sec::assertReadAccessForCandidate((int)$candidateId, $authUser);
+ 
+             $st = $pdo->prepare('SELECT id, candidate_id, language, proficiency_level, created_at
+          FROM ' . T('candidate_languages') . '
+@@ -76,7 +76,7 @@
+
+             $payload = Request::json();
+ 
+             ['ok' => $ok, 'errors' => $errs] = Val::validate($payload, [
+-                'candidate_id'      => 'required|string:1,36|regex:/^cnd-\d+$/',
++                'candidate_id'      => 'required|int',
+                 'language'          => 'required|string:1,100',
+                 'proficiency_level' => 'required|string:1,50'
+             ]);
+@@ -88,7 +88,7 @@
+
+ 
+             $st = $pdo->prepare('INSERT INTO ' . T('candidate_languages') . '
+         (id, candidate_id, language, proficiency_level, created_at)
+-        VALUES (UUID(), ?, ?, ?, NOW())');
++        VALUES ( ?, ?, ?, NOW())');
+             $st->execute([
+                 $payload['candidate_id'],
+                 trim($payload['language']),

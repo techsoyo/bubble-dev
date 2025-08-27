@@ -259,7 +259,8 @@ try {
 
     // Insertar en tabla de candidatos
     $insertCandidate = $db->prepare("
-            INSERT INTO bt_candidates ( name, email, social_provider, social_id, 
+            INSERT INTO bt_candidates (
+                id, name, email, social_provider, social_id, 
                 status, registration_source, gdpr_consent_given, created_at
             ) VALUES (?, ?, ?, ?, ?, 'active', 'social_login', 1, NOW())
         ");
@@ -275,7 +276,7 @@ try {
     // Insertar en tabla de usuarios para autenticaciÃƒÂ³n
     $userId = 'user_' . uniqid();
     $insertUser = $db->prepare("
-            INSERT INTO usuarios ( username, email, role, created_at) 
+            INSERT INTO usuarios (id, username, email, role, created_at) 
             VALUES (?, ?, ?, 'candidate', NOW())
         ");
 

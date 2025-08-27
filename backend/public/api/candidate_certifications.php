@@ -52,12 +52,12 @@ try {
         case 'GET': {
             $candidateId = $_GET['candidate_id'] ?? null;
             ['ok' => $ok, 'errors' => $errs] = Val::validate(['candidate_id' => $candidateId], [
-                'candidate_id' => 'required|string:1,36|regex:/^cnd-\d+$/'
+                'candidate_id' => 'required|int'
             ]);
             if (!$ok) {
                 Res::error('ValidaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n fallida', 422, ['errors' => $errs]);
             }
-            Sec::assertReadAccessForCandidate((string)$candidateId, $authUser);
+            Sec::assertReadAccessForCandidate((int)$candidateId, $authUser);
             $st = $pdo->prepare('SELECT id, candidate_id, certification_name, issuer, issue_date, expiry_date, created_at
         FROM ' . T('candidate_certifications') . '
         WHERE candidate_id = ?
@@ -70,7 +70,7 @@ try {
         case 'POST': {
             $payload = Request::json();
             ['ok' => $ok, 'errors' => $errs] = Val::validate($payload, [
-                'candidate_id'        => 'required|string:1,36|regex:/^cnd-\d+$/',
+                'candidate_id'        => 'required|int',
                 'certification_name'  => 'required|string:1,255',
                 'issuer'              => 'required|string:1,255',
                 'issue_date'          => 'required|date',
@@ -82,7 +82,7 @@ try {
             Sec::assertWriteAccessForCandidate((string)$payload['candidate_id'], $authUser);
             $st = $pdo->prepare('INSERT INTO ' . T('candidate_certifications') . '
         (id, candidate_id, certification_name, issuer, issue_date, expiry_date, created_at)
-        VALUES (UUID(), ?, ?, ?, ?, ?, NOW())');
+        VALUES ( ?, ?, ?, ?, ?, NOW())');
             $st->execute([
                 $payload['candidate_id'],
                 trim($payload['certification_name']),

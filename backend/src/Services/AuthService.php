@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Services;
 
 use Models\User;
@@ -83,12 +86,14 @@ class AuthService
      * @param string $newPassword Nueva contraseÃƒÆ’Ã‚Â±a
      * @return array Resultado de la operaciÃƒÆ’Ã‚Â³n
      */
-    public function changePassword($userId, $currentPassword, $newPassword)
+    public function changePassword(int $userId, string $currentPassword, string $newPassword)
     {
         try {
+            // Forzar tipo INT en parámetros
+            $userId = (int)$userId;
             $db = getDBConnection();
 
-            // Obtener el hash de la contraseÃƒÆ’Ã‚Â±a actual del usuario
+            // Obtener el hash de la contraseña actual del usuario
             $stmt = $db->prepare("SELECT password_hash FROM bt_candidates WHERE id = ?");
             $stmt->execute([$userId]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -97,27 +102,27 @@ class AuthService
                 return ['success' => false, 'message' => 'Usuario no encontrado'];
             }
 
-            // Verificar que la contraseÃƒÆ’Ã‚Â±a actual es correcta
+            // Verificar que la contraseña actual es correcta
             if (!password_verify($currentPassword, $user['password_hash'])) {
-                return ['success' => false, 'message' => 'La contraseÃƒÆ’Ã‚Â±a actual es incorrecta'];
+                return ['success' => false, 'message' => 'La contraseña actual es incorrecta'];
             }
 
-            // Validar la nueva contraseÃƒÆ’Ã‚Â±a
+            // Validar la nueva contraseña
             if (strlen($newPassword) < 6) {
-                return ['success' => false, 'message' => 'La nueva contraseÃƒÆ’Ã‚Â±a debe tener al menos 6 caracteres'];
+                return ['success' => false, 'message' => 'La nueva contraseña debe tener al menos 6 caracteres'];
             }
 
-            // Generar hash para la nueva contraseÃƒÆ’Ã‚Â±a
+            // Generar hash para la nueva contraseña
             $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
 
-            // Actualizar la contraseÃƒÆ’Ã‚Â±a en la base de datos
+            // Actualizar la contraseña en la base de datos
             $updateStmt = $db->prepare("UPDATE bt_candidates SET password_hash = ?, updated_at = NOW() WHERE id = ?");
             $result = $updateStmt->execute([$newPasswordHash, $userId]);
 
             if ($result) {
-                return ['success' => true, 'message' => 'ContraseÃƒÆ’Ã‚Â±a actualizada correctamente'];
+                return ['success' => true, 'message' => 'Contraseña actualizada correctamente'];
             } else {
-                return ['success' => false, 'message' => 'Error al actualizar la contraseÃƒÆ’Ã‚Â±a'];
+                return ['success' => false, 'message' => 'Error al actualizar la contraseña'];
             }
         } catch (Exception $e) {
             error_log("Error en changePassword: " . $e->getMessage());

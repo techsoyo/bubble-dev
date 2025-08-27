@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 use Security\CsrfMiddleware;
 // Usar alias global de JWTMiddleware creado en bootstrap.php
 
@@ -191,10 +194,16 @@ if ($method === 'GET') {
   try {
     // Si se pasa un ID, devolver solo ese trabajo
     if (isset($_GET['id'])) {
-      $id = $_GET['id'];
+      $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+      if ($id <= 0) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'id inválido']);
+        exit;
+      }
+
       $sql = "SELECT * FROM bt_jobs WHERE id = ? AND status='open'";
       $stmt = db()->prepare($sql);
-      $stmt->bindValue(1, $id, PDO::PARAM_STR);
+      $stmt->bindValue(1, $id, PDO::PARAM_INT);
       $stmt->execute();
       $job = $stmt->fetch(PDO::FETCH_ASSOC);
 

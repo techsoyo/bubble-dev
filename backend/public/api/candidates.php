@@ -1,9 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
     CsrfMiddleware::protect(); // double-submit cookie
 }
 
@@ -76,7 +78,12 @@ try {
 function handleGetRequest($pdo)
 {
     if (isset($_GET['id'])) {
-        getSingleCandidate($pdo, $_GET['id']);
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($id <= 0) {
+            ResponseHelper::error('id inválido', 400);
+            return;
+        }
+        getSingleCandidate($pdo, $id);
     } else {
         getAllCandidates($pdo);
     }
@@ -87,13 +94,8 @@ function handleGetRequest($pdo)
  */
 function getSingleCandidate($pdo, $id)
 {
-    // Validar ID
-    if (!filter_var($id, FILTER_VALIDATE_INT) && !preg_match('/^cnd-[a-f0-9]+$/', $id)) {
-        ResponseHelper::error('ID de candidato invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido', 400);
-        return;
-    }
-
-    $stmt = $pdo->prepare('
+    // ID ya validado por el caller (entero > 0)
+    $stmt = $pdo->prepare("
 SELECT c.*,
 d.name as department_name,
 dc.name as department_category_name,
@@ -104,9 +106,9 @@ LEFT JOIN bt_department_categories dc ON c.department_category_id = dc.id
 LEFT JOIN bt_candidate_skills cs ON c.id = cs.candidate_id
 WHERE c.id = :id
 GROUP BY c.id, d.name, dc.name
-');
+");
 
-    $stmt->bindParam(':id', $id, PDO::PARAM_STR);
+    $stmt->bindValue(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
     $candidate = $stmt->fetch();
 
@@ -325,8 +327,6 @@ function handlePostRequest($pdo)
         return;
     }
 
-    // Generar ID ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºnico seguro
-    $candidateId = 'cnd-' . bin2hex(random_bytes(16));
 
     // Procesar nombre
     $nameParts = explode(' ', trim($validData['name']), 2);
@@ -339,17 +339,16 @@ function handlePostRequest($pdo)
     try {
         $pdo->beginTransaction();
 
-        // Insertar candidato
+        // Insertar candidato (dejar que la BD asigne el id AUTO_INCREMENT)
         $stmt = $pdo->prepare('
 INSERT INTO bt_candidates (
-id, name, first_name, last_name, email, password_hash,
+name, first_name, last_name, email, password_hash,
 phone, location, status, registration_source, created_at
-) VALUES (:id, :name, :first_name, :last_name, :email, :password_hash,
+) VALUES (:name, :first_name, :last_name, :email, :password_hash,
 :phone, :location, :status, :registration_source, NOW())
 ');
 
         $stmt->execute([
-            ':id' => $candidateId,
             ':name' => $validData['name'],
             ':first_name' => $firstName,
             ':last_name' => $lastName,
@@ -361,6 +360,8 @@ phone, location, status, registration_source, created_at
             ':registration_source' => 'api'
         ]);
 
+        $newId = (int)$pdo->lastInsertId();
+
         // Insertar skills si existen
         if (!empty($input['skills']) && is_array($input['skills'])) {
             $skillStmt = $pdo->prepare('INSERT INTO bt_candidate_skills (candidate_id, skill) VALUES (:candidate_id, :skill)');
@@ -369,7 +370,7 @@ phone, location, status, registration_source, created_at
                 $cleanSkill = htmlspecialchars(trim($skill), ENT_QUOTES, 'UTF-8');
                 if (!empty($cleanSkill) && strlen($cleanSkill) <= 100) {
                     $skillStmt->execute([
-                        ':candidate_id' => $candidateId,
+                        ':candidate_id' => $newId,
                         ':skill' => $cleanSkill
                     ]);
                 }
@@ -378,8 +379,8 @@ phone, location, status, registration_source, created_at
 
         $pdo->commit();
 
-        Logger::info('Candidato creado exitosamente', ['candidate_id' => $candidateId, 'email' => $validData['email']]);
-        ResponseHelper::success('Candidato creado exitosamente', ['id' => $candidateId], 201);
+        Logger::info('Candidato creado exitosamente', ['candidate_id' => $newId, 'email' => $validData['email']]);
+        ResponseHelper::success('Candidato creado exitosamente', ['id' => $newId], 201);
     } catch (Exception $e) {
         $pdo->rollBack();
         Logger::error('Error al crear candidato', ['email' => $validData['email']], $e);
@@ -397,9 +398,9 @@ function handlePutRequest($pdo)
         return;
     }
 
-    $id = $_GET['id'];
-    if (!filter_var($id, FILTER_VALIDATE_INT) && !preg_match('/^cnd-[a-f0-9]+$/', $id)) {
-        ResponseHelper::error('ID de candidato invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido', 400);
+    $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+    if ($id <= 0) {
+        ResponseHelper::error('ID de candidato inválido', 400);
         return;
     }
 
@@ -497,7 +498,7 @@ function handlePutRequest($pdo)
 
         // Verificar que el candidato existe
         $checkStmt = $pdo->prepare('SELECT id FROM bt_candidates WHERE id = :id');
-        $checkStmt->bindParam(':id', $id);
+        $checkStmt->bindValue(':id', $id, PDO::PARAM_INT);
         $checkStmt->execute();
 
         if (!$checkStmt->fetch()) {
@@ -525,7 +526,7 @@ function handlePutRequest($pdo)
         if (isset($input['skills']) && is_array($input['skills'])) {
             // Borrar skills existentes
             $deleteSkillsStmt = $pdo->prepare('DELETE FROM bt_candidate_skills WHERE candidate_id = :id');
-            $deleteSkillsStmt->bindParam(':id', $id);
+            $deleteSkillsStmt->bindValue(':id', $id, PDO::PARAM_INT);
             $deleteSkillsStmt->execute();
 
             // Insertar nuevos skills
@@ -590,7 +591,7 @@ function handleDeleteRequest($pdo)
 
         // Borrar candidato
         $deleteCandidateStmt = $pdo->prepare('DELETE FROM bt_candidates WHERE id = :id');
-        $deleteCandidateStmt->bindParam(':id', $id);
+        $deleteCandidateStmt->bindValue(':id', $id, PDO::PARAM_INT);
         $success = $deleteCandidateStmt->execute();
 
         if ($success && $deleteCandidateStmt->rowCount() > 0) {
@@ -629,5 +630,3 @@ function sanitizeCandidateOutput($candidate)
         'created' => $candidate['created_at']
     ];
 }
-
-

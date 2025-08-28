@@ -14,7 +14,9 @@
     "cy:open": "cypress open --e2e",
     "cy:run": "cypress run --e2e",
     "e2e": "start-server-and-test dev http://localhost:3002 'cypress run --e2e'",
-    "e2e:open": "start-server-and-test dev http://localhost:3002 'cypress open --e2e'"
+    "e2e:open": "start-server-and-test dev http://localhost:3002 'cypress open --e2e'",
+        "cypress:open": "pnpm exec cypress open",
+        "cypress:run": "pnpm exec cypress run --spec \"cypress/e2e/**/*.cy.{ts,tsx}\""
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

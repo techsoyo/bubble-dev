@@ -1,14 +1,71 @@
+# Normalizar finales de linea y tratamiento de texto/binaries
+# Reglas por defecto: detectar texto automáticamente, usar LF en el repo
 * text=auto eol=lf
 
-*.php  text eol=lf
-*.js   text eol=lf
-*.jsx  text eol=lf
-*.ts   text eol=lf
-*.tsx  text eol=lf
-*.json text eol=lf
-*.yml  text eol=lf
-*.yaml text eol=lf
-*.css  text eol=lf
-*.scss text eol=lf
+# Lenguajes/archivos de código (forzar LF en el repo)
+*.php    text eol=lf
+*.phtml  text eol=lf
+*.inc    text eol=lf
+*.js     text eol=lf
+*.jsx    text eol=lf
+*.ts     text eol=lf
+*.tsx    text eol=lf
+*.json   text eol=lf
+*.html   text eol=lf
+*.htm    text eol=lf
+*.css    text eol=lf
+*.scss   text eol=lf
+*.md     text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.sql    text eol=lf
 
-*.lock -diff
+# Scripts Windows que conviene mantener CRLF en working tree
+*.ps1    text eol=crlf
+*.cmd    text eol=crlf
+*.bat    text eol=crlf
+
+# Makefile requiere tabulación literal
+[Mm]akefile
+indent_style = tab
+trim_trailing_whitespace = false
+
+# Archivos binarios: no convertir ni generar diffs legibles
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.pdf    binary
+*.zip    binary
+*.tar.gz binary
+*.tgz    binary
+*.exe    binary
+*.dll    binary
+*.so     binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary
+*.eot    binary
+*.otf    binary
+*.mov    binary
+*.mp4    binary
+*.mp3    binary
+*.ogg    binary
+
+# Lockfiles: evitar diffs gigantes o conflictos por merges automáticos
+package-lock.json -diff
+pnpm-lock.yaml   -diff
+yarn.lock        -diff
+*.lock           -diff
+
+# Ignorar directorios de build/export en los paquetes distribuidos
+/dist/   export-ignore
+/build/  export-ignore
+
+# Export: no incluir archivos de desarrollo/temporales en los tarballs
+/.vscode/ export-ignore
+/.github/ export-ignore
+
+# Nota: si hay archivos en codificaciones antiguas (ISO-8859-1/Windows-1252)
+# conviene convertirlos a UTF-8 sin BOM y añadir un check en CI (p. ej. editorconfig-checker).

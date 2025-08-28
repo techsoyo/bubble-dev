@@ -1,0 +1,64 @@
+# EditorConfig para bubble_of_talents_1.0
+# Más info: https://editorconfig.org/
+root = true
+
+# Reglas por defecto (aplican a la mayoría de archivos)
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+tab_width = 2
+_max_line_length = 120
+
+# Archivos de código JS/TS/JSON/HTML/CSS
+[*.{js,jsx,ts,tsx,json,html,css,scss,vue}]
+indent_size = 2
+tab_width = 2
+
+# PHP: estilo usual 4 espacios
+[*.php]
+indent_style = space
+indent_size = 4
+tab_width = 4
+
+# SQL y queries: 2 o 4 según preferencia (uso 2)
+[*.{sql,pgsql,psql}]
+indent_style = space
+indent_size = 2
+
+# Markdown: no recortar espacios finales (espacios finales significan saltos de línea)
+[*.md]
+trim_trailing_whitespace = false
+max_line_length = off
+
+# Archivos de licencia / texto plano
+[*.{txt,md,rst}]
+trim_trailing_whitespace = false
+
+# Shell scripts y permisos (LF)
+[*.{sh,bash}]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+
+# PowerShell en Windows: preferir CRLF (si el equipo es Windows)
+[*.ps1]
+end_of_line = crlf
+indent_style = space
+indent_size = 2
+
+# Batch y archivos Windows line endings
+[*.{cmd,bat}]
+end_of_line = crlf
+
+# Makefiles requieren tabs
+[Makefile]
+indent_style = tab
+trim_trailing_whitespace = false
+
+# Archivos binarios/medios (no tocar)
+[*.{png,gif,jpg,jpeg,ico,svg,woff,woff2,ttf,zip}]
+trim_trailing_whitespace = false

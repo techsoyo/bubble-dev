@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Controllers;
 
 use Models\Skill;
@@ -154,7 +157,7 @@ class SkillController extends BaseController
       $skills = $this->model->extractSkillsFromText($text);
 
       Logger::info('Skills extracted from text', ['skills_count' => count($skills)]);
-      return ResponseHelper::success('Habilidades extraÃƒÆ’Ã‚Â­das', [
+      return ResponseHelper::success('Habilidades extraí­das', [
         'skills' => $skills,
         'total' => count($skills)
       ], 200);

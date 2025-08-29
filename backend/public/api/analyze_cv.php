@@ -1,17 +1,25 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 require_once __DIR__ . '/./bootstrap.php';
+
+use Middleware\CsrfMiddleware;
+use Middleware\JWTMiddleware;
+
+
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
-use Security\CsrfMiddleware;
+
+
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
-    CsrfMiddleware::protect(); // double-submit cookie
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+  CsrfMiddleware::protect(); // double-submit cookie
 }
 
 if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized (cookie required)']);
-    exit;
+  http_response_code(401);
+  echo json_encode(['error' => 'Unauthorized (cookie required)']);
+  exit;
 }
 
 /**
@@ -33,7 +41,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
  * @author Bubble of Talents Team
  */
 
-// ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ HEADERS DE SEGURIDAD FIRST
+// í¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ HEADERS DE SEGURIDAD FIRST
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: ' . ($_SERVER['HTTP_ORIGIN'] ?? '*'));
 header('Access-Control-Allow-Credentials: true');
@@ -49,13 +57,13 @@ use Services\GroqApiService;
 use Services\Exceptions\AiUnavailableException;
 use Utils\ResponseHelper;
 
-// ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ REQUERIR AUTENTICACIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN JWT SIEMPRE
+// í¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ REQUERIR AUTENTICACIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN JWT SIEMPRE
 if (!$userPayload) {
-  // JWTMiddleware ya enviÃƒÆ’Ã‚Â³ la respuesta de error
+  // JWTMiddleware ya envió la respuesta de error
   exit;
 }
 
-// ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ CONFIGURACIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN DE SEGURIDAD MEJORADA
+// í¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ CONFIGURACIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN DE SEGURIDAD MEJORADA
 define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ximo (reducido)
 define('MAX_TEXT_LENGTH', 512 * 1024); // 512KB mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ximo para texto
 define('ALLOWED_EXTENSIONS', ['pdf']); // Solo PDFs por seguridad
@@ -74,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   exit;
 }
 
-// ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ RATE LIMITING POR USUARIO
+// í¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ RATE LIMITING POR USUARIO
 $userId = $userPayload['user_id'];
 $rateLimitKey = "cv_upload_$userId";
 
@@ -134,7 +142,7 @@ function validateUploadedFile($fileData, string $userId): array
     ];
   }
 
-  // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ VALIDACIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN DE TAMAÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“O ESTRICTA
+  // í¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ VALIDACIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN DE TAMAÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“O ESTRICTA
   if ($fileData['size'] > MAX_FILE_SIZE) {
     return [
       'success' => false,
@@ -142,7 +150,7 @@ function validateUploadedFile($fileData, string $userId): array
     ];
   }
 
-  // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ VALIDACIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN DE EXTENSIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN Y MIME TYPE
+  // í¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ VALIDACIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN DE EXTENSIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN Y MIME TYPE
   $extension = strtolower(pathinfo($fileData['name'], PATHINFO_EXTENSION));
   if (!in_array($extension, ALLOWED_EXTENSIONS)) {
     return [
@@ -151,7 +159,7 @@ function validateUploadedFile($fileData, string $userId): array
     ];
   }
 
-  // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ VALIDACIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN DE MIME TYPE REAL (no confiar en $_FILES)
+  // í¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ VALIDACIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN DE MIME TYPE REAL (no confiar en $_FILES)
   $finfo = finfo_open(FILEINFO_MIME_TYPE);
   $mimeType = finfo_file($finfo, $fileData['tmp_name']);
   finfo_close($finfo);
@@ -163,7 +171,7 @@ function validateUploadedFile($fileData, string $userId): array
     ];
   }
 
-  // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ VALIDACIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN DE CONTENIDO PDF
+  // í¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ VALIDACIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN DE CONTENIDO PDF
   $fileContent = file_get_contents($fileData['tmp_name']);
   if (substr($fileContent, 0, 4) !== '%PDF') {
     return [
@@ -172,7 +180,7 @@ function validateUploadedFile($fileData, string $userId): array
     ];
   }
 
-  // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ SCAN DE VIRUS BÃƒÆ’Ã†â€™Ãƒâ€šÃ‚ÂSICO (buscar patrones sospechosos)
+  // í¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ SCAN DE VIRUS BÃƒÆ’Ã†â€™Ãƒâ€šÃ‚ÂSICO (buscar patrones sospechosos)
   if (containsSuspiciousContent($fileContent)) {
     return [
       'success' => false,
@@ -208,25 +216,25 @@ function containsSuspiciousContent(string $content): bool
 
 // Crear directorio si no existe
 $uploadDir = __DIR__ . '/../../uploads/cvs/';
-  if (!is_dir($uploadDir)) {
-    mkdir($uploadDir, 0755, true);
-  }
+if (!is_dir($uploadDir)) {
+  mkdir($uploadDir, 0755, true);
+}
 
-  // Generar nombre seguro
-  $safeFilename = 'cv_' . date('Y-m-d_H-i-s') . '_' . md5(uniqid()) . '.' . $extension;
-  $destination = $uploadDir . $safeFilename;
+// Generar nombre seguro
+$safeFilename = 'cv_' . date('Y-m-d_H-i-s') . '_' . md5(uniqid()) . '.' . $extension;
+$destination = $uploadDir . $safeFilename;
 
-  if (!move_uploaded_file($fileData['tmp_name'], $destination)) {
-    return ['status' => false, 'message' => 'Error al guardar el archivo.'];
-  }
+if (!move_uploaded_file($fileData['tmp_name'], $destination)) {
+  return ['status' => false, 'message' => 'Error al guardar el archivo.'];
+}
 
-  return [
-    'status' => true,
-    'path' => $destination,
-    'extension' => $extension,
-    'mime' => $mime,
-    'size' => $fileData['size']
-  ];
+return [
+  'status' => true,
+  'path' => $destination,
+  'extension' => $extension,
+  'mime' => $mime,
+  'size' => $fileData['size']
+];
 
 
 /**
@@ -392,5 +400,3 @@ try {
     unlink($filePath);
   }
 }
-
-

@@ -1,5 +1,8 @@
-<?php declare(strict_types=1);
-namespace Security\Cookies.php\Security;
+<?php
+
+declare(strict_types=1);
+
+namespace Security;
 
 /**
  * Manejo centralizado de cookies para autenticaciÃƒÂ³n

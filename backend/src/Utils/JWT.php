@@ -1,10 +1,13 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Utils;
 
 /**
  * Clase segura para manejo de tokens JWT
  *
- * Implementa mejores prÃƒÆ’Ã‚Â¡cticas de seguridad para la generaciÃƒÆ’Ã‚Â³n y validaciÃƒÆ’Ã‚Â³n
+ * Implementa mejores prí¡cticas de seguridad para la generación y validación
  * de tokens JWT, incluyendo manejo seguro de secretos y validaciones adicionales.
  *
  * @version 2.0.0
@@ -20,15 +23,15 @@ class JWT
     /**
      * Tiempo de vida por defecto del token (24 horas)
      */
-    // Reducir el tiempo de expiraciÃƒÆ’Ã‚Â³n por defecto a 3600 segundos (1 hora).
-    // Tiempos de expiraciÃƒÆ’Ã‚Â³n mÃƒÆ’Ã‚Â¡s cortos limitan la ventana de explotaciÃƒÆ’Ã‚Â³n en caso de
-    // compromiso de un token.  Los tokens de larga duraciÃƒÆ’Ã‚Â³n incrementan el riesgo si se
+    // Reducir el tiempo de expiración por defecto a 3600 segundos (1 hora).
+    // Tiempos de expiración  más cortos limitan la ventana de explotación en caso de
+    // compromiso de un token.  Los tokens de larga duración incrementan el riesgo si se
     // filtran, por lo que se recomienda implementar refresh tokens para mantener la
     // experiencia de usuario sin comprometer la seguridad.
     private static $defaultExpiry = 3600;
 
     /**
-     * Tiempo de tolerancia para validaciÃƒÆ’Ã‚Â³n de tiempo (5 minutos)
+     * Tiempo de tolerancia para validación de tiempo (5 minutos)
      */
     private static $timeTolerance = 300;
 
@@ -36,10 +39,10 @@ class JWT
      * Genera un token JWT seguro
      *
      * @param array $payload Datos a incluir en el token
-     * @param int|null $expiry Tiempo de expiraciÃƒÆ’Ã‚Â³n en segundos
+     * @param int|null $expiry Tiempo de expiración en segundos
      * @param string $algorithm Algoritmo de firma
      * @return string Token JWT
-     * @throws Exception Si hay errores en la configuraciÃƒÆ’Ã‚Â³n
+     * @throws Exception Si hay errores en la configuración
      */
     public static function generate($payload, $expiry = null, $algorithm = 'HS256')
     {
@@ -64,32 +67,32 @@ class JWT
             }
         }
 
-        // Si no se especifica un tiempo de expiraciÃƒÆ’Ã‚Â³n, usar el valor por defecto
+        // Si no se especifica un tiempo de expiración, usar el valor por defecto
         if ($expiry === null) {
             $expiry = config('JWT_EXPIRY', self::$defaultExpiry);
         }
 
-        // Validar tiempo de expiraciÃƒÆ’Ã‚Â³n
-        if ($expiry <= 0 || $expiry > 86400 * 30) { // MÃƒÆ’Ã‚Â¡ximo 30 dÃƒÆ’Ã‚Â­as
-            throw new \Exception('Tiempo de expiraciÃƒÆ’Ã‚Â³n invÃƒÆ’Ã‚Â¡lido');
+        // Validar tiempo de expiración
+        if ($expiry <= 0 || $expiry > 86400 * 30) { // Mí¡ximo 30 dí­as
+            throw new \Exception('Tiempo de expiración inví¡lido');
         }
 
         $currentTime = time();
 
-        // Crear header con informaciÃƒÆ’Ã‚Â³n adicional de seguridad
+        // Crear header con información adicional de seguridad
         $header = [
-          'alg' => $algorithm,
-          'typ' => 'JWT',
-          'kid' => self::getKeyId() // Key ID para rotaciÃƒÆ’Ã‚Â³n de claves
+            'alg' => $algorithm,
+            'typ' => 'JWT',
+            'kid' => self::getKeyId() // Key ID para rotación de claves
         ];
 
-        // AÃƒÆ’Ã‚Â±adir claims estÃƒÆ’Ã‚Â¡ndar al payload
+        // Aí±adir claims estí¡ndar al payload
         $payload['iss'] = config('JWT_ISSUER', 'bubble-talents-api'); // Issuer
         $payload['aud'] = config('JWT_AUDIENCE', 'bubble-talents-app'); // Audience
         $payload['iat'] = $currentTime; // Issued At
         $payload['nbf'] = $currentTime; // Not Before
         $payload['exp'] = $currentTime + $expiry; // Expiration Time
-        $payload['jti'] = self::generateJti(); // JWT ID ÃƒÆ’Ã‚Âºnico
+        $payload['jti'] = self::generateJti(); // JWT ID único
 
         // Codificar header y payload
         $headerEncoded = self::base64UrlEncode(json_encode($header));
@@ -97,33 +100,33 @@ class JWT
 
         // Crear firma usando el algoritmo especificado
         $signature = self::createSignature("$headerEncoded.$payloadEncoded", $secret, $algorithm);
-    $signatureEncoded = self::base64UrlEncode($signature);
+        $signatureEncoded = self::base64UrlEncode($signature);
 
-    // Crear token
-    $token = "$headerEncoded.$payloadEncoded.$signatureEncoded";
+        // Crear token
+        $token = "$headerEncoded.$payloadEncoded.$signatureEncoded";
 
-    // Log para auditoría (sin información sensible)
-    if (class_exists('\Utils\Logger')) {
-        \Utils\Logger::info('JWT token generado', [
-            'algorithm' => $algorithm,
-            'user_id' => (int)($payload['user_id'] ?? 0)  // ← Forzar a INT
-        ]);
+        // Log para auditoría (sin información sensible)
+        if (class_exists('\Utils\Logger')) {
+            \Utils\Logger::info('JWT token generado', [
+                'algorithm' => $algorithm,
+                'user_id' => (int)($payload['user_id'] ?? 0)  // ← Forzar a INT
+            ]);
+        }
+
+        return $token;
     }
-
-    return $token;
-}
 
     /**
      * Verifica y decodifica un token JWT de manera segura
      *
      * @param string $token Token JWT a verificar
-     * @param array $options Opciones de validaciÃƒÆ’Ã‚Â³n
-     * @return array|false Payload decodificado o false si es invÃƒÆ’Ã‚Â¡lido
+     * @param array $options Opciones de validación
+     * @return array|false Payload decodificado o false si es inví¡lido
      */
     public static function verify($token, $options = [])
     {
         try {
-            // Validaciones bÃƒÆ’Ã‚Â¡sicas
+            // Validaciones bí¡sicas
             if (empty($token) || !is_string($token)) {
                 self::logSecurityEvent('jwt_verify_failed', ['reason' => 'token_empty_or_invalid']);
                 return false;
@@ -171,22 +174,22 @@ class JWT
                 return false;
             }
 
-            // Validar claims estÃƒÆ’Ã‚Â¡ndar
+            // Validar claims estí¡ndar
             if (!self::validateStandardClaims($payload, $options)) {
                 return false;
             }
 
-            // Validar que el token no estÃƒÆ’Ã‚Â© en blacklist (si se implementa)
+            // Validar que el token no esté en blacklist (si se implementa)
             if (isset($payload['jti']) && self::isTokenBlacklisted($payload['jti'])) {
                 self::logSecurityEvent('jwt_verify_failed', ['reason' => 'token_blacklisted', 'jti' => $payload['jti']]);
                 return false;
             }
 
-            // Log de ÃƒÆ’Ã‚Â©xito (sin informaciÃƒÆ’Ã‚Â³n sensible)
+            // Log de éxito (sin información sensible)
             if (class_exists('\Utils\Logger')) {
                 \Utils\Logger::info('JWT token verificado exitosamente', [
-                  'user_id' => $payload['user_id'] ?? 'unknown',
-                  'jti' => $payload['jti'] ?? 'unknown'
+                    'user_id' => $payload['user_id'] ?? 'unknown',
+                    'jti' => $payload['jti'] ?? 'unknown'
                 ]);
             }
 
@@ -198,10 +201,10 @@ class JWT
     }
 
     /**
-     * Invalida un token aÃƒÆ’Ã‚Â±adiÃƒÆ’Ã‚Â©ndolo a una blacklist
+     * Invalida un token aí±adiéndolo a una blacklist
      *
      * @param string $token Token a invalidar
-     * @return bool True si se invalidÃƒÆ’Ã‚Â³ correctamente
+     * @return bool True si se invalidó correctamente
      */
     public static function invalidate($token)
     {
@@ -217,17 +220,17 @@ class JWT
      * Obtiene la clave secreta de manera segura
      *
      * @return string Clave secreta
-     * @throws Exception Si la clave no estÃƒÆ’Ã‚Â¡ configurada
+     * @throws Exception Si la clave no estí¡ configurada
      */
     private static function getSecret()
     {
         $secret = config('JWT_SECRET');
 
         if (empty($secret)) {
-            throw new \Exception('JWT_SECRET no estÃƒÆ’Ã‚Â¡ configurado');
+            throw new \Exception('JWT_SECRET no estí¡ configurado');
         }
 
-        // Validar longitud mÃƒÆ’Ã‚Â­nima de la clave
+        // Validar longitud mí­nima de la clave
         if (strlen($secret) < 32) {
             throw new \Exception('JWT_SECRET debe tener al menos 32 caracteres');
         }
@@ -236,7 +239,7 @@ class JWT
     }
 
     /**
-     * Obtiene el ID de la clave para rotaciÃƒÆ’Ã‚Â³n
+     * Obtiene el ID de la clave para rotación
      *
      * @return string Key ID
      */
@@ -246,7 +249,7 @@ class JWT
     }
 
     /**
-     * Genera un JWT ID ÃƒÆ’Ã‚Âºnico
+     * Genera un JWT ID único
      *
      * @return string JWT ID
      */
@@ -281,7 +284,7 @@ class JWT
      * Valida el header del JWT
      *
      * @param array $header Header decodificado
-     * @return bool True si es vÃƒÆ’Ã‚Â¡lido
+     * @return bool True si es ví¡lido
      */
     private static function validateHeader($header)
     {
@@ -300,15 +303,15 @@ class JWT
      * Valida los claims temporales del JWT
      *
      * @param array $payload Payload decodificado
-     * @param array $options Opciones de validaciÃƒÆ’Ã‚Â³n
-     * @return bool True si es vÃƒÆ’Ã‚Â¡lido
+     * @param array $options Opciones de validación
+     * @return bool True si es ví¡lido
      */
     private static function validateTimeClaims($payload, $options)
     {
         $currentTime = time();
         $tolerance = $options['time_tolerance'] ?? self::$timeTolerance;
 
-        // Verificar expiraciÃƒÆ’Ã‚Â³n
+        // Verificar expiración
         if (isset($payload['exp'])) {
             if ($currentTime > ($payload['exp'] + $tolerance)) {
                 self::logSecurityEvent('jwt_verify_failed', ['reason' => 'token_expired']);
@@ -336,11 +339,11 @@ class JWT
     }
 
     /**
-     * Valida los claims estÃƒÆ’Ã‚Â¡ndar del JWT
+     * Valida los claims estí¡ndar del JWT
      *
      * @param array $payload Payload decodificado
-     * @param array $options Opciones de validaciÃƒÆ’Ã‚Â³n
-     * @return bool True si es vÃƒÆ’Ã‚Â¡lido
+     * @param array $options Opciones de validación
+     * @return bool True si es ví¡lido
      */
     private static function validateStandardClaims($payload, $options)
     {
@@ -364,14 +367,14 @@ class JWT
     }
 
     /**
-     * Verifica si un token estÃƒÆ’Ã‚Â¡ en la blacklist
+     * Verifica si un token estí¡ en la blacklist
      *
      * @param string $jti JWT ID
-     * @return bool True si estÃƒÆ’Ã‚Â¡ en blacklist
+     * @return bool True si estí¡ en blacklist
      */
     private static function isTokenBlacklisted($jti)
     {
-        // ImplementaciÃƒÆ’Ã‚Â³n simple con archivos (en producciÃƒÆ’Ã‚Â³n usar Redis/DB)
+        // Implementación simple con archivos (en producción usar Redis/DB)
         $blacklistFile = __DIR__ . '/../../cache/jwt_blacklist.json';
 
         if (!file_exists($blacklistFile)) {
@@ -397,11 +400,11 @@ class JWT
     }
 
     /**
-     * AÃƒÆ’Ã‚Â±ade un token a la blacklist
+     * Aí±ade un token a la blacklist
      *
      * @param string $jti JWT ID
-     * @param int $exp Tiempo de expiraciÃƒÆ’Ã‚Â³n
-     * @return bool True si se aÃƒÆ’Ã‚Â±adiÃƒÆ’Ã‚Â³ correctamente
+     * @param int $exp Tiempo de expiración
+     * @return bool True si se aí±adió correctamente
      */
     private static function addToBlacklist($jti, $exp)
     {
@@ -469,15 +472,15 @@ class JWT
         // 2) Verificar el token usando tu verify() robusto
         //    Puedes fijar issuer/audience por defecto desde tu config
         $defaults = [
-          'issuer'   => config('JWT_ISSUER', 'bubble-talents-api'),
-          'audience' => config('JWT_AUDIENCE', 'bubble-talents-app'),
-          'time_tolerance' => 300,
+            'issuer'   => config('JWT_ISSUER', 'bubble-talents-api'),
+            'audience' => config('JWT_AUDIENCE', 'bubble-talents-app'),
+            'time_tolerance' => 300,
         ];
         $opts = array_replace($defaults, $options);
 
         $payload = self::verify($token, $opts);
         if ($payload === false) {
-            throw new \RuntimeException('Token invÃƒÆ’Ã‚Â¡lido o expirado');
+            throw new \RuntimeException('Token inví¡lido o expirado');
         }
 
         return $payload; // ej. ['user_id'=>'...', 'role'=>'recruiter', ...]

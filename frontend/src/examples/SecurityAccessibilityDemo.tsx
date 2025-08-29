@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Security and Accessibility Implementation Example
  * 
  * Demonstrates the implementation of section 3 requirements:
@@ -58,7 +58,6 @@ const SecurityAccessibilityDemo: React.FC = () => {
         // Log CSP configuration for demo
         const cspConfig = getCSPConfig();
         const cspHeader = generateCSPHeader(cspConfig);
-        console.log('CSP Configuration:', cspHeader);
 
         announce('Security and accessibility demo loaded', 'polite');
     }, [announce]);
@@ -140,7 +139,6 @@ const SecurityAccessibilityDemo: React.FC = () => {
             // Simulate API call
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-            console.log('Secure form submission:', sanitizedData);
             announce('Form submitted successfully!', 'polite');
 
             // Reset form

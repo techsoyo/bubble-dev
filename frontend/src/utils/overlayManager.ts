@@ -1,7 +1,14 @@
 /**
  * Sistema de gestión de overlays
  * Controla el posicionamiento de elementos fixed para evitar colisiones
+ *
+ * ✅ SEGURIDAD: Sanitización de IDs y validación de elementos DOM
+ * ✅ PERFORMANCE: Límite de overlays activos y cleanup automático
+ * ✅ ACCESSIBILITY: Focus management y ARIA labels
+ * ✅ ERROR HANDLING: Validación robusta y logging seguro
  */
+
+import { sanitizeText } from '../security/xss';
 
 export type OverlayPosition =
   | 'top-left' | 'top-center' | 'top-right'
@@ -19,11 +26,26 @@ interface OverlayConfig {
   element?: HTMLElement;
   isActive: boolean;
   stackIndex?: number;
+  // Accessibility fields
+  ariaLabel?: string;
+  role?: string;
+  // Security validation
+  isValid: boolean;
+  // Performance tracking
+  createdAt: number;
+  lastAccessed: number;
 }
 
 class OverlayManager {
   private overlays: Map<string, OverlayConfig> = new Map();
   private positionStacks: Map<OverlayPosition, string[]> = new Map();
+  private activeOverlaysCount = 0;
+
+  // Configuration constants
+  private readonly MAX_OVERLAYS = 10;
+  private readonly MAX_OVERLAYS_PER_POSITION = 3;
+  private readonly OVERLAY_TIMEOUT = 300000; // 5 minutes
+  private readonly CLEANUP_INTERVAL = 60000; // 1 minute
 
   // Configuración de posiciones
   private readonly POSITION_STYLES: Record<OverlayPosition, Partial<CSSStyleDeclaration>> = {
@@ -40,46 +62,334 @@ class OverlayManager {
 
   // Espaciado entre elementos en stack
   private readonly STACK_SPACING = 16; // px
+  private cleanupIntervalId?: NodeJS.Timeout;
+
+  /**
+   * Sanitiza y valida un ID de overlay
+   * ✅ SEGURIDAD: Previene XSS y valida formato
+   */
+  private sanitizeOverlayId(id: string): string | null {
+    try {
+      if (!id || typeof id !== 'string') {
+        return null;
+      }
+
+      // Sanitize the ID
+      const sanitized = sanitizeText(id);
+
+      // Validate format (alphanumeric, dash, underscore only)
+      if (!/^[a-zA-Z0-9_-]+$/.test(sanitized)) {
+        return null;
+      }
+
+      // Check length limits
+      if (sanitized.length < 1 || sanitized.length > 50) {
+        return null;
+      }
+
+      return sanitized;
+    } catch (error) {
+      console.error('OverlayManager: Error sanitizing overlay ID:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Asegura que el intervalo de cleanup esté ejecutándose
+   */
+  private ensureCleanupInterval(): void {
+    if (!this.cleanupIntervalId) {
+      this.cleanupIntervalId = setInterval(() => {
+        this.cleanupExpiredOverlays();
+      }, this.CLEANUP_INTERVAL);
+    }
+  }
+
+  /**
+   * Limpia overlays expirados
+   */
+  private cleanupExpiredOverlays(): void {
+    const now = Date.now();
+    const expiredIds: string[] = [];
+
+    this.overlays.forEach((overlay, id) => {
+      if (now - overlay.lastAccessed > this.OVERLAY_TIMEOUT) {
+        expiredIds.push(id);
+      }
+    });
+
+    expiredIds.forEach(id => {
+      this.deactivateOverlay(id);
+      this.overlays.delete(id);
+    });
+
+    if (expiredIds.length > 0) {
+      console.log(`OverlayManager: Cleaned up ${expiredIds.length} expired overlays`);
+    }
+  }
+
+  /**
+   * Valida que un elemento DOM sea seguro y válido
+   */
+  private isValidDomElement(element: HTMLElement): boolean {
+    try {
+      // Check if element exists in document
+      if (!document.contains(element)) {
+        return false;
+      }
+
+      // Check if element is a valid HTMLElement
+      if (!(element instanceof HTMLElement)) {
+        return false;
+      }
+
+      // Security: Check for suspicious attributes
+      const suspiciousAttrs = ['onclick', 'onload', 'onerror', 'javascript:'];
+      for (const attr of suspiciousAttrs) {
+        if (element.hasAttribute(attr) || element.getAttribute(attr)) {
+          return false;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('OverlayManager: Error validating DOM element:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Configura accessibility para un overlay
+   */
+  private setupAccessibility(overlay: OverlayConfig): void {
+    if (!overlay.element) return;
+
+    try {
+      const element = overlay.element;
+
+      // Set ARIA attributes
+      if (overlay.ariaLabel) {
+        element.setAttribute('aria-label', overlay.ariaLabel);
+      }
+
+      if (overlay.role) {
+        element.setAttribute('role', overlay.role);
+      } else {
+        // Default role based on type
+        const defaultRoles: Record<OverlayType, string> = {
+          'chatbot': 'dialog',
+          'toast': 'alert',
+          'debug': 'log',
+          'modal': 'dialog',
+          'tooltip': 'tooltip',
+          'notification': 'alert'
+        };
+        element.setAttribute('role', defaultRoles[overlay.type] || 'region');
+      }
+
+      // Ensure proper focus management
+      element.setAttribute('tabindex', '-1');
+
+      // Add focus trap for modal types
+      if (overlay.type === 'modal' || overlay.type === 'chatbot') {
+        this.setupFocusTrap(element);
+      }
+
+    } catch (error) {
+      console.error('OverlayManager: Error setting up accessibility:', error);
+    }
+  }
+
+  /**
+   * Configura focus trap para modales
+   */
+  private setupFocusTrap(element: HTMLElement): void {
+    const focusableElements = element.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+
+    if (focusableElements.length > 0) {
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      const handleTabKey = (e: KeyboardEvent) => {
+        if (e.key === 'Tab') {
+          if (e.shiftKey) {
+            if (document.activeElement === firstElement) {
+              lastElement.focus();
+              e.preventDefault();
+            }
+          } else {
+            if (document.activeElement === lastElement) {
+              firstElement.focus();
+              e.preventDefault();
+            }
+          }
+        }
+      };
+
+      element.addEventListener('keydown', handleTabKey);
+
+      // Store cleanup function
+      (element as any)._overlayFocusHandler = handleTabKey;
+    }
+  }
+
+  /**
+   * Limpia focus trap para un elemento
+   */
+  private cleanupFocusTrap(element: HTMLElement): void {
+    try {
+      const handler = (element as any)._overlayFocusHandler;
+      if (handler) {
+        element.removeEventListener('keydown', handler);
+        delete (element as any)._overlayFocusHandler;
+      }
+    } catch (error) {
+      console.error('OverlayManager: Error cleaning up focus trap:', error);
+    }
+  }
 
   /**
    * Registra un overlay en el sistema
+   * ✅ SEGURIDAD: Sanitización de ID y validación de entrada
+   * ✅ PERFORMANCE: Límite de overlays totales
    */
-  registerOverlay(config: Omit<OverlayConfig, 'isActive' | 'stackIndex'>): void {
-    const fullConfig: OverlayConfig = {
-      ...config,
-      isActive: false,
-      stackIndex: 0
-    };
+  registerOverlay(config: Omit<OverlayConfig, 'isActive' | 'stackIndex' | 'isValid' | 'createdAt' | 'lastAccessed'>): boolean {
+    try {
+      // Security: Sanitize and validate ID
+      const sanitizedId = this.sanitizeOverlayId(config.id);
+      if (!sanitizedId) {
+        console.warn('OverlayManager: Invalid overlay ID provided');
+        return false;
+      }
 
-    this.overlays.set(config.id, fullConfig);
-    this.updatePositionStack(config.position, config.id);
+      // Security: Check for existing overlay
+      if (this.overlays.has(sanitizedId)) {
+        console.warn(`OverlayManager: Overlay with ID ${sanitizedId} already exists`);
+        return false;
+      }
+
+      // Performance: Check total overlay limit
+      if (this.overlays.size >= this.MAX_OVERLAYS) {
+        console.warn('OverlayManager: Maximum number of overlays reached');
+        return false;
+      }
+
+      // Performance: Check position limit
+      const positionOverlays = this.getActiveOverlaysInPosition(config.position);
+      if (positionOverlays.length >= this.MAX_OVERLAYS_PER_POSITION) {
+        console.warn(`OverlayManager: Maximum overlays reached for position ${config.position}`);
+        return false;
+      }
+
+      const fullConfig: OverlayConfig = {
+        ...config,
+        id: sanitizedId,
+        isActive: false,
+        stackIndex: 0,
+        isValid: true,
+        createdAt: Date.now(),
+        lastAccessed: Date.now()
+      };
+
+      this.overlays.set(sanitizedId, fullConfig);
+      this.updatePositionStack(config.position, sanitizedId);
+
+      // Start cleanup interval if not already running
+      this.ensureCleanupInterval();
+
+      return true;
+    } catch (error) {
+      console.error('OverlayManager: Error registering overlay:', error);
+      return false;
+    }
   }
 
   /**
    * Activa un overlay y ajusta posiciones
+   * ✅ SEGURIDAD: Validación de elementos DOM
+   * ✅ ACCESSIBILITY: Focus management y ARIA
    */
-  activateOverlay(id: string, element?: HTMLElement): void {
-    const overlay = this.overlays.get(id);
-    if (!overlay) return;
+  activateOverlay(id: string, element?: HTMLElement): boolean {
+    try {
+      const overlay = this.overlays.get(id);
+      if (!overlay || !overlay.isValid) {
+        console.warn(`OverlayManager: Invalid or non-existent overlay ${id}`);
+        return false;
+      }
 
-    overlay.isActive = true;
-    overlay.element = element;
+      // Security: Validate DOM element
+      if (element && !this.isValidDomElement(element)) {
+        console.warn(`OverlayManager: Invalid DOM element provided for overlay ${id}`);
+        return false;
+      }
 
-    this.recalculatePositions(overlay.position);
-    this.applyPositioning(id);
+      // Performance: Check activation limits
+      if (this.activeOverlaysCount >= this.MAX_OVERLAYS) {
+        console.warn('OverlayManager: Maximum active overlays reached');
+        return false;
+      }
+
+      overlay.isActive = true;
+      overlay.element = element || overlay.element;
+      overlay.lastAccessed = Date.now();
+
+      if (overlay.isActive) {
+        this.activeOverlaysCount++;
+      }
+
+      this.recalculatePositions(overlay.position);
+      this.applyPositioning(id);
+
+      // Accessibility: Set up focus management
+      this.setupAccessibility(overlay);
+
+      return true;
+    } catch (error) {
+      console.error(`OverlayManager: Error activating overlay ${id}:`, error);
+      return false;
+    }
   }
 
   /**
    * Desactiva un overlay
+   * ✅ ACCESSIBILITY: Cleanup de focus management
+   * ✅ PERFORMANCE: Decrementa contador activo
    */
-  deactivateOverlay(id: string): void {
-    const overlay = this.overlays.get(id);
-    if (!overlay) return;
+  deactivateOverlay(id: string): boolean {
+    try {
+      const overlay = this.overlays.get(id);
+      if (!overlay) {
+        return false;
+      }
 
-    overlay.isActive = false;
-    overlay.element = undefined;
+      overlay.isActive = false;
+      overlay.lastAccessed = Date.now();
 
-    this.recalculatePositions(overlay.position);
+      if (overlay.element) {
+        // Accessibility: Clean up focus trap
+        this.cleanupFocusTrap(overlay.element);
+
+        // Clean up ARIA attributes
+        overlay.element.removeAttribute('aria-label');
+        overlay.element.removeAttribute('role');
+        overlay.element.removeAttribute('tabindex');
+      }
+
+      overlay.element = undefined;
+
+      if (this.activeOverlaysCount > 0) {
+        this.activeOverlaysCount--;
+      }
+
+      this.recalculatePositions(overlay.position);
+
+      return true;
+    } catch (error) {
+      console.error(`OverlayManager: Error deactivating overlay ${id}:`, error);
+      return false;
+    }
   }
 
   /**

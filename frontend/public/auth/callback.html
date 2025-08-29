@@ -155,11 +155,13 @@
           return;
         }
 
-        // Enviar código al backend para procesamiento
-        const response = await fetch('/api/auth/social-callback.php?' + urlParams.toString(), {
+        // Enviar código al backend para procesamiento seguro
+        const provider = urlParams.get('provider') || 'google'; // Default to google if not specified
+        const response = await fetch(`/api/auth/social/${provider}/callback?${urlParams.toString()}`, {
           method: 'GET',
           headers: {
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
           }
         });
 

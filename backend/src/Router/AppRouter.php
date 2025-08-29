@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Router;
 
 use AltoRouter;
@@ -35,7 +38,7 @@ class AppRouter
 
   /**
    * === REGISTRO DE TODAS LAS RUTAS ===
-   * Nota: aÃƒÆ’Ã‚Â±ade aquÃƒÆ’Ã‚Â­ cualquier ruta nueva y, si debe requerir auth,
+   * Nota: aí±ade aquí­ cualquier ruta nueva y, si debe requerir auth,
    * agrega su "name" al array $this->protectedRoutes[] justo debajo del map().
    */
   private function setupRoutes(): void
@@ -63,7 +66,7 @@ class AppRouter
     $this->protectedRoutes[] = 'applications.bulk_update';
     $this->protectedRoutes[] = 'applications.bulk_delete';
 
-    // === AUTENTICACIÃƒÆ’Ã¢â‚¬Å“N ===
+    // === AUTENTICACIÓN ===
     $this->router->map('POST',   '/api/auth/login',          'AuthController#login',          'auth.login');
     $this->router->map('POST',   '/api/auth/candidate-login', 'AuthController#candidateLogin', 'auth.candidate_login');
     $this->router->map('POST',   '/api/auth/staff-login',    'AuthController#staffLogin',     'auth.staff_login');
@@ -116,17 +119,17 @@ class AppRouter
     $this->router->map('GET',  '/api/jobs/available',              'JobController#available',    'jobs.available');
     $this->router->map('POST', '/api/jobs/search',                 'JobController#search',       'jobs.search');
     $this->router->map('GET',  '/api/jobs/by-department/[i:department_id]', 'JobController#byDepartment', 'jobs.by_department');
-    // Usamos comodÃƒÆ’Ã‚Â­n para ids tipo 'job-102'
+    // Usamos comodí­n para ids tipo 'job-102'
     $this->router->map('GET',    '/api/jobs/[*:id]',               'JobController#show',         'jobs.show');
     $this->router->map('PUT',    '/api/jobs/[*:id]',               'JobController#update',       'jobs.update');
     $this->router->map('DELETE', '/api/jobs/[*:id]',               'JobController#delete',       'jobs.delete');
 
-    // Protegidas tÃƒÆ’Ã‚Â­picas:
+    // Protegidas tí­picas:
     $this->protectedRoutes[] = 'jobs.store';
     $this->protectedRoutes[] = 'jobs.update';
     $this->protectedRoutes[] = 'jobs.delete';
 
-    // === CATEGORÃƒÆ’Ã‚ÂAS DE TRABAJO ===
+    // === CATEGORíAS DE TRABAJO ===
     $this->router->map('GET',    '/api/job-categories',      'JobCategoryController#index',  'job_categories.index');
     $this->router->map('POST',   '/api/job-categories',      'JobCategoryController#store',  'job_categories.store');
     $this->router->map('GET',    '/api/job-categories/[i:id]', 'JobCategoryController#show',  'job_categories.show');
@@ -190,7 +193,7 @@ class AppRouter
     $this->protectedRoutes[] = 'notifications.read';
     $this->protectedRoutes[] = 'notifications.delete';
 
-    // === ADMINISTRACIÃƒÆ’Ã¢â‚¬Å“N ===
+    // === ADMINISTRACIÓN ===
     $this->router->map('GET',  '/api/admin/dashboard', 'AdminController#dashboard', 'admin.dashboard');
     $this->router->map('GET',  '/api/admin/stats',     'AdminController#stats',     'admin.stats');
     $this->router->map('POST', '/api/admin/bulk-actions', 'AdminController#bulkActions', 'admin.bulk_actions');
@@ -280,7 +283,7 @@ class AppRouter
     $match = $this->router->match($requestUri, $requestMethod);
 
     if ($match) {
-      // Verificar protecciÃƒÆ’Ã‚Â³n
+      // Verificar protección
       if ($this->isProtectedRoute($match['name'])) {
         if (!$this->checkAuthentication()) {
           return $this->handleError(401, 'Unauthorized', 'No authentication token provided or token invalid');
@@ -302,8 +305,8 @@ class AppRouter
   }
 
   /**
-   * VerificaciÃƒÆ’Ã‚Â³n simple de autenticaciÃƒÆ’Ã‚Â³n.
-   * Sustituye este mÃƒÆ’Ã‚Â©todo con validaciÃƒÆ’Ã‚Â³n real de JWT/cookie segÃƒÆ’Ã‚Âºn tu proyecto.
+   * Verificación simple de autenticación.
+   * Sustituye este método con validación real de JWT/cookie según tu proyecto.
    */
   private function checkAuthentication(): bool
   {
@@ -313,11 +316,11 @@ class AppRouter
 
     if (stripos($authHeader, 'Bearer ') === 0) {
       $token = substr($authHeader, 7);
-      // TODO: validar JWT real aquÃƒÆ’Ã‚Â­ (recomiendo firebase/php-jwt)
+      // TODO: validar JWT real aquí­ (recomiendo firebase/php-jwt)
       return !empty($token);
     }
 
-    // Fallback: sesiÃƒÆ’Ã‚Â³n PHP
+    // Fallback: sesión PHP
     if (session_status() !== PHP_SESSION_ACTIVE) {
       @session_start();
     }
@@ -364,7 +367,7 @@ class AppRouter
 
     $request = RequestFactory::fromGlobals();
 
-    // Firma estÃƒÆ’Ã‚Â¡ndar: action(Request $req, array $params)
+    // Firma estí¡ndar: action(Request $req, array $params)
     return call_user_func_array([$controller, $method], [$request, $params]);
   }
 

@@ -43,7 +43,7 @@ if (curl_errno($curl)) {
         echo 'ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Respuesta de Mistral: ' . trim($data['response']) . "\n";
         echo "ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ MISTRAL FUNCIONA CORRECTAMENTE\n";
     } else {
-        echo 'ÃƒÂ¢Ã‚ÂÃ…â€™ Respuesta invÃƒÆ’Ã‚Â¡lida: ' . substr($response, 0, 200) . "\n";
+        echo 'ÃƒÂ¢Ã‚ÂÃ…â€™ Respuesta inví¡lida: ' . substr($response, 0, 200) . "\n";
     }
 }
 

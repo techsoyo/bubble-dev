@@ -1,11 +1,14 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Controllers;
 
 /**
  * Health Check Controller
  *
  * Proporciona endpoints para verificar el estado del sistema
- * Implementa manejo robusto de errores y validaciÃƒÆ’Ã‚Â³n
+ * Implementa manejo robusto de errores y validación
  * 
  * @package Controllers
  * @version 2.0.0
@@ -13,23 +16,23 @@ namespace Controllers;
 class HealthController extends BaseController
 {
   /**
-   * Comprueba si el servidor estÃƒÆ’Ã‚Â¡ funcionando correctamente
+   * Comprueba si el servidor estí¡ funcionando correctamente
    * 
-   * Este endpoint nunca debe fallar y siempre debe retornar una respuesta vÃƒÆ’Ã‚Â¡lida
+   * Este endpoint nunca debe fallar y siempre debe retornar una respuesta ví¡lida
    * 
-   * @param array $params ParÃƒÆ’Ã‚Â¡metros de la ruta (no usados)
+   * @param array $params Parí¡metros de la ruta (no usados)
    * @return void
    */
   public function check($params = []): void
   {
     try {
-      // Validar que el mÃƒÆ’Ã‚Â©todo sea GET
+      // Validar que el método sea GET
       if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
         $this->error('Health check only accepts GET requests', null, 405);
         return;
       }
 
-      // InformaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica del sistema que siempre debe estar disponible
+      // Información bí¡sica del sistema que siempre debe estar disponible
       $healthData = [
         'status' => 'healthy',
         'service' => 'Bubble of Talents API',
@@ -46,7 +49,7 @@ class HealthController extends BaseController
         ]
       ];
 
-      // Verificar conexiÃƒÆ’Ã‚Â³n a la base de datos de forma segura
+      // Verificar conexión a la base de datos de forma segura
       try {
         $database = \Utils\Database::getInstance();
         $pdo = $database->getConnection();
@@ -60,7 +63,7 @@ class HealthController extends BaseController
           'test_query' => $result['test'] === 1 ? 'passed' : 'failed'
         ];
       } catch (\PDOException $e) {
-        // Error de base de datos no es crÃƒÆ’Ã‚Â­tico para health check
+        // Error de base de datos no es crí­tico para health check
         $healthData['database'] = [
           'status' => 'disconnected',
           'error' => 'Database connection failed'
@@ -85,20 +88,20 @@ class HealthController extends BaseController
         'temp_directory' => sys_get_temp_dir() && is_writable(sys_get_temp_dir())
       ];
 
-      // Respuesta exitosa con toda la informaciÃƒÆ’Ã‚Â³n
+      // Respuesta exitosa con toda la información
       $this->success('API is running correctly', $healthData, 200);
     } catch (\Throwable $e) {
       // Capturar cualquier error inesperado
       error_log("Critical health check error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
 
-      // Respuesta mÃƒÆ’Ã‚Â­nima de emergencia - NUNCA debe fallar
+      // Respuesta mí­nima de emergencia - NUNCA debe fallar
       try {
         $this->error('Health check failed', [
           'error' => 'Internal system error',
           'timestamp' => date('c')
         ], 500);
       } catch (\Throwable $emergencyError) {
-        // Respuesta de ÃƒÆ’Ã‚Âºltimo recurso si todo falla
+        // Respuesta de último recurso si todo falla
         http_response_code(500);
         header('Content-Type: application/json');
         echo json_encode([

@@ -1,22 +1,26 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
-use Security\CsrfMiddleware;
+use Middleware\CsrfMiddleware;
+use Middleware\JWTMiddleware;
+
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
-    CsrfMiddleware::protect(); // double-submit cookie
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+  CsrfMiddleware::protect(); // double-submit cookie
 }
 
 if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized (cookie required)']);
-    exit;
+  http_response_code(401);
+  echo json_encode(['error' => 'Unauthorized (cookie required)']);
+  exit;
 }
 
 /**
- * Endpoint para guardar datos de candidato extraÃƒÆ’Ã‚Â­dos por IA
+ * Endpoint para guardar datos de candidato extraí­dos por IA
  * 
- * Guarda toda la informaciÃƒÆ’Ã‚Â³n estructurada del candidato en las tablas correspondientes
+ * Guarda toda la información estructurada del candidato en las tablas correspondientes
  */
 
 // cookie HttpOnly obligatoria
@@ -34,7 +38,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
 use Utils\ResponseHelper;
 use Utils\Database;
 
-// Solo permitir mÃƒÆ’Ã‚Â©todo POST
+// Solo permitir método POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   // Opcionalmente, indica el mÃ©todo permitido:
   header('Allow: POST');
@@ -48,7 +52,7 @@ try {
   $data = json_decode($input, true);
 
   if (json_last_error() !== JSON_ERROR_NONE) {
-    ResponseHelper::error('JSON invÃƒÆ’Ã‚Â¡lido: ' . json_last_error_msg(), null, 400);
+    ResponseHelper::error('JSON inví¡lido: ' . json_last_error_msg(), null, 400);
     exit;
   }
 
@@ -61,7 +65,7 @@ try {
   $db = Database::getInstance();
   $pdo = $db->getConnection();
 
-  // Iniciar transacciÃƒÆ’Ã‚Â³n
+  // Iniciar transacción
   $pdo->beginTransaction();
 
   // Insertar candidato principal (mapear campos a la estructura real)
@@ -128,7 +132,7 @@ try {
     }
   }
 
-  // Confirmar transacciÃƒÆ’Ã‚Â³n
+  // Confirmar transacción
   $pdo->commit();
 
   ResponseHelper::success('Candidato creado exitosamente', [
@@ -136,7 +140,7 @@ try {
     'data_source' => $data['data_source'] ?? 'manual_entry'
   ], 201);
 } catch (Exception $e) {
-  // Revertir transacciÃƒÆ’Ã‚Â³n en caso de error
+  // Revertir transacción en caso de error
   if (isset($pdo) && $pdo->inTransaction()) {
     $pdo->rollBack();
   }

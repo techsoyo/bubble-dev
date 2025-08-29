@@ -1,6 +1,5 @@
 <?php declare(strict_types=1);
-namespace Security\SecurityLogger.php\Security;
-
+namespace Security;
 /**
  * Sistema de logging de eventos de seguridad
  * SEGURIDAD: Auditoria completa de eventos crÃƒÂ­ticos

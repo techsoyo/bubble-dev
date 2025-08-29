@@ -1,37 +1,43 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Services;
+
+use Services\UnifiedAIService;
+use Services\Interfaces\AIProviderInterface;
 
 /**
  * AI-Powered Candidate Matching Service
  *
- * Servicio para scoring automÃƒÆ’Ã‚Â¡tico y matching inteligente de candidatos
- * usando Ollama local para anÃƒÆ’Ã‚Â¡lisis avanzado de compatibilidad.
+ * Servicio para scoring automático y matching inteligente de candidatos
+ * usando sistema unificado de IA multi-proveedor para análisis avanzado de compatibilidad.
  *
  * @package Backend\Services
- * @version 2.0.0
+ * @version 2.1.0
  * @since 2025-08-15
  */
 class MatchingService
 {
-  // private $ollamaService;
+  private UnifiedAIService $aiService;
 
-  public function __construct()
+  public function __construct(?UnifiedAIService $aiService = null)
   {
-    // $this->ollamaService = new OllamaService();
+    $this->aiService = $aiService ?? new UnifiedAIService();
   }
 
   /**
    * Calcula el score de matching entre candidato y trabajo
    *
-   * @param array $candidateData Datos extraÃƒÆ’Ã‚Â­dos del CV
+   * @param array $candidateData Datos extraí­dos del CV
    * @param array $jobData Datos del trabajo
-   * @return array Score y anÃƒÆ’Ã‚Â¡lisis detallado
+   * @return array Score y Anáslisis detallado
    */
   public function calculateMatchingScore($candidateData, $jobData)
   {
     try {
       $prompt = $this->buildMatchingPrompt($candidateData, $jobData);
-      $response = $this->callOpenAI($prompt);
+      $response = $this->aiService->chatCompletion($prompt);
 
       if (!$response) {
         return $this->createFallbackScore($candidateData, $jobData);
@@ -51,7 +57,7 @@ class MatchingService
   }
 
   /**
-   * Analiza mÃƒÆ’Ã‚Âºltiples candidatos contra una posiciÃƒÆ’Ã‚Â³n
+   * Analiza múltiples candidatos contra una posición
    *
    * @param array $candidates Lista de candidatos
    * @param array $jobData Datos del trabajo
@@ -85,29 +91,29 @@ class MatchingService
    */
   public function analyzeQualificationFit($candidateData, $jobData)
   {
-    $prompt = 'Analiza si este candidato estÃƒÆ’Ã‚Â¡ sobrecalificado, subcalificado o perfectamente calificado para esta posiciÃƒÆ’Ã‚Â³n.
+    $prompt = 'Analiza si este candidato estí¡ sobrecalificado, subcalificado o perfectamente calificado para esta posición.
 
 CANDIDATO:
 Experiencia: ' . ($candidateData['puestos_anteriores'] ? count($candidateData['puestos_anteriores']) . ' posiciones anteriores' : 'Sin experiencia registrada') . '
 Skills: ' . implode(', ', $candidateData['hard_skills'] ?? []) . '
-EducaciÃƒÆ’Ã‚Â³n: ' . (isset($candidateData['educacion'][0]['titulo']) ? $candidateData['educacion'][0]['titulo'] : 'No especificada') . '
+Educación: ' . (isset($candidateData['educacion'][0]['titulo']) ? $candidateData['educacion'][0]['titulo'] : 'No especificada') . '
 
 TRABAJO:
-TÃƒÆ’Ã‚Â­tulo: ' . ($jobData['title'] ?? 'No especificado') . '
+Tí­tulo: ' . ($jobData['title'] ?? 'No especificado') . '
 Nivel requerido: ' . ($jobData['level'] ?? 'No especificado') . '
 Skills requeridas: ' . implode(', ', $jobData['required_skills'] ?? []) . '
-Experiencia mÃƒÆ’Ã‚Â­nima: ' . ($jobData['min_experience'] ?? 'No especificada') . '
+Experiencia mí­nima: ' . ($jobData['min_experience'] ?? 'No especificada') . '
 
-Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido en este formato:
+Responde ÚNICAMENTE con JSON ví¡lido en este formato:
 {
   "qualification_level": "perfect_fit|overqualified|underqualified",
-  "explanation": "RazÃƒÆ’Ã‚Â³n detallada del anÃƒÆ’Ã‚Â¡lisis",
+  "explanation": "Razón detallada del Anáslisis",
   "risk_level": "low|medium|high",
   "recommendations": ["lista de recomendaciones"],
   "salary_expectation": "below_range|in_range|above_range|unknown"
 }';
 
-    $response = $this->callOpenAI($prompt);
+    $response = $this->aiService->chatCompletion($prompt);
 
     if ($response) {
       $analysis = json_decode($response, true);
@@ -118,7 +124,7 @@ Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido en este fo
 
     return [
       'qualification_level' => 'unknown',
-      'explanation' => 'No se pudo analizar el nivel de calificaciÃƒÆ’Ã‚Â³n',
+      'explanation' => 'No se pudo analizar el nivel de calificación',
       'risk_level' => 'medium',
       'recommendations' => ['Revisar manualmente'],
       'salary_expectation' => 'unknown'
@@ -126,34 +132,34 @@ Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido en este fo
   }
 
   /**
-   * Construye el prompt para anÃƒÆ’Ã‚Â¡lisis de matching
+   * Construye el prompt para Anáslisis de matching
    */
   private function buildMatchingPrompt($candidateData, $jobData)
   {
-    return 'Analiza la compatibilidad entre este candidato y trabajo. Calcula un score detallado considerando mÃƒÆ’Ã‚Âºltiples factores.
+    return 'Analiza la compatibilidad entre este candidato y trabajo. Calcula un score detallado considerando múltiples factores.
 
 DATOS DEL CANDIDATO:
 Nombre: ' . ($candidateData['nombre'] ?? 'No especificado') . '
 Email: ' . ($candidateData['email'] ?? 'No especificado') . '
-UbicaciÃƒÆ’Ã‚Â³n: ' . ($candidateData['ubicacion_actual'] ?? 'No especificada') . '
+Ubicación: ' . ($candidateData['ubicacion_actual'] ?? 'No especificada') . '
 Experiencia: ' . json_encode($candidateData['puestos_anteriores'] ?? []) . '
-EducaciÃƒÆ’Ã‚Â³n: ' . json_encode($candidateData['educacion'] ?? []) . '
+Educación: ' . json_encode($candidateData['educacion'] ?? []) . '
 Hard Skills: ' . implode(', ', $candidateData['hard_skills'] ?? []) . '
 Soft Skills: ' . implode(', ', $candidateData['soft_skills'] ?? []) . '
 Idiomas: ' . implode(', ', $candidateData['idiomas'] ?? []) . '
 Disponibilidad: ' . ($candidateData['disponibilidad'] ?? 'No especificada') . '
 
 DATOS DEL TRABAJO:
-TÃƒÆ’Ã‚Â­tulo: ' . ($jobData['title'] ?? 'No especificado') . '
-DescripciÃƒÆ’Ã‚Â³n: ' . ($jobData['description'] ?? 'No especificada') . '
-UbicaciÃƒÆ’Ã‚Â³n: ' . ($jobData['location'] ?? 'No especificada') . '
+Tí­tulo: ' . ($jobData['title'] ?? 'No especificado') . '
+Descripción: ' . ($jobData['description'] ?? 'No especificada') . '
+Ubicación: ' . ($jobData['location'] ?? 'No especificada') . '
 Modalidad: ' . ($jobData['remote_type'] ?? 'No especificada') . '
 Salario: ' . ($jobData['salary_range'] ?? 'No especificado') . '
 Skills requeridas: ' . implode(', ', $jobData['required_skills'] ?? []) . '
-Experiencia mÃƒÆ’Ã‚Â­nima: ' . ($jobData['min_experience'] ?? 'No especificada') . ' aÃƒÆ’Ã‚Â±os
+Experiencia mí­nima: ' . ($jobData['min_experience'] ?? 'No especificada') . ' aí±os
 Nivel: ' . ($jobData['level'] ?? 'No especificado') . '
 
-Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido en este formato exacto:
+Responde ÚNICAMENTE con JSON ví¡lido en este formato exacto:
 {
   "overall_score": 85,
   "breakdown_scores": {
@@ -176,7 +182,7 @@ Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido en este fo
     "Acciones recomendadas para el proceso"
   ],
   "interview_focus_areas": [
-    "ÃƒÆ’Ã‚Âreas especÃƒÆ’Ã‚Â­ficas a explorar en entrevista"
+    "Áreas especí­ficas a explorar en entrevista"
   ],
   "estimated_fit_probability": 85,
   "risk_factors": [
@@ -186,72 +192,11 @@ Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido en este fo
   }
 
   /**
-   * Realiza llamada a OpenAI
-   */
-  private function callOpenAI($prompt)
-  {
-    $data = [
-      'model' => 'gpt-4',
-      'messages' => [
-        [
-          'role' => 'system',
-          'content' => 'Eres un experto en recruitment y talent matching. Analiza candidatos vs trabajos con precisiÃƒÆ’Ã‚Â³n profesional. Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido sin explicaciones adicionales.'
-        ],
-        [
-          'role' => 'user',
-          'content' => $prompt
-        ]
-      ],
-      'max_tokens' => 2500,
-      'temperature' => 0.2
-    ];
-
-    $headers = [
-      'Authorization: Bearer ' . $this->apiKey,
-      'Content-Type: application/json'
-    ];
-
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $this->apiUrl);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error = curl_error($ch);
-    curl_close($ch);
-
-    if ($error) {
-      error_log("OpenAI cURL Error en Matching: {$error}");
-      return null;
-    }
-
-    if ($httpCode !== 200) {
-      error_log("OpenAI API Error en Matching: HTTP {$httpCode} - {$response}");
-      return null;
-    }
-
-    $responseData = json_decode($response, true);
-
-    if (!isset($responseData['choices'][0]['message']['content'])) {
-      error_log('OpenAI Response Error en Matching: ' . $response);
-      return null;
-    }
-
-    return trim($responseData['choices'][0]['message']['content']);
-  }
-
-  /**
    * Crea un score de respaldo si OpenAI falla
    */
   public function createFallbackScore($candidateData, $jobData)
   {
-    // AnÃƒÆ’Ã‚Â¡lisis bÃƒÆ’Ã‚Â¡sico por reglas simples
+    // Anáslisis bí¡sico por reglas simples
     $score = 50; // Base score
 
     // Boost por skills match
@@ -278,13 +223,13 @@ Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido en este fo
         'language_requirements' => 50,
         'salary_expectations' => 50
       ],
-      'strengths' => ['AnÃƒÆ’Ã‚Â¡lisis automÃƒÆ’Ã‚Â¡tico bÃƒÆ’Ã‚Â¡sico realizado'],
-      'concerns' => ['Requiere revisiÃƒÆ’Ã‚Â³n manual detallada'],
+      'strengths' => ['Anáslisis automí¡tico bí¡sico realizado'],
+      'concerns' => ['Requiere revisión manual detallada'],
       'recommendation' => 'potential_match',
       'next_steps' => ['Revisar manualmente', 'Agendar screening call'],
-      'interview_focus_areas' => ['Verificar skills tÃƒÆ’Ã‚Â©cnicas', 'Evaluar fit cultural'],
+      'interview_focus_areas' => ['Verificar skills técnicas', 'Evaluar fit cultural'],
       'estimated_fit_probability' => min(95, max(15, $score)),
-      'risk_factors' => ['Score calculado con algoritmo bÃƒÆ’Ã‚Â¡sico'],
+      'risk_factors' => ['Score calculado con algoritmo bí¡sico'],
       'fallback_analysis' => true,
       'processed_at' => date('Y-m-d H:i:s')
     ];
@@ -323,9 +268,9 @@ Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido en este fo
     }
 
     // Agregar metadata
-    $matchingData['processed_with'] = 'OpenAI GPT-4 Matching Service';
+    $matchingData['processed_with'] = 'Unified AI Service - Multi-Provider Matching';
     $matchingData['processed_at'] = date('Y-m-d H:i:s');
-    $matchingData['version'] = '1.0.0';
+    $matchingData['version'] = '2.1.0';
 
     return $matchingData;
   }
@@ -346,13 +291,13 @@ Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido en este fo
         'language_requirements' => 50,
         'salary_expectations' => 50
       ],
-      'strengths' => ['Requiere anÃƒÆ’Ã‚Â¡lisis manual'],
+      'strengths' => ['Requiere Anáslisis manual'],
       'concerns' => ['Score incompleto'],
       'recommendation' => 'potential_match',
       'next_steps' => ['Revisar manualmente'],
-      'interview_focus_areas' => ['EvaluaciÃƒÆ’Ã‚Â³n general'],
+      'interview_focus_areas' => ['Evaluación general'],
       'estimated_fit_probability' => 50,
-      'risk_factors' => ['AnÃƒÆ’Ã‚Â¡lisis incompleto']
+      'risk_factors' => ['Anáslisis incompleto']
     ];
 
     return $defaults[$field] ?? null;

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Intelligent Preloader for Critical Routes
  * Precarga componentes en el momento óptimo para mejorar UX
  */
@@ -24,24 +24,21 @@ export const useIntelligentPreloader = () => {
         import('../pages/dashboard/CDDashboard'),
         import('../pages/jobs/Index'),
 
-        // 🚨 PRODUCCIÓN: Preload deshabilitado - sin localStorage
         // En producción, el preloading es automático por las cookies httpOnly
         Promise.resolve(),
 
-        // 🚨 PRODUCCIÓN: Stats preload deshabilitado - sin localStorage
         // El servidor determina permisos automáticamente via cookies
         Promise.resolve(),
       ];
 
       await Promise.allSettled(preloadPromises);
-      console.log('🚀 Critical components preloaded (production mode)');
     } catch (error) {
       console.warn('⚠️ Preload failed:', error);
     }
   };
 
   const shouldPreloadStats = (): boolean => {
-    // 🚨 PRODUCCIÓN: Sin localStorage, el servidor maneja permisos automáticamente
+    // El servidor maneja permisos automáticamente via cookies
     return false;
   };
 };

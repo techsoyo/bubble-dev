@@ -29,7 +29,8 @@
             "Domain\\": "src/Domain/",
             "Router\\": "src/Router/",
             "Middleware\\": "src/Middleware/",
-            "Parsers\\": "src/Parsers/"
+            "Parsers\\": "src/Parsers/",
+            "Security\\": "src/Security/"
         }
     },
     "require-dev": {

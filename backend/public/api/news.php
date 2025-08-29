@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 
 
@@ -6,7 +8,7 @@ require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
     CsrfMiddleware::protect(); // double-submit cookie
 }
 
@@ -28,8 +30,8 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
 }
 
 // ORIGINAL CODE BELOW
-// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
+// preflightHandle(); // ELIMINADO: Preflight se maneja automí¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automí¡ticamente en bootstrap.php
 header('Content-Type: application/json; charset=UTF-8');
 require_once __DIR__ . '/../../config/database.php';
 
@@ -78,79 +80,77 @@ try {
             }
             break;
         case 'POST': {
-            $input = Request::json();
-            ['ok' => $ok, 'errors' => $errs] = Val::validate($input, [
-                'title' => 'required|string:1,255',
-                'summary' => 'required|string:1,1000',
-                'content' => 'required|string:1,10000',
-                'image' => 'string:0,255',
-                'slug' => 'string:0,255'
-            ]);
-            if (!$ok) {
-                Res::error('ValidaciÃƒÆ’Ã‚Â³n fallida', 422, ['errors' => $errs]);
-            }
-            $id = 'news-' . uniqid();
-            $slug = $input['slug'] ?? strtolower(preg_replace('/[^a-z0-9]+/i', '-', $input['title']));
-            $st = $pdo->prepare('INSERT INTO ' . T('news') . ' (id, title, summary, content, image, date_published, slug) VALUES (?, ?, ?, ?, ?, NOW(), ?)');
-            $st->execute([
-                $id,
-                $input['title'],
-                $input['summary'],
-                $input['content'],
-                $input['image'] ?? null,
-                $slug
-            ]);
-            Res::success('Noticia creada', ['id' => $id], 201);
-            break;
-        }
-        case 'PUT': {
-            $id = $_GET['id'] ?? null;
-            if (!$id) {
-                Res::error('ID de noticia requerido', 400);
-            }
-            $input = Request::json();
-            $fields = ['title', 'summary', 'content', 'image', 'slug'];
-            $update = [];
-            $params = [];
-            foreach ($fields as $f) {
-                if (isset($input[$f])) {
-                    $update[] = "$f = ?";
-                    $params[] = $input[$f];
+                $input = Request::json();
+                ['ok' => $ok, 'errors' => $errs] = Val::validate($input, [
+                    'title' => 'required|string:1,255',
+                    'summary' => 'required|string:1,1000',
+                    'content' => 'required|string:1,10000',
+                    'image' => 'string:0,255',
+                    'slug' => 'string:0,255'
+                ]);
+                if (!$ok) {
+                    Res::error('Validación fallida', 422, ['errors' => $errs]);
                 }
+                $id = 'news-' . uniqid();
+                $slug = $input['slug'] ?? strtolower(preg_replace('/[^a-z0-9]+/i', '-', $input['title']));
+                $st = $pdo->prepare('INSERT INTO ' . T('news') . ' (id, title, summary, content, image, date_published, slug) VALUES (?, ?, ?, ?, ?, NOW(), ?)');
+                $st->execute([
+                    $id,
+                    $input['title'],
+                    $input['summary'],
+                    $input['content'],
+                    $input['image'] ?? null,
+                    $slug
+                ]);
+                Res::success('Noticia creada', ['id' => $id], 201);
+                break;
             }
-            if (!$update) {
-                Res::error('Nada para actualizar', 400);
+        case 'PUT': {
+                $id = $_GET['id'] ?? null;
+                if (!$id) {
+                    Res::error('ID de noticia requerido', 400);
+                }
+                $input = Request::json();
+                $fields = ['title', 'summary', 'content', 'image', 'slug'];
+                $update = [];
+                $params = [];
+                foreach ($fields as $f) {
+                    if (isset($input[$f])) {
+                        $update[] = "$f = ?";
+                        $params[] = $input[$f];
+                    }
+                }
+                if (!$update) {
+                    Res::error('Nada para actualizar', 400);
+                }
+                $update[] = 'date_published = NOW()';
+                $params[] = $id;
+                $st = $pdo->prepare('UPDATE ' . T('news') . ' SET ' . implode(', ', $update) . ' WHERE id = ?');
+                $ok = $st->execute($params);
+                if ($ok) {
+                    Res::success('Noticia actualizada');
+                } else {
+                    Res::error('Error al actualizar noticia', 500);
+                }
+                break;
             }
-            $update[] = 'date_published = NOW()';
-            $params[] = $id;
-            $st = $pdo->prepare('UPDATE ' . T('news') . ' SET ' . implode(', ', $update) . ' WHERE id = ?');
-            $ok = $st->execute($params);
-            if ($ok) {
-                Res::success('Noticia actualizada');
-            } else {
-                Res::error('Error al actualizar noticia', 500);
-            }
-            break;
-        }
         case 'DELETE': {
-            $id = $_GET['id'] ?? null;
-            if (!$id) {
-                Res::error('ID de noticia requerido', 400);
+                $id = $_GET['id'] ?? null;
+                if (!$id) {
+                    Res::error('ID de noticia requerido', 400);
+                }
+                $st = $pdo->prepare('DELETE FROM ' . T('news') . ' WHERE id = ?');
+                $ok = $st->execute([$id]);
+                if ($ok) {
+                    Res::success('Noticia eliminada');
+                } else {
+                    Res::error('Error al eliminar noticia', 500);
+                }
+                break;
             }
-            $st = $pdo->prepare('DELETE FROM ' . T('news') . ' WHERE id = ?');
-            $ok = $st->execute([$id]);
-            if ($ok) {
-                Res::success('Noticia eliminada');
-            } else {
-                Res::error('Error al eliminar noticia', 500);
-            }
-            break;
-        }
         default:
-            Res::error('MÃƒÆ’Ã‚Â©todo no permitido', 405);
+            Res::error('Método no permitido', 405);
     }
 } catch (Throwable $e) {
     Res::exception($e);
 }
-
-

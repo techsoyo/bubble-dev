@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 
 
@@ -7,7 +9,7 @@ require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
     CsrfMiddleware::protect(); // double-submit cookie
 }
 
@@ -17,8 +19,8 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
     exit;
 }
 
-// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
+// preflightHandle(); // ELIMINADO: Preflight se maneja automí¡ticamente en bootstrap.php
+// sendCorsHeaders(); // ELIMINADO: CORS se configura automí¡ticamente en bootstrap.php
 header('Content-Type: application/json; charset=UTF-8');
 
 use Utils\ResponseHelper as Res;
@@ -60,10 +62,8 @@ try {
             }
             break;
         default:
-            Res::error('MÃƒÆ’Ã‚Â©todo no permitido', 405);
+            Res::error('Método no permitido', 405);
     }
 } catch (Throwable $e) {
     Res::exception($e);
 }
-
-

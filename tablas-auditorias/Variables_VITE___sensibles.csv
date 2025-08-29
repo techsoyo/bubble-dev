@@ -1,0 +1,10 @@
+file,line,line_text
+/audit/frontend/.env.development,15,VITE_JWT_SECRET_KEY=${VITE_JWT_SECRET_KEY}
+/audit/frontend/.env.example,20,VITE_REFRESH_TOKEN_ENDPOINT=/api/auth/refresh
+/audit/frontend/.env.example,30,VITE_CSRF_TOKEN_ENDPOINT=/api/auth/csrf-token.php
+/audit/frontend/.env.example,59,VITE_GOOGLE_TRANSLATE_API_KEY=
+/audit/frontend/.env.production,16,VITE_JWT_SECRET_KEY=${VITE_JWT_SECRET_KEY}
+/audit/frontend/.env.production.example,20,VITE_REFRESH_TOKEN_ENDPOINT=/api/auth/refresh
+/audit/frontend/.env.production.example,30,VITE_CSRF_TOKEN_ENDPOINT=/api/auth/csrf-token.php
+/audit/frontend/.env.production.example,59,VITE_GOOGLE_TRANSLATE_API_KEY=your_production_google_api_key
+/audit/frontend/.env,15,VITE_JWT_SECRET_KEY=ZmVkY2JhOTg3NjU0MzIxMGZlZGNiYTk4NzY1NDMyMTBmZWRjYmE5ODc2NTQzMjEwZmVkY2JhOTg3NjU0MzIxMA==

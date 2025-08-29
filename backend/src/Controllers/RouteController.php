@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Controllers;
 
 use Utils\Request;
@@ -11,7 +14,7 @@ class RouteController
     $candidateId = $request->input('candidate_id');
     $departmentId = $request->input('department_id');
 
-    // TODO: LÃƒÆ’Ã‚Â³gica de asignaciÃƒÆ’Ã‚Â³n
+    // TODO: Lógica de asignación
     return ResponseHelper::success('Candidate assigned', [
       'candidateId' => $candidateId,
       'departmentId' => $departmentId
@@ -21,7 +24,7 @@ class RouteController
   public function unassign(Request $request)
   {
     $candidateId = $request->input('candidate_id');
-    // TODO: LÃƒÆ’Ã‚Â³gica para desasignar
+    // TODO: Lógica para desasignar
     return ResponseHelper::success('Candidate unassigned', [
       'candidateId' => $candidateId
     ]);

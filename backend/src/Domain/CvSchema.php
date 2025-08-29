@@ -1,12 +1,15 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Domain;
 
 /**
- * Schema unificado para CV con template y normalizaciÃƒÆ’Ã‚Â³n
+ * Schema unificado para CV con template y normalización
  *
  * Proporciona:
  * - TEMPLATE: estructura base para el formulario
- * - normalize(): mÃƒÆ’Ã‚Â©todo para limpiar y validar datos de entrada
+ * - normalize(): método para limpiar y validar datos de entrada
  * - Contrato espejo con frontend TypeScript
  */
 class CvSchema
@@ -55,7 +58,7 @@ class CvSchema
     // bt_candidate_skills - Habilidades adicionales
     'habilidades_adicionales' => [],
 
-    // bt_candidate_routing - InformaciÃƒÆ’Ã‚Â³n de enrutamiento
+    // bt_candidate_routing - Información de enrutamiento
     'routing' => [
       'categoria_departamento_id' => null,
       'departamento_id' => null,
@@ -67,25 +70,25 @@ class CvSchema
   ];
 
   /**
-   * Plantilla mÃƒÆ’Ã‚Â­nima para prompts de IA
+   * Plantilla mí­nima para prompts de IA
    */
   public const PROMPT_MINIMAL = [
-    'nombre' => 'Juan PÃƒÆ’Ã‚Â©rez GarcÃƒÆ’Ã‚Â­a',
+    'nombre' => 'Juan Pérez Garcí­a',
     'email' => 'juan.perez@email.com',
     'telefono' => '+34 123 456 789',
-    'ubicacion_actual' => 'Madrid, EspaÃƒÆ’Ã‚Â±a',
+    'ubicacion_actual' => 'Madrid, Espaí±a',
     'fecha_nacimiento' => '1990-05-15',
     'portfolio' => 'https://juanperez.dev',
     'linkedin' => 'https://linkedin.com/in/juanperez',
     'otras_redes' => ['https://github.com/juanperez'],
-    'resumen_profesional' => 'Desarrollador Full Stack con 5 aÃƒÆ’Ã‚Â±os de experiencia en tecnologÃƒÆ’Ã‚Â­as web modernas.',
-    'soft_skills' => ['Trabajo en equipo', 'ComunicaciÃƒÆ’Ã‚Â³n', 'Liderazgo'],
+    'resumen_profesional' => 'Desarrollador Full Stack con 5 aí±os de experiencia en tecnologí­as web modernas.',
+    'soft_skills' => ['Trabajo en equipo', 'Comunicación', 'Liderazgo'],
     'hard_skills' => ['PHP', 'JavaScript', 'MySQL', 'React'],
     'idiomas' => [
-      ['idioma' => 'EspaÃƒÆ’Ã‚Â±ol', 'nivel' => 'Nativo'],
-      ['idioma' => 'InglÃƒÆ’Ã‚Â©s', 'nivel' => 'Avanzado']
+      ['idioma' => 'Espaí±ol', 'nivel' => 'Nativo'],
+      ['idioma' => 'Inglés', 'nivel' => 'Avanzado']
     ],
-    'intereses' => ['TecnologÃƒÆ’Ã‚Â­a', 'Deportes', 'Lectura'],
+    'intereses' => ['Tecnologí­a', 'Deportes', 'Lectura'],
     'referencias' => [],
     'disponibilidad' => 'Inmediata',
     'puestos_anteriores' => [
@@ -94,17 +97,17 @@ class CvSchema
         'empresa' => 'TechCorp S.L.',
         'fecha_inicio' => '2020-03',
         'fecha_fin' => '2023-12',
-        'descripcion' => 'Desarrollo de aplicaciones web con tecnologÃƒÆ’Ã‚Â­as modernas.',
-        'responsabilidades' => ['Liderazgo tÃƒÆ’Ã‚Â©cnico', 'Mentoring de desarrolladores junior']
+        'descripcion' => 'Desarrollo de aplicaciones web con tecnologí­as modernas.',
+        'responsabilidades' => ['Liderazgo técnico', 'Mentoring de desarrolladores junior']
       ]
     ],
     'educacion' => [
       [
-        'titulo' => 'IngenierÃƒÆ’Ã‚Â­a InformÃƒÆ’Ã‚Â¡tica',
+        'titulo' => 'Ingenierí­a Informí¡tica',
         'institucion' => 'Universidad Complutense Madrid',
         'fecha_inicio' => '2014-09',
         'fecha_fin' => '2018-06',
-        'descripcion' => 'EspecializaciÃƒÆ’Ã‚Â³n en desarrollo web y bases de datos'
+        'descripcion' => 'Especialización en desarrollo web y bases de datos'
       ]
     ],
     'certificaciones' => [
@@ -112,13 +115,13 @@ class CvSchema
         'nombre' => 'AWS Solutions Architect',
         'organizacion' => 'Amazon Web Services',
         'fecha' => '2022-08',
-        'descripcion' => 'CertificaciÃƒÆ’Ã‚Â³n en arquitectura cloud'
+        'descripcion' => 'Certificación en arquitectura cloud'
       ]
     ],
     'proyectos' => [
       [
-        'nombre' => 'Sistema de gestiÃƒÆ’Ã‚Â³n de talento',
-        'descripcion' => 'Plataforma web para gestiÃƒÆ’Ã‚Â³n de recursos humanos',
+        'nombre' => 'Sistema de gestión de talento',
+        'descripcion' => 'Plataforma web para gestión de recursos humanos',
         'tecnologias' => ['PHP', 'React', 'MySQL'],
         'fecha_inicio' => '2023-01',
         'fecha_fin' => '2023-06',
@@ -137,7 +140,7 @@ class CvSchema
   {
     $normalized = self::TEMPLATE;
 
-    // Sanitizar campos bÃƒÆ’Ã‚Â¡sicos de texto
+    // Sanitizar campos bí¡sicos de texto
     $textFields = [
       'nombre',
       'email',
@@ -156,7 +159,7 @@ class CvSchema
 
     foreach ($textFields as $field) {
       if (isset($input[$field])) {
-        // Solo sanitizar si es string, si es array dejarlo como estÃƒÆ’Ã‚Â¡
+        // Solo sanitizar si es string, si es array dejarlo como estí¡
         if (is_string($input[$field])) {
           $normalized[$field] = self::sanitizeText($input[$field]);
         } else {
@@ -223,7 +226,7 @@ class CvSchema
       }, $input['puestos_anteriores']);
     }
 
-    // Normalizar educaciÃƒÆ’Ã‚Â³n
+    // Normalizar educación
     if (isset($input['educacion']) && is_array($input['educacion'])) {
       $normalized['educacion'] = array_map(function ($edu) {
         return [
@@ -369,10 +372,10 @@ class CvSchema
   }
 
   /**
-   * Valida estructura y contenido del CV segÃƒÆ’Ã‚Âºn el contrato
+   * Valida estructura y contenido del CV según el contrato
    *
    * @param array $data Datos del CV a validar
-   * @return array Array de errores, vacÃƒÆ’Ã‚Â­o si todo estÃƒÆ’Ã‚Â¡ correcto ['campo'=>'motivo']
+   * @return array Array de errores, vací­o si todo estí¡ correcto ['campo'=>'motivo']
    */
   public static function validate(array $data): array
   {
@@ -385,14 +388,14 @@ class CvSchema
 
     // Validar email RFC
     if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-      $errors['email'] = 'Formato de email invÃƒÆ’Ã‚Â¡lido';
+      $errors['email'] = 'Formato de email inví¡lido';
     }
 
     // Validar fechas
     $dateFields = ['fecha_nacimiento'];
     foreach ($dateFields as $field) {
       if (!empty($data[$field]) && !self::isValidDate($data[$field])) {
-        $errors[$field] = 'Formato de fecha invÃƒÆ’Ã‚Â¡lido (use YYYY-MM-DD)';
+        $errors[$field] = 'Formato de fecha inví¡lido (use YYYY-MM-DD)';
       }
     }
 
@@ -400,7 +403,7 @@ class CvSchema
     $urlFields = ['portfolio', 'linkedin'];
     foreach ($urlFields as $field) {
       if (!empty($data[$field]) && !filter_var($data[$field], FILTER_VALIDATE_URL)) {
-        $errors[$field] = 'URL invÃƒÆ’Ã‚Â¡lida';
+        $errors[$field] = 'URL inví¡lida';
       }
     }
 
@@ -416,11 +419,11 @@ class CvSchema
 
     foreach ($stringLimits as $field => $limit) {
       if (!empty($data[$field]) && strlen($data[$field]) > $limit) {
-        $errors[$field] = "El campo excede el lÃƒÆ’Ã‚Â­mite de {$limit} caracteres";
+        $errors[$field] = "El campo excede el lí­mite de {$limit} caracteres";
       }
     }
 
-    // Validar arrays no excedan lÃƒÆ’Ã‚Â­mites
+    // Validar arrays no excedan lí­mites
     $arrayLimits = [
       'otras_redes' => 10,
       'soft_skills' => 50,
@@ -435,7 +438,7 @@ class CvSchema
 
     foreach ($arrayLimits as $field => $limit) {
       if (!empty($data[$field]) && is_array($data[$field]) && count($data[$field]) > $limit) {
-        $errors[$field] = "El campo excede el lÃƒÆ’Ã‚Â­mite de {$limit} elementos";
+        $errors[$field] = "El campo excede el lí­mite de {$limit} elementos";
       }
     }
 
@@ -443,22 +446,22 @@ class CvSchema
     if (!empty($data['puestos_anteriores']) && is_array($data['puestos_anteriores'])) {
       foreach ($data['puestos_anteriores'] as $index => $puesto) {
         if (!empty($puesto['fecha_inicio']) && !self::isValidDateYearMonth($puesto['fecha_inicio'])) {
-          $errors["puestos_anteriores.{$index}.fecha_inicio"] = 'Formato de fecha invÃƒÆ’Ã‚Â¡lido (use YYYY-MM)';
+          $errors["puestos_anteriores.{$index}.fecha_inicio"] = 'Formato de fecha inví¡lido (use YYYY-MM)';
         }
         if (!empty($puesto['fecha_fin']) && !self::isValidDateYearMonth($puesto['fecha_fin'])) {
-          $errors["puestos_anteriores.{$index}.fecha_fin"] = 'Formato de fecha invÃƒÆ’Ã‚Â¡lido (use YYYY-MM)';
+          $errors["puestos_anteriores.{$index}.fecha_fin"] = 'Formato de fecha inví¡lido (use YYYY-MM)';
         }
       }
     }
 
-    // Validar fechas en educaciÃƒÆ’Ã‚Â³n
+    // Validar fechas en educación
     if (!empty($data['educacion']) && is_array($data['educacion'])) {
       foreach ($data['educacion'] as $index => $edu) {
         if (!empty($edu['fecha_inicio']) && !self::isValidDateYearMonth($edu['fecha_inicio'])) {
-          $errors["educacion.{$index}.fecha_inicio"] = 'Formato de fecha invÃƒÆ’Ã‚Â¡lido (use YYYY-MM)';
+          $errors["educacion.{$index}.fecha_inicio"] = 'Formato de fecha inví¡lido (use YYYY-MM)';
         }
         if (!empty($edu['fecha_fin']) && !self::isValidDateYearMonth($edu['fecha_fin'])) {
-          $errors["educacion.{$index}.fecha_fin"] = 'Formato de fecha invÃƒÆ’Ã‚Â¡lido (use YYYY-MM)';
+          $errors["educacion.{$index}.fecha_fin"] = 'Formato de fecha inví¡lido (use YYYY-MM)';
         }
       }
     }
@@ -478,7 +481,7 @@ class CvSchema
   }
 
   /**
-   * Valida fecha aÃƒÆ’Ã‚Â±o-mes YYYY-MM
+   * Valida fecha aí±o-mes YYYY-MM
    */
   private static function isValidDateYearMonth(string $date): bool
   {
@@ -489,13 +492,13 @@ class CvSchema
   }
 
   /**
-   * ValidaciÃƒÆ’Ã‚Â³n de datos mÃƒÆ’Ã‚Â­nimos requeridos para un CV
+   * Validación de datos mí­nimos requeridos para un CV
    */
   public static function validateMinimumData(array $data): array
   {
     $errors = [];
 
-    // Validar campos mÃƒÆ’Ã‚Â­nimos obligatorios
+    // Validar campos mí­nimos obligatorios
     if (empty($data['nombre'])) {
       $errors['nombre'] = 'El nombre es obligatorio';
     }
@@ -503,12 +506,12 @@ class CvSchema
     if (empty($data['email'])) {
       $errors['email'] = 'El email es obligatorio';
     } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-      $errors['email'] = 'Formato de email invÃƒÆ’Ã‚Â¡lido';
+      $errors['email'] = 'Formato de email inví¡lido';
     }
 
     // Validar que tenga al menos una forma de contacto
     if (empty($data['telefono']) && empty($data['email'])) {
-      $errors['contacto'] = 'Debe proporcionar al menos email o telÃƒÆ’Ã‚Â©fono';
+      $errors['contacto'] = 'Debe proporcionar al menos email o teléfono';
     }
 
     return $errors;

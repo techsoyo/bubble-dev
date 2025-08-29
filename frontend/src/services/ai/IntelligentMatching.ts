@@ -1,4 +1,4 @@
-import { Candidate, Job, Company } from './types';
+import { Candidate, Job, Company, WorkExperience } from './types';
 import { safeGet } from '../../utils/safeStorage';
 
 export interface MatchingRequest {
@@ -240,9 +240,14 @@ export class IntelligentMatching {
 
 
   private calculateExperienceMatch(candidate: Candidate, job: Job): { score: number; details: string[]; confidence: number } {
-    const candidateExperience = (candidate.experience || []);
-    const totalYears = candidateExperience.reduce((sum: number, exp: { duration?: number }) => sum + (exp.duration || 0), 0);
-    const jobLevel = job.experienceLevel || 'entry';
+    const candidateExperience = (candidate.experience || candidate.work_experience || []);
+    const totalYears = candidateExperience.reduce((sum: number, exp: WorkExperience) => {
+      const startDate = new Date(exp.start_date);
+      const endDate = exp.current ? new Date() : (exp.end_date ? new Date(exp.end_date) : new Date());
+      const years = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 365);
+      return sum + Math.max(0, years);
+    }, 0);
+    const jobLevel = job.experienceLevel || job.experience_level || 'entry';
 
     const levelRequirements: Record<string, { min: number; max: number }> = {
       'entry': { min: 0, max: 2 },
@@ -506,6 +511,8 @@ export class IntelligentMatching {
         industry: 'marketing',
         size: 'medium',
         location: 'Madrid, España',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         culture: {
           innovation: 0.9,
           collaboration: 0.8,
@@ -532,7 +539,12 @@ export class IntelligentMatching {
       education: this.parseEducation(rawData.education),
       status: rawData.status || 'active',
       createdAt: rawData.created_at || new Date().toISOString(),
-      updatedAt: rawData.updated_at || new Date().toISOString()
+      updatedAt: rawData.updated_at || new Date().toISOString(),
+      // Propiedades requeridas por la interfaz principal
+      experience_years: rawData.experience_years || 0,
+      work_experience: this.parseExperience(rawData.experience || rawData.work_experience),
+      created_at: rawData.created_at || new Date().toISOString(),
+      updated_at: rawData.updated_at || new Date().toISOString()
     };
   }
 
@@ -541,15 +553,23 @@ export class IntelligentMatching {
       id: rawData.id?.toString() || '',
       title: rawData.title || '',
       description: rawData.description || '',
-      companyId: '1', // Siempre la agencia
-      remote: this.parseBoolean(rawData.remote),
-      experienceLevel: rawData.experience_level || 'mid',
-      employmentType: rawData.type || 'full-time',
+      company_id: '1', // Siempre la agencia
+      requirements: this.parseSkills(rawData.required_skills),
       requiredSkills: this.parseSkills(rawData.required_skills),
-      preferredSkills: this.parseSkills(rawData.preferred_skills),
+      preferred_skills: this.parseSkills(rawData.preferred_skills),
+      experience_level: rawData.experience_level || 'mid',
+      experienceLevel: rawData.experience_level || 'mid', // Alias for compatibility
+      salary_min: rawData.salary_min,
+      salary_max: rawData.salary_max,
       salaryRange: this.parseSalaryRange(rawData.salary_range),
-      industry: 'marketing', // Siempre marketing para la agencia
+      location: rawData.location || '',
+      remote: this.parseBoolean(rawData.remote),
+      remote_allowed: this.parseBoolean(rawData.remote),
       status: rawData.status || 'active',
+      created_at: rawData.created_at || new Date().toISOString(),
+      updated_at: rawData.updated_at || new Date().toISOString(),
+      // Alias para compatibilidad
+      companyId: '1',
       postedDate: rawData.created_at || rawData.date_posted || new Date().toISOString()
     };
   }

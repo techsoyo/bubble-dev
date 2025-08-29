@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Controllers;
 
 use Models\Interview;
@@ -23,7 +26,7 @@ class InterviewController extends BaseController
       $page = max(1, (int)($filters['page'] ?? 1));
       $limit = (int)($filters['limit'] ?? 20);
 
-      // Usar mÃƒÆ’Ã‚Â©todo de vista del modelo para obtener informaciÃƒÆ’Ã‚Â³n completa
+      // Usar método de vista del modelo para obtener información completa
       $interviews = $this->model->getInterviewSchedule($filters, $page, $limit);
       $total = $this->model->countAll($filters);
 

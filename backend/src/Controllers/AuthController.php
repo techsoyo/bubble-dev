@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Controllers;
 
 require_once __DIR__ . '/../../api/bootstrap.php';
@@ -8,21 +11,25 @@ use Firebase\JWT\Key;
 use Security\Cookies;
 use Utils\Request;
 use Utils\ResponseHelper;
+use Services\RateLimitService;
+use Services\SecurityLoggerService;
+use Services\ValidationService;
+use PDO;
 
 /**
  * AuthController
  *
  * Nota de arquitectura:
  * - El bootstrap principal se carga desde el front controller/router.
- * - NO hacer require de backend/public/api/bootstrap.php aquÃƒÆ’Ã‚Â­.
- * - La autenticaciÃƒÆ’Ã‚Â³n por cookie HttpOnly se aplica en endpoints/routers con JWTMiddleware.
- * - AquÃƒÆ’Ã‚Â­ solo generamos/limpiamos cookies y exponemos utilidades (user-info, verify, etc.).
+ * - NO hacer require de backend/public/api/bootstrap.php aquí­.
+ * - La autenticación por cookie HttpOnly se aplica en endpoints/routers con JWTMiddleware.
+ * - Aquí­ solo generamos/limpiamos cookies y exponemos utilidades (user-info, verify, etc.).
  */
 class AuthController
 {
   public function __construct()
   {
-    // En producciÃƒÆ’Ã‚Â³n no aceptamos Authorization header: solo cookie HttpOnly
+    // En producción no aceptamos Authorization header: solo cookie HttpOnly
     if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
       http_response_code(401);
       header('Content-Type: application/json');
@@ -86,34 +93,67 @@ class AuthController
   }
 
   /**
-   * Valida credenciales contra la base de datos.
-   * Debe reemplazarse por tu DAO/Servicio real.
+   * Valida credenciales contra la base de datos usando implementación real
    * Devuelve array con: id, email, role, subrole (opcional), status ('active'|'disabled')
    */
   private function validateCredentials(string $email, string $password, string $targetRole = 'user'): ?array
   {
-    // AquÃƒÆ’Ã‚Â­ irÃƒÆ’Ã‚Â­a la implementaciÃƒÆ’Ã‚Â³n real para validar credenciales
-    $user = null; // Resultado de consulta a base de datos
-    
-    // Si no se encuentra el usuario o la contraseÃƒÆ’Ã‚Â±a no coincide
-    if ($user === null) {
-      return null;
-    }
+    try {
+      // Obtener conexión a la base de datos
+      $db = \Utils\Database::getInstance()->getConnection();
 
-    if (!empty($user['status']) && $user['status'] !== 'active') {
+      // Determinar tabla según rol objetivo
+      $table = match ($targetRole) {
+        'candidate' => 'bt_candidates',
+        'staff' => 'bt_staff_profiles',
+        default => 'bt_users'
+      };
+
+      // Preparar consulta segura
+      $stmt = $db->prepare("
+        SELECT id, email, password_hash, role, status, first_name, last_name, name
+        FROM {$table}
+        WHERE email = ? AND status = 'active'
+        LIMIT 1
+      ");
+
+      $stmt->execute([$email]);
+      $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+      if (!$user) {
+        SecurityLoggerService::logLoginAttempt($email, false, $_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        return null;
+      }
+
+      // Verificar contraseña usando password_verify
+      if (!password_verify($password, $user['password_hash'])) {
+        SecurityLoggerService::logLoginAttempt($email, false, $_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        return null;
+      }
+
+      // Log de login exitoso
+      SecurityLoggerService::logLoginAttempt($email, true, $_SERVER['REMOTE_ADDR'] ?? 'unknown');
+
+      // Retornar datos del usuario
+      return [
+        'id' => (string)$user['id'],
+        'email' => $user['email'],
+        'role' => $user['role'] ?? $targetRole,
+        'subrole' => null, // Para mantener compatibilidad
+        'status' => 'active',
+        'first_name' => $user['first_name'] ?? '',
+        'last_name' => $user['last_name'] ?? '',
+        'name' => $user['name'] ?? ''
+      ];
+    } catch (\Exception $e) {
+      SecurityLoggerService::logSecurityEvent('credential_validation_error', [
+        'email' => $email,
+        'error' => $e->getMessage(),
+        'target_role' => $targetRole
+      ], 'ERROR');
+
       return null;
     }
-    
-    return [
-      'id'       => (string)$user['id'],
-      'email'    => $user['email'],
-      'role'     => $user['role'] ?? $targetRole,
-      'subrole'  => $user['subrole'] ?? null, // admin|recruiter para staff
-      'status'   => 'active',
-    ];
-    
-    // Sin implementaciÃƒÆ’Ã‚Â³n real -> null (no usar mocks)
-    // return null; // CÃƒÆ’Ã‚Â³digo inalcanzable
   }
 
   private function successfulLoginResponse(array $user, string $jwt): void
@@ -159,45 +199,134 @@ class AuthController
   }
 
   /**
-   * ----- Acciones pÃƒÆ’Ã‚Âºblicas -----
+   * ----- Acciones públicas -----
    */
 
   /**
-   * Login genÃƒÆ’Ã‚Â©rico (si lo usas en tu router). Recomendado usar los especÃƒÆ’Ã‚Â­ficos.
+   * Login genérico mejorado con rate limiting y validación robusta
    */
   public function login(Request $request, array $params = []): void
   {
     try {
       $data = $request->getBody();
-      $email = trim($data['email'] ?? '');
-      $password = (string)($data['password'] ?? '');
+      $clientIP = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
+      // RATE LIMITING - Verificar antes de procesar
+      if (!RateLimitService::canPerform('login', $clientIP)) {
+        $retryAfter = RateLimitService::getRetryAfter('login', $clientIP);
+        SecurityLoggerService::logRateLimitViolation('login', $clientIP, 5, 5);
+
+        http_response_code(429);
+        header('Content-Type: application/json');
+        header('Retry-After: ' . $retryAfter);
+        echo json_encode([
+          'ok' => false,
+          'error' => 'too_many_attempts',
+          'message' => 'Demasiados intentos de login. Intente nuevamente más tarde.',
+          'retry_after' => $retryAfter
+        ]);
+        exit;
+      }
+
+      // VALIDACIÓN DE ENTRADA
+      $emailValidation = ValidationService::validateEmail($data['email'] ?? '', true);
+      if (!$emailValidation['valid']) {
+        RateLimitService::recordAttempt('login', $clientIP);
+        http_response_code(400);
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => false, 'error' => 'invalid_email', 'message' => $emailValidation['error']]);
+        exit;
+      }
+
+      $passwordValidation = ValidationService::validatePassword($data['password'] ?? '', true);
+      if (!$passwordValidation['valid']) {
+        RateLimitService::recordAttempt('login', $clientIP);
+        http_response_code(400);
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => false, 'error' => 'invalid_password', 'message' => $passwordValidation['error']]);
+        exit;
+      }
+
+      $email = $emailValidation['sanitized'];
+      $password = $passwordValidation['sanitized'];
+
+      // VALIDAR CREDENCIALES
       $user = $this->validateCredentials($email, $password, 'user');
-      if (!$user) $this->invalidCredentials();
+      if (!$user) {
+        RateLimitService::recordAttempt('login', $clientIP);
+        $this->invalidCredentials();
+      }
 
+      // VERIFICAR STATUS DEL USUARIO
       if (($user['status'] ?? 'active') !== 'active') {
+        SecurityLoggerService::logSecurityEvent('inactive_user_login_attempt', [
+          'user_id' => $user['id'],
+          'email' => $email,
+          'status' => $user['status']
+        ], 'WARNING');
+
         $this->forbidden();
       }
 
+      // GENERAR JWT
       $jwt = $this->generateJwt([
         'sub'   => (string)$user['id'],
         'email' => $user['email'],
-        'role'  => $user['role'] ?? 'user',
+        'role'  => $user['role'],
         'sr'    => $user['subrole'] ?? null,
       ]);
 
+      // ESTABLECER COOKIES
       Cookies::setJwt($jwt);
       $this->emitCsrfCookie();
 
+      // LOG DE LOGIN EXITOSO
+      SecurityLoggerService::logSecurityEvent('login_success', [
+        'user_id' => $user['id'],
+        'email' => $email,
+        'role' => $user['role'],
+        'ip_address' => $clientIP
+      ], 'INFO');
+
       $this->successfulLoginResponse($user, $jwt);
     } catch (\Throwable $e) {
+      SecurityLoggerService::logSecurityEvent('login_error', [
+        'error' => $e->getMessage(),
+        'email' => $email ?? 'unknown',
+        'ip_address' => $clientIP
+      ], 'ERROR');
+
+      // GENERAR JWT
+      $jwt = $this->generateJwt([
+        'sub'   => (string)$user['id'],
+        'email' => $user['email'],
+        'role'  => $user['role'],
+        'sr'    => $user['subrole'] ?? null,
+      ]);
+
+      // ESTABLECER COOKIES
+      Cookies::setJwt($jwt);
+      $this->emitCsrfCookie();
+
+      // LOG DE LOGIN EXITOSO
+      SecurityLoggerService::logSecurityEvent('login_success', [
+        'user_id' => $user['id'],
+        'email' => $email,
+        'role' => $user['role'],
+        'ip_address' => $clientIP
+      ], 'INFO');
+
+      $this->successfulLoginResponse($user, $jwt);
+    } catch (\Throwable $e) {
+      SecurityLoggerService::logSecurityEvent('login_error', [
+        'error' => $e->getMessage(),
+        'email' => $email ?? 'unknown',
+        'ip_address' => $clientIP
+      ], 'ERROR');
+
       $this->internalError();
     }
   }
-
-  /**
-   * Login de candidato
-   */
   public function candidateLogin(Request $request, array $params = []): void
   {
     try {
@@ -283,7 +412,7 @@ class AuthController
   }
 
   /**
-   * InformaciÃƒÆ’Ã‚Â³n del usuario autenticado (claims del JWT)
+   * Información del usuario autenticado (claims del JWT)
    */
   public function userInfo(Request $request, array $params = []): void
   {
@@ -314,7 +443,7 @@ class AuthController
   }
 
   /**
-   * Verifica si la sesiÃƒÆ’Ã‚Â³n (cookie JWT) es vÃƒÆ’Ã‚Â¡lida
+   * Verifica si la sesión (cookie JWT) es ví¡lida
    */
   public function verifySession(Request $request, array $params = []): void
   {
@@ -351,7 +480,7 @@ class AuthController
   }
 
   /**
-   * ValidaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica de CSRF (double-submit) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â preferible usar CsrfMiddleware en endpoints de escritura
+   * Validación bí¡sica de CSRF (double-submit) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â preferible usar CsrfMiddleware en endpoints de escritura
    */
   public function validateCsrf(Request $request, array $params = []): void
   {
@@ -370,7 +499,7 @@ class AuthController
   }
 
   /**
-   * Ping simple (diagnÃƒÆ’Ã‚Â³stico)
+   * Ping simple (diagnóstico)
    */
   public function ping(Request $request, array $params = []): void
   {
@@ -380,19 +509,182 @@ class AuthController
   }
 
   /**
-   * Cambio de contraseÃƒÆ’Ã‚Â±a ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â requiere JWT (debe validarse en middleware)
-   * ImplementaciÃƒÆ’Ã‚Â³n real pendiente (DAO).
+   * Cambio de contraseña seguro con validación completa
    */
   public function changePassword(Request $request, array $params = []): void
   {
-    http_response_code(501);
-    header('Content-Type: application/json');
-    echo json_encode(['error' => 'not_implemented']);
-    exit;
+    try {
+      $data = $request->getBody();
+      $clientIP = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+      // RATE LIMITING para cambios de contraseña
+      if (!RateLimitService::canPerform('password_reset', $clientIP)) {
+        $retryAfter = RateLimitService::getRetryAfter('password_reset', $clientIP);
+        SecurityLoggerService::logRateLimitViolation('password_reset', $clientIP, 3, 3);
+
+        http_response_code(429);
+        header('Content-Type: application/json');
+        header('Retry-After: ' . $retryAfter);
+        echo json_encode([
+          'ok' => false,
+          'error' => 'too_many_attempts',
+          'message' => 'Demasiados intentos de cambio de contraseña. Intente nuevamente más tarde.',
+          'retry_after' => $retryAfter
+        ]);
+        exit;
+      }
+
+      // VALIDACIÓN DE CAMPOS REQUERIDOS
+      $requiredFields = ['current_password', 'new_password', 'confirm_password'];
+      foreach ($requiredFields as $field) {
+        if (!isset($data[$field]) || empty(trim($data[$field]))) {
+          SecurityLoggerService::logValidationError($field, 'Campo requerido faltante');
+          http_response_code(400);
+          header('Content-Type: application/json');
+          echo json_encode(['ok' => false, 'error' => 'missing_field', 'message' => "Campo requerido: {$field}"]);
+          exit;
+        }
+      }
+
+      // VALIDACIÓN DE CONTRASEÑA ACTUAL
+      $currentPasswordValidation = ValidationService::validatePassword($data['current_password'], true);
+      if (!$currentPasswordValidation['valid']) {
+        RateLimitService::recordAttempt('password_reset', $clientIP);
+        http_response_code(400);
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => false, 'error' => 'invalid_current_password', 'message' => $currentPasswordValidation['error']]);
+        exit;
+      }
+
+      // VALIDACIÓN DE NUEVA CONTRASEÑA
+      $newPasswordValidation = ValidationService::validatePassword($data['new_password'], true);
+      if (!$newPasswordValidation['valid']) {
+        RateLimitService::recordAttempt('password_reset', $clientIP);
+        http_response_code(400);
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => false, 'error' => 'invalid_new_password', 'message' => $newPasswordValidation['error']]);
+        exit;
+      }
+
+      // VERIFICAR QUE LAS CONTRASEÑAS COINCIDAN
+      if ($data['new_password'] !== $data['confirm_password']) {
+        RateLimitService::recordAttempt('password_reset', $clientIP);
+        SecurityLoggerService::logValidationError('password_confirmation', 'Las contraseñas no coinciden');
+        http_response_code(400);
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => false, 'error' => 'password_mismatch', 'message' => 'Las contraseñas no coinciden']);
+        exit;
+      }
+
+      // VERIFICAR QUE NO SEA LA MISMA CONTRASEÑA
+      if (password_verify($data['new_password'], password_hash($data['current_password'], PASSWORD_DEFAULT))) {
+        RateLimitService::recordAttempt('password_reset', $clientIP);
+        SecurityLoggerService::logValidationError('password_same', 'La nueva contraseña no puede ser igual a la actual');
+        http_response_code(400);
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => false, 'error' => 'same_password', 'message' => 'La nueva contraseña no puede ser igual a la actual']);
+        exit;
+      }
+
+      $currentPassword = $currentPasswordValidation['sanitized'];
+      $newPassword = $newPasswordValidation['sanitized'];
+
+      // OBTENER USUARIO AUTENTICADO (debería venir del middleware JWT)
+      $userId = $params['user_id'] ?? null; // Esto debería venir del middleware
+      if (!$userId) {
+        SecurityLoggerService::logSecurityEvent('password_change_no_user', [
+          'ip_address' => $clientIP
+        ], 'WARNING');
+
+        http_response_code(401);
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => false, 'error' => 'unauthorized', 'message' => 'Usuario no autenticado']);
+        exit;
+      }
+
+      // VERIFICAR CONTRASEÑA ACTUAL EN LA BASE DE DATOS
+      $db = \Utils\Database::getInstance()->getConnection();
+      $stmt = $db->prepare("SELECT password_hash FROM bt_users WHERE id = ? AND status = 'active'");
+      $stmt->execute([$userId]);
+      $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+      if (!$user) {
+        RateLimitService::recordAttempt('password_reset', $clientIP);
+        SecurityLoggerService::logSecurityEvent('password_change_user_not_found', [
+          'user_id' => $userId,
+          'ip_address' => $clientIP
+        ], 'WARNING');
+
+        http_response_code(404);
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => false, 'error' => 'user_not_found', 'message' => 'Usuario no encontrado']);
+        exit;
+      }
+
+      // VERIFICAR CONTRASEÑA ACTUAL
+      if (!password_verify($currentPassword, $user['password_hash'])) {
+        RateLimitService::recordAttempt('password_reset', $clientIP);
+        SecurityLoggerService::logSecurityEvent('password_change_wrong_current', [
+          'user_id' => $userId,
+          'ip_address' => $clientIP
+        ], 'WARNING');
+
+        http_response_code(400);
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => false, 'error' => 'wrong_current_password', 'message' => 'Contraseña actual incorrecta']);
+        exit;
+      }
+
+      // GENERAR NUEVO HASH DE CONTRASEÑA
+      $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+
+      // ACTUALIZAR CONTRASEÑA EN LA BASE DE DATOS
+      $updateStmt = $db->prepare("UPDATE bt_users SET password_hash = ?, updated_at = NOW() WHERE id = ?");
+      $result = $updateStmt->execute([$newPasswordHash, $userId]);
+
+      if (!$result) {
+        SecurityLoggerService::logSecurityEvent('password_change_db_error', [
+          'user_id' => $userId,
+          'ip_address' => $clientIP
+        ], 'ERROR');
+
+        http_response_code(500);
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => false, 'error' => 'db_error', 'message' => 'Error al actualizar la contraseña']);
+        exit;
+      }
+
+      // LOG DE CAMBIO EXITOSO
+      SecurityLoggerService::logPasswordChange($userId, true, $clientIP);
+
+      // INVALIDAR TOKENS ANTERIORES (opcional pero recomendado)
+      // Aquí podrías implementar invalidación de JWT si tienes un sistema de blacklist
+
+      header('Content-Type: application/json');
+      echo json_encode([
+        'ok' => true,
+        'message' => 'Contraseña cambiada exitosamente',
+        'data' => [
+          'changed_at' => date('Y-m-d H:i:s')
+        ]
+      ]);
+      exit;
+    } catch (\Throwable $e) {
+      SecurityLoggerService::logSecurityEvent('password_change_error', [
+        'error' => $e->getMessage(),
+        'user_id' => $userId ?? 'unknown',
+        'ip_address' => $clientIP
+      ], 'ERROR');
+
+      http_response_code(500);
+      header('Content-Type: application/json');
+      echo json_encode(['ok' => false, 'error' => 'internal_error', 'message' => 'Error interno del servidor']);
+      exit;
+    }
   }
 
   /**
-   * Interceptor de autenticaciÃƒÆ’Ã‚Â³n (debug)
+   * Interceptor de autenticación (debug)
    */
   public function intercept(Request $request, array $params = []): void
   {

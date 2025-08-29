@@ -32,7 +32,6 @@ export function useAuthSession() {
                     setIsLoggedIn(true);
                     setUser(res.data.data);
                 } else {
-                    // 🚨 PRODUCCIÓN: Solo cookies httpOnly, no localStorage
                     // Los datos de autenticación están en cookies seguras automáticamente
                     setIsLoggedIn(false);
                     setUser(null);

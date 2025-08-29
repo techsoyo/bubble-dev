@@ -1,16 +1,18 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
-    CsrfMiddleware::protect(); // double-submit cookie
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+  CsrfMiddleware::protect(); // double-submit cookie
 }
 
 if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized (cookie required)']);
-    exit;
+  http_response_code(401);
+  echo json_encode(['error' => 'Unauthorized (cookie required)']);
+  exit;
 }
 
 header('Content-Type: application/json');
@@ -25,14 +27,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
   http_response_code(405);
-  echo json_encode(['error' => 'MÃƒÆ’Ã‚Â©todo no permitido']);
+  echo json_encode(['error' => 'Método no permitido']);
   exit();
 }
 
 try {
   $pdo = getDBConnection();
 
-  // Obtener estadÃƒÆ’Ã‚Â­sticas generales
+  // Obtener estadí­sticas generales
   $stmt = $pdo->prepare("
         SELECT 
             (SELECT COUNT(*) FROM bt_candidates WHERE status = 'active') as total_candidates,
@@ -69,7 +71,7 @@ try {
   $stmt->execute();
   $applicationsByDepartment = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-  // Aplicaciones recientes (ÃƒÆ’Ã‚Âºltimos 7 dÃƒÆ’Ã‚Â­as)
+  // Aplicaciones recientes (últimos 7 dí­as)
   $stmt = $pdo->prepare("
         SELECT 
             a.*,
@@ -85,7 +87,7 @@ try {
   $stmt->execute();
   $recentApplications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-  // MÃƒÆ’Ã‚Â©tricas de rendimiento
+  // Métricas de rendimiento
   $conversionRate = $stats['total_applications'] > 0 ?
     round(($stats['hired_count'] / $stats['total_applications']) * 100, 2) : 0;
 
@@ -113,4 +115,3 @@ try {
     'details' => $e->getMessage()
   ]);
 }
-

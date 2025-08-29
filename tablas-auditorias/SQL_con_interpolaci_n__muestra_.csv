@@ -1,0 +1,8 @@
+file,line,sql,full
+/audit/backend/scripts/check_tables.php,27,SELECT COUNT(*) as count FROM $tableName,"$countStmt = $pdo->query(""SELECT COUNT(*) as count FROM $tableName"");"
+/audit/backend/scripts/verify_database_structure.php,34,SELECT COUNT(*) as count FROM $table,"$countStmt = $pdo->prepare(""SELECT COUNT(*) as count FROM $table"");"
+/audit/backend/src/Models/BaseModel.php,830,SHOW COLUMNS FROM `{$this->table}`,"$stmt = $this->db->prepare(""SHOW COLUMNS FROM `{$this->table}`"");"
+/audit/backend/public/api/candidates.php,448,SELECT COUNT(*) as total FROM bt_candidates c {$whereClause},"$countStmt = $pdo->prepare(""SELECT COUNT(*) as total FROM bt_candidates c {$whereClause}"");"
+/audit/backend/public/api/candidates_temp.php,448,SELECT COUNT(*) as total FROM bt_candidates c {$whereClause},"$countStmt = $pdo->prepare(""SELECT COUNT(*) as total FROM bt_candidates c {$whereClause}"");"
+/audit/backend/public/api/departments.php,851,SELECT COUNT(*) as count FROM {$table} WHERE {$column} = ? AND active = 1,"$depStmt = $db->prepare(""SELECT COUNT(*) as count FROM {$table} WHERE {$column} = ? AND active = 1"");"
+/audit/backend/public/api/cv/confirm.php,291,DELETE FROM $t WHERE candidate_id = ?,"$pdo->prepare(""DELETE FROM $t WHERE candidate_id = ?"")->execute([$candidateId]);"

@@ -1,9 +1,19 @@
-<?php declare(strict_types=1);
-require_once __DIR__ . '/../bootstrap.php';
-JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+<?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/./bootstrap.php';
+
+use Middleware\CsrfMiddleware;
+use Middleware\JWTMiddleware;
+use Services\JobMatchingService;
+use Utils\ResponseHelper as Res;
+
+// Autenticación obligatoria
+JWTMiddleware::requireAuth();
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
     CsrfMiddleware::protect(); // double-submit cookie
 }
 
@@ -17,7 +27,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // Proteger solo mÃƒÂ©todos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
     // double-submit cookie
 }
 
@@ -67,53 +77,53 @@ if (!is_dir($jsonDir)) {
     }
 }
 
-// 6. Construir el prompt para estructuraciÃƒÆ’Ã‚Â³n JSON con recruitment-ai
+// 6. Construir el prompt para estructuración JSON con recruitment-ai
 $prompt = "Tarea: Analizar y estructurar en formato JSON el siguiente CV ya filtrado.\n\n" .
-  "Instrucciones:\n" .
-  "1. Extrae los siguientes campos, si estÃƒÆ’Ã‚Â¡n disponibles:\n" .
-  "   - nombre, email, telÃƒÆ’Ã‚Â©fono\n" .
-  "   - formaciÃƒÆ’Ã‚Â³n acadÃƒÆ’Ã‚Â©mica: tÃƒÆ’Ã‚Â­tulo, instituciÃƒÆ’Ã‚Â³n, fechas\n" .
-  "   - experiencia laboral: empresa, puesto, fechas, funciones\n" .
-  "   - tecnologÃƒÆ’Ã‚Â­as/habilidades tÃƒÆ’Ã‚Â©cnicas\n" .
-  "   - idiomas (idioma y nivel)\n" .
-  "   - certificaciones\n" .
-  "   - logros o formaciones adicionales relevantes\n" .
-  "2. La salida debe ser un JSON bien estructurado.\n" .
-  "3. No inventes campos que no estÃƒÆ’Ã‚Â©n. Si algo no se encuentra, deja el array vacÃƒÆ’Ã‚Â­o.\n" .
-  "4. Cada entrada debe ir en su array correspondiente.\n\n" .
-  "Formato de salida esperado:\n" .
-  "{\n" .
-  "  \"nombre\": \"\",\n" .
-  "  \"email\": \"\",\n" .
-  "  \"telefono\": \"\",\n" .
-  "  \"formacion\": [\n" .
-  "    {\n" .
-  "      \"titulo\": \"\",\n" .
-  "      \"institucion\": \"\",\n" .
-  "      \"fecha_inicio\": \"\",\n" .
-  "      \"fecha_fin\": \"\"\n" .
-  "    }\n" .
-  "  ],\n" .
-  "  \"experiencia\": [\n" .
-  "    {\n" .
-  "      \"empresa\": \"\",\n" .
-  "      \"puesto\": \"\",\n" .
-  "      \"fecha_inicio\": \"\",\n" .
-  "      \"fecha_fin\": \"\",\n" .
-  "      \"funciones\": \"\"\n" .
-  "    }\n" .
-  "  ],\n" .
-  "  \"tecnologias\": [],\n" .
-  "  \"idiomas\": [\n" .
-  "    {\n" .
-  "      \"idioma\": \"\",\n" .
-  "      \"nivel\": \"\"\n" .
-  "    }\n" .
-  "  ],\n" .
-  "  \"certificaciones\": [],\n" .
-  "  \"otros\": []\n" .
-  "}\n\n" .
-  "Contenido del CV limpio:\n" . $cleanContent;
+    "Instrucciones:\n" .
+    "1. Extrae los siguientes campos, si estí¡n disponibles:\n" .
+    "   - nombre, email, teléfono\n" .
+    "   - formación académica: tí­tulo, institución, fechas\n" .
+    "   - experiencia laboral: empresa, puesto, fechas, funciones\n" .
+    "   - tecnologí­as/habilidades técnicas\n" .
+    "   - idiomas (idioma y nivel)\n" .
+    "   - certificaciones\n" .
+    "   - logros o formaciones adicionales relevantes\n" .
+    "2. La salida debe ser un JSON bien estructurado.\n" .
+    "3. No inventes campos que no estén. Si algo no se encuentra, deja el array vací­o.\n" .
+    "4. Cada entrada debe ir en su array correspondiente.\n\n" .
+    "Formato de salida esperado:\n" .
+    "{\n" .
+    "  \"nombre\": \"\",\n" .
+    "  \"email\": \"\",\n" .
+    "  \"telefono\": \"\",\n" .
+    "  \"formacion\": [\n" .
+    "    {\n" .
+    "      \"titulo\": \"\",\n" .
+    "      \"institucion\": \"\",\n" .
+    "      \"fecha_inicio\": \"\",\n" .
+    "      \"fecha_fin\": \"\"\n" .
+    "    }\n" .
+    "  ],\n" .
+    "  \"experiencia\": [\n" .
+    "    {\n" .
+    "      \"empresa\": \"\",\n" .
+    "      \"puesto\": \"\",\n" .
+    "      \"fecha_inicio\": \"\",\n" .
+    "      \"fecha_fin\": \"\",\n" .
+    "      \"funciones\": \"\"\n" .
+    "    }\n" .
+    "  ],\n" .
+    "  \"tecnologias\": [],\n" .
+    "  \"idiomas\": [\n" .
+    "    {\n" .
+    "      \"idioma\": \"\",\n" .
+    "      \"nivel\": \"\"\n" .
+    "    }\n" .
+    "  ],\n" .
+    "  \"certificaciones\": [],\n" .
+    "  \"otros\": []\n" .
+    "}\n\n" .
+    "Contenido del CV limpio:\n" . $cleanContent;
 
 // 7. Enviar al modelo recruitment-ai de Ollama
 $ollamaHost = 'http://localhost:11434';
@@ -122,25 +132,25 @@ $model = 'recruitment-ai';
 $curl = curl_init("$ollamaHost/api/generate");
 
 curl_setopt_array($curl, [
-  CURLOPT_RETURNTRANSFER => true,
-  CURLOPT_POST => true,
-  CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-  CURLOPT_POSTFIELDS => json_encode([
-    'model' => $model,
-    'prompt' => $prompt,
-    'stream' => false,
-    'format' => 'json'
-  ]),
-  CURLOPT_TIMEOUT => 240, // 4 minutos para JSON
-  CURLOPT_CONNECTTIMEOUT => 10
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST => true,
+    CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+    CURLOPT_POSTFIELDS => json_encode([
+        'model' => $model,
+        'prompt' => $prompt,
+        'stream' => false,
+        'format' => 'json'
+    ]),
+    CURLOPT_TIMEOUT => 240, // 4 minutos para JSON
+    CURLOPT_CONNECTTIMEOUT => 10
 ]);
 
 $response = curl_exec($curl);
 
 if (curl_errno($curl)) {
     echo json_encode([
-      'error' => 'Error al conectar con Ollama (recruitment-ai)',
-      'details' => curl_error($curl)
+        'error' => 'Error al conectar con Ollama (recruitment-ai)',
+        'details' => curl_error($curl)
     ]);
     curl_close($curl);
     exit;
@@ -152,8 +162,8 @@ curl_close($curl);
 $data = json_decode($response, true);
 if (!isset($data['response'])) {
     echo json_encode([
-      'error' => 'Respuesta invÃƒÆ’Ã‚Â¡lida de Ollama (recruitment-ai)',
-      'raw' => substr($response, 0, 200)
+        'error' => 'Respuesta inví¡lida de Ollama (recruitment-ai)',
+        'raw' => substr($response, 0, 200)
     ]);
     exit;
 }
@@ -169,15 +179,15 @@ if ($jsonStart !== false && $jsonEnd !== false) {
     $parsedJson = json_decode($jsonString, true);
 
     if ($parsedJson) {
-        // JSON vÃƒÆ’Ã‚Â¡lido extraÃƒÆ’Ã‚Â­do
+        // JSON ví¡lido extraí­do
         $finalJson = json_encode($parsedJson, JSON_PRETTY_PRINT);
     } else {
-        // JSON invÃƒÆ’Ã‚Â¡lido, usar respuesta cruda pero marcar como no parseado
+        // JSON inví¡lido, usar respuesta cruda pero marcar como no parseado
         $finalJson = $jsonResponse;
         $parsedJson = null;
     }
 } else {
-    // No se encontrÃƒÆ’Ã‚Â³ JSON, usar respuesta cruda
+    // No se encontró JSON, usar respuesta cruda
     $finalJson = $jsonResponse;
     $parsedJson = null;
 }
@@ -196,14 +206,13 @@ if (file_put_contents($jsonFilePath, $finalJson) === false) {
 
 // 12. Devolver respuesta exitosa de la ETAPA 2
 echo json_encode([
-  'status' => 'ok',
-  'stage' => 2,
-  'json_file' => $jsonFileName,
-  'json_valid' => $parsedJson !== null,
-  'clean_size' => strlen($cleanContent),
-  'json_size' => strlen($finalJson),
-  'extracted_fields' => $parsedJson ? array_keys($parsedJson) : [],
-  'process_complete' => true
+    'status' => 'ok',
+    'stage' => 2,
+    'json_file' => $jsonFileName,
+    'json_valid' => $parsedJson !== null,
+    'clean_size' => strlen($cleanContent),
+    'json_size' => strlen($finalJson),
+    'extracted_fields' => $parsedJson ? array_keys($parsedJson) : [],
+    'process_complete' => true
 ]);
 exit;
-

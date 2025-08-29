@@ -1,93 +1,59 @@
-<?php declare(strict_types=1);
-require_once __DIR__ . '/../bootstrap.php';
-JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
-
-$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
-    CsrfMiddleware::protect(); // double-submit cookie
-}
-
-if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized (cookie required)']);
-    exit;
-}
-
-// cookie HttpOnly obligatoria
-
-// Proteger solo mÃƒÂ©todos que cambian estado
-$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
-    // double-submit cookie
-}
-
-// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
-if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
-    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
-        http_response_code(401);
-        echo json_encode(['error' => 'Unauthorized (cookie required)']);
-        exit;
-    }
-}
-
-// ORIGINAL CODE BELOW
-/**
- * Communication Automation API Endpoint
- *
- * Endpoint para generaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡tica de emails, comunicaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
- * personalizada y automatizaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de respuestas.
- *
- * @package Backend\API\AI
- * @version 1.0.0
- * @since 2025-08-10
- */
+<?php
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../src/Services/CommunicationService.php';
+require_once __DIR__ . '/./bootstrap.php';
 
-// Cargar variables de entorno
-if (file_exists(__DIR__ . '/../../.env')) {
-    $lines = file(__DIR__ . '/../../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        if (strpos($line, '#') === 0) {
-            continue;
-        }
-        if (strpos($line, '=') !== false) {
-            [$key, $value] = explode('=', $line, 2);
-            $_ENV[trim($key)] = trim($value);
-            putenv(trim($key) . '=' . trim($value));
-        }
-    }
+use Middleware\CsrfMiddleware;
+use Middleware\JWTMiddleware;
+use Utils\ResponseHelper as Res;
+
+// Auth
+JWTMiddleware::requireAuth();
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+    CsrfMiddleware::protect();
 }
 
-use Services\CommunicationService;
+// En producción solo cookie
+if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    Res::error('Unauthorized (cookie required)', null, 401);
+}
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['error' => 'MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©todo no permitido']);
-    exit;
+// Este endpoint acepta solo POST
+if ($method !== 'POST') {
+    Res::fail('Metodo no permitido', 405);
+}
+
+// Mantener compatibilidad con require_once local si el servicio no está en autoload
+if (file_exists(__DIR__ . '/../../src/Services/CommunicationService.php')) {
+    require_once __DIR__ . '/../../src/Services/CommunicationService.php';
+}
+
+// Leer y validar JSON
+$input = Res::getJsonInput();
+if (!is_array($input)) {
+    Res::fail('Datos JSON inválidos', 400);
+}
+
+$action = $input['action'] ?? 'generate_email';
+
+// Instanciar servicio con fallback
+$communicationService = null;
+if (class_exists(\Services\CommunicationService::class)) {
+    $communicationService = new \Services\CommunicationService();
+} else {
+    Res::error('Servicio de comunicación no disponible', null, 500);
 }
 
 try {
-    $input = json_decode(file_get_contents('php://input'), true);
-
-    if (!$input) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Datos JSON invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lidos']);
-        exit;
-    }
-
-    $action = $input['action'] ?? 'generate_email';
-    $communicationService = new CommunicationService();
+    $start = microtime(true);
 
     switch ($action) {
         case 'generate_email':
-            // Generar email personalizado
             if (!isset($input['email_type']) || !isset($input['candidate_data'])) {
-                http_response_code(400);
-                echo json_encode(['error' => 'Faltan email_type o candidate_data']);
-                exit;
+                Res::fail('Faltan email_type o candidate_data', 400);
             }
 
             $email = $communicationService->generatePersonalizedEmail(
@@ -97,21 +63,23 @@ try {
                 $input['additional_data'] ?? []
             );
 
-            echo json_encode([
-                'success' => true,
+            $elapsedMs = (int)round((microtime(true) - $start) * 1000);
+
+            Res::success('generate_email', [
                 'action' => 'generate_email',
                 'email' => $email,
                 'ready_to_send' => true,
-                'timestamp' => date('Y-m-d H:i:s')
+                'timestamp' => date('Y-m-d H:i:s'),
+                'processing_info' => [
+                    'time_ms' => $elapsedMs,
+                    'endpoint' => basename(__FILE__),
+                ],
             ]);
             break;
 
         case 'application_response':
-            // Respuesta automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡tica a aplicaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
             if (!isset($input['candidate_data']) || !isset($input['job_data'])) {
-                http_response_code(400);
-                echo json_encode(['error' => 'Faltan candidate_data o job_data']);
-                exit;
+                Res::fail('Faltan candidate_data o job_data', 400);
             }
 
             $email = $communicationService->generateApplicationResponse(
@@ -119,21 +87,23 @@ try {
                 $input['job_data']
             );
 
-            echo json_encode([
-                'success' => true,
+            $elapsedMs = (int)round((microtime(true) - $start) * 1000);
+
+            Res::success('application_response', [
                 'action' => 'application_response',
                 'email' => $email,
                 'ready_to_send' => true,
-                'timestamp' => date('Y-m-d H:i:s')
+                'timestamp' => date('Y-m-d H:i:s'),
+                'processing_info' => [
+                    'time_ms' => $elapsedMs,
+                    'endpoint' => basename(__FILE__),
+                ],
             ]);
             break;
 
         case 'rejection_email':
-            // Email de rechazo con feedback
             if (!isset($input['candidate_data']) || !isset($input['job_data'])) {
-                http_response_code(400);
-                echo json_encode(['error' => 'Faltan candidate_data o job_data']);
-                exit;
+                Res::fail('Faltan candidate_data o job_data', 400);
             }
 
             $rejectionReason = $input['rejection_reason'] ?? '';
@@ -143,21 +113,23 @@ try {
                 $rejectionReason
             );
 
-            echo json_encode([
-                'success' => true,
+            $elapsedMs = (int)round((microtime(true) - $start) * 1000);
+
+            Res::success('rejection_email', [
                 'action' => 'rejection_email',
                 'email' => $email,
                 'ready_to_send' => true,
-                'timestamp' => date('Y-m-d H:i:s')
+                'timestamp' => date('Y-m-d H:i:s'),
+                'processing_info' => [
+                    'time_ms' => $elapsedMs,
+                    'endpoint' => basename(__FILE__),
+                ],
             ]);
             break;
 
         case 'interview_invitation':
-            // InvitaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n a entrevista
             if (!isset($input['candidate_data']) || !isset($input['job_data'])) {
-                http_response_code(400);
-                echo json_encode(['error' => 'Faltan candidate_data o job_data']);
-                exit;
+                Res::fail('Faltan candidate_data o job_data', 400);
             }
 
             $interviewDetails = $input['interview_details'] ?? [];
@@ -167,21 +139,23 @@ try {
                 $interviewDetails
             );
 
-            echo json_encode([
-                'success' => true,
+            $elapsedMs = (int)round((microtime(true) - $start) * 1000);
+
+            Res::success('interview_invitation', [
                 'action' => 'interview_invitation',
                 'email' => $email,
                 'ready_to_send' => true,
-                'timestamp' => date('Y-m-d H:i:s')
+                'timestamp' => date('Y-m-d H:i:s'),
+                'processing_info' => [
+                    'time_ms' => $elapsedMs,
+                    'endpoint' => basename(__FILE__),
+                ],
             ]);
             break;
 
         case 'follow_up':
-            // Email de seguimiento
             if (!isset($input['candidate_data']) || !isset($input['job_data'])) {
-                http_response_code(400);
-                echo json_encode(['error' => 'Faltan candidate_data o job_data']);
-                exit;
+                Res::fail('Faltan candidate_data o job_data', 400);
             }
 
             $stage = $input['stage'] ?? 'general';
@@ -191,21 +165,23 @@ try {
                 $stage
             );
 
-            echo json_encode([
-                'success' => true,
+            $elapsedMs = (int)round((microtime(true) - $start) * 1000);
+
+            Res::success('follow_up', [
                 'action' => 'follow_up',
                 'email' => $email,
                 'ready_to_send' => true,
-                'timestamp' => date('Y-m-d H:i:s')
+                'timestamp' => date('Y-m-d H:i:s'),
+                'processing_info' => [
+                    'time_ms' => $elapsedMs,
+                    'endpoint' => basename(__FILE__),
+                ],
             ]);
             break;
 
         case 'status_update':
-            // ActualizaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de estado
             if (!isset($input['candidate_data']) || !isset($input['job_data']) || !isset($input['new_status'])) {
-                http_response_code(400);
-                echo json_encode(['error' => 'Faltan candidate_data, job_data o new_status']);
-                exit;
+                Res::fail('Faltan candidate_data, job_data o new_status', 400);
             }
 
             $nextSteps = $input['next_steps'] ?? [];
@@ -216,40 +192,44 @@ try {
                 $nextSteps
             );
 
-            echo json_encode([
-                'success' => true,
+            $elapsedMs = (int)round((microtime(true) - $start) * 1000);
+
+            Res::success('status_update', [
                 'action' => 'status_update',
                 'email' => $email,
                 'ready_to_send' => true,
-                'timestamp' => date('Y-m-d H:i:s')
+                'timestamp' => date('Y-m-d H:i:s'),
+                'processing_info' => [
+                    'time_ms' => $elapsedMs,
+                    'endpoint' => basename(__FILE__),
+                ],
             ]);
             break;
 
         case 'generate_templates':
-            // Generar templates para el trabajo
             if (!isset($input['job_data'])) {
-                http_response_code(400);
-                echo json_encode(['error' => 'Falta job_data']);
-                exit;
+                Res::fail('Falta job_data', 400);
             }
 
             $templates = $communicationService->generateEmailTemplates($input['job_data']);
 
-            echo json_encode([
-                'success' => true,
+            $elapsedMs = (int)round((microtime(true) - $start) * 1000);
+
+            Res::success('generate_templates', [
                 'action' => 'generate_templates',
                 'templates' => $templates,
-                'template_count' => count($templates),
-                'timestamp' => date('Y-m-d H:i:s')
+                'template_count' => is_array($templates) ? count($templates) : 0,
+                'timestamp' => date('Y-m-d H:i:s'),
+                'processing_info' => [
+                    'time_ms' => $elapsedMs,
+                    'endpoint' => basename(__FILE__),
+                ],
             ]);
             break;
 
         case 'schedule_emails':
-            // Programar emails automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ticos
             if (!isset($input['candidate_data']) || !isset($input['job_data']) || !isset($input['triggers'])) {
-                http_response_code(400);
-                echo json_encode(['error' => 'Faltan candidate_data, job_data o triggers']);
-                exit;
+                Res::fail('Faltan candidate_data, job_data o triggers', 400);
             }
 
             $scheduledEmails = $communicationService->scheduleAutomaticEmails(
@@ -258,21 +238,23 @@ try {
                 $input['triggers']
             );
 
-            echo json_encode([
-                'success' => true,
+            $elapsedMs = (int)round((microtime(true) - $start) * 1000);
+
+            Res::success('schedule_emails', [
                 'action' => 'schedule_emails',
                 'scheduled_emails' => $scheduledEmails,
-                'total_scheduled' => count($scheduledEmails),
-                'timestamp' => date('Y-m-d H:i:s')
+                'total_scheduled' => is_array($scheduledEmails) ? count($scheduledEmails) : 0,
+                'timestamp' => date('Y-m-d H:i:s'),
+                'processing_info' => [
+                    'time_ms' => $elapsedMs,
+                    'endpoint' => basename(__FILE__),
+                ],
             ]);
             break;
 
         case 'bulk_communications':
-            // Comunicaciones masivas
             if (!isset($input['candidates']) || !isset($input['job_data']) || !isset($input['email_type'])) {
-                http_response_code(400);
-                echo json_encode(['error' => 'Faltan candidates, job_data o email_type']);
-                exit;
+                Res::fail('Faltan candidates, job_data o email_type', 400);
             }
 
             $bulkEmails = [];
@@ -291,19 +273,22 @@ try {
                 ];
             }
 
-            echo json_encode([
-                'success' => true,
+            $elapsedMs = (int)round((microtime(true) - $start) * 1000);
+
+            Res::success('bulk_communications', [
                 'action' => 'bulk_communications',
                 'bulk_emails' => $bulkEmails,
                 'total_emails' => count($bulkEmails),
-                'timestamp' => date('Y-m-d H:i:s')
+                'timestamp' => date('Y-m-d H:i:s'),
+                'processing_info' => [
+                    'time_ms' => $elapsedMs,
+                    'endpoint' => basename(__FILE__),
+                ],
             ]);
             break;
 
         default:
-            http_response_code(400);
-            echo json_encode([
-                'error' => 'AcciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n no vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lida',
+            Res::fail('Acción no válida', 400, [
                 'valid_actions' => [
                     'generate_email',
                     'application_response',
@@ -318,13 +303,13 @@ try {
             ]);
             break;
     }
-} catch (\Exception $e) {
-    error_log('Error en communication endpoint: ' . $e->getMessage());
-    http_response_code(500);
-    echo json_encode([
-        'error' => 'Error interno del servidor',
+} catch (\Throwable $e) {
+    Res::log('error', 'communication endpoint error', [
+        'endpoint' => basename(__FILE__),
+        'action' => $action ?? null,
         'message' => $e->getMessage(),
-        'timestamp' => date('Y-m-d H:i:s')
+        'trace' => $e->getTraceAsString(),
     ]);
-}
 
+    Res::error('Error interno del servidor', $e, 500);
+}

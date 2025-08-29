@@ -1,2 +1,67 @@
+# Backend .gitignore - Archivos sensibles y temporales
+# ===============================================
+
+# Archivos de configuración sensibles
+.env
+.env.local
+.env.*.local
+
+# Credenciales y contraseñas
+credentials_passwords.md
+*password*
+*secret*
+*key*
+
+# Logs (ya movidos a storage/logs)
+logs/
+*.log
+
+# Archivos temporales
+*.tmp
+*.temp
+cache/
+temp/
+
+# Backups de base de datos
+*.sql
+*.dump
+database/backups/
+
+# Archivos de desarrollo
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Tests con datos sensibles
+tests/fixtures/sensitive/
+tests/data/private/
+
+# Reportes con información sensible
+public/reports/
+reports/
+
+# Storage privado
+storage/private/
+storage/ratelimit/
+
+# Composer
+vendor/
+composer.lock
+
+# Node modules (si los hay)
+node_modules/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Archivos de configuración IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
 # Ignore backups moved out of src
 /_backups/

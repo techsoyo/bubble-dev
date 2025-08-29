@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Services;
 
 use Exception;
@@ -11,7 +14,7 @@ class ResumeService
     /**
      * Procesa un CV PDF o DOCX, extrae texto, consulta IA y guarda resultado
      * @param string $filePath Ruta absoluta al archivo
-     * @return array Resultado del anÃƒÆ’Ã‚Â¡lisis
+     * @return array Resultado del Anáslisis
      * @throws Exception
      */
     public function processResume(string $filePath): array
@@ -31,7 +34,7 @@ class ResumeService
             throw new Exception('Tipo de archivo no soportado');
         }
         if (trim($text) === '') {
-            throw new Exception('El archivo estÃƒÆ’Ã‚Â¡ vacÃƒÆ’Ã‚Â­o o no se pudo extraer texto');
+            throw new Exception('El archivo estí¡ vací­o o no se pudo extraer texto');
         }
         // Llamada a API de IA (ejemplo OpenAI)
         $aiResult = $this->analyzeWithAI($text);
@@ -64,7 +67,7 @@ class ResumeService
 
     private function analyzeWithAI(string $text): array
     {
-        // ImplementaciÃƒÆ’Ã‚Â³n real pendiente: invocar proveedor de IA y procesar la respuesta
+        // Implementación real pendiente: invocar proveedor de IA y procesar la respuesta
         throw new Exception('analyzeWithAI no implementado');
     }
 
@@ -72,10 +75,10 @@ class ResumeService
     {
         $db = Database::getInstance();
         $db->insert('resume_analysis', [
-          'file_path' => $filePath,
-          'score' => $result['score'],
-          'tags' => json_encode($result['tags']),
-          'created_at' => date('Y-m-d H:i:s')
+            'file_path' => $filePath,
+            'score' => $result['score'],
+            'tags' => json_encode($result['tags']),
+            'created_at' => date('Y-m-d H:i:s')
         ]);
     }
 }

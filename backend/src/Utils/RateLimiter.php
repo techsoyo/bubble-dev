@@ -1,11 +1,14 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Utils;
 
 /**
  * RateLimiter simple basado en archivos para ventanas fijas de 10 minutos.
  * Rutas target: /api/cv/parse (10/10min) y /api/cv/confirm (20/10min).
  * Estructura de archivo: storage/ratelimit/{window}_{ipHash}.json => { route => count }
- * Pensado para ser sustituible por Redis implementando la misma interfaz pÃƒÆ’Ã‚Âºblica.
+ * Pensado para ser sustituible por Redis implementando la misma interfaz pública.
  */
 final class RateLimiter
 {
@@ -50,9 +53,9 @@ final class RateLimiter
         }
         $remaining = max(0, $limit - $data[$route]);
         return [
-          'allowed' => $data[$route] <= $limit,
-          'remaining' => $remaining,
-          'count' => $data[$route]
+            'allowed' => $data[$route] <= $limit,
+            'remaining' => $remaining,
+            'count' => $data[$route]
         ];
     }
 
@@ -64,16 +67,16 @@ final class RateLimiter
         if (!$res['allowed']) {
             http_response_code(429);
             $payload = [
-              'success' => false,
-              'error' => [
-                'code' => 'RATE_LIMIT_EXCEEDED',
-                'message' => 'LÃƒÆ’Ã‚Â­mite de solicitudes excedido',
-                'details' => [
-                  'route' => $route,
-                  'limit' => $limit,
-                  'window_seconds' => self::WINDOW_SECONDS
+                'success' => false,
+                'error' => [
+                    'code' => 'RATE_LIMIT_EXCEEDED',
+                    'message' => 'Lí­mite de solicitudes excedido',
+                    'details' => [
+                        'route' => $route,
+                        'limit' => $limit,
+                        'window_seconds' => self::WINDOW_SECONDS
+                    ]
                 ]
-              ]
             ];
             if (class_exists(Log::class)) {
                 Log::json('warn', ['event' => 'rate_limit', 'tag' => 'BLOCK', 'route' => $route, 'ip' => $ip]);

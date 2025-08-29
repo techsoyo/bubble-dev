@@ -112,28 +112,48 @@ class OfflineDataManager {
 
   // Guardar trabajos para uso offline
   async saveJobs(jobs: JobData[]): Promise<void> {
+    // Validar entrada
+    if (!Array.isArray(jobs)) {
+      throw new Error('Jobs must be an array');
+    }
+
+    if (jobs.length === 0) {
+      console.warn('No jobs to save');
+      return;
+    }
+
+    // Validar estructura de cada job
+    const validatedJobs = jobs.map(job => this.validateJobData(job));
+
     const db = await this.initDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction('jobs', 'readwrite');
       const store = tx.objectStore('jobs');
       let completed = 0;
-      const jobsWithTimestamp = jobs.map(job => ({
+      let hasErrors = false;
+
+      const jobsWithTimestamp = validatedJobs.map(job => ({
         ...job,
         lastSyncedAt: new Date().toISOString()
       }));
+
       jobsWithTimestamp.forEach(job => {
         const req = store.put(job);
         req.onerror = () => {
-          reject(req.error);
+          console.error('Error saving job:', job.id, req.error);
+          hasErrors = true;
+          if (!hasErrors) reject(req.error);
         };
         req.onsuccess = () => {
           completed++;
-          if (completed === jobsWithTimestamp.length) {
+          if (completed === jobsWithTimestamp.length && !hasErrors) {
             resolve();
           }
         };
       });
+
       tx.onerror = () => {
+        console.error('Transaction error:', tx.error);
         reject(tx.error);
       };
     });
@@ -344,6 +364,222 @@ class OfflineDataManager {
       };
       req.onerror = () => reject(req.error);
     });
+  }
+
+  /**
+   * Verifica si hay conectividad a internet
+   */
+  async isOnline(): Promise<boolean> {
+    try {
+      // Intentar hacer una petición HEAD a un endpoint ligero
+      const response = await fetch('/api/health', {
+        method: 'HEAD',
+        cache: 'no-cache',
+        signal: AbortSignal.timeout(5000) // Timeout de 5 segundos
+      });
+      return response.ok;
+    } catch (error) {
+      console.warn('Connectivity check failed:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Obtiene estadísticas de uso del almacenamiento offline
+   */
+  async getStorageStats(): Promise<{
+    jobsCount: number;
+    draftsCount: number;
+    cacheItemsCount: number;
+    pendingRequestsCount: number;
+    totalSize: number;
+  }> {
+    try {
+      const db = await this.initDB();
+
+      const [jobs, drafts, cache, pending] = await Promise.all([
+        this.getJobs(),
+        this.getFormDrafts(),
+        this.getCacheItems(),
+        this.getPendingRequests()
+      ]);
+
+      // Estimación aproximada del tamaño (muy básica)
+      const totalSize = JSON.stringify({ jobs, drafts, cache, pending }).length;
+
+      return {
+        jobsCount: jobs.length,
+        draftsCount: drafts.length,
+        cacheItemsCount: cache.length,
+        pendingRequestsCount: pending.length,
+        totalSize
+      };
+    } catch (error) {
+      console.error('Error getting storage stats:', error);
+      throw new Error('Failed to get storage statistics');
+    }
+  }
+
+  /**
+   * Limpia todos los datos expirados
+   */
+  async cleanup(): Promise<void> {
+    try {
+      await Promise.all([
+        this.cleanExpiredCache(),
+        this.clearExpiredJobs()
+      ]);
+      console.log('Offline storage cleanup completed');
+    } catch (error) {
+      console.error('Error during cleanup:', error);
+      throw new Error('Failed to cleanup offline storage');
+    }
+  }
+
+  /**
+   * Método auxiliar para obtener borradores de formulario
+   */
+  private async getFormDrafts(): Promise<FormDraft[]> {
+    const db = await this.initDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('form-drafts', 'readonly');
+      const store = tx.objectStore('form-drafts');
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  /**
+   * Método auxiliar para obtener elementos de caché
+   */
+  private async getCacheItems(): Promise<ApiCacheItem[]> {
+    const db = await this.initDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('api-cache', 'readonly');
+      const store = tx.objectStore('api-cache');
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  /**
+   * Limpia trabajos expirados
+   */
+  private async clearExpiredJobs(): Promise<void> {
+    const db = await this.initDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('jobs', 'readwrite');
+      const store = tx.objectStore('jobs');
+      const req = store.getAll();
+
+      req.onsuccess = () => {
+        const now = new Date().toISOString();
+        const expiredJobs = req.result.filter((job: JobData) => job.expiresAt < now);
+
+        if (expiredJobs.length === 0) {
+          resolve();
+          return;
+        }
+
+        let deleted = 0;
+        expiredJobs.forEach((job: JobData) => {
+          const delReq = store.delete(job.id);
+          delReq.onsuccess = () => {
+            deleted++;
+            if (deleted === expiredJobs.length) {
+              resolve();
+            }
+          };
+          delReq.onerror = () => reject(delReq.error);
+        });
+      };
+
+      req.onerror = () => reject(req.error);
+    });
+  }
+  private validateJobData(job: any): JobData {
+    if (!job || typeof job !== 'object') {
+      throw new Error('Job data must be a valid object');
+    }
+
+    // Validar campos requeridos
+    if (!job.id || typeof job.id !== 'number') {
+      throw new Error('Job must have a valid numeric id');
+    }
+
+    if (!job.title || typeof job.title !== 'string' || job.title.trim().length === 0) {
+      throw new Error('Job must have a valid title');
+    }
+
+    if (!job.description || typeof job.description !== 'string') {
+      throw new Error('Job must have a valid description');
+    }
+
+    // Validar y sanitizar arrays
+    const validatedJob: JobData = {
+      id: job.id,
+      title: job.title.trim(),
+      description: job.description.trim(),
+      company: job.company || 'Unknown Company',
+      location: job.location || 'Remote',
+      salary: job.salary || 'Not specified',
+      createdAt: job.createdAt || new Date().toISOString(),
+      updatedAt: job.updatedAt || new Date().toISOString(),
+      expiresAt: job.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 días por defecto
+      requirements: Array.isArray(job.requirements) ? job.requirements : [],
+      responsibilities: Array.isArray(job.responsibilities) ? job.responsibilities : [],
+      skills: Array.isArray(job.skills) ? job.skills : [],
+      benefits: Array.isArray(job.benefits) ? job.benefits : [],
+      applicationCount: typeof job.applicationCount === 'number' ? job.applicationCount : 0,
+      isActive: typeof job.isActive === 'boolean' ? job.isActive : true,
+      category: job.category || 'General',
+      type: job.type || 'Full-time',
+      level: job.level || 'Mid-level',
+      lastSyncedAt: job.lastSyncedAt || new Date().toISOString()
+    };
+
+    return validatedJob;
+  }
+
+  /**
+   * Valida datos de formulario
+   */
+  private validateFormData<T>(formData: any): T {
+    if (!formData || typeof formData !== 'object') {
+      throw new Error('Form data must be a valid object');
+    }
+
+    // Validación básica de estructura
+    if (Object.keys(formData).length === 0) {
+      throw new Error('Form data cannot be empty');
+    }
+
+    return formData as T;
+  }
+
+  /**
+   * Valida elementos de caché de API
+   */
+  private validateCacheItem<T>(item: any): ApiCacheItem<T> {
+    if (!item || typeof item !== 'object') {
+      throw new Error('Cache item must be a valid object');
+    }
+
+    if (!item.url || typeof item.url !== 'string') {
+      throw new Error('Cache item must have a valid URL');
+    }
+
+    if (!item.data) {
+      throw new Error('Cache item must have data');
+    }
+
+    return {
+      url: item.url,
+      data: item.data,
+      expiresAt: item.expiresAt || Date.now() + (24 * 60 * 60 * 1000) // 24 horas por defecto
+    };
   }
 }
 

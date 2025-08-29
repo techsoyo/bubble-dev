@@ -15,13 +15,13 @@ const UserMenu: React.FC = () => {
         return (
             <div className="flex space-x-4">
                 <button
-                    onClick={() => navigate('/auth/login')}
+                    onClick={() => navigate('/auth/register')}
                     className="text-white hover:text-gray-300 px-3 py-2 rounded-md text-sm font-medium"
                 >
                     Iniciar Sesión
                 </button>
                 <button
-                    onClick={() => navigate('/candidates/login')}
+                    onClick={() => navigate('/auth/register')}
                     className="bg-white text-indigo-600 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium"
                 >
                     Registrarse

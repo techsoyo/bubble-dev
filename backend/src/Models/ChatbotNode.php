@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Models;
 
 use Utils\Logger;
@@ -8,9 +11,9 @@ use PDO;
 /**
  * Modelo para los nodos del chatbot optimizado con BaseModel
  * 
- * Representa cada mensaje, opciÃƒÆ’Ã‚Â³n, formulario o redirecciÃƒÆ’Ã‚Â³n en el flujo conversacional.
- * Incluye funcionalidades avanzadas para manejo de ÃƒÆ’Ã‚Â¡rboles jerÃƒÆ’Ã‚Â¡rquicos, cache optimizado,
- * y validaciÃƒÆ’Ã‚Â³n robusta de flujos de conversaciÃƒÆ’Ã‚Â³n.
+ * Representa cada mensaje, opción, formulario o redirección en el flujo conversacional.
+ * Incluye funcionalidades avanzadas para manejo de í¡rboles jerí¡rquicos, cache optimizado,
+ * y validación robusta de flujos de conversación.
  *
  * @package Models
  * @author Bubble of Talents Development Team
@@ -47,7 +50,7 @@ class ChatbotNode extends BaseModel
     ];
 
     /**
-     * Cache para ÃƒÆ’Ã‚Â¡rboles de conversaciÃƒÆ’Ã‚Â³n
+     * Cache para í¡rboles de conversación
      */
     private array $nodeTreeCache = [];
 
@@ -69,7 +72,7 @@ class ChatbotNode extends BaseModel
     ];
 
     /**
-     * Estados vÃƒÆ’Ã‚Â¡lidos de nodos
+     * Estados ví¡lidos de nodos
      */
     private const VALID_STATUSES = [
         'active',
@@ -79,21 +82,21 @@ class ChatbotNode extends BaseModel
     ];
 
     /**
-     * Obtener la estructura jerÃƒÆ’Ã‚Â¡rquica completa del chatbot
+     * Obtener la estructura jerí¡rquica completa del chatbot
      * 
-     * Construye el ÃƒÆ’Ã‚Â¡rbol completo de nodos del chatbot con sus relaciones padre-hijo,
+     * Construye el í¡rbol completo de nodos del chatbot con sus relaciones padre-hijo,
      * optimizado con cache para mejorar rendimiento en consultas frecuentes.
      *
      * @param bool $useCache Si debe utilizar cache para la consulta
      * @param bool $activeOnly Si solo debe incluir nodos activos
-     * @return array Estructura jerÃƒÆ’Ã‚Â¡rquica de nodos
+     * @return array Estructura jerí¡rquica de nodos
      * @throws \RuntimeException Si hay error en la consulta
      */
     public function getNodeTree(bool $useCache = true, bool $activeOnly = true): array
     {
         $cacheKey = "node_tree_" . ($activeOnly ? 'active' : 'all');
 
-        // Verificar cache si estÃƒÆ’Ã‚Â¡ habilitado
+        // Verificar cache si estí¡ habilitado
         if ($useCache && isset($this->nodeTreeCache[$cacheKey])) {
             $cacheData = $this->nodeTreeCache[$cacheKey];
             if (time() - $cacheData['timestamp'] < self::CACHE_TTL) {
@@ -128,7 +131,7 @@ class ChatbotNode extends BaseModel
                 $node['actions'] = $node['actions'] ? json_decode($node['actions'], true) : [];
             }
 
-            // Construir estructura jerÃƒÆ’Ã‚Â¡rquica
+            // Construir estructura jerí¡rquica
             $tree = $this->buildNodeHierarchy($nodes);
 
             // Guardar en cache
@@ -157,13 +160,13 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * Encontrar nodos hijos de un nodo especÃƒÆ’Ã‚Â­fico
+     * Encontrar nodos hijos de un nodo especí­fico
      *
      * @param string|int $parentId ID del nodo padre
      * @param bool $activeOnly Si solo incluir nodos activos
      * @param bool $recursive Si incluir hijos anidados
      * @return array Lista de nodos hijos
-     * @throws \InvalidArgumentException Si el parent_id es invÃƒÆ’Ã‚Â¡lido
+     * @throws \InvalidArgumentException Si el parent_id es inví¡lido
      * @throws \RuntimeException Si hay error en la consulta
      */
     public function findChildNodes($parentId, bool $activeOnly = true, bool $recursive = false): array
@@ -268,14 +271,14 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * Ejecutar la acciÃƒÆ’Ã‚Â³n asociada a un nodo
+     * Ejecutar la acción asociada a un nodo
      *
      * @param string|int $nodeId ID del nodo
-     * @param array $context Contexto de la conversaciÃƒÆ’Ã‚Â³n
+     * @param array $context Contexto de la conversación
      * @param array $userInput Input del usuario
-     * @return array Resultado de la ejecuciÃƒÆ’Ã‚Â³n
-     * @throws \InvalidArgumentException Si los parÃƒÆ’Ã‚Â¡metros son invÃƒÆ’Ã‚Â¡lidos
-     * @throws \RuntimeException Si hay error en la ejecuciÃƒÆ’Ã‚Â³n
+     * @return array Resultado de la ejecución
+     * @throws \InvalidArgumentException Si los parí¡metros son inví¡lidos
+     * @throws \RuntimeException Si hay error en la ejecución
      */
     public function executeNodeAction($nodeId, array $context = [], array $userInput = []): array
     {
@@ -290,7 +293,7 @@ class ChatbotNode extends BaseModel
                 throw new \RuntimeException("Node not found: $nodeId");
             }
 
-            // Verificar que el nodo estÃƒÆ’Ã‚Â© activo
+            // Verificar que el nodo esté activo
             if ($node['status'] !== 'active') {
                 throw new \RuntimeException("Node is not active: $nodeId");
             }
@@ -320,7 +323,7 @@ class ChatbotNode extends BaseModel
                 }
             }
 
-            // Ejecutar acciones segÃƒÆ’Ã‚Âºn el tipo de nodo
+            // Ejecutar acciones según el tipo de nodo
             switch ($node['node_type']) {
                 case 'message':
                     $result = $this->executeMessageAction($node, $actions, $context, $userInput, $result);
@@ -367,13 +370,13 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * Validar el flujo de conversaciÃƒÆ’Ã‚Â³n desde un nodo raÃƒÆ’Ã‚Â­z
+     * Validar el flujo de conversación desde un nodo raí­z
      *
      * @param string|int $startNodeId ID del nodo inicial
-     * @param int $maxDepth Profundidad mÃƒÆ’Ã‚Â¡xima a validar
-     * @return array Resultado de la validaciÃƒÆ’Ã‚Â³n
-     * @throws \InvalidArgumentException Si los parÃƒÆ’Ã‚Â¡metros son invÃƒÆ’Ã‚Â¡lidos
-     * @throws \RuntimeException Si hay error en la validaciÃƒÆ’Ã‚Â³n
+     * @param int $maxDepth Profundidad mí¡xima a validar
+     * @return array Resultado de la validación
+     * @throws \InvalidArgumentException Si los parí¡metros son inví¡lidos
+     * @throws \RuntimeException Si hay error en la validación
      */
     public function validateNodeFlow($startNodeId, int $maxDepth = 50): array
     {
@@ -399,7 +402,7 @@ class ChatbotNode extends BaseModel
                 'validation_time' => date('Y-m-d H:i:s')
             ];
 
-            // Obtener todos los nodos activos para validaciÃƒÆ’Ã‚Â³n
+            // Obtener todos los nodos activos para validación
             $allNodes = $this->getActiveNodes();
             $nodesMap = [];
             foreach ($allNodes as $node) {
@@ -413,7 +416,7 @@ class ChatbotNode extends BaseModel
                 return $validation;
             }
 
-            // Realizar validaciÃƒÆ’Ã‚Â³n recursiva
+            // Realizar validación recursiva
             $visitedNodes = [];
             $pathStack = [];
 
@@ -427,7 +430,7 @@ class ChatbotNode extends BaseModel
                 $validation
             );
 
-            // Buscar nodos huÃƒÆ’Ã‚Â©rfanos
+            // Buscar nodos huérfanos
             $reachableNodes = array_keys($visitedNodes);
             foreach ($allNodes as $node) {
                 if (!in_array($node['id'], $reachableNodes)) {
@@ -436,7 +439,7 @@ class ChatbotNode extends BaseModel
                 }
             }
 
-            // Determinar si la validaciÃƒÆ’Ã‚Â³n es exitosa
+            // Determinar si la validación es exitosa
             $validation['is_valid'] = empty($validation['errors']);
 
             Logger::info('Node flow validation completed', [
@@ -458,7 +461,7 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * Limpiar cache de ÃƒÆ’Ã‚Â¡rboles de conversaciÃƒÆ’Ã‚Â³n
+     * Limpiar cache de í¡rboles de conversación
      */
     public function clearNodeTreeCache(): void
     {
@@ -467,9 +470,9 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * Obtener estadÃƒÆ’Ã‚Â­sticas del chatbot
+     * Obtener estadí­sticas del chatbot
      *
-     * @return array EstadÃƒÆ’Ã‚Â­sticas completas
+     * @return array Estadí­sticas completas
      */
     public function getChatbotStats(): array
     {
@@ -506,11 +509,11 @@ class ChatbotNode extends BaseModel
     }
 
     // =============================
-    // MÃƒÆ’Ã¢â‚¬Â°TODOS PRIVADOS DE UTILIDAD
+    // MÉTODOS PRIVADOS DE UTILIDAD
     // =============================
 
     /**
-     * Construir jerarquÃƒÆ’Ã‚Â­a de nodos recursivamente
+     * Construir jerarquí­a de nodos recursivamente
      */
     private function buildNodeHierarchy(array $nodes, $parentId = null): array
     {
@@ -527,7 +530,7 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * Calcular profundidad del ÃƒÆ’Ã‚Â¡rbol
+     * Calcular profundidad del í¡rbol
      */
     private function calculateTreeDepth(array $tree, int $currentDepth = 0): int
     {
@@ -570,7 +573,7 @@ class ChatbotNode extends BaseModel
             'errors' => []
         ];
 
-        // ImplementaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica de evaluaciÃƒÆ’Ã‚Â³n de condiciones
+        // Implementación bí¡sica de evaluación de condiciones
         foreach ($conditions as $condition) {
             if (!$this->evaluateSingleCondition($condition, $context, $userInput)) {
                 $result['passed'] = false;
@@ -582,11 +585,11 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * Evaluar una condiciÃƒÆ’Ã‚Â³n individual
+     * Evaluar una condición individual
      */
     private function evaluateSingleCondition(array $condition, array $context, array $userInput): bool
     {
-        // ImplementaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica - se puede extender segÃƒÆ’Ã‚Âºn necesidades
+        // Implementación bí¡sica - se puede extender según necesidades
         $type = $condition['type'] ?? '';
         $field = $condition['field'] ?? '';
         $operator = $condition['operator'] ?? '==';
@@ -609,7 +612,7 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * Comparar valores segÃƒÆ’Ã‚Âºn operador
+     * Comparar valores según operador
      */
     private function compareValues($actual, string $operator, $expected): bool
     {
@@ -641,7 +644,7 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * Ejecutar acciÃƒÆ’Ã‚Â³n de mensaje
+     * Ejecutar acción de mensaje
      */
     private function executeMessageAction(array $node, array $actions, array $context, array $userInput, array $result): array
     {
@@ -661,7 +664,7 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * Ejecutar acciÃƒÆ’Ã‚Â³n de opciones
+     * Ejecutar acción de opciones
      */
     private function executeOptionsAction(array $node, array $actions, array $context, array $userInput, array $result): array
     {
@@ -676,7 +679,7 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * Ejecutar acciÃƒÆ’Ã‚Â³n de formulario
+     * Ejecutar acción de formulario
      */
     private function executeFormAction(array $node, array $actions, array $context, array $userInput, array $result): array
     {
@@ -691,7 +694,7 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * Ejecutar acciÃƒÆ’Ã‚Â³n de redirecciÃƒÆ’Ã‚Â³n
+     * Ejecutar acción de redirección
      */
     private function executeRedirectAction(array $node, array $actions, array $context, array $userInput, array $result): array
     {
@@ -706,7 +709,7 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * Ejecutar acciÃƒÆ’Ã‚Â³n condicional
+     * Ejecutar acción condicional
      */
     private function executeConditionAction(array $node, array $actions, array $context, array $userInput, array $result): array
     {
@@ -719,7 +722,7 @@ class ChatbotNode extends BaseModel
             'condition_passed' => $conditionResult['passed']
         ];
 
-        // Determinar siguiente nodo basado en la condiciÃƒÆ’Ã‚Â³n
+        // Determinar siguiente nodo basado en la condición
         if ($conditionResult['passed']) {
             $result['next_node'] = $actions['success_node_id'] ?? null;
         } else {
@@ -730,7 +733,7 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * Ejecutar acciÃƒÆ’Ã‚Â³n personalizada
+     * Ejecutar acción personalizada
      */
     private function executeCustomAction(array $node, array $actions, array $context, array $userInput, array $result): array
     {
@@ -740,7 +743,7 @@ class ChatbotNode extends BaseModel
             'action_data' => $actions
         ];
 
-        // Procesar acciones personalizadas segÃƒÆ’Ã‚Âºn configuraciÃƒÆ’Ã‚Â³n
+        // Procesar acciones personalizadas según configuración
         if (isset($actions['webhook_url'])) {
             // Simular llamada a webhook
             $result['response']['webhook_called'] = true;
@@ -761,7 +764,7 @@ class ChatbotNode extends BaseModel
         int $maxDepth,
         array &$validation
     ): void {
-        // Verificar profundidad mÃƒÆ’Ã‚Â¡xima
+        // Verificar profundidad mí¡xima
         if ($currentDepth >= $maxDepth) {
             $validation['warnings'][] = "Maximum depth reached at node: $nodeId";
             $validation['max_depth_reached'] = max($validation['max_depth_reached'], $currentDepth);
@@ -836,7 +839,7 @@ class ChatbotNode extends BaseModel
             $validation['warnings'][] = "Node {$node['id']} has no name";
         }
 
-        // Validar JSON vÃƒÆ’Ã‚Â¡lido en campos metadata, conditions, actions
+        // Validar JSON ví¡lido en campos metadata, conditions, actions
         $jsonFields = ['metadata', 'conditions', 'actions'];
         foreach ($jsonFields as $field) {
             if (!empty($node[$field]) && json_decode($node[$field]) === null && json_last_error() !== JSON_ERROR_NONE) {
@@ -880,7 +883,7 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * Override del mÃƒÆ’Ã‚Â©todo store para validaciÃƒÆ’Ã‚Â³n adicional
+     * Override del método store para validación adicional
      */
     public function store(array $data)
     {
@@ -902,7 +905,7 @@ class ChatbotNode extends BaseModel
             }
         }
 
-        // Limpiar cache despuÃƒÆ’Ã‚Â©s de crear
+        // Limpiar cache después de crear
         $result = parent::store($data);
         if ($result) {
             $this->clearNodeTreeCache();
@@ -912,7 +915,7 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * Override del mÃƒÆ’Ã‚Â©todo update para validaciÃƒÆ’Ã‚Â³n adicional
+     * Override del método update para validación adicional
      */
     public function update($id, array $data): bool
     {
@@ -934,7 +937,7 @@ class ChatbotNode extends BaseModel
             }
         }
 
-        // Limpiar cache despuÃƒÆ’Ã‚Â©s de actualizar
+        // Limpiar cache después de actualizar
         $result = parent::update($id, $data);
         if ($result) {
             $this->clearNodeTreeCache();
@@ -944,7 +947,7 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * Override del mÃƒÆ’Ã‚Â©todo delete para limpiar cache
+     * Override del método delete para limpiar cache
      */
     public function delete($id): bool
     {
@@ -957,7 +960,7 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã‚Â©todo de compatibilidad hacia atrÃƒÆ’Ã‚Â¡s - Obtener todos los nodos activos
+     * Método de compatibilidad hacia atrí¡s - Obtener todos los nodos activos
      */
     public function getAllActive(): array
     {
@@ -965,7 +968,7 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã‚Â©todo de compatibilidad hacia atrÃƒÆ’Ã‚Â¡s - Obtener nodo por ID
+     * Método de compatibilidad hacia atrí¡s - Obtener nodo por ID
      */
     public function getById($id): ?array
     {
@@ -973,7 +976,7 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã‚Â©todo de compatibilidad hacia atrÃƒÆ’Ã‚Â¡s - Obtener nodos por tipo
+     * Método de compatibilidad hacia atrí¡s - Obtener nodos por tipo
      */
     public function getByType(string $type): array
     {
@@ -981,7 +984,7 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã‚Â©todo de compatibilidad hacia atrÃƒÆ’Ã‚Â¡s - Verificar existencia
+     * Método de compatibilidad hacia atrí¡s - Verificar existencia
      */
     public function exists($id): bool
     {
@@ -989,7 +992,7 @@ class ChatbotNode extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã‚Â©todo de compatibilidad hacia atrÃƒÆ’Ã‚Â¡s - Obtener estadÃƒÆ’Ã‚Â­sticas
+     * Método de compatibilidad hacia atrí¡s - Obtener estadí­sticas
      */
     public function getStats(): array
     {
@@ -997,7 +1000,7 @@ class ChatbotNode extends BaseModel
     }
 
     // ==========================================
-    // MÃƒÆ’Ã¢â‚¬Â°TODOS CRUD ENCAPSULADOS ESTÃƒÆ’Ã‚ÂNDAR
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
     // ==========================================
 
     /**
@@ -1051,7 +1054,7 @@ class ChatbotNode extends BaseModel
      * Actualizar chatbot_node con validaciones
      * @param mixed $id ID del chatbot_node a actualizar
      * @param array $data Nuevos datos
-     * @return bool True si la actualizaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @return bool True si la actualización fue exitosa
      */
     public function updateChatbotNode($id, array $data): bool
     {
@@ -1083,7 +1086,7 @@ class ChatbotNode extends BaseModel
     /**
      * Eliminar chatbot_node con validaciones
      * @param mixed $id ID del chatbot_node a eliminar
-     * @return bool True si la eliminaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @return bool True si la eliminación fue exitosa
      */
     public function deleteChatbotNode($id): bool
     {
@@ -1111,9 +1114,9 @@ class ChatbotNode extends BaseModel
 
     /**
      * Buscar chatbot_nodes con filtros
-     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
-     * @param int $page PÃƒÆ’Ã‚Â¡gina actual
-     * @param int $limit Registros por pÃƒÆ’Ã‚Â¡gina
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Pí¡gina actual
+     * @param int $limit Registros por pí¡gina
      * @param array $orderBy Criterios de ordenamiento
      * @return array Array de chatbot_nodes
      */
@@ -1133,8 +1136,8 @@ class ChatbotNode extends BaseModel
 
     /**
      * Contar total de chatbot_nodes con filtros
-     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
-     * @return int NÃƒÆ’Ã‚Âºmero total de chatbot_nodes
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de chatbot_nodes
      */
     public function countChatbotNodes(array $filters = []): int
     {
@@ -1151,22 +1154,22 @@ class ChatbotNode extends BaseModel
     }
 
     // ==========================================
-    // MÃƒÆ’Ã¢â‚¬Â°TODOS DE VALIDACIÃƒÆ’Ã¢â‚¬Å“N ESPECÃƒÆ’Ã‚ÂFICOS
+    // MÉTODOS DE VALIDACIÓN ESPECíFICOS
     // ==========================================
 
     /**
-     * Validar datos especÃƒÆ’Ã‚Â­ficos de chatbot_nodes
+     * Validar datos especí­ficos de chatbot_nodes
      * @param array $data Datos a validar
-     * @param mixed $id ID para validaciones de actualizaciÃƒÆ’Ã‚Â³n (opcional)
-     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son ví¡lidos
      */
     private function validateChatbotNodeData(array $data, $id = null): void
     {
-        // TODO: Implementar validaciones especÃƒÆ’Ã‚Â­ficas del modelo
+        // TODO: Implementar validaciones especí­ficas del modelo
     }
 
     /**
-     * Invalidar cache especÃƒÆ’Ã‚Â­fico de chatbot_nodes
+     * Invalidar cache especí­fico de chatbot_nodes
      */
     public function invalidateChatbotNodeCache(): int
     {

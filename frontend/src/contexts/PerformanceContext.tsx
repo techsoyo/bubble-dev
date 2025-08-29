@@ -140,7 +140,7 @@ export const PerformanceProvider: React.FC<PerformanceProviderProps> = ({ childr
 
       // First Input Delay (FID)
       const fidObserver = new PerformanceObserver((entryList) => {
-        const entries = entryList.getEntries();
+        const entries = entryList.getEntries() as PerformanceEventTiming[];
         if (entries.length > 0) {
           const firstInput = entries[0];
           const fid = firstInput.processingStart - firstInput.startTime;

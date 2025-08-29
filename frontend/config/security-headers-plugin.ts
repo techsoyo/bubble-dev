@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Plugin personalizado para inyectar security headers en Vite
  * Optimizado para desarrollo y producción
  */
@@ -20,17 +20,13 @@ export function securityHeadersPlugin() {
       });
     },
     generateBundle() {
-      // En producción, estos headers se configuran normalmente en el servidor web
-      const env = process.env.NODE_ENV === 'production' ? 'PRODUCCIÓN' : 'DESARROLLO';
-      console.log(`🔒 Security headers configurados para ${env}`);
-      if (process.env.NODE_ENV === 'production') {
-        console.log('✅ CSP seguro activado (sin unsafe-inline/unsafe-eval)');
-      } else {
-        console.log('⚠️ CSP permisivo para desarrollo (con unsafe-inline/unsafe-eval)');
-      }
-      console.log('📋 Recordatorio: Configurar estos headers en el servidor de producción (Nginx/Apache)');
-    }
-  };
+    //   // En producción, estos headers se configuran normalmente en el servidor web
+    //   const env = process.env.NODE_ENV === 'production' ? 'PRODUCCIÓN' : 'DESARROLLO';
+    //   if (process.env.NODE_ENV === 'production') {
+    //   } else {
+    //   }
+    // }
+  }
 }
 
 function setSecurityHeaders(res: any, environment: 'development' | 'production') {

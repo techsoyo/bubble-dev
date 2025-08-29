@@ -1,4 +1,4 @@
-
+﻿
 /**
  * Auth Context - UPDATED WITH NEW ENDPOINTS
  * ✅ ACTUALIZADO: Integración con endpoints actualizados
@@ -10,7 +10,7 @@ import { createContext, useState, useContext, useEffect, ReactNode } from 'react
 import { SecureAuthManager, User, LoginCredentials, AuthResponse } from '../lib/auth/secureAuthManager';
 import { safeRemove } from '../utils/safeStorage';
 import { InputSanitizer } from '../lib/auth/secureInputValidator';
-import { TokenManager } from '../lib/auth/tokenManager';
+import { logAuthEvent, logSessionEvent } from '../security/securityLogger';
 
 interface SocialAuthData {
     token?: string;
@@ -79,28 +79,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setIsLoading(true);
             setError(null);
 
-            console.log('🔄 Inicializando autenticación...');
-
-            // ✅ LIMPIAR DATOS DE LOCALSTORAGE LEGACY (no-op en producción)
+            // Limpiar datos legacy de localStorage para migración completa
             const legacyKeys = [
                 'isLoggedIn', 'userEmail', 'userId', 'userRole',
                 'userName', 'userFirstName', 'userLastName'
             ];
             legacyKeys.forEach(key => safeRemove(key));
 
-            // ✅ VERIFICAR SESIÓN
+            // Verificar sesión activa
             const { isValid, user: sessionUser } = await SecureAuthManager.verifySession();
 
             if (isValid && sessionUser) {
                 setUser(sessionUser);
                 setIsLoggedIn(true);
                 setUserType(SecureAuthManager.getUserType());
-                console.log('✅ Sesión restaurada:', sessionUser.email, 'Tipo:', SecureAuthManager.getUserType());
             } else {
                 setUser(null);
                 setIsLoggedIn(false);
                 setUserType('unknown');
-                console.log('ℹ️ No hay sesión válida');
             }
 
             setIsInitialized(true);
@@ -127,14 +123,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      * ✅ ACTUALIZADO: Candidate login con endpoint actualizado
      */
     const candidateLogin = async (email: string, password: string): Promise<AuthResponse> => {
+        let sanitizedEmail = '';
+
         try {
             setIsLoading(true);
             setError(null);
 
-            const sanitizedEmail = InputSanitizer.sanitizeEmail(email);
+            sanitizedEmail = InputSanitizer.sanitizeEmail(email);
             if (!sanitizedEmail) {
                 const errorResponse = { success: false, message: 'Email inválido' };
                 setError(errorResponse.message);
+                logAuthEvent('CANDIDATE_LOGIN_FAILED', { reason: 'invalid_email', email: email.substring(0, 3) + '***' });
                 return errorResponse;
             }
 
@@ -150,9 +149,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setUser(authResponse.user);
                 setIsLoggedIn(true);
                 setUserType('candidate');
-                console.log('✅ Candidate login exitoso');
+                logAuthEvent('CANDIDATE_LOGIN_SUCCESS', { userId: authResponse.user.id, email: sanitizedEmail.substring(0, 3) + '***' }, authResponse.user.id);
+                logSessionEvent('SESSION_STARTED', authResponse.user.id, { userType: 'candidate' });
             } else {
                 setError(authResponse.message || 'Candidate login falló');
+                logAuthEvent('CANDIDATE_LOGIN_FAILED', { reason: 'invalid_credentials', email: sanitizedEmail.substring(0, 3) + '***' });
             }
 
             return authResponse;
@@ -160,6 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const errorMessage = 'Error en candidate login';
             setError(errorMessage);
             console.error('❌ Error candidate login:', err);
+            logAuthEvent('CANDIDATE_LOGIN_ERROR', { error: err instanceof Error ? err.message : 'Unknown error', email: sanitizedEmail?.substring(0, 3) + '***' });
             return { success: false, message: errorMessage };
         } finally {
             setIsLoading(false);
@@ -193,7 +195,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setUser(authResponse.user);
                 setIsLoggedIn(true);
                 setUserType('staff');
-                console.log('✅ Staff login exitoso');
             } else {
                 setError(authResponse.message || 'Staff login falló');
             }
@@ -238,7 +239,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setUser(authResponse.user);
                 setIsLoggedIn(true);
                 setUserType('candidate');
-                console.log('✅ Registro de candidato exitoso');
             } else {
                 setError(authResponse.message || 'Registro falló');
             }
@@ -262,7 +262,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setIsLoading(true);
             setError(null);
 
-            console.log('ℹ️ Social login no implementado:', provider);
 
             const errorResponse = { success: false, message: 'Social login no disponible' };
             setError(errorResponse.message);
@@ -280,31 +279,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      * ✅ ACTUALIZADO: Logout con endpoints actualizados
      */
     const logout = async (): Promise<void> => {
+        const currentUserId = user?.id;
+
         try {
             setIsLoading(true);
             setError(null);
 
-            console.log('🔄 Cerrando sesión...');
-
             const success = await SecureAuthManager.logout();
 
-            // ✅ LIMPIAR ESTADO LOCAL SIEMPRE
+            // Limpiar estado local
             setUser(null);
             setIsLoggedIn(false);
             setUserType('unknown');
 
             if (success) {
-                console.log('✅ Logout exitoso');
+                logAuthEvent('LOGOUT_SUCCESS', { userId: currentUserId }, currentUserId);
+                logSessionEvent('SESSION_ENDED', currentUserId, { reason: 'user_logout' });
             } else {
-                console.log('⚠️ Logout con errores, pero estado limpiado');
+                logAuthEvent('LOGOUT_FAILED', { userId: currentUserId }, currentUserId);
             }
         } catch (err) {
             console.error('❌ Error en logout:', err);
-            // ✅ FORZAR LIMPIEZA INCLUSO CON ERROR
+            // Forzar limpieza incluso con error
             setUser(null);
             setIsLoggedIn(false);
             setUserType('unknown');
             SecureAuthManager.clearSession();
+            logAuthEvent('LOGOUT_ERROR', { error: err instanceof Error ? err.message : 'Unknown error', userId: currentUserId }, currentUserId);
+            logSessionEvent('SESSION_ENDED', currentUserId, { reason: 'logout_error' });
         } finally {
             setIsLoading(false);
         }
@@ -316,7 +318,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const refreshSession = async (): Promise<void> => {
         try {
             setError(null);
-            console.log('🔄 Actualizando sesión...');
 
             const { isValid, user: sessionUser } = await SecureAuthManager.verifySession();
 
@@ -324,9 +325,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setUser(sessionUser);
                 setIsLoggedIn(true);
                 setUserType(SecureAuthManager.getUserType());
-                console.log('✅ Sesión actualizada');
             } else {
-                console.log('ℹ️ Sesión inválida, cerrando');
                 await logout();
             }
         } catch (err) {

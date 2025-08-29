@@ -1,4 +1,4 @@
-// src/main.tsx
+﻿// src/main.tsx
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
@@ -21,7 +21,6 @@ const initializeSecurity = async () => {
   const fontAwesomeLoaded = await SRIManager.loadResource('fontawesome');
 
   if (googleFontsLoaded && fontAwesomeLoaded) {
-    console.log('✅ Security: All external resources loaded with SRI verification');
   } else {
     console.warn('⚠️ Security: Some resources failed, fallbacks active');
   }
@@ -52,7 +51,6 @@ initXSSProtection();
 
 // Initialize security in the background without blocking rendering
 initializeSecurity().then(() => {
-  console.log('✅ Security: All external resources loaded with SRI verification');
 }).catch((error) => {
   console.warn('⚠️ Security: SRI initialization failed, continuing with fallbacks', error);
 });

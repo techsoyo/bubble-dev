@@ -67,22 +67,44 @@ import { isDevelopment, isProduction, showApiTester } from './config/env';
 // Componentes de optimización offline
 import OfflineDetector from './components/ui/OfflineDetector';
 
-// AOS - Import dinámico compatible con Vite
-let AOS: any = null;
-if (typeof window !== 'undefined') {
-  import('aos').then(module => {
-    AOS = module;
-    // Inicializar AOS cuando se carga
-    if (AOS && AOS.init) {
+// AOS - Import dinámico seguro y tipado
+interface AOSModule {
+  init: (config?: any) => void;
+  refresh: () => void;
+  refreshHard: () => void;
+}
+
+let AOS: AOSModule | null = null;
+let aosInitialized = false;
+
+// ✅ SEGURIDAD: Cargar AOS de forma asíncrona y segura
+const initializeAOS = async (): Promise<void> => {
+  if (aosInitialized || typeof window === 'undefined') return;
+
+  try {
+    const module = await import('aos');
+    AOS = module.default || module;
+
+    // ✅ ACCESIBILIDAD: Respetar preferencias de movimiento del usuario
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (AOS && AOS.init && !prefersReducedMotion) {
       AOS.init({
         duration: 800,
         easing: 'ease-out',
         once: false,
-        disable: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+        disable: false,
       });
+      aosInitialized = true;
+      console.log('✅ AOS inicializado correctamente');
+    } else if (prefersReducedMotion) {
+      console.log('ℹ️ AOS deshabilitado por preferencia de movimiento reducido');
     }
-  }).catch(() => console.warn('AOS failed to load'));
-}
+  } catch (error) {
+    console.warn('⚠️ Error al cargar AOS:', error);
+    // ✅ GRACEFUL DEGRADATION: La app funciona sin AOS
+  }
+};
 import 'aos/dist/aos.css';
 
 
@@ -174,36 +196,42 @@ const App = () => {
       loadAnalytics();
     }
 
-    // Initialize animations only if AOS is available
-    if (AOS && AOS.init) {
-      AOS.init({
-        duration: 800,
-        easing: 'ease-out',
-        once: false,
-        // Respect user's motion preferences
-        disable: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-      });
-    }
+    // ✅ PERFORMANCE: Inicializar AOS de forma asíncrona
+    initializeAOS();
 
-    // Add global error handler for unhandled promise rejections
+    // ✅ SEGURIDAD: Sanitizar y validar errores globales
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error('Unhandled promise rejection:', event.reason);
+      // ✅ SEGURIDAD: Sanitizar información sensible antes de loguear
+      const sanitizedReason = event.reason instanceof Error
+        ? event.reason.message.replace(/token|password|key/gi, '[REDACTED]')
+        : String(event.reason).replace(/token|password|key/gi, '[REDACTED]');
+
+      console.error('Unhandled promise rejection:', sanitizedReason);
 
       // Prevent default browser behavior (logging to console)
       event.preventDefault();
 
-      // In production, you might want to report this to an error monitoring service
+      // ✅ SEGURIDAD: Solo reportar errores no sensibles en producción
       if (isProduction) {
-        // reportError('unhandled_promise_rejection', event.reason);
+        // reportError('unhandled_promise_rejection', sanitizedReason);
       }
     };
 
-    // Add global error handler
+    // ✅ SEGURIDAD: Manejo seguro de errores globales
     const handleError = (event: ErrorEvent) => {
-      console.error('Global error:', event.error);
+      // ✅ SEGURIDAD: Sanitizar stack traces
+      const sanitizedError = {
+        message: event.message.replace(/token|password|key/gi, '[REDACTED]'),
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+        // No incluir stack trace completo por seguridad
+      };
+
+      console.error('Global error:', sanitizedError);
 
       if (isProduction) {
-        // reportError('global_error', event.error);
+        // reportError('global_error', sanitizedError);
       }
     };
 
@@ -238,18 +266,15 @@ const App = () => {
                         </OfflineAwareSuspense>
                       } />
                       {/* Rutas legacy - mantener compatibilidad con redirecciones */}
-                      <Route path="/talent/login" element={<Navigate to="/auth/login" replace />} />
+                      <Route path="/talent/login" element={<Navigate to="/auth/register" replace />} />
                       <Route path="/candidates/login" element={<Navigate to="/auth/register" replace />} />
-                      <Route path="/staff/login" element={<Navigate to="/staff/auth" replace />} />
+                      <Route path="/staff/login" element={<Navigate to="/staff/staff-login" replace />} />
 
                       {/* Nuevas rutas unificadas con AuthForm */}
-                      <Route path="/auth/login" element={
-                        <AuthForm userType="candidate" mode="login" />
-                      } />
                       <Route path="/auth/register" element={
                         <AuthForm userType="candidate" mode="register" />
                       } />
-                      <Route path="/staff/auth" element={
+                      <Route path="/staff/staff-login" element={
                         <AuthForm userType="staff" mode="login" />
                       } />
                       <Route path="jobs/:id" element={

@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Utils;
 
 class Validator
@@ -13,7 +16,7 @@ class Validator
         $this->rules = $rules;
     }
 
-    /* ==== Atalajes estÃƒÆ’Ã‚Â¡ticos ==== */
+    /* ==== Atalajes estí¡ticos ==== */
 
     public static function requireKeys(array $arr, array $keys): void
     {
@@ -31,10 +34,10 @@ class Validator
         }
         $len = mb_strlen($v);
         if ($len < $min) {
-            throw new \InvalidArgumentException("$field: longitud mÃƒÆ’Ã‚Â­nima $min");
+            throw new \InvalidArgumentException("$field: longitud mí­nima $min");
         }
         if ($len > $max) {
-            throw new \InvalidArgumentException("$field: longitud mÃƒÆ’Ã‚Â¡xima $max");
+            throw new \InvalidArgumentException("$field: longitud mí¡xima $max");
         }
     }
 
@@ -53,7 +56,7 @@ class Validator
         }
         [$Y, $m, $d] = array_map('intval', explode('-', $v));
         if (!checkdate($m, $d, $Y)) {
-            throw new \InvalidArgumentException("$field no es una fecha vÃƒÆ’Ã‚Â¡lida");
+            throw new \InvalidArgumentException("$field no es una fecha ví¡lida");
         }
     }
 
@@ -88,14 +91,14 @@ class Validator
     public static function email($v, string $field = 'email'): void
     {
         if (!filter_var($v, FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException("$field no es un email vÃƒÆ’Ã‚Â¡lido");
+            throw new \InvalidArgumentException("$field no es un email ví¡lido");
         }
     }
 
     public static function url($v, string $field = 'url'): void
     {
         if (!filter_var($v, FILTER_VALIDATE_URL)) {
-            throw new \InvalidArgumentException("$field no es una URL vÃƒÆ’Ã‚Â¡lida");
+            throw new \InvalidArgumentException("$field no es una URL ví¡lida");
         }
     }
 
@@ -186,7 +189,7 @@ class Validator
 
                 if ($rule === 'numeric') {
                     if (!is_numeric($value)) {
-                        $errors[$field][] = "$field debe ser numÃƒÆ’Ã‚Â©rico";
+                        $errors[$field][] = "$field debe ser numérico";
                     }
                     continue;
                 }
@@ -306,7 +309,7 @@ class Validator
         }
         $ok = filter_var($this->data[$field], FILTER_VALIDATE_EMAIL) !== false;
         if (!$ok) {
-            $this->errors[$field] = "El campo '$field' debe ser un email vÃƒÆ’Ã‚Â¡lido";
+            $this->errors[$field] = "El campo '$field' debe ser un email ví¡lido";
         }
         return $ok;
     }
@@ -332,7 +335,7 @@ class Validator
         $M = (int)($max ?? 255);
         $ok = mb_strlen((string)$this->data[$field]) <= $M;
         if (!$ok) {
-            $this->errors[$field] = "El campo '$field' debe tener como mÃƒÆ’Ã‚Â¡ximo $M caracteres";
+            $this->errors[$field] = "El campo '$field' debe tener como mí¡ximo $M caracteres";
         }
         return $ok;
     }
@@ -344,7 +347,7 @@ class Validator
         }
         $ok = is_numeric($this->data[$field]);
         if (!$ok) {
-            $this->errors[$field] = "El campo '$field' debe ser numÃƒÆ’Ã‚Â©rico";
+            $this->errors[$field] = "El campo '$field' debe ser numérico";
         }
         return $ok;
     }
@@ -356,7 +359,7 @@ class Validator
         }
         $ok = strtotime((string)$this->data[$field]) !== false;
         if (!$ok) {
-            $this->errors[$field] = "El campo '$field' debe ser una fecha vÃƒÆ’Ã‚Â¡lida";
+            $this->errors[$field] = "El campo '$field' debe ser una fecha ví¡lida";
         }
         return $ok;
     }
@@ -380,7 +383,7 @@ class Validator
         }
         $ok = filter_var($this->data[$field], FILTER_VALIDATE_URL) !== false;
         if (!$ok) {
-            $this->errors[$field] = "El campo '$field' debe ser una URL vÃƒÆ’Ã‚Â¡lida";
+            $this->errors[$field] = "El campo '$field' debe ser una URL ví¡lida";
         }
         return $ok;
     }
@@ -392,7 +395,7 @@ class Validator
         }
         $ok = filter_var($this->data[$field], FILTER_VALIDATE_INT) !== false;
         if (!$ok) {
-            $this->errors[$field] = "El campo '$field' debe ser un entero vÃƒÆ’Ã‚Â¡lido";
+            $this->errors[$field] = "El campo '$field' debe ser un entero ví¡lido";
             return false;
         }
 
@@ -414,7 +417,7 @@ class Validator
         }
         $ok = filter_var($this->data[$field], FILTER_VALIDATE_FLOAT) !== false;
         if (!$ok) {
-            $this->errors[$field] = "El campo '$field' debe ser un decimal vÃƒÆ’Ã‚Â¡lido";
+            $this->errors[$field] = "El campo '$field' debe ser un decimal ví¡lido";
         }
         return $ok;
     }
@@ -438,7 +441,7 @@ class Validator
         }
         $ok = ctype_alnum(str_replace(' ', '', (string)$this->data[$field]));
         if (!$ok) {
-            $this->errors[$field] = "El campo '$field' debe contener solo letras y nÃƒÆ’Ã‚Âºmeros";
+            $this->errors[$field] = "El campo '$field' debe contener solo letras y números";
         }
         return $ok;
     }
@@ -497,7 +500,7 @@ class Validator
         json_decode((string)$this->data[$field]);
         $ok = json_last_error() === JSON_ERROR_NONE;
         if (!$ok) {
-            $this->errors[$field] = "El campo '$field' debe contener JSON vÃƒÆ’Ã‚Â¡lido";
+            $this->errors[$field] = "El campo '$field' debe contener JSON ví¡lido";
         }
         return $ok;
     }
@@ -509,7 +512,7 @@ class Validator
         }
         $ok = filter_var($this->data[$field], FILTER_VALIDATE_IP) !== false;
         if (!$ok) {
-            $this->errors[$field] = "El campo '$field' debe ser una IP vÃƒÆ’Ã‚Â¡lida" . ($version ? " ($version)" : '');
+            $this->errors[$field] = "El campo '$field' debe ser una IP ví¡lida" . ($version ? " ($version)" : '');
         }
         return $ok;
     }
@@ -546,11 +549,11 @@ class Validator
         }
         $value = strtolower((string)$this->data[$field]);
         $sqlPatterns = [
-          '/(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\b)/i',
-          '/(\b(OR|AND)\s+\d+\s*=\s*\d+)/i',
-          '/(\b(OR|AND)\s+[\'"]?\w+[\'"]?\s*=\s*[\'"]?\w+[\'"]?)/i',
-          '/(--|\#|\/\*|\*\/)/i',
-          '/(\bxp_cmdshell\b)/i'
+            '/(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\b)/i',
+            '/(\b(OR|AND)\s+\d+\s*=\s*\d+)/i',
+            '/(\b(OR|AND)\s+[\'"]?\w+[\'"]?\s*=\s*[\'"]?\w+[\'"]?)/i',
+            '/(--|\#|\/\*|\*\/)/i',
+            '/(\bxp_cmdshell\b)/i'
         ];
         foreach ($sqlPatterns as $p) {
             if (preg_match($p, $value)) {
@@ -568,13 +571,13 @@ class Validator
         }
         $value = strtolower((string)$this->data[$field]);
         $xssPatterns = [
-          '/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/mi',
-          '/javascript:/i',
-          '/on\w+\s*=/i',
-          '/<iframe/i',
-          '/<object/i',
-          '/<embed/i',
-          '/vbscript:/i'
+            '/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/mi',
+            '/javascript:/i',
+            '/on\w+\s*=/i',
+            '/<iframe/i',
+            '/<object/i',
+            '/<embed/i',
+            '/vbscript:/i'
         ];
         foreach ($xssPatterns as $p) {
             if (preg_match($p, $value)) {
@@ -604,29 +607,29 @@ class Validator
                 $errors[] = 'al menos 8 caracteres';
             }
             if (!preg_match('/[A-Z]/', $pwd)) {
-                $errors[] = 'al menos una mayÃƒÆ’Ã‚Âºscula';
+                $errors[] = 'al menos una mayúscula';
             }
             if (!preg_match('/[a-z]/', $pwd)) {
-                $errors[] = 'al menos una minÃƒÆ’Ã‚Âºscula';
+                $errors[] = 'al menos una minúscula';
             }
             if (!preg_match('/[0-9]/', $pwd)) {
-                $errors[] = 'al menos un nÃƒÆ’Ã‚Âºmero';
+                $errors[] = 'al menos un número';
             }
         } else { // strong
             if (strlen($pwd) < 12) {
                 $errors[] = 'al menos 12 caracteres';
             }
             if (!preg_match('/[A-Z]/', $pwd)) {
-                $errors[] = 'al menos una mayÃƒÆ’Ã‚Âºscula';
+                $errors[] = 'al menos una mayúscula';
             }
             if (!preg_match('/[a-z]/', $pwd)) {
-                $errors[] = 'al menos una minÃƒÆ’Ã‚Âºscula';
+                $errors[] = 'al menos una minúscula';
             }
             if (!preg_match('/[0-9]/', $pwd)) {
-                $errors[] = 'al menos un nÃƒÆ’Ã‚Âºmero';
+                $errors[] = 'al menos un número';
             }
             if (!preg_match('/[!@#$%^&*(),.?":{}|<>]/', $pwd)) {
-                $errors[] = 'al menos un carÃƒÆ’Ã‚Â¡cter especial';
+                $errors[] = 'al menos un carí¡cter especial';
             }
         }
 
@@ -648,7 +651,7 @@ class Validator
         $ok = (bool)preg_match($pattern, $clean);
 
         if (!$ok) {
-            $this->errors[$field] = "El campo '$field' debe ser un telÃƒÆ’Ã‚Â©fono vÃƒÆ’Ã‚Â¡lido";
+            $this->errors[$field] = "El campo '$field' debe ser un teléfono ví¡lido";
         }
         return $ok;
     }
@@ -685,7 +688,7 @@ class Validator
         return true;
     }
 
-    /* ==== SanitizaciÃƒÆ’Ã‚Â³n y utilidades ==== */
+    /* ==== Sanitización y utilidades ==== */
 
     public static function sanitizeInput($data)
     {

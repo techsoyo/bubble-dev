@@ -2,6 +2,8 @@
 
 // Authentication
 export * from './auth/AuthContext';
+export * from './auth/securityConfig';
+export * from './auth/securityAuditor';
 
 // API and services
 export * from './api';

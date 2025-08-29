@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Models;
 
 use Utils\Logger;
@@ -7,7 +10,7 @@ use Utils\Logger;
  * Modelo CandidateCertification
  * 
  * Gestiona las certificaciones profesionales de los candidatos,
- * incluyendo validaciÃƒÆ’Ã‚Â³n de fechas de expiraciÃƒÆ’Ã‚Â³n y alertas de vencimiento.
+ * incluyendo validación de fechas de expiración y alertas de vencimiento.
  * 
  * @package Models
  * @author Bubble Talents Development Team
@@ -41,7 +44,7 @@ class CandidateCertification extends BaseModel
     protected array $hidden = [];
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS ESPECÃƒÆ’Ã‚ÂFICOS DE CERTIFICACIONES
+     * MÉTODOS ESPECíFICOS DE CERTIFICACIONES
      */
 
     /**
@@ -70,7 +73,7 @@ class CandidateCertification extends BaseModel
     }
 
     /**
-     * Obtiene las certificaciones que expiran prÃƒÆ’Ã‚Â³ximamente
+     * Obtiene las certificaciones que expiran próximamente
      */
     public function getExpiringCertifications(?int $candidateId = null, int $daysAhead = 30): array
     {
@@ -98,7 +101,7 @@ class CandidateCertification extends BaseModel
     }
 
     /**
-     * Verifica la validez de una certificaciÃƒÆ’Ã‚Â³n especÃƒÆ’Ã‚Â­fica
+     * Verifica la validez de una certificación especí­fica
      */
     public function verifyCertification(int $certificationId): array
     {
@@ -122,7 +125,7 @@ class CandidateCertification extends BaseModel
             return [
                 'exists' => false,
                 'status' => 'not_found',
-                'message' => 'CertificaciÃƒÆ’Ã‚Â³n no encontrada'
+                'message' => 'Certificación no encontrada'
             ];
         }
 
@@ -143,22 +146,22 @@ class CandidateCertification extends BaseModel
             case 'valid':
                 $days = $certification['days_remaining'];
                 if ($days <= 30) {
-                    $verificationData['message'] = "CertificaciÃƒÆ’Ã‚Â³n vÃƒÆ’Ã‚Â¡lida pero expira en {$days} dÃƒÆ’Ã‚Â­as";
+                    $verificationData['message'] = "Certificación ví¡lida pero expira en {$days} dí­as";
                     $verificationData['alert_level'] = 'warning';
                 } elseif ($days <= 90) {
-                    $verificationData['message'] = "CertificaciÃƒÆ’Ã‚Â³n vÃƒÆ’Ã‚Â¡lida, expira en {$days} dÃƒÆ’Ã‚Â­as";
+                    $verificationData['message'] = "Certificación ví¡lida, expira en {$days} dí­as";
                     $verificationData['alert_level'] = 'info';
                 } else {
-                    $verificationData['message'] = 'CertificaciÃƒÆ’Ã‚Â³n vÃƒÆ’Ã‚Â¡lida';
+                    $verificationData['message'] = 'Certificación ví¡lida';
                     $verificationData['alert_level'] = 'success';
                 }
                 break;
             case 'expired':
-                $verificationData['message'] = 'CertificaciÃƒÆ’Ã‚Â³n expirada';
+                $verificationData['message'] = 'Certificación expirada';
                 $verificationData['alert_level'] = 'danger';
                 break;
             case 'no_expiry':
-                $verificationData['message'] = 'CertificaciÃƒÆ’Ã‚Â³n vÃƒÆ’Ã‚Â¡lida sin fecha de expiraciÃƒÆ’Ã‚Â³n';
+                $verificationData['message'] = 'Certificación ví¡lida sin fecha de expiración';
                 $verificationData['alert_level'] = 'success';
                 break;
         }
@@ -195,7 +198,7 @@ class CandidateCertification extends BaseModel
                 'expiry_date' => $cert['expiry_date'],
                 'days_remaining' => $daysRemaining,
                 'alert_level' => $alertLevel,
-                'message' => "La certificaciÃƒÆ’Ã‚Â³n '{$cert['certification_name']}' expira en {$daysRemaining} dÃƒÆ’Ã‚Â­as"
+                'message' => "La certificación '{$cert['certification_name']}' expira en {$daysRemaining} dí­as"
             ];
         }
 
@@ -203,7 +206,7 @@ class CandidateCertification extends BaseModel
     }
 
     /**
-     * Valida que las fechas de una certificaciÃƒÆ’Ã‚Â³n sean consistentes
+     * Valida que las fechas de una certificación sean consistentes
      */
     public function validateCertificationDates(array $data): array
     {
@@ -216,13 +219,13 @@ class CandidateCertification extends BaseModel
                 new \DateTime($data['expiry_date']) : $data['expiry_date'];
 
             if ($expiryDate <= $issueDate) {
-                $errors[] = 'La fecha de expiraciÃƒÆ’Ã‚Â³n debe ser posterior a la fecha de emisiÃƒÆ’Ã‚Â³n';
+                $errors[] = 'La fecha de expiración debe ser posterior a la fecha de emisión';
             }
 
-            // Validar que la fecha de emisiÃƒÆ’Ã‚Â³n no sea futura
+            // Validar que la fecha de emisión no sea futura
             $today = new \DateTime();
             if ($issueDate > $today) {
-                $errors[] = 'La fecha de emisiÃƒÆ’Ã‚Â³n no puede ser futura';
+                $errors[] = 'La fecha de emisión no puede ser futura';
             }
         }
 
@@ -230,11 +233,11 @@ class CandidateCertification extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS HEREDADOS ADAPTADOS
+     * MÉTODOS HEREDADOS ADAPTADOS
      */
 
     /**
-     * Busca certificaciones por candidato (mÃƒÆ’Ã‚Â©todo heredado adaptado)
+     * Busca certificaciones por candidato (método heredado adaptado)
      */
     public function findByCandidate(int $candidateId): array
     {
@@ -242,28 +245,28 @@ class CandidateCertification extends BaseModel
     }
 
     /**
-     * Crea una nueva certificaciÃƒÆ’Ã‚Â³n con validaciones
+     * Crea una nueva certificación con validaciones
      */
     public function store(array $data)
     {
         // Validar fechas antes de crear
         $validationErrors = $this->validateCertificationDates($data);
         if (!empty($validationErrors)) {
-            throw new \InvalidArgumentException('Errores de validaciÃƒÆ’Ã‚Â³n: ' . implode(', ', $validationErrors));
+            throw new \InvalidArgumentException('Errores de validación: ' . implode(', ', $validationErrors));
         }
 
         return parent::store($data);
     }
 
     /**
-     * Actualiza una certificaciÃƒÆ’Ã‚Â³n con validaciones
+     * Actualiza una certificación con validaciones
      */
     public function update($id, array $data): bool
     {
         // Validar fechas antes de actualizar
         $validationErrors = $this->validateCertificationDates($data);
         if (!empty($validationErrors)) {
-            throw new \InvalidArgumentException('Errores de validaciÃƒÆ’Ã‚Â³n: ' . implode(', ', $validationErrors));
+            throw new \InvalidArgumentException('Errores de validación: ' . implode(', ', $validationErrors));
         }
 
         return parent::update($id, $data);

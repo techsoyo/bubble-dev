@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Models;
 
 use Utils\Logger;
@@ -9,8 +12,8 @@ class JobRequirementModel extends BaseModel
   protected string $primaryKey = 'id';
 
   /**
-   * Campos permitidos para asignaciÃƒÆ’Ã‚Â³n masiva
-   * Ajusta segÃƒÆ’Ã‚Âºn la estructura real de la tabla
+   * Campos permitidos para asignación masiva
+   * Ajusta según la estructura real de la tabla
    */
   protected array $fillable = [
     'job_id',
@@ -77,7 +80,7 @@ class JobRequirementModel extends BaseModel
   }
 
   /**
-   * ValidaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica de datos
+   * Validación bí¡sica de datos
    */
   private function validateRequirementData(array $data, bool $isCreation = true): void
   {
@@ -94,7 +97,7 @@ class JobRequirementModel extends BaseModel
       throw new \InvalidArgumentException('El requirement debe tener al menos 3 caracteres');
     }
     if (isset($data['priority']) && !in_array($data['priority'], [1, 2, 3, 4, 5])) {
-      throw new \InvalidArgumentException('Prioridad no vÃƒÆ’Ã‚Â¡lida');
+      throw new \InvalidArgumentException('Prioridad no ví¡lida');
     }
     if (isset($data['is_mandatory']) && !is_bool($data['is_mandatory'])) {
       throw new \InvalidArgumentException('is_mandatory debe ser booleano');

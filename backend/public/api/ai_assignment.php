@@ -1,13 +1,17 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 
 require_once __DIR__ . '/./bootstrap.php';
 
-use Security\CsrfMiddleware;
+use Middleware\CsrfMiddleware;
+use Middleware\JWTMiddleware;
+
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
     CsrfMiddleware::protect(); // double-submit cookie
 }
 
@@ -160,4 +164,3 @@ try {
     }
     Res::exception($e);
 }
-

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
@@ -11,19 +11,19 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../lib/i18n/LanguageContext';
 import { saveCandidateFromAI } from '../../services/ApiService';
 
-// Definir configuración de API internamente
+// Configuración API segura con variables de entorno
 const API_CONFIG = {
-  BASE_URL: 'http://localhost:8000', // URL completa del backend
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
   ENDPOINTS: {
-    login: '/auth/login',
-    register: '/candidates/login',
-    forgotPassword: '/auth/forgot-password',
-    resetPassword: '/auth/reset-password',
-    userProfile: '/user/profile',
-    updateProfile: '/user/update-profile',
-    PDF_PARSE: '/api/analyze_cv.php' // Endpoint correcto
+    login: import.meta.env.VITE_LOGIN_ENDPOINT || '/auth/register',
+    register: import.meta.env.VITE_REGISTER_ENDPOINT || '/candidates/login',
+    forgotPassword: import.meta.env.VITE_FORGOT_PASSWORD_ENDPOINT || '/auth/forgot-password',
+    resetPassword: import.meta.env.VITE_RESET_PASSWORD_ENDPOINT || '/auth/reset-password',
+    userProfile: import.meta.env.VITE_USER_PROFILE_ENDPOINT || '/user/profile',
+    updateProfile: import.meta.env.VITE_UPDATE_PROFILE_ENDPOINT || '/user/update-profile',
+    PDF_PARSE: import.meta.env.VITE_PDF_PARSE_ENDPOINT || '/api/analyze_cv.php'
   },
-  timeout: 10000
+  timeout: parseInt(import.meta.env.VITE_API_TIMEOUT || '10000', 10)
 };
 
 export default function RegisterPage() {
@@ -65,20 +65,88 @@ export default function RegisterPage() {
     }
   };
 
+  const validateFile = (file: File): { isValid: boolean; error?: string } => {
+    // Validar tipo MIME
+    const allowedTypes = ['application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      return { isValid: false, error: 'Solo se permiten archivos PDF' };
+    }
+
+    // Validar extensión del nombre del archivo
+    const allowedExtensions = ['.pdf'];
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    if (!allowedExtensions.includes(fileExtension)) {
+      return { isValid: false, error: 'La extensión del archivo debe ser .pdf' };
+    }
+
+    // Validar tamaño (reducir límite por seguridad)
+    const maxSize = 5 * 1024 * 1024; // 5MB máximo
+    if (file.size > maxSize) {
+      return { isValid: false, error: 'El archivo no puede superar los 5MB' };
+    }
+
+    // Validar tamaño mínimo (evitar archivos vacíos)
+    const minSize = 1024; // 1KB mínimo
+    if (file.size < minSize) {
+      return { isValid: false, error: 'El archivo es demasiado pequeño' };
+    }
+
+    // Validar nombre del archivo (evitar caracteres peligrosos)
+    const dangerousChars = /[<>:"/\\|?*\x00-\x1f]/;
+    if (dangerousChars.test(file.name)) {
+      return { isValid: false, error: 'El nombre del archivo contiene caracteres no permitidos' };
+    }
+
+    return { isValid: true };
+  };
+
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (file.type !== 'application/pdf') {
-        setError('cv', 'Solo se permiten archivos PDF');
+      const validation = validateFile(file);
+
+      if (!validation.isValid) {
+        setError('cv', validation.error || 'Archivo no válido');
         return;
       }
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
-        setError('cv', 'El archivo no puede superar los 10MB');
-        return;
-      }
+
       setForm((prev: typeof form) => ({ ...prev, cv: file }));
       clearError('cv');
     }
+  };
+
+  const validatePasswordStrength = (password: string): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+    const minLength = 12;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const hasNoCommonPatterns = !/(123456|password|qwerty|admin)/i.test(password);
+
+    if (password.length < minLength) {
+      errors.push(`La contraseña debe tener al menos ${minLength} caracteres`);
+    }
+    if (!hasUpperCase) {
+      errors.push('La contraseña debe contener al menos una letra mayúscula');
+    }
+    if (!hasLowerCase) {
+      errors.push('La contraseña debe contener al menos una letra minúscula');
+    }
+    if (!hasNumbers) {
+      errors.push('La contraseña debe contener al menos un número');
+    }
+    if (!hasSpecialChar) {
+      errors.push('La contraseña debe contener al menos un carácter especial (!@#$%^&*(),.?":{}|<>)');
+    }
+    if (!hasNoCommonPatterns) {
+      errors.push('La contraseña contiene patrones comunes que no están permitidos');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
   };
 
   const validateForm = (): boolean => {
@@ -96,9 +164,12 @@ export default function RegisterPage() {
     if (!form.password.trim()) {
       setError('password', 'La contraseña es obligatoria');
       isValid = false;
-    } else if (form.password.length < 8) {
-      setError('password', 'La contraseña debe tener al menos 8 caracteres');
-      isValid = false;
+    } else {
+      const passwordValidation = validatePasswordStrength(form.password);
+      if (!passwordValidation.isValid) {
+        setError('password', passwordValidation.errors.join('. '));
+        isValid = false;
+      }
     }
 
     if (!form.confirmPassword.trim()) {
@@ -149,14 +220,11 @@ export default function RegisterPage() {
       try {
         data = await response.json();
       } catch (jsonErr) {
-        setError('cv', 'Respuesta inesperada del servidor');
+        setError('cv', 'Error al procesar el archivo. Verifica que el archivo sea válido.');
         return;
       }
 
       if (response.ok && data && data.success) {
-        console.log('[Register] CV procesado exitosamente. Datos recibidos:', data);
-        console.log('[Register] structured_data:', data.structured_data);
-
         // Guardar los datos procesados para usar en el registro
         setProcessedCVData(data.structured_data || {});
 
@@ -182,7 +250,7 @@ export default function RegisterPage() {
         setError('cv', 'Error procesando el CV');
       }
     } catch (err) {
-      setError('cv', 'Error de conexión con el servidor. Verífica que el backend esté ejecutándose.');
+      setError('cv', 'Error al procesar el archivo. Verifica tu conexión e inténtalo nuevamente.');
     } finally {
       setIsProcessing(false);
     }
@@ -201,12 +269,10 @@ export default function RegisterPage() {
     try {
       // Si tenemos datos del CV procesado, usarlos para crear el candidato
       if (processedCVData) {
-        console.log('[Register] Guardando candidato con datos del CV:', processedCVData);
 
         // Enviar los datos del CV procesado directamente al endpoint save_v2.php
         const result = await saveCandidateFromAI(processedCVData);
 
-        console.log('[Register] Respuesta del guardado:', result);
 
         if (result.success) {
           toast({
@@ -215,11 +281,8 @@ export default function RegisterPage() {
             variant: 'default'
           });
 
-          // Para compatibilidad temporal durante la migración
-          localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('userEmail', form.email);
-          localStorage.setItem('userRole', 'candidate');
-          localStorage.setItem('candidateId', result.data?.candidate_id || '');
+          // La autenticación se maneja automáticamente por el servidor via cookies
+          console.log('✅ Registro exitoso - autenticación manejada por servidor');
 
           // Refrescar el estado de autenticación
           await refreshSession();
@@ -279,7 +342,7 @@ export default function RegisterPage() {
                 <h3 className="text-2xl font-semibold mb-2 text-[#FF4785]">¡Registro completado!</h3>
                 <p className="text-gray-600 mb-6">Tu perfil ha sido registrado exitosamente. Pronto recibirás un correo de confirmación.</p>
                 <Button
-                  onClick={() => window.location.href = '/auth/login'}
+                  onClick={() => window.location.href = '/auth/register'}
                   className="bg-[#FF4785] hover:bg-[#FF3575]"
                 >
                   Ir al Login

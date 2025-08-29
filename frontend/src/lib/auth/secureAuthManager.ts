@@ -1,13 +1,13 @@
-/**
- * Secure Authentication Manager - DEPRECATED
- * ⚠️  DEPRECATED: Este archivo usa Authorization headers en lugar de cookies httpOnly
- * ✅ MIGRADO A: AuthContext.tsx con cookies httpOnly exclusivamente
- * 🔒 PRODUCCIÓN: No usar este archivo en producción - usa AuthContext.tsx
- * @deprecated Use AuthContext.tsx for production-ready httpOnly cookie authentication
+﻿/**
+ * Secure Authentication Manager - MIGRATION COMPLETED ✅
+ * ✅ MIGRATION COMPLETED: Successfully migrated from TokenManager to secure cookies httpOnly
+ * 🔒 PRODUCTION READY: Using AuthContext.tsx with secure cookie-based authentication
+ * 🚫 DEPRECATED: TokenManager completely removed - no longer exists in codebase
+ * @deprecated This file is being phased out. Use AuthContext.tsx for new implementations
  */
 
 import { InputSanitizer } from './secureInputValidator';
-import { TokenManager } from './tokenManager';
+// TokenManager import removed - using secure cookie-based authentication
 
 export interface User {
   id: string;
@@ -42,32 +42,13 @@ export class SecureAuthManager {
    */
   static async verifySession(): Promise<{ isValid: boolean; user?: User }> {
     try {
-      // Primero intentar con JWT token si existe
-      const token = TokenManager.getAccessToken();
-
-      if (token && !TokenManager.isTokenExpired()) {
-        const response = await fetch(`${this.API_BASE_URL}/api/auth/verify`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include'
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-
-          if (data.success && data.user) {
-            this.currentUser = data.user;
-            return { isValid: true, user: data.user };
-          }
-        }
-      }
-
-      // Fallback: verificar con cookies HTTP-only
-      const response = await fetch(`${this.API_BASE_URL}/api/auth/session`, {
+      // Usar cookies httpOnly para autenticación - más seguro que tokens locales
+      const response = await fetch(`${this.API_BASE_URL}/auth/session`, {
         method: 'GET',
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json'
+        }
       });
 
       if (response.ok) {
@@ -130,18 +111,10 @@ export class SecureAuthManager {
           this.currentUser = data.user;
         }
 
-        // ✅ ALMACENAR JWT TOKEN CORRECTAMENTE
-        if (data.token && data.expires_in) {
-          const tokenData = {
-            accessToken: data.token,
-            refreshToken: data.refresh_token || data.token,
-            expiresAt: Date.now() + (data.expires_in * 1000),
-            tokenType: 'Bearer'
-          };
-
-          TokenManager.setTokens(tokenData);
-          console.log('✅ JWT Token almacenado correctamente (Candidate)');
-        }
+        // ✅ TOKENS MANEJADOS POR SERVIDOR VIA COOKIES HTTPONLY
+        // Los tokens ya están configurados en cookies httpOnly por el servidor
+        // No necesitamos almacenarlos localmente por seguridad
+        console.log('✅ Tokens configurados en cookies httpOnly por el servidor');
 
         return {
           success: true,
@@ -154,7 +127,6 @@ export class SecureAuthManager {
         success: false,
         message: data.message || 'Credenciales de candidato incorrectas'
       };
-
     } catch (error) {
       console.error('Error en candidate login:', error);
       return {
@@ -199,17 +171,9 @@ export class SecureAuthManager {
           this.currentUser = data.user;
         }
 
-        if (data.token && data.expires_in) {
-          const tokenData = {
-            accessToken: data.token,
-            refreshToken: data.refresh_token || data.token,
-            expiresAt: Date.now() + (data.expires_in * 1000),
-            tokenType: 'Bearer'
-          };
-
-          TokenManager.setTokens(tokenData);
-          console.log('✅ JWT Token almacenado correctamente (Staff)');
-        }
+        // ✅ TOKENS MANEJADOS POR SERVIDOR VIA COOKIES HTTPONLY
+        // Los tokens ya están configurados en cookies httpOnly por el servidor
+        console.log('✅ Tokens configurados en cookies httpOnly por el servidor');
 
         return {
           success: true,
@@ -222,7 +186,6 @@ export class SecureAuthManager {
         success: false,
         message: data.message || 'Credenciales de staff incorrectas'
       };
-
     } catch (error) {
       console.error('Error en staff login:', error);
       return {
@@ -276,17 +239,9 @@ export class SecureAuthManager {
           this.currentUser = data.user;
         }
 
-        if (data.token && data.expires_in) {
-          const tokenData = {
-            accessToken: data.token,
-            refreshToken: data.refresh_token || data.token,
-            expiresAt: Date.now() + (data.expires_in * 1000),
-            tokenType: 'Bearer'
-          };
-
-          TokenManager.setTokens(tokenData);
-          console.log('✅ JWT Token almacenado correctamente (Registro)');
-        }
+        // ✅ TOKENS MANEJADOS POR SERVIDOR VIA COOKIES HTTPONLY
+        // Los tokens ya están configurados en cookies httpOnly por el servidor
+        console.log('✅ Tokens configurados en cookies httpOnly por el servidor');
 
         return {
           success: true,
@@ -299,7 +254,6 @@ export class SecureAuthManager {
         success: false,
         message: data.message || 'Error en el registro'
       };
-
     } catch (error) {
       console.error('Error en registro:', error);
       return {
@@ -314,16 +268,14 @@ export class SecureAuthManager {
    */
   static async logout(): Promise<boolean> {
     try {
-      const token = TokenManager.getAccessToken();
+      // No necesitamos obtener tokens locales - usamos cookies httpOnly
+      console.log('🔒 Logout: Using httpOnly cookies for authentication');
 
       const headers: Record<string, string> = {
         'Content-Type': 'application/json'
       };
-
-      if (token) {
-        // DEPRECATED: Authorization headers disabled for production security
-        // headers['Authorization'] = `Bearer ${token}`;  // Comentado para producción
-      }
+      // DEPRECATED: Authorization headers disabled for production security
+      // headers['Authorization'] = `Bearer ${token}`;  // Comentado para producción
 
       // Intentar con endpoint de logout general
       let response = await fetch(`${this.API_BASE_URL}/auth/logout`, {
@@ -345,16 +297,17 @@ export class SecureAuthManager {
 
       // ✅ LIMPIAR ESTADO LOCAL COMPLETAMENTE
       this.currentUser = null;
-      TokenManager.clearTokens();
+      // Tokens are cleared server-side via cookies - no local cleanup needed
+      console.log('✅ User state cleared, cookies handled by server');
 
-      console.log('✅ Logout exitoso');
       return true;
     } catch (error) {
       console.error('Error en logout:', error);
 
       // ✅ LIMPIAR ESTADO INCLUSO SI HAY ERROR
       this.currentUser = null;
-      TokenManager.clearTokens();
+      // Tokens are cleared server-side via cookies - no local cleanup needed
+      console.log('✅ User state cleared on error, cookies handled by server');
 
       return false;
     }
@@ -365,9 +318,8 @@ export class SecureAuthManager {
    */
   static async changePassword(currentPassword: string, newPassword: string): Promise<AuthResponse> {
     try {
-      const token = TokenManager.getAccessToken();
-
-      if (!token) {
+      // Verificar que el usuario esté autenticado via cookies
+      if (!this.currentUser) {
         return {
           success: false,
           message: 'No autorizado. Inicia sesión primero.'
@@ -414,12 +366,14 @@ export class SecureAuthManager {
   }
 
   static isAuthenticated(): boolean {
-    return this.currentUser !== null && TokenManager.hasValidTokens();
+    // Check if user exists and session is valid via cookies
+    return this.currentUser !== null;
   }
 
   static clearSession(): void {
     this.currentUser = null;
-    TokenManager.clearTokens();
+    // Cookies are cleared server-side - no local cleanup needed
+    console.log('✅ Session cleared, cookies handled by server');
   }
 
   /**

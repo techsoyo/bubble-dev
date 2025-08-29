@@ -44,6 +44,14 @@ import { toast } from '../../components/ui/use-toast';
 import { EmailHistoryViewer } from '../../components/dashboard/EmailHistoryViewer';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../../components/ui/dropdown-menu';
 
+// Configuración centralizada de API
+const API_CONFIG = {
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+  ENDPOINTS: {
+    ASSIGN_CANDIDATE: '/api/assign-candidate'
+  }
+};
+
 // Definición de tipos
 interface Candidate {
   id: string;
@@ -486,7 +494,7 @@ export default function HRDashboardPage() {
 
         // Guardar asignación en backend vía API (producción)
         try {
-          await fetch('/api/assign-candidate', {
+          await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ASSIGN_CANDIDATE}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(assignedCandidate)

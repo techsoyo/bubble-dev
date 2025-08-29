@@ -1,30 +1,11 @@
 <?php
 
 declare(strict_types=1);
-/**
- * Bootstrap puente para endpoints bajo public/api/*
- *
- * - Carga vendor/autoload y config/bootstrap
- * - Responde OPTIONS 204
- * - Define alias de compatibilidad legacy
- * - Centraliza CSRF en métodos mutadores
- */
 
 if (!defined('API_BOOTSTRAPPED')) {
     define('API_BOOTSTRAPPED', true);
 
-    // 0) Autoload Composer
-    $vendorAutoload = __DIR__ . '/../../vendor/autoload.php';
-    if (is_file($vendorAutoload)) {
-        require_once $vendorAutoload;
-    } else {
-        http_response_code(500);
-        header('Content-Type: application/json; charset=UTF-8');
-        echo json_encode(['error' => 'vendor/autoload.php no encontrado']);
-        exit;
-    }
-
-    // 1) Bootstrap principal (env, DB, CORS, etc.)
+    // Cargar el bootstrap principal
     $mainBootstrap = __DIR__ . '/../../config/bootstrap.php';
     if (!is_file($mainBootstrap)) {
         http_response_code(500);
@@ -32,25 +13,25 @@ if (!defined('API_BOOTSTRAPPED')) {
         echo json_encode(['error' => 'config/bootstrap.php no encontrado']);
         exit;
     }
+
     require_once $mainBootstrap;
 
-    // 1.b) Preflight OPTIONS
-    if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
-        http_response_code(204);
-        exit;
+    // Ejecutar CORS lo antes posible (antes de CSRF/auth).
+    // Primero intentamos con autoload (class_exists con autoload habilitado).
+    if (class_exists('\Middleware\CorsMiddleware')) {
+        \Middleware\CorsMiddleware::handle();
+    } else {
+        // Si no existe mediante autoload, intentamos cargar el archivo directamente
+        $possibleCorsClass = BASE_PATH . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Middleware' . DIRECTORY_SEPARATOR . 'CorsMiddleware.php';
+        if (is_file($possibleCorsClass)) {
+            require_once $possibleCorsClass;
+            if (class_exists('\Middleware\CorsMiddleware')) {
+                \Middleware\CorsMiddleware::handle();
+            }
+        }
     }
 
-    // 2) Aliases legacy (si algún endpoint viejo usa otros namespaces)
-    if (class_exists('\Middleware\CsrfMiddleware', true)) {
-        if (!class_exists('\CsrfMiddleware', false)) {
-            class_alias('\Middleware\CsrfMiddleware', '\CsrfMiddleware');
-        }
-        if (!class_exists('\Security\CsrfMiddleware', false)) {
-            class_alias('\Middleware\CsrfMiddleware', '\Security\CsrfMiddleware');
-        }
-    }
-
-    // 3) CSRF centralizado (solo HTTP / mutadores)
+    // CSRF centralizado - SIN ALIASES
     if (PHP_SAPI !== 'cli') {
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
         $appEnv = $_ENV['APP_ENV'] ?? 'production';
@@ -58,20 +39,14 @@ if (!defined('API_BOOTSTRAPPED')) {
         if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
             if (class_exists('\Middleware\CsrfMiddleware', false)) {
                 \Middleware\CsrfMiddleware::protect();
-            } elseif (class_exists('\CsrfMiddleware', false)) {
-                \CsrfMiddleware::protect();
             }
         } elseif ($appEnv !== 'production') {
+            // Solo en desarrollo asegurar token
             if (
-                class_exists('\Middleware\CsrfMiddleware', false)
-                && method_exists('\Middleware\CsrfMiddleware', 'ensureToken')
+                class_exists('\Middleware\CsrfMiddleware', false) &&
+                method_exists('\Middleware\CsrfMiddleware', 'ensureToken')
             ) {
                 \Middleware\CsrfMiddleware::ensureToken();
-            } elseif (
-                class_exists('\CsrfMiddleware', false)
-                && method_exists('\CsrfMiddleware', 'ensureToken')
-            ) {
-                \CsrfMiddleware::ensureToken();
             }
         }
     }

@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Utils;
 
 final class Log
@@ -15,18 +18,18 @@ final class Log
         }
 
         $base = [
-          'ts'     => gmdate('c'),
-          'level'  => $level,
-          'req_id' => RequestId::get(),
-          'route'  => self::route(),
-          'ip'     => self::ip(),
-          'ua'     => self::ua(),
+            'ts'     => gmdate('c'),
+            'level'  => $level,
+            'req_id' => RequestId::get(),
+            'route'  => self::route(),
+            'ip'     => self::ip(),
+            'ua'     => self::ua(),
         ];
         if ($cfg === 'debug') {
             $base['mem_mb'] = round(memory_get_peak_usage(true) / 1048576, 2);
         }
 
-        // Normalizar campos mÃƒÆ’Ã‚Â­nimos esperados
+        // Normalizar campos mí­nimos esperados
         $payload = self::scrub($payload);
         if (!isset($payload['duration_ms'])) {
             $payload['duration_ms'] = null;
@@ -54,7 +57,7 @@ final class Log
         $order = ['debug' => 0, 'info' => 1, 'warn' => 2, 'error' => 3];
         $lv = $order[$lvl] ?? 99;
         $cv = $order[$cfg] ?? 1;
-        return $lv >= $cv; // mayor ÃƒÆ’Ã‚Â­ndice = menos verboso permitido
+        return $lv >= $cv; // mayor í­ndice = menos verboso permitido
     }
 
     private static function scrub(array $data): array
@@ -107,7 +110,7 @@ final class Log
         if (!is_dir($dir)) {
             @mkdir($dir, 0775, true);
         }
-        // Intentar escritura atÃƒÆ’Ã‚Â³mica
+        // Intentar escritura atómica
         if (($fh = @fopen($file, 'ab')) !== false) {
             @flock($fh, LOCK_EX);
             @fwrite($fh, $line . PHP_EOL);

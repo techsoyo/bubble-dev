@@ -525,7 +525,7 @@ const useCVAnalysis = ({
           if (filters.maxExperience && data.totalExperience > filters.maxExperience) return false;
           if (filters.requiredSkills && !filters.requiredSkills.every(skill => data.skills.includes(skill))) return false;
           if (filters.education && !data.education.some(edu => filters.education!.includes(edu.degree))) return false;
-          if (filters.languages && !filters.languages.every(lang => data.languages.includes(lang))) return false;
+          if (filters.languages && data.languages && !filters.languages.every(lang => data.languages!.includes(lang))) return false;
         }
 
         return true;
@@ -645,7 +645,9 @@ const useCVAnalysis = ({
       allSkills.push(...data.skills);
       experienceYears.push(data.totalExperience);
       educationLevels.push(...data.education.map(e => e.degree));
-      languages.push(...data.languages);
+      if (data.languages) {
+        languages.push(...data.languages);
+      }
       if (data.personalInfo.location) {
         locations.push(data.personalInfo.location);
       }

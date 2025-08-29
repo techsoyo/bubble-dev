@@ -548,6 +548,8 @@ export function useSkipLinks(): void {
  * Initialize accessibility features
  */
 export function initializeAccessibility(): void {
+    console.log('🎯 Inicializando características de accesibilidad...');
+
     // Add screen reader only class to CSS
     const style = document.createElement('style');
     style.textContent = `
@@ -562,7 +564,7 @@ export function initializeAccessibility(): void {
       white-space: nowrap;
       border: 0;
     }
-    
+
     .focus\\:not-sr-only:focus {
       position: static;
       width: auto;
@@ -572,6 +574,20 @@ export function initializeAccessibility(): void {
       overflow: visible;
       clip: auto;
       white-space: normal;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 6px;
+      background: #000;
+      color: #fff;
+      padding: 8px;
+      text-decoration: none;
+      z-index: 100;
+    }
+    .skip-link:focus {
+      top: 0;
     }
   `;
     document.head.appendChild(style);
@@ -587,12 +603,73 @@ export function initializeAccessibility(): void {
       outline: 2px solid #3b82f6;
       outline-offset: 2px;
     }
-    
+
     *:focus:not(:focus-visible) {
       outline: none;
     }
   `;
     document.head.appendChild(focusStyle);
+
+    // Configurar skip links
+    const skipLinks = [
+        { href: '#main-content', text: 'Ir al contenido principal' },
+        { href: '#navigation', text: 'Ir a la navegación' },
+        { href: '#footer', text: 'Ir al pie de página' }
+    ];
+
+    skipLinks.forEach(({ href, text }) => {
+        const existingLink = document.querySelector(`a[href="${href}"]`);
+        if (!existingLink) {
+            const skipLink = document.createElement('a');
+            skipLink.href = href;
+            skipLink.textContent = text;
+            skipLink.className = 'skip-link sr-only focus:not-sr-only';
+            document.body.insertBefore(skipLink, document.body.firstChild);
+        }
+    });
+
+    // Configurar navegación por teclado global
+    document.addEventListener('keydown', (event) => {
+        // Alt + H: Ir al inicio
+        if (event.altKey && event.key === 'h') {
+            event.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Alt + M: Ir al contenido principal
+        if (event.altKey && event.key === 'm') {
+            event.preventDefault();
+            const mainContent = document.getElementById('main-content');
+            if (mainContent) {
+                mainContent.focus();
+                mainContent.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    });
+
+    // Configurar manejo de foco para elementos dinámicos
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    const element = node as Element;
+                    // Asegurar que elementos interactivos sean accesibles por teclado
+                    if (['BUTTON', 'A', 'INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName)) {
+                        if (!element.hasAttribute('tabindex') && !element.hasAttribute('disabled')) {
+                            element.setAttribute('tabindex', '0');
+                        }
+                    }
+                }
+            });
+        });
+    });
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+
+    console.log('✅ Accesibilidad inicializada correctamente');
 }
 
 /**
@@ -663,5 +740,6 @@ export default {
     useReducedMotion,
     useHighContrast,
     useSkipLinks,
-    initializeAccessibility,
 };
+
+

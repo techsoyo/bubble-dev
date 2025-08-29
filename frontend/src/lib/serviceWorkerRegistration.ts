@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Registro del Service Worker para habilitar capacidades offline
  * y mejora del rendimiento mediante caching.
  */
@@ -12,13 +12,11 @@ export const registerServiceWorker = () => {
       setTimeout(() => {
         navigator.serviceWorker.register('/sw.js')
           .then(registration => {
-            console.log('Service Worker registrado con éxito:', registration.scope);
             registration.addEventListener('updatefound', () => {
               const newWorker = registration.installing;
               if (newWorker) {
                 newWorker.addEventListener('statechange', () => {
                   if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    console.log('Nueva versión del SW disponible');
                   }
                 });
               }
@@ -58,9 +56,7 @@ export const setupConnectivityDetection = () => {
     // Mostrar toast notificación en la interfaz
     if (!navigator.onLine) {
       // Aquí podemos disparar una notificación de UI
-      console.log('Conexión perdida. Modo offline activo.');
     } else {
-      console.log('Conexión restablecida.');
     }
   };
 

@@ -1,9 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
     CsrfMiddleware::protect(); // double-submit cookie
 }
 
@@ -17,7 +19,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 // Proteger solo mÃƒÂ©todos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
     // double-submit cookie
 }
 
@@ -58,26 +60,26 @@ if ($cvContent === false) {
     exit;
 }
 
-// 5. Crear directorio de resÃƒÆ’Ã‚Âºmenes si no existe
+// 5. Crear directorio de resúmenes si no existe
 $resumenesDir = __DIR__ . '/../../uploads/resumenes/';
 if (!is_dir($resumenesDir)) {
     if (!mkdir($resumenesDir, 0755, true)) {
-        echo json_encode(['error' => 'No se pudo crear directorio de resÃƒÆ’Ã‚Âºmenes']);
+        echo json_encode(['error' => 'No se pudo crear directorio de resúmenes']);
         exit;
     }
 }
 
 // 6. Construir el prompt para el modelo Mistral
-$prompt = "Eres un asistente que resume informaciÃƒÆ’Ã‚Â³n curricular para procesos de selecciÃƒÆ’Ã‚Â³n. Dado el siguiente CV en texto plano, genera un resumen claro y ÃƒÆ’Ã‚Âºtil para un reclutador. Solo incluye:\n" .
-  "- Nombre completo\n" .
-  "- FormaciÃƒÆ’Ã‚Â³n acadÃƒÆ’Ã‚Â©mica principal\n" .
-  "- Idiomas con nivel\n" .
-  "- TecnologÃƒÆ’Ã‚Â­as o herramientas que domina\n" .
-  "- Experiencia profesional destacada (mÃƒÆ’Ã‚Â¡x. 5 lÃƒÆ’Ã‚Â­neas)\n" .
-  "- Soft skills mencionadas\n" .
-  "- Datos de contacto si existen\n" .
-  "- UbicaciÃƒÆ’Ã‚Â³n geogrÃƒÆ’Ã‚Â¡fica (ciudad y paÃƒÆ’Ã‚Â­s si se menciona)\n\n" .
-  "CV:\n" . $cvContent;
+$prompt = "Eres un asistente que resume información curricular para procesos de selección. Dado el siguiente CV en texto plano, genera un resumen claro y útil para un reclutador. Solo incluye:\n" .
+    "- Nombre completo\n" .
+    "- Formación académica principal\n" .
+    "- Idiomas con nivel\n" .
+    "- Tecnologí­as o herramientas que domina\n" .
+    "- Experiencia profesional destacada (mí¡x. 5 lí­neas)\n" .
+    "- Soft skills mencionadas\n" .
+    "- Datos de contacto si existen\n" .
+    "- Ubicación geogrí¡fica (ciudad y paí­s si se menciona)\n\n" .
+    "CV:\n" . $cvContent;
 
 // 7. Enviar al modelo Mistral de Ollama
 $ollamaHost = 'http://localhost:11434';
@@ -86,24 +88,24 @@ $model = 'mistral';
 $curl = curl_init("$ollamaHost/api/generate");
 
 curl_setopt_array($curl, [
-  CURLOPT_RETURNTRANSFER => true,
-  CURLOPT_POST => true,
-  CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-  CURLOPT_POSTFIELDS => json_encode([
-    'model' => $model,
-    'prompt' => $prompt,
-    'stream' => false
-  ]),
-  CURLOPT_TIMEOUT => 120, // 2 minutos timeout
-  CURLOPT_CONNECTTIMEOUT => 10
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST => true,
+    CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+    CURLOPT_POSTFIELDS => json_encode([
+        'model' => $model,
+        'prompt' => $prompt,
+        'stream' => false
+    ]),
+    CURLOPT_TIMEOUT => 120, // 2 minutos timeout
+    CURLOPT_CONNECTTIMEOUT => 10
 ]);
 
 $response = curl_exec($curl);
 
 if (curl_errno($curl)) {
     echo json_encode([
-      'error' => 'Error al conectar con Ollama (Mistral)',
-      'details' => curl_error($curl)
+        'error' => 'Error al conectar con Ollama (Mistral)',
+        'details' => curl_error($curl)
     ]);
     curl_close($curl);
     exit;
@@ -115,8 +117,8 @@ curl_close($curl);
 $data = json_decode($response, true);
 if (!isset($data['response'])) {
     echo json_encode([
-      'error' => 'Respuesta invÃƒÆ’Ã‚Â¡lida de Ollama',
-      'raw' => substr($response, 0, 200)
+        'error' => 'Respuesta inví¡lida de Ollama',
+        'raw' => substr($response, 0, 200)
     ]);
     exit;
 }
@@ -137,11 +139,10 @@ if (file_put_contents($resumenFilePath, $resumen) === false) {
 
 // 11. Devolver respuesta exitosa
 echo json_encode([
-  'status' => 'ok',
-  'resumen_file' => $resumenFileName,
-  'original_size' => strlen($cvContent),
-  'resumen_size' => strlen($resumen),
-  'compression_ratio' => round((1 - strlen($resumen) / strlen($cvContent)) * 100, 1) . '%'
+    'status' => 'ok',
+    'resumen_file' => $resumenFileName,
+    'original_size' => strlen($cvContent),
+    'resumen_size' => strlen($resumen),
+    'compression_ratio' => round((1 - strlen($resumen) / strlen($cvContent)) * 100, 1) . '%'
 ]);
 exit;
-

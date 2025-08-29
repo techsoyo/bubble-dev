@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Utils;
 
 final class RequestId
@@ -11,7 +14,7 @@ final class RequestId
             return;
         }
         $incoming = $_SERVER['HTTP_X_REQUEST_ID'] ?? '';
-        $use = self::isValidUuidV4($incoming) ? $incoming : self::generate();
+        $use = self::isValidId($incoming) ? $incoming : self::generate();
         self::$id = $use;
         header('X-Request-Id: ' . self::$id);
     }

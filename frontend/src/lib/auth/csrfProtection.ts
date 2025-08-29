@@ -22,8 +22,8 @@ export class CSRFProtection {
    */
   static async initializeCSRF(): Promise<string> {
     try {
-      // Solicitar token CSRF del servidor
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      // Solicitar token CSRF del servidor usando variable de entorno
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost/bubble_of_talents_1.0/backend/public';
       const response = await fetch(`${apiBaseUrl}/api/auth/csrf-token.php`, {
         method: 'GET',
         credentials: 'include',
@@ -62,7 +62,7 @@ export class CSRFProtection {
    */
   static async validateCSRFToken(token: string): Promise<boolean> {
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost/bubble_of_talents_1.0/backend/public';
       const response = await fetch(`${apiBaseUrl}/api/auth/validate-csrf.php`, {
         method: 'POST',
         headers: {

@@ -1,0 +1,76 @@
+file,line,line_text
+/audit/backend/scripts/test_production_ready_final.php,170,"'Access-Control-Allow-Origin' => strpos($headers, 'Access-Control-Allow-Origin: http://localhost:3002') !== false,"
+/audit/backend/scripts/test_production_ready_final.php,171,"'Access-Control-Allow-Credentials' => strpos($headers, 'Access-Control-Allow-Credentials: true') !== false,"
+/audit/backend/scripts/test_production_ready_final.php,188,"$hasOriginHeader = strpos($headers, 'Access-Control-Allow-Origin: https://malicious-site.com') !== false;"
+/audit/backend/src/Middleware/CorsMiddleware.php,57,header('Access-Control-Allow-Origin: ' . $safeOrigin);
+/audit/backend/src/Middleware/CorsMiddleware.php,60,header('Access-Control-Allow-Credentials: true');
+/audit/backend/src/Middleware/SecurityMiddleware.php,35,"header(""Access-Control-Allow-Origin: *"");"
+/audit/backend/src/Router/AppRouter.php,424,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/src/Router/AppRouter.php,428,"header(""Access-Control-Allow-Origin: *"");"
+/audit/backend/src/Router/AppRouter.php,432,header('Access-Control-Allow-Credentials: true');
+/audit/backend/config/security-headers.php,35,header('Access-Control-Allow-Origin: ' . $allowedOrigins);
+/audit/backend/config/security-headers.php,38,header('Access-Control-Allow-Credentials: false'); // ✅ FIXED: Deshabilitado por seguridad
+/audit/backend/public/index.php,40,header('Access-Control-Allow-Origin: http://localhost:3002');
+/audit/backend/public/index.php,41,header('Access-Control-Allow-Credentials: false');
+/audit/backend/public/api/analyze_cv.php,46,header('Access-Control-Allow-Origin: ' . ($_SERVER['HTTP_ORIGIN'] ?? '*'));
+/audit/backend/public/api/analyze_cv.php,47,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/analyze_cv_secure.php,35,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/analyze_cv_secure.php,36,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/applications.php,42,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/applications.php,43,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/auth.php,21,header('Access-Control-Allow-Origin: http://localhost:3002');
+/audit/backend/public/api/auth.php,22,header('Access-Control-Allow-Credentials: false'); // ✅ FIXED: Deshabilitado por seguridad
+/audit/backend/public/api/auth_logout.php,35,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/auth_logout.php,36,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/auth_register.php,9,header('Access-Control-Allow-Origin: http://localhost:3002');
+/audit/backend/public/api/auth_register.php,10,header('Access-Control-Allow-Credentials: false');
+/audit/backend/public/api/auth_verify.php,32,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/auth_verify.php,33,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/calculate_matching.php,42,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/calculate_matching.php,43,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/candidate-applications.php,29,header('Access-Control-Allow-Origin: http://localhost:3002');
+/audit/backend/public/api/candidate-applications.php,30,header('Access-Control-Allow-Credentials: false'); // ✅ FIXED: Deshabilitado por seguridad
+/audit/backend/public/api/candidate-experiences.php,35,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/candidate-experiences.php,36,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/candidates.php,51,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/candidates.php,52,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/candidates_temp.php,51,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/candidates_temp.php,52,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/candidate_certifications.php,35,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/candidate_certifications.php,36,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/candidate_education.php,35,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/candidate_education.php,36,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/candidate_languages.php,35,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/candidate_languages.php,36,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/candidate_references.php,36,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/candidate_references.php,37,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/candidate_skills.php,35,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/candidate_skills.php,36,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/change-password.php,35,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/change-password.php,36,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/departments.php,53,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/departments.php,54,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/health-check.php,11,header('Access-Control-Allow-Origin: http://localhost:3002');
+/audit/backend/public/api/health-check.php,12,header('Access-Control-Allow-Credentials: false');
+/audit/backend/public/api/interviews.php,42,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/interviews.php,43,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/jobs.php,49,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/jobs.php,50,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/notification.php,45,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/notification.php,46,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/notifications.php,157,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/notifications.php,158,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/recruiters.php,42,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/recruiters.php,43,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/send-email.php,49,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/send-email.php,50,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/staff_login.php,35,"header(""Access-Control-Allow-Origin: $origin"");"
+/audit/backend/public/api/staff_login.php,36,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/update-candidate-profile.php,41,header('Access-Control-Allow-Origin: http://localhost:3002');
+/audit/backend/public/api/update-candidate-profile.php,44,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/auth/social-login.php,9,header('Access-Control-Allow-Origin: http://localhost:3002');
+/audit/backend/public/api/auth/social-login.php,12,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/hr/dashboard-stats.php,19,header('Access-Control-Allow-Origin: *');
+/audit/backend/public/api/recruiters/assigned-candidates.php,22,header('Access-Control-Allow-Origin: http://localhost:3002');
+/audit/backend/public/api/recruiters/assigned-candidates.php,25,header('Access-Control-Allow-Credentials: true');
+/audit/backend/public/api/translate/jobs_old.php,12,header('Access-Control-Allow-Origin: *');

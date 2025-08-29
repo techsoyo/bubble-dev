@@ -120,9 +120,9 @@ export class RecommendationEngine {
 
     // Location matching
     const locationScore = this.calculateLocationMatch(
-      candidate.location,
-      job.location,
-      job.remote
+      candidate.location || '',
+      job.location || '',
+      job.remote || false
     );
     factors.push({
       name: 'Location',
@@ -134,8 +134,8 @@ export class RecommendationEngine {
 
     // Salary matching
     const salaryScore = this.calculateSalaryMatch(
-      candidate.expectedSalary,
-      job.salaryRange
+      candidate.expectedSalary || 0,
+      job.salaryRange || { min: 0, max: 0 }
     );
     factors.push({
       name: 'Salary Expectations',
@@ -352,24 +352,309 @@ export class RecommendationEngine {
     return reasons;
   }
 
-  private async fetchCandidate(_candidateId: string): Promise<Candidate> {
-    // Implementation would fetch from API/database
-    throw new Error('Method not implemented');
+  private async fetchCandidate(candidateId: string): Promise<Candidate> {
+    try {
+      const response = await fetch(`/api/candidates/${candidateId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          // 🔒 PRODUCCIÓN: Autenticación automática vía cookies httpOnly
+          // Authorization header removido por seguridad
+        },
+        credentials: 'include' // Incluir cookies httpOnly automáticamente
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error al obtener candidato: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // ✅ Estructura correcta
+      if (data && data.success && data.data) {
+        return this.transformCandidateData(data.data);
+      } else {
+        throw new Error(data?.message || 'Datos de candidato no válidos');
+      }
+    } catch (error) {
+      console.error('Error fetching candidate:', error);
+      throw new Error(`No se pudo obtener información del candidato ${candidateId}`);
+    }
   }
 
-  private async fetchJob(_jobId: string): Promise<Job> {
-    // Implementation would fetch from API/database
-    throw new Error('Method not implemented');
+  private async fetchJob(jobId: string): Promise<Job> {
+    try {
+      const response = await fetch(`/api/jobs/${jobId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          // 🔒 PRODUCCIÓN: Autenticación automática vía cookies httpOnly
+          // Authorization header removido por seguridad
+        },
+        credentials: 'include' // Incluir cookies httpOnly automáticamente
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error al obtener trabajo: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // ✅ Estructura correcta
+      if (data && data.success && data.data) {
+        return this.transformJobData(data.data);
+      } else {
+        throw new Error(data?.message || 'Datos de trabajo no válidos');
+      }
+    } catch (error) {
+      console.error('Error fetching job:', error);
+      throw new Error(`No se pudo obtener información del trabajo ${jobId}`);
+    }
   }
 
-  private async fetchJobs(_filters?: RecommendationFilters): Promise<Job[]> {
-    // Implementation would fetch from API/database
-    throw new Error('Method not implemented');
+  private async fetchJobs(filters?: RecommendationFilters): Promise<Job[]> {
+    try {
+      const queryParams = new URLSearchParams();
+
+      if (filters) {
+        if (filters.experience?.length) {
+          queryParams.append('experience', filters.experience.join(','));
+        }
+        if (filters.skills?.length) {
+          queryParams.append('skills', filters.skills.join(','));
+        }
+        if (filters.location?.length) {
+          queryParams.append('location', filters.location.join(','));
+        }
+        if (filters.salaryRange) {
+          queryParams.append('salary_min', filters.salaryRange.min.toString());
+          queryParams.append('salary_max', filters.salaryRange.max.toString());
+        }
+        if (filters.remote !== undefined) {
+          queryParams.append('remote', filters.remote.toString());
+        }
+        if (filters.industry?.length) {
+          queryParams.append('industry', filters.industry.join(','));
+        }
+      }
+
+      const url = `/api/jobs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          // 🔒 PRODUCCIÓN: Autenticación automática vía cookies httpOnly
+          // Authorization header removido por seguridad
+        },
+        credentials: 'include' // Incluir cookies httpOnly automáticamente
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error al obtener trabajos: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // ✅ Estructura correcta
+      if (data && data.success && Array.isArray(data.data)) {
+        return data.data.map((jobData: any) => this.transformJobData(jobData));
+      } else {
+        throw new Error(data?.message || 'Datos de trabajos no válidos');
+      }
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+      throw new Error('No se pudieron obtener los trabajos');
+    }
   }
 
-  private async fetchCandidates(_filters?: RecommendationFilters): Promise<Candidate[]> {
-    // Implementation would fetch from API/database
-    throw new Error('Method not implemented');
+  private async fetchCandidates(filters?: RecommendationFilters): Promise<Candidate[]> {
+    try {
+      const queryParams = new URLSearchParams();
+
+      if (filters) {
+        if (filters.experience?.length) {
+          queryParams.append('experience', filters.experience.join(','));
+        }
+        if (filters.skills?.length) {
+          queryParams.append('skills', filters.skills.join(','));
+        }
+        if (filters.location?.length) {
+          queryParams.append('location', filters.location.join(','));
+        }
+        if (filters.salaryRange) {
+          queryParams.append('salary_min', filters.salaryRange.min.toString());
+          queryParams.append('salary_max', filters.salaryRange.max.toString());
+        }
+        if (filters.remote !== undefined) {
+          queryParams.append('remote', filters.remote.toString());
+        }
+        if (filters.industry?.length) {
+          queryParams.append('industry', filters.industry.join(','));
+        }
+      }
+
+      const url = `/api/candidates${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          // 🔒 PRODUCCIÓN: Autenticación automática vía cookies httpOnly
+          // Authorization header removido por seguridad
+        },
+        credentials: 'include' // Incluir cookies httpOnly automáticamente
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error al obtener candidatos: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // ✅ Estructura correcta
+      if (data && data.success && Array.isArray(data.data)) {
+        return data.data.map((candidateData: any) => this.transformCandidateData(candidateData));
+      } else {
+        throw new Error(data?.message || 'Datos de candidatos no válidos');
+      }
+    } catch (error) {
+      console.error('Error fetching candidates:', error);
+      throw new Error('No se pudieron obtener los candidatos');
+    }
+  }
+
+  // Métodos de transformación de datos
+  private transformCandidateData(rawData: any): Candidate {
+    return {
+      id: rawData.id?.toString() || '',
+      name: rawData.full_name || rawData.name || '',
+      email: rawData.email || '',
+      skills: this.parseSkills(rawData.skills),
+      experience: this.parseExperience(rawData.experience),
+      education: this.parseEducation(rawData.education),
+      status: rawData.status || 'active',
+      createdAt: rawData.created_at || new Date().toISOString(),
+      updatedAt: rawData.updated_at || new Date().toISOString(),
+      // Propiedades requeridas por la interfaz principal
+      experience_years: rawData.experience_years || 0,
+      work_experience: this.parseExperience(rawData.experience || rawData.work_experience),
+      created_at: rawData.created_at || new Date().toISOString(),
+      updated_at: rawData.updated_at || new Date().toISOString()
+    };
+  }
+
+  private transformJobData(rawData: any): Job {
+    return {
+      id: rawData.id?.toString() || '',
+      title: rawData.title || '',
+      description: rawData.description || '',
+      company_id: '1', // Siempre la agencia
+      requirements: this.parseSkills(rawData.required_skills),
+      requiredSkills: this.parseSkills(rawData.required_skills),
+      preferred_skills: this.parseSkills(rawData.preferred_skills),
+      experience_level: rawData.experience_level || 'mid',
+      experienceLevel: rawData.experience_level || 'mid', // Alias for compatibility
+      salary_min: rawData.salary_min,
+      salary_max: rawData.salary_max,
+      salaryRange: this.parseSalaryRange(rawData.salary_range),
+      location: rawData.location || '',
+      remote: this.parseBoolean(rawData.remote),
+      remote_allowed: this.parseBoolean(rawData.remote),
+      status: rawData.status || 'active',
+      created_at: rawData.created_at || new Date().toISOString(),
+      updated_at: rawData.updated_at || new Date().toISOString(),
+      // Alias para compatibilidad
+      companyId: '1',
+      postedDate: rawData.created_at || rawData.date_posted || new Date().toISOString()
+    };
+  }
+
+  private parseSkills(skillsData: any): string[] {
+    if (Array.isArray(skillsData)) {
+      return skillsData;
+    }
+    if (typeof skillsData === 'string') {
+      try {
+        const parsed = JSON.parse(skillsData);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return skillsData.split(',').map(s => s.trim()).filter(Boolean);
+      }
+    }
+    return [];
+  }
+
+  private parseExperience(experienceData: any): any[] {
+    if (Array.isArray(experienceData)) {
+      return experienceData;
+    }
+    if (typeof experienceData === 'string') {
+      try {
+        const parsed = JSON.parse(experienceData);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  }
+
+  private parseEducation(educationData: any): any[] {
+    if (Array.isArray(educationData)) {
+      return educationData;
+    }
+    if (typeof educationData === 'string') {
+      try {
+        const parsed = JSON.parse(educationData);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  }
+
+  private parseBoolean(value: any): boolean {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'string') {
+      return value.toLowerCase() === 'true' || value === '1';
+    }
+    return false;
+  }
+
+  private parseSalaryRange(salaryData: any): { min: number; max: number } | undefined {
+    if (!salaryData) return undefined;
+
+    if (typeof salaryData === 'object' && salaryData.min !== undefined && salaryData.max !== undefined) {
+      return {
+        min: Number(salaryData.min) || 0,
+        max: Number(salaryData.max) || 0
+      };
+    }
+
+    if (typeof salaryData === 'string') {
+      try {
+        const parsed = JSON.parse(salaryData);
+        if (parsed.min !== undefined && parsed.max !== undefined) {
+          return {
+            min: Number(parsed.min) || 0,
+            max: Number(parsed.max) || 0
+          };
+        }
+      } catch {
+        // Intentar extraer números del string
+        const numbers = salaryData.match(/\d+/g);
+        if (numbers && numbers.length >= 2) {
+          return {
+            min: Number(numbers[0]) || 0,
+            max: Number(numbers[1]) || 0
+          };
+        }
+      }
+    }
+
+    return undefined;
   }
 }
 

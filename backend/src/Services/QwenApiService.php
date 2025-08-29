@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Services;
 
 use GuzzleHttp\Client;
@@ -10,7 +13,7 @@ use Services\PdfTextService;
 /**
  * Servicio de IA usando Qwen API (Alibaba Cloud)
  * 
- * Servicio de producciÃƒÆ’Ã‚Â³n que utiliza la API de Qwen (ÃƒÂ§Ã¢â€žÂ¢Ã‚Â¾ÃƒÂ§Ã¢â‚¬Å¡Ã‚Â¼) de Alibaba Cloud
+ * Servicio de producción que utiliza la API de Qwen (ÃƒÂ§Ã¢â€žÂ¢Ã‚Â¾ÃƒÂ§Ã¢â‚¬Å¡Ã‚Â¼) de Alibaba Cloud
  * como alternativa a Ollama local. Incluye 1M tokens gratuitos y precios muy bajos.
  *
  * @package Backend\Services
@@ -28,7 +31,7 @@ class QwenApiService
 
   public function __construct()
   {
-    // ConfiguraciÃƒÆ’Ã‚Â³n desde variables de entorno
+    // Configuración desde variables de entorno
     $this->apiKey = $_ENV['QWEN_API_KEY'] ?? getenv('QWEN_API_KEY');
     $this->baseUrl = $_ENV['QWEN_BASE_URL'] ?? getenv('QWEN_BASE_URL') ?: 'https://dashscope.aliyuncs.com/compatible-mode/v1';
     $this->model = $_ENV['QWEN_MODEL'] ?? getenv('QWEN_MODEL') ?: 'qwen-plus'; // qwen-plus es parte de qwen3
@@ -39,7 +42,7 @@ class QwenApiService
       throw new \InvalidArgumentException('QWEN_API_KEY requerido. Obtenerla en: https://help.aliyun.com/zh/model-studio/developer-reference/get-api-key');
     }
 
-    // Inicializar cliente HTTP con configuraciÃƒÆ’Ã‚Â³n optimizada
+    // Inicializar cliente HTTP con configuración optimizada
     $this->httpClient = new Client([
       'base_uri' => $this->baseUrl,
       'timeout' => $this->timeoutSeconds,
@@ -52,11 +55,11 @@ class QwenApiService
   }
 
   /**
-   * Analiza PDF de CV usando Qwen API con extracciÃƒÆ’Ã‚Â³n de texto
+   * Analiza PDF de CV usando Qwen API con extracción de texto
    *
    * @param string $pdfPath Ruta al archivo PDF del CV
-   * @return array Datos estructurados del CV segÃƒÆ’Ã‚Âºn CvFormData del frontend
-   * @throws AiUnavailableException Si la API no estÃƒÆ’Ã‚Â¡ disponible o devuelve JSON invÃƒÆ’Ã‚Â¡lido
+   * @return array Datos estructurados del CV según CvFormData del frontend
+   * @throws AiUnavailableException Si la API no estí¡ disponible o devuelve JSON inví¡lido
    */
   public function analyzeCvFromPdf(string $pdfPath): array
   {
@@ -76,9 +79,9 @@ class QwenApiService
         throw new AiUnavailableException('PDF_TEXT_EXTRACTION_FAILED');
       }
 
-      error_log("[QwenApiService] Texto extraÃƒÆ’Ã‚Â­do del PDF: " . strlen($extractedText) . " caracteres");
+      error_log("[QwenApiService] Texto extraí­do del PDF: " . strlen($extractedText) . " caracteres");
 
-      // Analizar el texto extraÃƒÆ’Ã‚Â­do
+      // Analizar el texto extraí­do
       $cvData = $this->analyzeCvFromText($extractedText);
     } catch (\Exception $e) {
       error_log("[QwenApiService] Error extrayendo texto del PDF: " . $e->getMessage());
@@ -86,7 +89,7 @@ class QwenApiService
     }
 
     $duration = round((microtime(true) - $startTime) * 1000);
-    error_log("[QwenApiService] CV PDF anÃƒÆ’Ã‚Â¡lisis completado en {$duration}ms");
+    error_log("[QwenApiService] CV PDF Anáslisis completado en {$duration}ms");
 
     return $cvData;
   }
@@ -96,7 +99,7 @@ class QwenApiService
    *
    * @param string $rawText Texto del CV a analizar
    * @return array Datos estructurados del CV
-   * @throws AiUnavailableException Si la API falla o devuelve respuesta invÃƒÆ’Ã‚Â¡lida
+   * @throws AiUnavailableException Si la API falla o devuelve respuesta inví¡lida
    */
   public function analyzeCvFromText(string $rawText): array
   {
@@ -120,13 +123,13 @@ class QwenApiService
     }
 
     $duration = round((microtime(true) - $startTime) * 1000);
-    error_log("[QwenApiService] CV anÃƒÆ’Ã‚Â¡lisis de texto completado en {$duration}ms");
+    error_log("[QwenApiService] CV Anáslisis de texto completado en {$duration}ms");
 
     return $cvData;
   }
 
   /**
-   * MÃƒÆ’Ã‚Â©todo de compatibilidad con OllamaService
+   * Método de compatibilidad con OllamaService
    */
   public function analyzeCV($rawText): array
   {
@@ -134,22 +137,22 @@ class QwenApiService
   }
 
   /**
-   * Construye prompt optimizado para anÃƒÆ’Ã‚Â¡lisis de CV con Qwen
+   * Construye prompt optimizado para Anáslisis de CV con Qwen
    */
   private function buildCvAnalysisPrompt(string $cvText): string
   {
     $schema = CvSchema::PROMPT_MINIMAL; // Usar la constante disponible
     $schemaJson = json_encode($schema, JSON_PRETTY_PRINT);
 
-    return "Eres un experto analizador de currÃƒÆ’Ã‚Â­culos vitae. Analiza el siguiente CV y extrae la informaciÃƒÆ’Ã‚Â³n en formato JSON estrictamente vÃƒÆ’Ã‚Â¡lido.
+    return "Eres un experto analizador de currí­culos vitae. Analiza el siguiente CV y extrae la información en formato JSON estrictamente ví¡lido.
 
 **TEXTO DEL CV:**
 {$cvText}
 
 **INSTRUCCIONES:**
-1. Extrae SOLO la informaciÃƒÆ’Ã‚Â³n que estÃƒÆ’Ã‚Â¡ presente en el CV
-2. Si un campo no tiene informaciÃƒÆ’Ã‚Â³n, usa null o array vacÃƒÆ’Ã‚Â­o segÃƒÆ’Ã‚Âºn corresponda
-3. Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido, sin texto adicional ni explicaciones
+1. Extrae SOLO la información que estí¡ presente en el CV
+2. Si un campo no tiene información, usa null o array vací­o según corresponda
+3. Responde ÚNICAMENTE con JSON ví¡lido, sin texto adicional ni explicaciones
 4. Usa el esquema exacto que se proporciona abajo
 
 **ESQUEMA JSON REQUERIDO:**
@@ -157,13 +160,13 @@ class QwenApiService
 
 **REGLAS IMPORTANTES:**
 - nombre: Solo el nombre completo de la persona
-- email: Solo direcciones de email vÃƒÆ’Ã‚Â¡lidas
-- telefono: Solo nÃƒÆ’Ã‚Âºmeros de telÃƒÆ’Ã‚Â©fono
+- email: Solo direcciones de email ví¡lidas
+- telefono: Solo números de teléfono
 - resumen_profesional: Un resumen conciso de 2-3 oraciones
-- hard_skills: Array de habilidades tÃƒÆ’Ã‚Â©cnicas especÃƒÆ’Ã‚Â­ficas
+- hard_skills: Array de habilidades técnicas especí­ficas
 - soft_skills: Array de habilidades interpersonales
 - experiencia_laboral: Array con trabajos previos (empresa, puesto, periodo)
-- educacion: Array con estudios (institucion, titulo, aÃƒÆ’Ã‚Â±o)
+- educacion: Array con estudios (institucion, titulo, aí±o)
 - idiomas: Array con idiomas y niveles
 - certificaciones: Array con certificaciones relevantes
 
@@ -211,10 +214,10 @@ Responde SOLO con el JSON:";
 
           if ($data && isset($data['choices'][0]['message']['content'])) {
             $content = $data['choices'][0]['message']['content'];
-            error_log("[QwenApiService] ÃƒÆ’Ã¢â‚¬Â°xito en intento {$attempt}");
+            error_log("[QwenApiService] Éxito en intento {$attempt}");
             return $content;
           } else {
-            error_log("[QwenApiService] Respuesta sin contenido vÃƒÆ’Ã‚Â¡lido: " . substr($body, 0, 500));
+            error_log("[QwenApiService] Respuesta sin contenido ví¡lido: " . substr($body, 0, 500));
           }
         } else {
           error_log("[QwenApiService] Error HTTP {$statusCode}: " . substr($body, 0, 500));
@@ -233,7 +236,7 @@ Responde SOLO con el JSON:";
 
     error_log("[QwenApiService] Todos los intentos fallaron");
     if ($lastException) {
-      error_log("[QwenApiService] ÃƒÆ’Ã…Â¡ltima excepciÃƒÆ’Ã‚Â³n: " . $lastException->getMessage());
+      error_log("[QwenApiService] Última excepción: " . $lastException->getMessage());
     }
 
     return null;
@@ -245,7 +248,7 @@ Responde SOLO con el JSON:";
   private function parseJsonResponse(string $response): ?array
   {
     if (empty($response)) {
-      error_log("[QwenApiService] Respuesta vacÃƒÆ’Ã‚Â­a");
+      error_log("[QwenApiService] Respuesta vací­a");
       return null;
     }
 
@@ -256,13 +259,13 @@ Responde SOLO con el JSON:";
 
     if (json_last_error() !== JSON_ERROR_NONE) {
       error_log("[QwenApiService] Error JSON: " . json_last_error_msg());
-      error_log("[QwenApiService] Respuesta problemÃƒÆ’Ã‚Â¡tica: " . substr($response, 0, 1000));
+      error_log("[QwenApiService] Respuesta problemí¡tica: " . substr($response, 0, 1000));
       return null;
     }
 
-    // Validar estructura bÃƒÆ’Ã‚Â¡sica
+    // Validar estructura bí¡sica
     if (!is_array($cvData) || empty($cvData)) {
-      error_log("[QwenApiService] JSON vÃƒÆ’Ã‚Â¡lido pero estructura invÃƒÆ’Ã‚Â¡lida");
+      error_log("[QwenApiService] JSON ví¡lido pero estructura inví¡lida");
       return null;
     }
 
@@ -275,12 +278,12 @@ Responde SOLO con el JSON:";
    */
   private function cleanJsonResponse(string $response): string
   {
-    // Remover bloques de cÃƒÆ’Ã‚Â³digo markdown
+    // Remover bloques de código markdown
     $response = preg_replace('/```json\s*/', '', $response);
     $response = preg_replace('/```\s*$/', '', $response);
     $response = preg_replace('/^```/', '', $response);
 
-    // Buscar JSON vÃƒÆ’Ã‚Â¡lido en la respuesta
+    // Buscar JSON ví¡lido en la respuesta
     $start = strpos($response, '{');
     $end = strrpos($response, '}');
 
@@ -292,7 +295,7 @@ Responde SOLO con el JSON:";
   }
 
   /**
-   * Verifica si la API estÃƒÆ’Ã‚Â¡ disponible
+   * Verifica si la API estí¡ disponible
    */
   public function isAvailable(): bool
   {
@@ -303,13 +306,13 @@ Responde SOLO con el JSON:";
 
       return $response->getStatusCode() === 200;
     } catch (\Exception $e) {
-      error_log("[QwenApiService] Check disponibilidad fallÃƒÆ’Ã‚Â³: " . $e->getMessage());
+      error_log("[QwenApiService] Check disponibilidad falló: " . $e->getMessage());
       return false;
     }
   }
 
   /**
-   * Obtiene informaciÃƒÆ’Ã‚Â³n de uso/estadÃƒÆ’Ã‚Â­sticas (si estÃƒÆ’Ã‚Â¡ disponible en la API)
+   * Obtiene información de uso/estadí­sticas (si estí¡ disponible en la API)
    */
   public function getUsageInfo(): array
   {

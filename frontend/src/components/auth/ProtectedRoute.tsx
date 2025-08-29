@@ -32,13 +32,13 @@ export default function ProtectedRoute({
 
         if (currentPath.includes('/dashboard/hrdashboard') || currentPath.includes('/dashboard/recruiterdashboard') || currentPath.includes('/dashboard/estadisticas') || currentPath.includes('/dashboard/manager') || currentPath.includes('/admin')) {
             // Es staff, redirigir al login de staff
-            return <Navigate to="/staff/login" state={{ from: location }} replace />;
+            return <Navigate to="/staff/staff-login" state={{ from: location }} replace />;
         } else if (currentPath.includes('/dashboard/cddashboard')) {
             // Es candidato, redirigir al registro/login de candidatos
-            return <Navigate to="/candidates/login" state={{ from: location }} replace />;
+            return <Navigate to="/auth/register" state={{ from: location }} replace />;
         } else {
-            // Por defecto, redirigir al login general
-            return <Navigate to="/auth/login" state={{ from: location }} replace />;
+            // Por defecto, redirigir al registro general
+            return <Navigate to="/auth/register" state={{ from: location }} replace />;
         }
     }
 

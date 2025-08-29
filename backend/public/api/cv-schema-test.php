@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 // @deprecated - archivo de test, deshabilitar en producciÃ³n
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
   http_response_code(404);
@@ -8,7 +10,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
 require_once __DIR__ . '/bootstrap.php';
 
 if (!isset($_SERVER['REQUEST_METHOD'])) {
-  $_SERVER['REQUEST_METHOD'] = 'GET'; // Para ejecuciÃƒÆ’Ã‚Â³n directa
+  $_SERVER['REQUEST_METHOD'] = 'GET'; // Para ejecución directa
 }
 
 
@@ -24,7 +26,7 @@ if (!class_exists('Domain\\CvSchema')) {
 
 use Domain\CvSchema;
 
-// Bloquear en producciÃƒÆ’Ã‚Â³n
+// Bloquear en producción
 if ((getenv('APP_ENV') ?: 'production') === 'production') {
   http_response_code(404);
   exit;
@@ -74,14 +76,14 @@ try {
       if ($input === null) {
         sendJsonResponse(false, null, [
           'code' => 'INVALID_JSON',
-          'message' => 'El JSON enviado no es vÃƒÆ’Ã‚Â¡lido'
+          'message' => 'El JSON enviado no es ví¡lido'
         ]);
       }
 
       // Normalizar datos
       $normalizedData = CvSchema::normalize($input);
 
-      // Validar datos mÃƒÆ’Ã‚Â­nimos
+      // Validar datos mí­nimos
       $validationErrors = CvSchema::validateMinimumData($normalizedData);
 
       if (!empty($validationErrors)) {
@@ -89,7 +91,7 @@ try {
           'normalized_data' => $normalizedData
         ], [
           'code' => 'VALIDATION_FAILED',
-          'message' => 'Los datos no cumplen con los requisitos mÃƒÆ’Ã‚Â­nimos',
+          'message' => 'Los datos no cumplen con los requisitos mí­nimos',
           'details' => $validationErrors
         ]);
       }
@@ -105,7 +107,7 @@ try {
     default:
       sendJsonResponse(false, null, [
         'code' => 'METHOD_NOT_ALLOWED',
-        'message' => 'MÃƒÆ’Ã‚Â©todo HTTP no permitido. Use GET o POST.'
+        'message' => 'Método HTTP no permitido. Use GET o POST.'
       ]);
   }
 } catch (Exception $e) {

@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Models;
 
 use Utils\Logger;
@@ -6,8 +9,8 @@ use Utils\Logger;
 /**
  * Modelo para los requisitos de las ofertas de trabajo.
  * 
- * Proporciona funcionalidad para gestionar los requisitos especÃƒÆ’Ã‚Â­ficos
- * de cada puesto de trabajo, incluyendo clasificaciÃƒÆ’Ã‚Â³n por tipo,
+ * Proporciona funcionalidad para gestionar los requisitos especí­ficos
+ * de cada puesto de trabajo, incluyendo clasificación por tipo,
  * prioridad y obligatoriedad.
  * 
  * @package Models
@@ -19,12 +22,12 @@ class JobRequirement extends BaseModel
 {
     protected string $table = 'job_requirements';
     /*
-     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÃƒÆ’Ã¢â‚¬Å“N AUTOMÃƒÆ’Ã‚ÂTICA APLICADA
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÓN AUTOMÁTICA APLICADA
      * Modelo: JobRequirement
      * Fecha: 2025-08-23
      * 
      * Cambios realizados:
-     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aÃƒÆ’Ã‚Â±adidos: ['requirement']
+     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aí±adidos: ['requirement']
      * ÃƒÂ¢Ã‚ÂÃ…â€™ Campos removidos: ['requirement_type', 'description', 'is_mandatory', 'priority']
      * ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Total campos fillable: 2
      * 
@@ -54,7 +57,7 @@ class JobRequirement extends BaseModel
     ];
 
     /**
-     * Tipos de requisitos vÃƒÆ’Ã‚Â¡lidos
+     * Tipos de requisitos ví¡lidos
      */
     private const VALID_REQUIREMENT_TYPES = [
         'education',
@@ -68,7 +71,7 @@ class JobRequirement extends BaseModel
     ];
 
     /**
-     * Niveles de prioridad vÃƒÆ’Ã‚Â¡lidos
+     * Niveles de prioridad ví¡lidos
      */
     private const VALID_PRIORITIES = [1, 2, 3, 4, 5];
 
@@ -78,12 +81,12 @@ class JobRequirement extends BaseModel
     private const CACHE_TTL = 300;
 
     /**
-     * Obtiene todos los requisitos de un trabajo especÃƒÆ’Ã‚Â­fico
+     * Obtiene todos los requisitos de un trabajo especí­fico
      *
      * @param int|string $jobId ID del trabajo
      * @param bool $useCache Si usar cache para la consulta
      * @return array Lista de requisitos
-     * @throws \InvalidArgumentException Si el ID del trabajo es invÃƒÆ’Ã‚Â¡lido
+     * @throws \InvalidArgumentException Si el ID del trabajo es inví¡lido
      * @throws \RuntimeException Si falla la consulta
      */
     public function getRequirementsByJob($jobId, bool $useCache = true): array
@@ -124,7 +127,7 @@ class JobRequirement extends BaseModel
      * @param int|string $jobId ID del trabajo
      * @param bool $useCache Si usar cache para la consulta
      * @return array Lista de requisitos obligatorios
-     * @throws \InvalidArgumentException Si el ID del trabajo es invÃƒÆ’Ã‚Â¡lido
+     * @throws \InvalidArgumentException Si el ID del trabajo es inví¡lido
      * @throws \RuntimeException Si falla la consulta
      */
     public function getMandatoryRequirements($jobId, bool $useCache = true): array
@@ -168,10 +171,10 @@ class JobRequirement extends BaseModel
      * Obtiene requisitos de un trabajo ordenados por prioridad
      *
      * @param int|string $jobId ID del trabajo
-     * @param string $order DirecciÃƒÆ’Ã‚Â³n del ordenamiento ('ASC' o 'DESC')
+     * @param string $order Dirección del ordenamiento ('ASC' o 'DESC')
      * @param bool $useCache Si usar cache para la consulta
      * @return array Lista de requisitos ordenados por prioridad
-     * @throws \InvalidArgumentException Si los parÃƒÆ’Ã‚Â¡metros son invÃƒÆ’Ã‚Â¡lidos
+     * @throws \InvalidArgumentException Si los parí¡metros son inví¡lidos
      * @throws \RuntimeException Si falla la consulta
      */
     public function getRequirementsByPriority($jobId, string $order = 'ASC', bool $useCache = true): array
@@ -221,16 +224,16 @@ class JobRequirement extends BaseModel
     /**
      * Verifica si un candidato cumple con los requisitos de un trabajo
      *
-     * Esta funciÃƒÆ’Ã‚Â³n realiza una verificaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica basada en datos estructurados.
-     * Para verificaciones mÃƒÆ’Ã‚Â¡s complejas, deberÃƒÆ’Ã‚Â­a integrarse con la lÃƒÆ’Ã‚Â³gica de matching
+     * Esta función realiza una verificación bí¡sica basada en datos estructurados.
+     * Para verificaciones  más complejas, deberí­a integrarse con la lógica de matching
      * del sistema.
      *
      * @param int|string $jobId ID del trabajo
      * @param int|string $candidateId ID del candidato  
      * @param bool $mandatoryOnly Si verificar solo requisitos obligatorios
      * @param bool $useCache Si usar cache para la consulta
-     * @return array Resultado de la verificaciÃƒÆ’Ã‚Â³n con detalles
-     * @throws \InvalidArgumentException Si los IDs son invÃƒÆ’Ã‚Â¡lidos
+     * @return array Resultado de la verificación con detalles
+     * @throws \InvalidArgumentException Si los IDs son inví¡lidos
      * @throws \RuntimeException Si falla la consulta
      */
     public function checkCandidateRequirements($jobId, $candidateId, bool $mandatoryOnly = false, bool $useCache = true): array
@@ -256,7 +259,7 @@ class JobRequirement extends BaseModel
                 ? $this->getMandatoryRequirements($jobId, $useCache)
                 : $this->getRequirementsByJob($jobId, $useCache);
 
-            // Obtener datos del candidato (simplificado - en un sistema real se harÃƒÆ’Ã‚Â­a join complejo)
+            // Obtener datos del candidato (simplificado - en un sistema real se harí­a join complejo)
             $candidateModel = new \Models\Candidate();
             $candidate = $candidateModel->findById($candidateId);
 
@@ -268,7 +271,7 @@ class JobRequirement extends BaseModel
             $metRequirements = 0;
             $requirementDetails = [];
 
-            // Verificar cada requisito (lÃƒÆ’Ã‚Â³gica bÃƒÆ’Ã‚Â¡sica - expandir segÃƒÆ’Ã‚Âºn necesidades)
+            // Verificar cada requisito (lógica bí¡sica - expandir según necesidades)
             foreach ($requirements as $requirement) {
                 $met = $this->checkSingleRequirement($requirement, $candidate);
                 $metRequirements += $met ? 1 : 0;
@@ -323,7 +326,7 @@ class JobRequirement extends BaseModel
      * Valida un tipo de requisito
      *
      * @param string $type Tipo de requisito a validar
-     * @return bool True si el tipo es vÃƒÆ’Ã‚Â¡lido
+     * @return bool True si el tipo es ví¡lido
      */
     public function validateRequirementType(string $type): bool
     {
@@ -334,7 +337,7 @@ class JobRequirement extends BaseModel
      * Valida un nivel de prioridad
      *
      * @param int $priority Prioridad a validar
-     * @return bool True si la prioridad es vÃƒÆ’Ã‚Â¡lida
+     * @return bool True si la prioridad es ví¡lida
      */
     public function validatePriority(int $priority): bool
     {
@@ -342,11 +345,11 @@ class JobRequirement extends BaseModel
     }
 
     /**
-     * Sobrescribir el mÃƒÆ’Ã‚Â©todo store para aÃƒÆ’Ã‚Â±adir validaciones
+     * Sobrescribir el método store para aí±adir validaciones
      *
      * @param array $data Datos del requisito
      * @return mixed ID del nuevo requisito o false
-     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @throws \InvalidArgumentException Si los datos no son ví¡lidos
      */
     public function store(array $data)
     {
@@ -376,12 +379,12 @@ class JobRequirement extends BaseModel
     }
 
     /**
-     * Sobrescribir el mÃƒÆ’Ã‚Â©todo update para aÃƒÆ’Ã‚Â±adir validaciones
+     * Sobrescribir el método update para aí±adir validaciones
      *
      * @param mixed $id ID del requisito
      * @param array $data Datos a actualizar
-     * @return bool True si se actualizÃƒÆ’Ã‚Â³ correctamente
-     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @return bool True si se actualizó correctamente
+     * @throws \InvalidArgumentException Si los datos no son ví¡lidos
      */
     public function update($id, array $data): bool
     {
@@ -409,10 +412,10 @@ class JobRequirement extends BaseModel
     }
 
     /**
-     * Sobrescribir el mÃƒÆ’Ã‚Â©todo delete para limpiar cache
+     * Sobrescribir el método delete para limpiar cache
      *
      * @param mixed $id ID del requisito a eliminar
-     * @return bool True si se eliminÃƒÆ’Ã‚Â³ correctamente
+     * @return bool True si se eliminó correctamente
      */
     public function delete($id): bool
     {
@@ -448,10 +451,10 @@ class JobRequirement extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã‚Â©todo auxiliar para verificar un requisito individual
+     * Método auxiliar para verificar un requisito individual
      * 
-     * Esta es una implementaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica. En un sistema real, 
-     * esto deberÃƒÆ’Ã‚Â­a ser mÃƒÆ’Ã‚Â¡s sofisticado e integrado con el 
+     * Esta es una implementación bí¡sica. En un sistema real, 
+     * esto deberí­a ser  más sofisticado e integrado con el 
      * sistema de matching de candidatos.
      *
      * @param array $requirement Datos del requisito
@@ -465,15 +468,15 @@ class JobRequirement extends BaseModel
 
         switch ($type) {
             case 'education':
-                // VerificaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica de educaciÃƒÆ’Ã‚Â³n (expandir segÃƒÆ’Ã‚Âºn necesidades)
+                // Verificación bí¡sica de educación (expandir según necesidades)
                 return !empty($candidate['education_summary'] ?? '');
 
             case 'experience':
-                // VerificaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica de experiencia
+                // Verificación bí¡sica de experiencia
                 return !empty($candidate['experience_summary'] ?? '');
 
             case 'skill':
-                // VerificaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica de habilidades
+                // Verificación bí¡sica de habilidades
                 $skills = $candidate['soft_skills'] ?? [];
                 $hardSkills = $candidate['hard_skills'] ?? [];
 
@@ -490,17 +493,17 @@ class JobRequirement extends BaseModel
                 return strpos($allSkillsText, $description) !== false;
 
             case 'language':
-                // VerificaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica de idiomas
+                // Verificación bí¡sica de idiomas
                 $languages = $candidate['languages_summary'] ?? '';
                 return strpos(strtolower($languages), $description) !== false;
 
             case 'certification':
-                // VerificaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica de certificaciones  
+                // Verificación bí¡sica de certificaciones  
                 $certifications = $candidate['certifications_summary'] ?? '';
                 return strpos(strtolower($certifications), $description) !== false;
 
             case 'location':
-                // VerificaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica de ubicaciÃƒÆ’Ã‚Â³n
+                // Verificación bí¡sica de ubicación
                 $location = strtolower($candidate['location'] ?? '');
                 return strpos($location, $description) !== false;
 
@@ -513,8 +516,8 @@ class JobRequirement extends BaseModel
     /**
      * Verifica si todos los requisitos obligatorios han sido cumplidos
      *
-     * @param array $requirementDetails Detalles de la verificaciÃƒÆ’Ã‚Â³n de requisitos
-     * @return bool True si todos los requisitos obligatorios estÃƒÆ’Ã‚Â¡n cumplidos
+     * @param array $requirementDetails Detalles de la verificación de requisitos
+     * @return bool True si todos los requisitos obligatorios estí¡n cumplidos
      */
     private function allMandatoryRequirementsMet(array $requirementDetails): bool
     {
@@ -526,7 +529,7 @@ class JobRequirement extends BaseModel
         return true;
     }
 
-    // Mantener mÃƒÆ’Ã‚Â©todos del modelo original para compatibilidad hacia atrÃƒÆ’Ã‚Â¡s
+    // Mantener métodos del modelo original para compatibilidad hacia atrí¡s
 
     /**
      * Obtiene los requisitos de un puesto de trabajo concreto.
@@ -551,9 +554,9 @@ class JobRequirement extends BaseModel
     }
 
     /**
-     * Obtiene tipos de requisitos vÃƒÆ’Ã‚Â¡lidos
+     * Obtiene tipos de requisitos ví¡lidos
      *
-     * @return array Lista de tipos de requisitos vÃƒÆ’Ã‚Â¡lidos
+     * @return array Lista de tipos de requisitos ví¡lidos
      */
     public static function getValidRequirementTypes(): array
     {
@@ -561,9 +564,9 @@ class JobRequirement extends BaseModel
     }
 
     /**
-     * Obtiene prioridades vÃƒÆ’Ã‚Â¡lidas
+     * Obtiene prioridades ví¡lidas
      *
-     * @return array Lista de prioridades vÃƒÆ’Ã‚Â¡lidas
+     * @return array Lista de prioridades ví¡lidas
      */
     public static function getValidPriorities(): array
     {
@@ -571,7 +574,7 @@ class JobRequirement extends BaseModel
     }
 
     // =====================================================
-    // CRUD METHODS ESTÃƒÆ’Ã‚ÂNDAR - BaseModel Template v2.0.0
+    // CRUD METHODS ESTÁNDAR - BaseModel Template v2.0.0
     // =====================================================
 
     /**
@@ -579,7 +582,7 @@ class JobRequirement extends BaseModel
      *
      * @param array $data Datos del requisito
      * @return int|false ID del nuevo requisito o false en caso de error
-     * @throws InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @throws InvalidArgumentException Si los datos no son ví¡lidos
      */
     public static function createJobRequirement(array $data)
     {
@@ -628,7 +631,7 @@ class JobRequirement extends BaseModel
      * @param int $id ID del requisito
      * @param array $data Nuevos datos
      * @return bool
-     * @throws InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @throws InvalidArgumentException Si los datos no son ví¡lidos
      */
     public static function updateJobRequirement(int $id, array $data): bool
     {
@@ -688,9 +691,9 @@ class JobRequirement extends BaseModel
     /**
      * Buscar requisitos de trabajo
      *
-     * @param array $criteria Criterios de bÃƒÆ’Ã‚Âºsqueda
-     * @param int $limit LÃƒÆ’Ã‚Â­mite de resultados
-     * @param int $offset Offset para paginaciÃƒÆ’Ã‚Â³n
+     * @param array $criteria Criterios de búsqueda
+     * @param int $limit Lí­mite de resultados
+     * @param int $offset Offset para paginación
      * @return array
      */
     public static function searchJobRequirements(array $criteria = [], int $limit = 50, int $offset = 0): array
@@ -736,7 +739,7 @@ class JobRequirement extends BaseModel
 
             return self::query($query, $params);
         } catch (\Exception $e) {
-            self::logError('Error en bÃƒÆ’Ã‚Âºsqueda de requisitos de trabajo', $criteria, $e);
+            self::logError('Error en búsqueda de requisitos de trabajo', $criteria, $e);
             return [];
         }
     }
@@ -744,7 +747,7 @@ class JobRequirement extends BaseModel
     /**
      * Contar requisitos de trabajo
      *
-     * @param array $criteria Criterios de bÃƒÆ’Ã‚Âºsqueda
+     * @param array $criteria Criterios de búsqueda
      * @return int
      */
     public static function countJobRequirements(array $criteria = []): int
@@ -791,21 +794,21 @@ class JobRequirement extends BaseModel
      * Validar datos de requisito de trabajo
      *
      * @param array $data Datos a validar
-     * @param bool $isUpdate Si es una actualizaciÃƒÆ’Ã‚Â³n (permite campos opcionales)
-     * @throws InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @param bool $isUpdate Si es una actualización (permite campos opcionales)
+     * @throws InvalidArgumentException Si los datos no son ví¡lidos
      */
     private static function validateJobRequirementData(array $data, bool $isUpdate = false): void
     {
-        // job_id es requerido en creaciÃƒÆ’Ã‚Â³n
+        // job_id es requerido en creación
         if (!$isUpdate && empty($data['job_id'])) {
             throw new \InvalidArgumentException('El job_id es requerido');
         }
 
         if (isset($data['job_id']) && (!is_numeric($data['job_id']) || $data['job_id'] <= 0)) {
-            throw new \InvalidArgumentException('El job_id debe ser un nÃƒÆ’Ã‚Âºmero entero positivo');
+            throw new \InvalidArgumentException('El job_id debe ser un número entero positivo');
         }
 
-        // requirement es requerido en creaciÃƒÆ’Ã‚Â³n
+        // requirement es requerido en creación
         if (!$isUpdate && empty($data['requirement'])) {
             throw new \InvalidArgumentException('El requisito es requerido');
         }
@@ -822,14 +825,14 @@ class JobRequirement extends BaseModel
         // Validar tipo de requisito
         if (isset($data['requirement_type'])) {
             if (!in_array($data['requirement_type'], self::VALID_REQUIREMENT_TYPES)) {
-                throw new \InvalidArgumentException('Tipo de requisito no vÃƒÆ’Ã‚Â¡lido: ' . $data['requirement_type']);
+                throw new \InvalidArgumentException('Tipo de requisito no ví¡lido: ' . $data['requirement_type']);
             }
         }
 
         // Validar prioridad
         if (isset($data['priority'])) {
             if (!in_array($data['priority'], self::VALID_PRIORITIES)) {
-                throw new \InvalidArgumentException('Prioridad no vÃƒÆ’Ã‚Â¡lida: ' . $data['priority']);
+                throw new \InvalidArgumentException('Prioridad no ví¡lida: ' . $data['priority']);
             }
         }
 
@@ -840,20 +843,20 @@ class JobRequirement extends BaseModel
     }
 
     /**
-     * Invalidar cachÃƒÆ’Ã‚Â© relacionado con requisitos de trabajo
+     * Invalidar caché relacionado con requisitos de trabajo
      */
     private static function invalidateJobRequirementCache(): void
     {
         try {
-            // Como los mÃƒÆ’Ã‚Â©todos CRUD son estÃƒÆ’Ã‚Â¡ticos, necesitamos crear una instancia temporal
+            // Como los métodos CRUD son estí¡ticos, necesitamos crear una instancia temporal
             $tempInstance = new self();
 
-            // Limpiar todo el cachÃƒÆ’Ã‚Â© de la instancia
+            // Limpiar todo el caché de la instancia
             $tempInstance->cache = [];
 
-            self::logDebug('CachÃƒÆ’Ã‚Â© de requisitos de trabajo invalidado');
+            self::logDebug('Caché de requisitos de trabajo invalidado');
         } catch (\Exception $e) {
-            self::logError('Error al invalidar cachÃƒÆ’Ã‚Â© de requisitos de trabajo', [], $e);
+            self::logError('Error al invalidar caché de requisitos de trabajo', [], $e);
         }
     }
 }

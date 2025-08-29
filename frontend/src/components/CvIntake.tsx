@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { safeGet, safeSet, safeRemove } from '../utils/safeStorage';
 import { env } from '../config/env';
 import { parseCv, confirmCv } from '../lib/cvApi';
@@ -124,11 +124,9 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
     }
 
     try {
-      console.log('[CvIntake] Iniciando parseo CV', { name: localFile.name, size: localFile.size, type: localFile.type });
       setFormState('parsing');
       const { status, json: rawPayload } = await parseCv(localFile);
       const payload = rawPayload as IntakeResponse;
-      console.log('[CvIntake] Respuesta parse', { status, payload });
 
       if (status === 200 && payload?.success) {
         // Verificar si el backend indica modo manual
@@ -310,7 +308,6 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
         </h4>
         <Button size="sm" variant="ghost" onClick={(e) => {
           e.preventDefault();
-          console.log('➕ Añadiendo experiencia');
           exp.add({ puesto: '', empresa: '', fecha_inicio: '', fecha_fin: '', descripcion: '' });
         }}><Plus className="h-3 w-3" /></Button>
       </div>
@@ -345,7 +342,6 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
         </h4>
         <Button size="sm" variant="ghost" onClick={(e) => {
           e.preventDefault();
-          console.log('➕ Añadiendo educación');
           edu.add({ titulo: '', institucion: '', fecha_inicio: '', fecha_fin: '' });
         }}><Plus className="h-3 w-3" /></Button>
       </div>
@@ -380,7 +376,6 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
         </h4>
         <Button size="sm" variant="ghost" onClick={(e) => {
           e.preventDefault();
-          console.log('➕ Añadiendo certificación');
           cert.add('');
         }}><Plus className="h-3 w-3" /></Button>
       </div>
@@ -406,7 +401,6 @@ export const CvIntake: React.FC<CvIntakeProps> = ({ apiBase = env.API_BASE_URL, 
   //       </h4>
   //       <Button size="sm" variant="ghost" onClick={(e) => {
   //         e.preventDefault();
-  //         console.log('➕ Añadiendo proyecto');
   //         proj.add({ nombre: '', descripcion: '' });
   //       }}><Plus className="h-3 w-3" /></Button>
   //     </div>

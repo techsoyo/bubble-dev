@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/button';
@@ -17,6 +17,53 @@ import { Alert, AlertDescription } from '../../components/ui/alert';
 import { Separator } from '../../components/ui/separator';
 import { useFormErrors } from '../../hooks/useFormErrors';
 
+// Rate limiting para intentos de login
+const useRateLimiter = () => {
+  const [attempts, setAttempts] = useState<{ count: number; resetTime: number }>({
+    count: 0,
+    resetTime: 0
+  });
+
+  const isAllowed = (): boolean => {
+    const now = Date.now();
+    const windowMs = 15 * 60 * 1000; // 15 minutos
+    const maxAttempts = 5;
+
+    if (now > attempts.resetTime) {
+      // Reset window
+      setAttempts({ count: 1, resetTime: now + windowMs });
+      return true;
+    }
+
+    if (attempts.count >= maxAttempts) {
+      return false;
+    }
+
+    setAttempts(prev => ({ ...prev, count: prev.count + 1 }));
+    return true;
+  };
+
+  const getRemainingTime = (): number => {
+    const now = Date.now();
+    return Math.max(0, attempts.resetTime - now);
+  };
+
+  return { isAllowed, getRemainingTime };
+};
+
+// Hook simple para protección CSRF
+const useCSRFProtection = () => {
+  const generateCSRFToken = (): string => {
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+  };
+
+  const [csrfToken] = useState(() => generateCSRFToken());
+
+  return { csrfToken };
+};
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -24,17 +71,19 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { errors, setError, clearAllErrors, hasError } = useFormErrors();
 
+  // Protección CSRF
+  const { csrfToken } = useCSRFProtection();
+
+  // Rate limiting
+  const { isAllowed, getRemainingTime } = useRateLimiter();
+
   // Limpiar los campos del formulario cuando se monta el componente
   useEffect(() => {
     // Aseguramos que los campos estén vacíos al cargar el formulario
     setEmail('');
     setPassword('');
 
-    // Ya no usamos localStorage para la autenticación
-    // Esto permanece temporalmente para compatibilidad durante la migración
-    if (!localStorage.getItem('isLoggedIn')) {
-      localStorage.removeItem('userEmail');
-    }
+    // El contexto de autenticación maneja la sesión de forma segura con cookies
   }, []);
 
   const validateForm = (): boolean => {
@@ -54,12 +103,19 @@ export default function LoginPage() {
     return isValid;
   };
 
-  const { login } = useAuth();
+  const { login, user, loginWithSocial } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
+      return;
+    }
+
+    // Rate limiting check
+    if (!isAllowed()) {
+      const remainingTime = Math.ceil(getRemainingTime() / 1000 / 60);
+      setError('general', `Demasiados intentos de inicio de sesión. Inténtalo nuevamente en ${remainingTime} minutos.`);
       return;
     }
 
@@ -70,8 +126,8 @@ export default function LoginPage() {
       const success = await login(email, password);
 
       if (success) {
-        // Determinar el rol del usuario
-        const userRole = localStorage.getItem('userRole') || '';
+        // Redirección según el rol del usuario
+        const userRole = user?.role || '';
 
         // Redirección según el rol
         if (userRole === 'hr' || userRole === 'admin') {
@@ -93,8 +149,6 @@ export default function LoginPage() {
     }
   };
 
-  const { loginWithSocial } = useAuth();
-
   const handleSocialLogin = async (provider: string) => {
     clearAllErrors();
     setIsLoading(true);
@@ -104,8 +158,8 @@ export default function LoginPage() {
       const success = await loginWithSocial(provider, {});
 
       if (success) {
-        // Determinar el rol del usuario después del login social
-        const userRole = localStorage.getItem('userRole') || '';
+        // Redirección según el rol del usuario
+        const userRole = user?.role || '';
 
         // Redirección según el rol, similar al login normal
         if (userRole === 'hr' || userRole === 'admin') {
@@ -142,6 +196,8 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate style={{ color: 'black' }}>
+            {/* CSRF Token Protection */}
+            <input type="hidden" name="csrf_token" value={csrfToken} />
             <div className="space-y-2">
               <Label htmlFor="auth-login-email">Correo electrónico</Label>
               <Input
@@ -257,15 +313,22 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          {import.meta.env.DEV && (
+          {import.meta.env.DEV && import.meta.env.VITE_SHOW_TEST_CREDENTIALS === 'true' && (
             <div className="mt-6 w-full">
               <Separator className="my-4" />
-              <h3 className="text-sm font-medium text-center mb-4">Credenciales de prueba</h3>
+              <h3 className="text-sm font-medium text-center mb-4">Credenciales de prueba (Solo desarrollo)</h3>
 
               <div className="space-y-2 text-xs text-gray-600">
-                <p><strong>Candidato:</strong> ana.martinez@email.com / candidato123</p>
-                <p><strong>HR Admin:</strong> maria.lopez@bubblegum.agency / admin456</p>
-                <p><strong>Reclutador Digital:</strong> carlos.mendez@bubblegum.agency / dev2025!</p>
+                <p><strong>Candidato:</strong> test.candidate@email.com / TestPass123!</p>
+                <p><strong>HR Admin:</strong> test.admin@email.com / AdminPass123!</p>
+                <p><strong>Reclutador:</strong> test.recruiter@email.com / RecruitPass123!</p>
+              </div>
+
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                <p className="text-xs text-yellow-800">
+                  ⚠️ Estas credenciales solo funcionan en entorno de desarrollo.
+                  En producción, usa tus credenciales reales.
+                </p>
               </div>
             </div>
           )}

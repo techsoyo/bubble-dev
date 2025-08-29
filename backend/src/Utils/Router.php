@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Utils;
 
 /**
@@ -12,28 +15,28 @@ class Router
     /**
      * Agrega una ruta al router
      *
-     * @param string $method MÃƒÆ’Ã‚Â©todo HTTP (GET, POST, PUT, DELETE)
+     * @param string $method Método HTTP (GET, POST, PUT, DELETE)
      * @param string $path Ruta URI
      * @param string $controller Nombre del controlador
-     * @param string $action Nombre del mÃƒÆ’Ã‚Â©todo en el controlador
+     * @param string $action Nombre del método en el controlador
      * @return void
      */
     public function add($method, $path, $controller, $action)
     {
         $path = $this->basePrefix . $path;
         $this->routes[] = [
-          'method' => strtoupper($method),
-          'path' => $path,
-          'controller' => $controller,
-          'action' => $action
+            'method' => strtoupper($method),
+            'path' => $path,
+            'controller' => $controller,
+            'action' => $action
         ];
     }
 
     /**
-     * Agrega un grupo de rutas con un prefijo comÃƒÆ’Ã‚Âºn
+     * Agrega un grupo de rutas con un prefijo común
      *
      * @param string $prefix Prefijo de ruta
-     * @param callable $callback FunciÃƒÆ’Ã‚Â³n que define las rutas del grupo
+     * @param callable $callback Función que define las rutas del grupo
      * @param array|null $middleware Middleware para todo el grupo
      * @return void
      */
@@ -91,7 +94,7 @@ class Router
             if (preg_match($pattern, $uri, $matches)) {
                 $matchedRoute = $route;
 
-                // Extraer parÃƒÆ’Ã‚Â¡metros de la URL
+                // Extraer parí¡metros de la URL
                 foreach ($matches as $key => $value) {
                     if (is_string($key)) {
                         $params[$key] = $value;
@@ -103,7 +106,7 @@ class Router
         }
 
         if (!$matchedRoute) {
-            // No se encontrÃƒÆ’Ã‚Â³ una ruta que coincida
+            // No se encontró una ruta que coincida
             ResponseHelper::error('Ruta no encontrada', null, 404);
             return;
         }
@@ -129,11 +132,11 @@ class Router
         $controller = new $controllerClass();
 
         if (!method_exists($controller, $matchedRoute['action'])) {
-            ResponseHelper::error('AcciÃƒÆ’Ã‚Â³n no encontrada', null, 500);
+            ResponseHelper::error('Acción no encontrada', null, 500);
             return;
         }
 
-        // Ejecutar la acciÃƒÆ’Ã‚Â³n del controlador
+        // Ejecutar la acción del controlador
         try {
             call_user_func_array([$controller, $matchedRoute['action']], [$request, $params]);
         } catch (\Exception $e) {
@@ -142,20 +145,20 @@ class Router
     }
 
     /**
-     * Convierte una ruta con parÃƒÆ’Ã‚Â¡metros a expresiÃƒÆ’Ã‚Â³n regular
+     * Convierte una ruta con parí¡metros a expresión regular
      *
-     * @param string $route Ruta con parÃƒÆ’Ã‚Â¡metros (ej: /api/users/:id)
-     * @return string ExpresiÃƒÆ’Ã‚Â³n regular para coincidir con la ruta
+     * @param string $route Ruta con parí¡metros (ej: /api/users/:id)
+     * @return string Expresión regular para coincidir con la ruta
      */
     private function convertRouteToRegex($route)
     {
         // Escapar caracteres especiales
         $route = preg_quote($route, '/');
 
-        // Convertir parÃƒÆ’Ã‚Â¡metros :name a grupos de captura con nombre (?<name>[^/]+)
+        // Convertir parí¡metros :name a grupos de captura con nombre (?<name>[^/]+)
         $route = preg_replace('/\\\:([a-zA-Z0-9_]+)/', '(?<$1>[^/]+)', $route);
 
-        // AÃƒÆ’Ã‚Â±adir delimitadores y asegurar que coincide exactamente
+        // Aí±adir delimitadores y asegurar que coincide exactamente
         return '/^' . $route . '$/';
     }
 }

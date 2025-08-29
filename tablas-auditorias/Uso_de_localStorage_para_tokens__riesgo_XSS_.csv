@@ -1,0 +1,3 @@
+file,line,code
+/audit/frontend/cypress/support/commands.ts,213,"win.localStorage.setItem('auth_token', response.body.token)"
+/audit/frontend/cypress/support/commands.ts,220,const token = win.localStorage.getItem('auth_token')

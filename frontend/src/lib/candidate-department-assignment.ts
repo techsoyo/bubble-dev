@@ -24,7 +24,8 @@ export async function getCandidateDepartmentAssignment(
         return result;
       }
     }    // Si no se encuentran en el array, hacer llamada API para obtener los datos
-    const response = await fetch(`/api/candidates`);
+    const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost/bubble_of_talents_1.0/backend/public';
+    const response = await fetch(`${apiUrl}/api/candidates`);
     if (response.ok) {
       const data = await response.json();
       if (data.success && data.data) {

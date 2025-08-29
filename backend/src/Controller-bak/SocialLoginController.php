@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Controllers;
 
 use Utils\Request;
@@ -17,7 +20,7 @@ class SocialLoginController
   public function redirect(Request $request, array $params)
   {
     $provider = $params['provider'] ?? null;
-    // TODO: Generar URL de redirecciÃƒÆ’Ã‚Â³n
+    // TODO: Generar URL de redirección
     return ResponseHelper::success("Redirecting to $provider", [
       'url' => "https://$provider.com/oauth"
     ]);

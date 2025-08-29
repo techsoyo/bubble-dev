@@ -1,12 +1,16 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 use Firebase\JWT\JWT;
 use Utils\Logger;
 use Security\Cookies;
-use Security\CsrfMiddleware;
+use Middleware\CsrfMiddleware;
+use Middleware\JWTMiddleware;
 
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
- 
+
 
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';

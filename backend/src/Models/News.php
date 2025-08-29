@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Models;
 
 use Utils\Logger;
@@ -6,8 +9,8 @@ use Utils\Logger;
 /**
  * Modelo para las noticias publicadas en la plataforma
  * 
- * Proporciona funcionalidades completas para la gestiÃƒÆ’Ã‚Â³n de contenido de noticias
- * incluyendo publicaciÃƒÆ’Ã‚Â³n, categorizaciÃƒÆ’Ã‚Â³n, bÃƒÆ’Ã‚Âºsqueda y cache optimizado.
+ * Proporciona funcionalidades completas para la gestión de contenido de noticias
+ * incluyendo publicación, categorización, búsqueda y cache optimizado.
  * 
  * @package Models
  * @author Bubble of Talents Development Team
@@ -18,12 +21,12 @@ class News extends BaseModel
 {
     protected string $table = 'news';
     /*
-     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÃƒÆ’Ã¢â‚¬Å“N AUTOMÃƒÆ’Ã‚ÂTICA APLICADA
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÓN AUTOMÁTICA APLICADA
      * Modelo: News
      * Fecha: 2025-08-23
      * 
      * Cambios realizados:
-     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aÃƒÆ’Ã‚Â±adidos: ninguno
+     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aí±adidos: ninguno
      * ÃƒÂ¢Ã‚ÂÃ…â€™ Campos removidos: ['category', 'tags', 'published_at', 'featured_image', 'excerpt']
      * ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Total campos fillable: 4
      * 
@@ -44,17 +47,17 @@ class News extends BaseModel
         'draft_content'
     ];
 
-    // Estados vÃƒÆ’Ã‚Â¡lidos para noticias
+    // Estados ví¡lidos para noticias
     private const VALID_STATUSES = ['draft', 'published', 'archived', 'scheduled'];
 
-    // Cache TTL para noticias pÃƒÆ’Ã‚Âºblicas (5 minutos)
+    // Cache TTL para noticias públicas (5 minutos)
     private const CACHE_TTL = 300;
 
     /**
-     * Obtener solo noticias publicadas con paginaciÃƒÆ’Ã‚Â³n
+     * Obtener solo noticias publicadas con paginación
      * 
-     * @param int $page PÃƒÆ’Ã‚Â¡gina a obtener
-     * @param int $limit NÃƒÆ’Ã‚Âºmero de registros por pÃƒÆ’Ã‚Â¡gina
+     * @param int $page Pí¡gina a obtener
+     * @param int $limit Número de registros por pí¡gina
      * @param array $orderBy Ordenamiento ['field' => 'direction']
      * @return array Lista de noticias publicadas
      */
@@ -73,7 +76,7 @@ class News extends BaseModel
                 'status' => 'published'
             ];
 
-            // AÃƒÆ’Ã‚Â±adir filtro de fecha para noticias ya publicadas
+            // Aí±adir filtro de fecha para noticias ya publicadas
             $currentTime = date('Y-m-d H:i:s');
             $customWhere = "published_at <= :current_time";
 
@@ -96,7 +99,7 @@ class News extends BaseModel
                 }
             }
 
-            // PaginaciÃƒÆ’Ã‚Â³n
+            // Paginación
             $offset = ($page - 1) * $limit;
             $sql .= ' LIMIT :limit OFFSET :offset';
             $params[':limit'] = $limit;
@@ -121,13 +124,13 @@ class News extends BaseModel
     }
 
     /**
-     * Obtener noticias por categorÃƒÆ’Ã‚Â­a
+     * Obtener noticias por categorí­a
      * 
-     * @param string $category CategorÃƒÆ’Ã‚Â­a de las noticias
-     * @param int $page PÃƒÆ’Ã‚Â¡gina a obtener
-     * @param int $limit NÃƒÆ’Ã‚Âºmero de registros por pÃƒÆ’Ã‚Â¡gina
+     * @param string $category Categorí­a de las noticias
+     * @param int $page Pí¡gina a obtener
+     * @param int $limit Número de registros por pí¡gina
      * @param bool $publishedOnly Si solo incluir noticias publicadas
-     * @return array Lista de noticias de la categorÃƒÆ’Ã‚Â­a
+     * @return array Lista de noticias de la categorí­a
      */
     public function getNewsByCategory(string $category, int $page = 1, int $limit = self::DEFAULT_LIMIT, bool $publishedOnly = true): array
     {
@@ -154,10 +157,10 @@ class News extends BaseModel
                 $params[':current_time'] = $currentTime;
             }
 
-            // Ordenar por fecha de publicaciÃƒÆ’Ã‚Â³n descendente
+            // Ordenar por fecha de publicación descendente
             $sql .= " ORDER BY `published_at` DESC";
 
-            // PaginaciÃƒÆ’Ã‚Â³n
+            // Paginación
             $offset = ($page - 1) * $limit;
             $sql .= ' LIMIT :limit OFFSET :offset';
             $params[':limit'] = $limit;
@@ -185,7 +188,7 @@ class News extends BaseModel
     /**
      * Obtener noticias destacadas (featured)
      * 
-     * @param int $limit NÃƒÆ’Ã‚Âºmero mÃƒÆ’Ã‚Â¡ximo de noticias destacadas
+     * @param int $limit Número mí¡ximo de noticias destacadas
      * @param bool $publishedOnly Si solo incluir noticias publicadas
      * @return array Lista de noticias destacadas
      */
@@ -222,7 +225,7 @@ class News extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã‚Â©todo auxiliar para ejecutar la query de noticias destacadas
+     * Método auxiliar para ejecutar la query de noticias destacadas
      */
     private function executeFeaturedNewsQuery(int $limit, bool $publishedOnly): array
     {
@@ -244,13 +247,13 @@ class News extends BaseModel
     }
 
     /**
-     * Buscar noticias por tÃƒÆ’Ã‚Â­tulo o contenido
+     * Buscar noticias por tí­tulo o contenido
      * 
-     * @param string $searchTerm TÃƒÆ’Ã‚Â©rmino de bÃƒÆ’Ã‚Âºsqueda
-     * @param int $page PÃƒÆ’Ã‚Â¡gina a obtener
-     * @param int $limit NÃƒÆ’Ã‚Âºmero de registros por pÃƒÆ’Ã‚Â¡gina
+     * @param string $searchTerm Término de búsqueda
+     * @param int $page Pí¡gina a obtener
+     * @param int $limit Número de registros por pí¡gina
      * @param bool $publishedOnly Si solo incluir noticias publicadas
-     * @return array Lista de noticias que coinciden con la bÃƒÆ’Ã‚Âºsqueda
+     * @return array Lista de noticias que coinciden con la búsqueda
      */
     public function searchNews(string $searchTerm, int $page = 1, int $limit = self::DEFAULT_LIMIT, bool $publishedOnly = true): array
     {
@@ -289,12 +292,12 @@ class News extends BaseModel
                 $params[':current_time'] = $currentTime;
             }
 
-            // Ordenar por relevancia (tÃƒÆ’Ã‚Â­tulo primero, luego por fecha)
+            // Ordenar por relevancia (tí­tulo primero, luego por fecha)
             $sql .= " ORDER BY 
                       CASE WHEN `title` LIKE :search_title THEN 1 ELSE 2 END,
                       `published_at` DESC";
 
-            // PaginaciÃƒÆ’Ã‚Â³n
+            // Paginación
             $offset = ($page - 1) * $limit;
             $sql .= ' LIMIT :limit OFFSET :offset';
             $params[':limit'] = $limit;
@@ -321,11 +324,11 @@ class News extends BaseModel
     }
 
     /**
-     * Obtener noticias recientes con paginaciÃƒÆ’Ã‚Â³n
+     * Obtener noticias recientes con paginación
      * 
-     * @param int $days NÃƒÆ’Ã‚Âºmero de dÃƒÆ’Ã‚Â­as hacia atrÃƒÆ’Ã‚Â¡s para considerar "reciente"
-     * @param int $page PÃƒÆ’Ã‚Â¡gina a obtener
-     * @param int $limit NÃƒÆ’Ã‚Âºmero de registros por pÃƒÆ’Ã‚Â¡gina
+     * @param int $days Número de dí­as hacia atrí¡s para considerar "reciente"
+     * @param int $page Pí¡gina a obtener
+     * @param int $limit Número de registros por pí¡gina
      * @param bool $publishedOnly Si solo incluir noticias publicadas
      * @return array Array con datos paginados y metadata
      */
@@ -344,7 +347,7 @@ class News extends BaseModel
         }
 
         try {
-            // Calcular fecha lÃƒÆ’Ã‚Â­mite
+            // Calcular fecha lí­mite
             $fromDate = date('Y-m-d H:i:s', strtotime("-{$days} days"));
             $currentTime = date('Y-m-d H:i:s');
 
@@ -360,12 +363,12 @@ class News extends BaseModel
 
             $sql .= " ORDER BY `published_at` DESC";
 
-            // Obtener conteo total para paginaciÃƒÆ’Ã‚Â³n
+            // Obtener conteo total para paginación
             $countSql = str_replace('SELECT * FROM', 'SELECT COUNT(*) as total FROM', explode(' ORDER BY', $sql)[0]);
             $countResult = $this->query($countSql, array_filter($params, fn($key) => $key !== ':limit' && $key !== ':offset', ARRAY_FILTER_USE_KEY));
             $total = (int)($countResult[0]['total'] ?? 0);
 
-            // Agregar paginaciÃƒÆ’Ã‚Â³n a la query principal
+            // Agregar paginación a la query principal
             $offset = ($page - 1) * $limit;
             $sql .= ' LIMIT :limit OFFSET :offset';
             $params[':limit'] = $limit;
@@ -373,7 +376,7 @@ class News extends BaseModel
 
             $results = $this->query($sql, $params);
 
-            // Calcular metadata de paginaciÃƒÆ’Ã‚Â³n
+            // Calcular metadata de paginación
             $totalPages = (int) ceil($total / $limit);
 
             $response = [
@@ -415,7 +418,7 @@ class News extends BaseModel
      * Validar estado de noticia antes de guardar
      * 
      * @param string $status Estado a validar
-     * @return bool True si el estado es vÃƒÆ’Ã‚Â¡lido
+     * @return bool True si el estado es ví¡lido
      */
     public function validateStatus(string $status): bool
     {
@@ -423,10 +426,10 @@ class News extends BaseModel
     }
 
     /**
-     * Validar fecha de publicaciÃƒÆ’Ã‚Â³n
+     * Validar fecha de publicación
      * 
-     * @param string $publishedAt Fecha de publicaciÃƒÆ’Ã‚Â³n
-     * @return bool True si la fecha es vÃƒÆ’Ã‚Â¡lida
+     * @param string $publishedAt Fecha de publicación
+     * @return bool True si la fecha es ví¡lida
      */
     public function validatePublishedDate(string $publishedAt): bool
     {
@@ -455,17 +458,17 @@ class News extends BaseModel
             throw new \InvalidArgumentException("Invalid status: {$data['status']}");
         }
 
-        // Validar fecha de publicaciÃƒÆ’Ã‚Â³n si estÃƒÆ’Ã‚Â¡ presente
+        // Validar fecha de publicación si estí¡ presente
         if (!empty($data['published_at']) && !$this->validatePublishedDate($data['published_at'])) {
             throw new \InvalidArgumentException("Invalid published date format");
         }
 
-        // Si no hay fecha de publicaciÃƒÆ’Ã‚Â³n y el estado es 'published', usar fecha actual
+        // Si no hay fecha de publicación y el estado es 'published', usar fecha actual
         if ($data['status'] === 'published' && empty($data['published_at'])) {
             $data['published_at'] = date('Y-m-d H:i:s');
         }
 
-        // Generar excerpt automÃƒÆ’Ã‚Â¡tico si no existe
+        // Generar excerpt automí¡tico si no existe
         if (empty($data['excerpt']) && !empty($data['content'])) {
             $data['excerpt'] = $this->generateExcerpt($data['content']);
         }
@@ -502,7 +505,7 @@ class News extends BaseModel
      * 
      * @param mixed $id ID de la noticia
      * @param array $data Datos a actualizar
-     * @return bool True si la actualizaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @return bool True si la actualización fue exitosa
      */
     public function updateNews($id, array $data): bool
     {
@@ -514,17 +517,17 @@ class News extends BaseModel
             throw new \InvalidArgumentException('Data cannot be empty');
         }
 
-        // Validar estado si estÃƒÆ’Ã‚Â¡ presente
+        // Validar estado si estí¡ presente
         if (isset($data['status']) && !$this->validateStatus($data['status'])) {
             throw new \InvalidArgumentException("Invalid status: {$data['status']}");
         }
 
-        // Validar fecha de publicaciÃƒÆ’Ã‚Â³n si estÃƒÆ’Ã‚Â¡ presente
+        // Validar fecha de publicación si estí¡ presente
         if (isset($data['published_at']) && !empty($data['published_at']) && !$this->validatePublishedDate($data['published_at'])) {
             throw new \InvalidArgumentException("Invalid published date format");
         }
 
-        // Regenerar excerpt si el contenido cambiÃƒÆ’Ã‚Â³
+        // Regenerar excerpt si el contenido cambió
         if (isset($data['content']) && !isset($data['excerpt'])) {
             $data['excerpt'] = $this->generateExcerpt($data['content']);
         }
@@ -562,8 +565,8 @@ class News extends BaseModel
      * Publicar noticia programada
      * 
      * @param mixed $id ID de la noticia
-     * @param string|null $publishedAt Fecha de publicaciÃƒÆ’Ã‚Â³n (opcional, usa fecha actual si es null)
-     * @return bool True si la publicaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @param string|null $publishedAt Fecha de publicación (opcional, usa fecha actual si es null)
+     * @return bool True si la publicación fue exitosa
      */
     public function publishNews($id, string $publishedAt = null): bool
     {
@@ -602,10 +605,10 @@ class News extends BaseModel
     }
 
     /**
-     * Generar excerpt automÃƒÆ’Ã‚Â¡tico desde el contenido
+     * Generar excerpt automí¡tico desde el contenido
      * 
      * @param string $content Contenido completo
-     * @param int $maxLength Longitud mÃƒÆ’Ã‚Â¡xima del excerpt
+     * @param int $maxLength Longitud mí¡xima del excerpt
      * @return string Excerpt generado
      */
     private function generateExcerpt(string $content, int $maxLength = 200): string
@@ -618,7 +621,7 @@ class News extends BaseModel
             return $plainText;
         }
 
-        // Truncar en la ÃƒÆ’Ã‚Âºltima palabra completa
+        // Truncar en la última palabra completa
         $excerpt = substr($plainText, 0, $maxLength);
         $lastSpace = strrpos($excerpt, ' ');
 
@@ -632,7 +635,7 @@ class News extends BaseModel
     /**
      * Invalidar cache de noticias
      * 
-     * @return int NÃƒÆ’Ã‚Âºmero de elementos de cache eliminados
+     * @return int Número de elementos de cache eliminados
      */
     public function invalidateNewsCache(): int
     {
@@ -648,9 +651,9 @@ class News extends BaseModel
     }
 
     /**
-     * Obtener estadÃƒÆ’Ã‚Â­sticas de noticias por estado
+     * Obtener estadí­sticas de noticias por estado
      * 
-     * @return array EstadÃƒÆ’Ã‚Â­sticas por estado
+     * @return array Estadí­sticas por estado
      */
     public function getNewsStats(): array
     {
@@ -680,10 +683,10 @@ class News extends BaseModel
     }
 
     /**
-     * Obtener categorÃƒÆ’Ã‚Â­as de noticias con conteos
+     * Obtener categorí­as de noticias con conteos
      * 
      * @param bool $publishedOnly Si solo contar noticias publicadas
-     * @return array Lista de categorÃƒÆ’Ã‚Â­as con conteos
+     * @return array Lista de categorí­as con conteos
      */
     public function getCategoriesWithCount(bool $publishedOnly = true): array
     {
@@ -720,10 +723,10 @@ class News extends BaseModel
     }
 
     /**
-     * Generar clave de cache consistente para noticias (usa mÃƒÆ’Ã‚Â©todo de BaseModel)
+     * Generar clave de cache consistente para noticias (usa método de BaseModel)
      * 
      * @param string $prefix Prefijo de la clave
-     * @param array $params ParÃƒÆ’Ã‚Â¡metros para incluir en la clave
+     * @param array $params Parí¡metros para incluir en la clave
      * @return string Clave de cache generada
      */
     private function buildNewsCacheKey(string $prefix, array $params = []): string
@@ -736,15 +739,15 @@ class News extends BaseModel
     }
 
     // =====================================================
-    // CRUD METHODS ESTÃƒÆ’Ã‚ÂNDAR - BaseModel Template v2.0.0
+    // CRUD METHODS ESTÁNDAR - BaseModel Template v2.0.0
     // =====================================================
 
     /**
-     * Crear nueva noticia con validaciones CRUD estÃƒÆ’Ã‚Â¡ndar
+     * Crear nueva noticia con validaciones CRUD estí¡ndar
      *
      * @param array $data Datos de la noticia
      * @return int|false ID de la nueva noticia o false en caso de error
-     * @throws InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @throws InvalidArgumentException Si los datos no son ví¡lidos
      */
     public static function createNewsStandard(array $data)
     {
@@ -787,12 +790,12 @@ class News extends BaseModel
     }
 
     /**
-     * Actualizar noticia con validaciones CRUD estÃƒÆ’Ã‚Â¡ndar
+     * Actualizar noticia con validaciones CRUD estí¡ndar
      *
      * @param int $id ID de la noticia
      * @param array $data Nuevos datos
      * @return bool
-     * @throws InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @throws InvalidArgumentException Si los datos no son ví¡lidos
      */
     public static function updateNewsStandard(int $id, array $data): bool
     {
@@ -849,11 +852,11 @@ class News extends BaseModel
     }
 
     /**
-     * Buscar noticias CRUD estÃƒÆ’Ã‚Â¡ndar
+     * Buscar noticias CRUD estí¡ndar
      *
-     * @param array $criteria Criterios de bÃƒÆ’Ã‚Âºsqueda
-     * @param int $limit LÃƒÆ’Ã‚Â­mite de resultados
-     * @param int $offset Offset para paginaciÃƒÆ’Ã‚Â³n
+     * @param array $criteria Criterios de búsqueda
+     * @param int $limit Lí­mite de resultados
+     * @param int $offset Offset para paginación
      * @return array
      */
     public static function searchNewsStandard(array $criteria = [], int $limit = 50, int $offset = 0): array
@@ -862,7 +865,7 @@ class News extends BaseModel
             $query = "SELECT * FROM news WHERE 1=1";
             $params = [];
 
-            // Filtro por tÃƒÆ’Ã‚Â­tulo
+            // Filtro por tí­tulo
             if (!empty($criteria['title'])) {
                 $query .= " AND title LIKE :title";
                 $params['title'] = '%' . $criteria['title'] . '%';
@@ -894,7 +897,7 @@ class News extends BaseModel
             $news = new self();
             return $news->query($query, $params);
         } catch (\Exception $e) {
-            self::logError('Error en bÃƒÆ’Ã‚Âºsqueda de noticias', $criteria, $e);
+            self::logError('Error en búsqueda de noticias', $criteria, $e);
             return [];
         }
     }
@@ -902,7 +905,7 @@ class News extends BaseModel
     /**
      * Contar noticias
      *
-     * @param array $criteria Criterios de bÃƒÆ’Ã‚Âºsqueda
+     * @param array $criteria Criterios de búsqueda
      * @return int
      */
     public static function countNewsStandard(array $criteria = []): int
@@ -945,26 +948,26 @@ class News extends BaseModel
      * Validar datos de noticia
      *
      * @param array $data Datos a validar
-     * @param bool $isUpdate Si es una actualizaciÃƒÆ’Ã‚Â³n (permite campos opcionales)
-     * @throws InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @param bool $isUpdate Si es una actualización (permite campos opcionales)
+     * @throws InvalidArgumentException Si los datos no son ví¡lidos
      */
     private static function validateNewsData(array $data, bool $isUpdate = false): void
     {
-        // title es requerido en creaciÃƒÆ’Ã‚Â³n
+        // title es requerido en creación
         if (!$isUpdate && empty($data['title'])) {
-            throw new \InvalidArgumentException('El tÃƒÆ’Ã‚Â­tulo es requerido');
+            throw new \InvalidArgumentException('El tí­tulo es requerido');
         }
 
         if (isset($data['title'])) {
             if (!is_string($data['title']) || strlen(trim($data['title'])) < 3) {
-                throw new \InvalidArgumentException('El tÃƒÆ’Ã‚Â­tulo debe tener al menos 3 caracteres');
+                throw new \InvalidArgumentException('El tí­tulo debe tener al menos 3 caracteres');
             }
             if (strlen($data['title']) > 255) {
-                throw new \InvalidArgumentException('El tÃƒÆ’Ã‚Â­tulo no puede exceder los 255 caracteres');
+                throw new \InvalidArgumentException('El tí­tulo no puede exceder los 255 caracteres');
             }
         }
 
-        // content es requerido en creaciÃƒÆ’Ã‚Â³n
+        // content es requerido en creación
         if (!$isUpdate && empty($data['content'])) {
             throw new \InvalidArgumentException('El contenido es requerido');
         }
@@ -975,40 +978,40 @@ class News extends BaseModel
             }
         }
 
-        // author_id es requerido en creaciÃƒÆ’Ã‚Â³n
+        // author_id es requerido en creación
         if (!$isUpdate && empty($data['author_id'])) {
             throw new \InvalidArgumentException('El author_id es requerido');
         }
 
         if (isset($data['author_id']) && (!is_numeric($data['author_id']) || $data['author_id'] <= 0)) {
-            throw new \InvalidArgumentException('El author_id debe ser un nÃƒÆ’Ã‚Âºmero entero positivo');
+            throw new \InvalidArgumentException('El author_id debe ser un número entero positivo');
         }
 
-        // status es requerido en creaciÃƒÆ’Ã‚Â³n
+        // status es requerido en creación
         if (!$isUpdate && empty($data['status'])) {
             throw new \InvalidArgumentException('El status es requerido');
         }
 
         if (isset($data['status'])) {
             if (!in_array($data['status'], self::VALID_STATUSES)) {
-                throw new \InvalidArgumentException('Status no vÃƒÆ’Ã‚Â¡lido: ' . $data['status']);
+                throw new \InvalidArgumentException('Status no ví¡lido: ' . $data['status']);
             }
         }
     }
 
     /**
-     * Invalidar cachÃƒÆ’Ã‚Â© relacionado con noticias (versiÃƒÆ’Ã‚Â³n estÃƒÆ’Ã‚Â¡tica)
+     * Invalidar caché relacionado con noticias (versión estí¡tica)
      */
     private static function invalidateNewsCacheStandard(): void
     {
         try {
-            // Crear instancia temporal para acceder a mÃƒÆ’Ã‚Â©todos de instancia
+            // Crear instancia temporal para acceder a métodos de instancia
             $tempInstance = new self();
             $deletedCount = $tempInstance->invalidateNewsCache();
 
-            self::logDebug('CachÃƒÆ’Ã‚Â© de noticias invalidado', ['deleted_count' => $deletedCount]);
+            self::logDebug('Caché de noticias invalidado', ['deleted_count' => $deletedCount]);
         } catch (\Exception $e) {
-            self::logError('Error al invalidar cachÃƒÆ’Ã‚Â© de noticias', [], $e);
+            self::logError('Error al invalidar caché de noticias', [], $e);
         }
     }
 }

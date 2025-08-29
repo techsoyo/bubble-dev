@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Production-Ready Apply Page - Refactored to use JobApplicationForm
  * 
  * Enhanced job application page with extracted form component,
@@ -49,7 +49,6 @@ export default function ApplyPage(): JSX.Element {
      * Handle CV upload success
      */
     const handleCVUploadSuccess = useCallback((candidate: Candidate) => {
-        console.log('Candidato registrado exitosamente:', candidate);
         announce('CV procesado y guardado exitosamente', 'polite');
         setSuccessMessage('¡Tu CV fue procesado y guardado exitosamente!');
 
@@ -64,7 +63,6 @@ export default function ApplyPage(): JSX.Element {
         setStatus(ApplicationStatus.SUBMITTING);
 
         try {
-            console.log('Submitting application data:', data);
 
             // Simulate API call - replace with actual API call
             await new Promise(resolve => setTimeout(resolve, 1200));

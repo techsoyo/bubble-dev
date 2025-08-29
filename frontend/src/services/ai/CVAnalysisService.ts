@@ -42,21 +42,73 @@ export interface ExtractedSection {
 }
 
 export class CVAnalysisService {
-  private readonly skillsKeywords = {
+  private skillsKeywords = {
     technical: [
-      'javascript', 'typescript', 'react', 'vue', 'angular', 'node.js',
-      'python', 'java', 'c++', 'c#', 'php', 'ruby', 'go', 'rust',
-      'html', 'css', 'sass', 'less', 'bootstrap', 'tailwind',
-      'mysql', 'postgresql', 'mongodb', 'redis', 'elasticsearch',
-      'aws', 'azure', 'gcp', 'docker', 'kubernetes', 'terraform',
-      'git', 'jenkins', 'gitlab', 'github', 'jira', 'confluence'
+      // Lenguajes de programación
+      'javascript', 'typescript', 'python', 'java', 'c++', 'c#', 'php', 'ruby', 'go', 'rust',
+      'swift', 'kotlin', 'dart', 'scala', 'r', 'matlab', 'perl', 'lua', 'haskell',
+
+      // Frameworks y librerías
+      'react', 'vue', 'angular', 'svelte', 'next.js', 'nuxt.js', 'express', 'django', 'flask',
+      'spring', 'laravel', 'symfony', 'rails', 'asp.net', 'fastapi', 'graphql',
+
+      // Frontend
+      'html', 'css', 'sass', 'less', 'bootstrap', 'tailwind', 'material-ui', 'styled-components',
+      'webpack', 'vite', 'babel', 'eslint', 'prettier',
+
+      // Backend y Bases de datos
+      'node.js', 'mysql', 'postgresql', 'mongodb', 'redis', 'elasticsearch', 'oracle',
+      'sqlite', 'cassandra', 'dynamodb', 'firebase', 'supabase',
+
+      // Cloud y DevOps
+      'aws', 'azure', 'gcp', 'docker', 'kubernetes', 'terraform', 'ansible', 'jenkins',
+      'gitlab', 'github', 'bitbucket', 'jira', 'confluence', 'slack', 'trello',
+
+      // Herramientas y otros
+      'git', 'npm', 'yarn', 'pnpm', 'webpack', 'babel', 'jest', 'cypress', 'selenium',
+      'figma', 'sketch', 'photoshop', 'illustrator', 'adobe xd'
     ],
     soft: [
-      'leadership', 'communication', 'teamwork', 'problem solving',
-      'critical thinking', 'creativity', 'adaptability', 'time management',
-      'project management', 'analytical thinking', 'decision making'
+      'leadership', 'communication', 'teamwork', 'problem solving', 'critical thinking',
+      'creativity', 'adaptability', 'time management', 'project management', 'analytical thinking',
+      'decision making', 'conflict resolution', 'mentoring', 'coaching', 'negotiation',
+      'presentation skills', 'public speaking', 'writing', 'research', 'data analysis'
+    ],
+    marketing: [
+      'digital marketing', 'seo', 'sem', 'social media', 'content marketing', 'email marketing',
+      'google analytics', 'facebook ads', 'google ads', 'instagram', 'linkedin', 'twitter',
+      'tiktok', 'youtube', 'influencer marketing', 'brand management', 'market research',
+      'customer segmentation', 'crm', 'salesforce', 'hubspot', 'mailchimp'
+    ],
+    design: [
+      'ui/ux design', 'user experience', 'user interface', 'graphic design', 'web design',
+      'mobile design', 'responsive design', 'prototyping', 'wireframing', 'user research',
+      'usability testing', 'accessibility', 'design systems', 'branding', 'logo design'
     ]
   };
+
+  /**
+   * Actualiza dinámicamente la lista de skills
+   */
+  updateSkillsCategory(category: keyof typeof this.skillsKeywords, newSkills: string[]): void {
+    if (this.skillsKeywords[category]) {
+      // Agregar skills sin duplicados
+      const existingSkills = new Set(this.skillsKeywords[category]);
+      newSkills.forEach(skill => existingSkills.add(skill.toLowerCase()));
+      this.skillsKeywords[category] = Array.from(existingSkills);
+    }
+  }
+
+  /**
+   * Obtiene todas las skills disponibles
+   */
+  getAllSkills(): string[] {
+    const allSkills: string[] = [];
+    Object.values(this.skillsKeywords).forEach(categorySkills => {
+      allSkills.push(...categorySkills);
+    });
+    return Array.from(new Set(allSkills)); // Remover duplicados
+  }
 
   private readonly experiencePatterns = [
     /(\d{4})\s*[-–]\s*(\d{4}|present|current|actual)/gi,
@@ -140,15 +192,56 @@ export class CVAnalysisService {
   }
 
   private async extractFromPDF(content: string): Promise<string> {
-    // In a real implementation, use PDF parsing library like pdf-parse
-    // For now, return the content as-is (assuming it's already extracted)
-    return content;
+    try {
+      // Para PDFs, asumimos que el contenido ya viene extraído del lado del cliente
+      // En una implementación completa, usaríamos una librería como pdf-parse o PDF.js
+      if (!content || content.trim().length === 0) {
+        throw new Error('PDF content is empty or invalid');
+      }
+
+      // Limpiar contenido básico de PDF
+      let cleanContent = content
+        .replace(/\\n/g, '\n') // Unificar saltos de línea
+        .replace(/\\t/g, ' ') // Reemplazar tabs con espacios
+        .replace(/\s+/g, ' ') // Normalizar espacios múltiples
+        .trim();
+
+      // Remover caracteres de control comunes en PDFs
+      cleanContent = cleanContent.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+
+      return cleanContent;
+    } catch (error) {
+      console.error('Error extracting text from PDF:', error);
+      throw new Error('Failed to extract text from PDF document');
+    }
   }
 
   private async extractFromWord(content: string): Promise<string> {
-    // In a real implementation, use Word parsing library like mammoth
-    // For now, return the content as-is (assuming it's already extracted)
-    return content;
+    try {
+      // Para documentos Word, asumimos que el contenido ya viene extraído
+      // En una implementación completa, usaríamos mammoth.js o similar
+      if (!content || content.trim().length === 0) {
+        throw new Error('Word document content is empty or invalid');
+      }
+
+      // Limpiar contenido básico de Word
+      let cleanContent = content
+        .replace(/\\n/g, '\n')
+        .replace(/\\t/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      // Remover metadatos comunes de Word
+      cleanContent = cleanContent
+        .replace(/\[.*?\]/g, '') // Remover referencias
+        .replace(/<[^>]*>/g, '') // Remover tags HTML si existen
+        .trim();
+
+      return cleanContent;
+    } catch (error) {
+      console.error('Error extracting text from Word document:', error);
+      throw new Error('Failed to extract text from Word document');
+    }
   }
 
   private async extractCandidateData(
@@ -246,7 +339,7 @@ export class CVAnalysisService {
       });
     }
 
-    return [...new Set(skills)]; // Remove duplicates
+    return Array.from(new Set(skills)); // Remove duplicates
   }
 
   private extractExperience(text: string): any[] {

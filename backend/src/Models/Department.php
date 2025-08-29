@@ -1,18 +1,21 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Models;
 
 use Utils\Logger;
 
 /**
- * Modelo para los departamentos de la organizaciÃƒÆ’Ã‚Â³n
+ * Modelo para los departamentos de la organización
  * 
- * Gestiona la informaciÃƒÆ’Ã‚Â³n de departamentos, sus estadÃƒÆ’Ã‚Â­sticas de reclutamiento,
- * pipeline de candidatos y mÃƒÆ’Ã‚Â©tricas de rendimiento organizacional.
+ * Gestiona la información de departamentos, sus estadí­sticas de reclutamiento,
+ * pipeline de candidatos y métricas de rendimiento organizacional.
  * 
  * Funcionalidades principales:
- * - GestiÃƒÆ’Ã‚Â³n de departamentos con informaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica y presupuestaria
+ * - Gestión de departamentos con información bí¡sica y presupuestaria
  * - Pipeline de reclutamiento por departamento usando vistas optimizadas
- * - EstadÃƒÆ’Ã‚Â­sticas de candidatos y aplicaciones por departamento
+ * - Estadí­sticas de candidatos y aplicaciones por departamento
  * - Carga de trabajo de recruiters por departamento
  * - Cache de consultas pesadas para optimizar rendimiento
  * 
@@ -28,12 +31,12 @@ class Department extends BaseModel
      */
     protected string $table = 'departments';
     /*
-     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÃƒÆ’Ã¢â‚¬Å“N AUTOMÃƒÆ’Ã‚ÂTICA APLICADA
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÓN AUTOMÁTICA APLICADA
      * Modelo: Department
      * Fecha: 2025-08-23
      * 
      * Cambios realizados:
-     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aÃƒÆ’Ã‚Â±adidos: ninguno
+     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aí±adidos: ninguno
      * ÃƒÂ¢Ã‚ÂÃ…â€™ Campos removidos: ['description', 'head_id', 'status', 'budget', 'location']
      * ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Total campos fillable: 1
      * 
@@ -50,10 +53,10 @@ class Department extends BaseModel
     ];
 
     /**
-     * Campos ocultos por seguridad (informaciÃƒÆ’Ã‚Â³n sensible)
+     * Campos ocultos por seguridad (información sensible)
      */
     protected array $hidden = [
-        'budget'  // InformaciÃƒÆ’Ã‚Â³n financiera sensible
+        'budget'  // Información financiera sensible
     ];
 
     /**
@@ -62,21 +65,21 @@ class Department extends BaseModel
     private const PIPELINE_CACHE_TTL = 300;
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS DE VISTAS - Pipeline y estadÃƒÆ’Ã‚Â­sticas departamentales
+     * MÉTODOS DE VISTAS - Pipeline y estadí­sticas departamentales
      */
 
     /**
      * Obtener pipeline de reclutamiento por departamento
      * 
-     * Utiliza la vista vw_pipeline_department para obtener estadÃƒÆ’Ã‚Â­sticas
+     * Utiliza la vista vw_pipeline_department para obtener estadí­sticas
      * completas del pipeline de reclutamiento por departamento.
      * 
-     * @param string|null $departmentId ID especÃƒÆ’Ã‚Â­fico del departamento (opcional)
+     * @param string|null $departmentId ID especí­fico del departamento (opcional)
      * @param bool $useCache Usar cache para optimizar consultas pesadas
      * @param int $cacheTtl Tiempo de vida del cache en segundos
      * @return array Datos del pipeline por departamento
      * 
-     * @throws \InvalidArgumentException Si department_id no es vÃƒÆ’Ã‚Â¡lido
+     * @throws \InvalidArgumentException Si department_id no es ví¡lido
      * @throws \RuntimeException Si falla la consulta
      */
     public function getDepartmentPipeline(?string $departmentId = null, bool $useCache = true, int $cacheTtl = self::PIPELINE_CACHE_TTL): array
@@ -104,7 +107,7 @@ class Department extends BaseModel
         $sql .= " ORDER BY department_name, recruiter_id";
 
         try {
-            // Usar cache si estÃƒÆ’Ã‚Â¡ habilitado
+            // Usar cache si estí¡ habilitado
             if ($useCache && $cacheTtl > 0) {
                 $cacheKey = $this->generateCacheKey('department_pipeline', [
                     'department_id' => $departmentId
@@ -124,14 +127,14 @@ class Department extends BaseModel
     }
 
     /**
-     * Obtener estadÃƒÆ’Ã‚Â­sticas de rendimiento por departamento
+     * Obtener estadí­sticas de rendimiento por departamento
      * 
-     * Calcula mÃƒÆ’Ã‚Â©tricas agregadas de rendimiento departamental incluyendo
-     * totales de candidatos, aplicaciones, tasas de conversiÃƒÆ’Ã‚Â³n y promedios.
+     * Calcula métricas agregadas de rendimiento departamental incluyendo
+     * totales de candidatos, aplicaciones, tasas de conversión y promedios.
      * 
      * @param string $departmentId ID del departamento
      * @param bool $useCache Usar cache para optimizar consultas
-     * @return array MÃƒÆ’Ã‚Â©tricas de rendimiento del departamento
+     * @return array Métricas de rendimiento del departamento
      */
     public function getDepartmentStats(string $departmentId, bool $useCache = true): array
     {
@@ -186,9 +189,9 @@ class Department extends BaseModel
      * Utiliza la vista vw_pipeline_department junto con vw_recruiter_load
      * para proporcionar una vista completa de la carga de trabajo por departamento.
      * 
-     * @param array $filters Filtros opcionales por estado, ubicaciÃƒÆ’Ã‚Â³n, etc.
+     * @param array $filters Filtros opcionales por estado, ubicación, etc.
      * @param bool $useCache Usar cache para consultas optimizadas
-     * @return array Lista de departamentos con mÃƒÆ’Ã‚Â©tricas de carga
+     * @return array Lista de departamentos con métricas de carga
      */
     public function getDepartmentsWithLoad(array $filters = [], bool $useCache = true): array
     {
@@ -258,13 +261,13 @@ class Department extends BaseModel
     /**
      * Obtener candidatos por departamento con filtros avanzados
      * 
-     * Recupera candidatos asignados a un departamento especÃƒÆ’Ã‚Â­fico con
-     * capacidad de filtrado por estado, ubicaciÃƒÆ’Ã‚Â³n, habilidades, etc.
+     * Recupera candidatos asignados a un departamento especí­fico con
+     * capacidad de filtrado por estado, ubicación, habilidades, etc.
      * 
      * @param string $departmentId ID del departamento
      * @param array $filters Filtros adicionales (status, location, skills, etc.)
-     * @param int $page PÃƒÆ’Ã‚Â¡gina para paginaciÃƒÆ’Ã‚Â³n
-     * @param int $limit LÃƒÆ’Ã‚Â­mite de resultados por pÃƒÆ’Ã‚Â¡gina
+     * @param int $page Pí¡gina para paginación
+     * @param int $limit Lí­mite de resultados por pí¡gina
      * @return array Lista paginada de candidatos del departamento
      */
     public function getCandidatesByDepartment(
@@ -315,7 +318,7 @@ class Department extends BaseModel
         $sql .= " GROUP BY c.id
                   ORDER BY c.created_at DESC";
 
-        // AÃƒÆ’Ã‚Â±adir paginaciÃƒÆ’Ã‚Â³n
+        // Aí±adir paginación
         $offset = ($page - 1) * $limit;
         $sql .= ' LIMIT :limit OFFSET :offset';
         $params[':limit'] = $limit;
@@ -324,7 +327,7 @@ class Department extends BaseModel
         try {
             $candidates = $this->query($sql, $params);
 
-            // Obtener total para paginaciÃƒÆ’Ã‚Â³n
+            // Obtener total para paginación
             $totalQuery = "SELECT COUNT(DISTINCT c.id) as total 
                            FROM bt_candidates c 
                            WHERE c.department_id = :department_id";
@@ -367,14 +370,14 @@ class Department extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS DE GESTIÃƒÆ’Ã¢â‚¬Å“N ORGANIZACIONAL
+     * MÉTODOS DE GESTIÓN ORGANIZACIONAL
      */
 
     /**
-     * Obtener jerarquÃƒÆ’Ã‚Â­a de departamentos con sus subordinados
+     * Obtener jerarquí­a de departamentos con sus subordinados
      * 
-     * @param string|null $parentId ID del departamento padre (null para raÃƒÆ’Ã‚Â­z)
-     * @return array ÃƒÆ’Ã‚Ârbol jerÃƒÆ’Ã‚Â¡rquico de departamentos
+     * @param string|null $parentId ID del departamento padre (null para raí­z)
+     * @return array Árbol jerí¡rquico de departamentos
      */
     public function getDepartmentHierarchy(?string $parentId = null): array
     {
@@ -419,7 +422,7 @@ class Department extends BaseModel
      * Obtener resumen ejecutivo de todos los departamentos
      * 
      * @param bool $useCache Usar cache para optimizar la consulta
-     * @return array Resumen con mÃƒÆ’Ã‚Â©tricas clave de todos los departamentos
+     * @return array Resumen con métricas clave de todos los departamentos
      */
     public function getDepartmentsSummary(bool $useCache = true): array
     {
@@ -454,7 +457,7 @@ class Department extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS AUXILIARES Y CACHE
+     * MÉTODOS AUXILIARES Y CACHE
      */
 
     /**
@@ -499,8 +502,8 @@ class Department extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS DE COMPATIBILIDAD
-     * Mantener funcionalidad especÃƒÆ’Ã‚Â­fica existente del modelo original
+     * MÉTODOS DE COMPATIBILIDAD
+     * Mantener funcionalidad especí­fica existente del modelo original
      */
 
     /**
@@ -566,7 +569,7 @@ class Department extends BaseModel
     }
 
     // ==========================================
-    // MÃƒÆ’Ã¢â‚¬Â°TODOS CRUD ENCAPSULADOS ESTÃƒÆ’Ã‚ÂNDAR
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
     // ==========================================
 
     /**
@@ -620,7 +623,7 @@ class Department extends BaseModel
      * Actualizar department con validaciones
      * @param mixed $id ID del department a actualizar
      * @param array $data Nuevos datos
-     * @return bool True si la actualizaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @return bool True si la actualización fue exitosa
      */
     public function updateDepartment($id, array $data): bool
     {
@@ -652,7 +655,7 @@ class Department extends BaseModel
     /**
      * Eliminar department con validaciones
      * @param mixed $id ID del department a eliminar
-     * @return bool True si la eliminaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @return bool True si la eliminación fue exitosa
      */
     public function deleteDepartment($id): bool
     {
@@ -680,9 +683,9 @@ class Department extends BaseModel
 
     /**
      * Buscar departments con filtros
-     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
-     * @param int $page PÃƒÆ’Ã‚Â¡gina actual
-     * @param int $limit Registros por pÃƒÆ’Ã‚Â¡gina
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Pí¡gina actual
+     * @param int $limit Registros por pí¡gina
      * @param array $orderBy Criterios de ordenamiento
      * @return array Array de departments
      */
@@ -702,8 +705,8 @@ class Department extends BaseModel
 
     /**
      * Contar total de departments con filtros
-     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
-     * @return int NÃƒÆ’Ã‚Âºmero total de departments
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de departments
      */
     public function countDepartments(array $filters = []): int
     {
@@ -720,14 +723,14 @@ class Department extends BaseModel
     }
 
     // ==========================================
-    // MÃƒÆ’Ã¢â‚¬Â°TODOS DE VALIDACIÃƒÆ’Ã¢â‚¬Å“N ESPECÃƒÆ’Ã‚ÂFICOS
+    // MÉTODOS DE VALIDACIÓN ESPECíFICOS
     // ==========================================
 
     /**
-     * Validar datos especÃƒÆ’Ã‚Â­ficos de departments
+     * Validar datos especí­ficos de departments
      * @param array $data Datos a validar
-     * @param mixed $id ID para validaciones de actualizaciÃƒÆ’Ã‚Â³n (opcional)
-     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son ví¡lidos
      */
     private function validateDepartmentData(array $data, $id = null): void
     {
@@ -741,11 +744,11 @@ class Department extends BaseModel
             throw new \InvalidArgumentException('Department name cannot exceed 255 characters');
         }
 
-        // Validar que el nombre no estÃƒÆ’Ã‚Â© duplicado (si es creaciÃƒÆ’Ã‚Â³n o actualizaciÃƒÆ’Ã‚Â³n con nombre diferente)
+        // Validar que el nombre no esté duplicado (si es creación o actualización con nombre diferente)
         if (isset($data['name'])) {
             $existing = $this->findBy('name', $data['name']);
             if (!empty($existing)) {
-                // Si es actualizaciÃƒÆ’Ã‚Â³n, verificar que no sea el mismo registro
+                // Si es actualización, verificar que no sea el mismo registro
                 if ($id === null || $existing[0]['id'] != $id) {
                     throw new \InvalidArgumentException('Department name already exists');
                 }
@@ -754,7 +757,7 @@ class Department extends BaseModel
     }
 
     /**
-     * Invalidar cache especÃƒÆ’Ã‚Â­fico de departments
+     * Invalidar cache especí­fico de departments
      */
     public function invalidateDepartmentCache(): int
     {

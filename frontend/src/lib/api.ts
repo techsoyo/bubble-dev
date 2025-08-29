@@ -28,7 +28,7 @@ export async function apiRequest(config: any, { signal, retries = 2 }: { signal?
       return await api({ ...config, signal: controller.signal });
     } catch (err) {
       lastError = err;
-      if (err.name === 'AbortError') throw err;
+      if (err instanceof Error && err.name === 'AbortError') throw err;
       if (attempt < retries) {
         await new Promise(res => setTimeout(res, 300 * Math.pow(2, attempt)));
       }
@@ -37,9 +37,7 @@ export async function apiRequest(config: any, { signal, retries = 2 }: { signal?
   throw lastError;
 }
 
-
-// No necesitas token desde localStorage, ya que usas cookies HTTP-only
-
+// Configurar interceptores para requests
 api.interceptors.request.use(
   (config) => {
     // Puedes añadir lógica extra aquí si necesitas loguear o modificar headers

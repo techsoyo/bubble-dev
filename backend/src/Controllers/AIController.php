@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Controllers;
 
 use Utils\Request;
@@ -16,7 +19,7 @@ class AIController extends BaseController
             return ResponseHelper::error('Archivo CV no encontrado', null, 400);
         }
 
-        // TODO: implementar lÃƒÆ’Ã‚Â³gica de parsing
+        // TODO: implementar lógica de parsing
         return ResponseHelper::success('CV procesado correctamente (archivo)', [
             'filename' => $file['name']
         ]);
@@ -48,7 +51,7 @@ class AIController extends BaseController
             return ResponseHelper::error('Archivo PDF no encontrado', null, 400);
         }
 
-        // TODO: lÃƒÆ’Ã‚Â³gica de anÃƒÆ’Ã‚Â¡lisis IA sobre PDF
+        // TODO: lógica de Anáslisis IA sobre PDF
         return ResponseHelper::success('PDF analizado correctamente', [
             'filename' => $file['name']
         ]);
@@ -63,10 +66,10 @@ class AIController extends BaseController
         $jobId = $request->input('job_id');
 
         if (!$candidateId || !$jobId) {
-            return ResponseHelper::error('Faltan parÃƒÆ’Ã‚Â¡metros candidate_id o job_id', null, 400);
+            return ResponseHelper::error('Faltan parí¡metros candidate_id o job_id', null, 400);
         }
 
-        // Verificar si estamos en producciÃƒÆ’Ã‚Â³n
+        // Verificar si estamos en producción
         if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
             http_response_code(501);
             echo json_encode(['error' => 'AI not configured']);
@@ -79,7 +82,7 @@ class AIController extends BaseController
             'candidate_id' => $candidateId,
             'job_id' => $jobId,
             'score' => 75, // score fijo para desarrollo, reemplazar con IA real
-            'note' => 'Score mock para desarrollo - implementar IA en producciÃƒÆ’Ã‚Â³n'
+            'note' => 'Score mock para desarrollo - implementar IA en producción'
         ]);
     }
 
@@ -118,7 +121,7 @@ class AIController extends BaseController
             return ResponseHelper::error('Texto no proporcionado', null, 400);
         }
 
-        return ResponseHelper::success('AnÃƒÆ’Ã‚Â¡lisis de personalidad completado', [
+        return ResponseHelper::success('Anáslisis de personalidad completado', [
             'traits' => ['proactivo', 'colaborativo']
         ]);
     }
@@ -130,7 +133,7 @@ class AIController extends BaseController
             return ResponseHelper::error('candidate_id no proporcionado', null, 400);
         }
 
-        return ResponseHelper::success('PredicciÃƒÆ’Ã‚Â³n completada', [
+        return ResponseHelper::success('Predicción completada', [
             'candidate_id' => $candidateId,
             'prediction' => 'alto rendimiento'
         ]);

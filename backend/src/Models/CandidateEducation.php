@@ -7,10 +7,10 @@ namespace Models;
 use Utils\Logger;
 
 /**
- * Modelo CandidateEducation - GestiÃƒÆ’Ã‚Â³n de educaciÃƒÆ’Ã‚Â³n de candidatos
+ * Modelo CandidateEducation - Gestión de educación de candidatos
  *
- * Gestiona informaciÃƒÆ’Ã‚Â³n educativa de candidatos con validaciones de fechas,
- * cache de historiales educativos y mÃƒÆ’Ã‚Â©todos especializados para consultas
+ * Gestiona información educativa de candidatos con validaciones de fechas,
+ * cache de historiales educativos y métodos especializados para consultas
  * educativas complejas.
  *
  * @package Models
@@ -36,7 +36,7 @@ class CandidateEducation extends BaseModel
     protected string $primaryKey = 'id';
 
     protected array $hidden = [
-        'gpa' // InformaciÃƒÆ’Ã‚Â³n acadÃƒÆ’Ã‚Â©mica sensible
+        'gpa' // Información académica sensible
     ];
 
     /**
@@ -45,7 +45,7 @@ class CandidateEducation extends BaseModel
     private array $educationHistoryCache = [];
 
     /**
-     * Buscar educaciÃƒÆ’Ã‚Â³n por candidato
+     * Buscar educación por candidato
      */
     public function findByCandidate(int $candidateId): array
     {
@@ -89,16 +89,16 @@ class CandidateEducation extends BaseModel
         // Pasar el ID ya casteado como int para que BaseModel->query detecte PDO::PARAM_INT
         $results = $this->query($sql, [$candidateId]);
 
-        // Procesar datos para mejorar la informaciÃƒÆ’Ã‚Â³n
+        // Procesar datos para mejorar la información
         $processedResults = array_map(function ($education) {
-            // Calcular duraciÃƒÆ’Ã‚Â³n si hay fechas
+            // Calcular duración si hay fechas
             if ($education['start_date'] && $education['end_date']) {
                 $start = new \DateTime($education['start_date']);
                 $end = new \DateTime($education['end_date']);
                 $education['duration_years'] = $start->diff($end)->y;
             }
 
-            // Marcar educaciÃƒÆ’Ã‚Â³n actual si no tiene fecha de fin
+            // Marcar educación actual si no tiene fecha de fin
             if (empty($education['end_date']) && !empty($education['start_date'])) {
                 $education['is_current'] = true;
             }
@@ -111,7 +111,7 @@ class CandidateEducation extends BaseModel
             $this->educationHistoryCache[$cacheKey] = $processedResults;
         }
 
-        // Intentar cache externo si estÃƒÆ’Ã‚Â¡ disponible
+        // Intentar cache externo si estí¡ disponible
         if ($useCache && $cacheTtl > 0 && class_exists('\Utils\Cache')) {
             try {
                 \Utils\Cache::set($cacheKey, $processedResults, $cacheTtl);
@@ -131,10 +131,10 @@ class CandidateEducation extends BaseModel
         return $processedResults;
     }
     /**
-     * Obtener educaciÃƒÆ’Ã‚Â³n actual del candidato
+     * Obtener educación actual del candidato
      *
      * @param string|int $candidateId ID del candidato
-     * @return array|null EducaciÃƒÆ’Ã‚Â³n actual o null si no tiene
+     * @return array|null Educación actual o null si no tiene
      */
 
     public function getCurrentEducation(int $candidateId): ?array
@@ -155,11 +155,11 @@ class CandidateEducation extends BaseModel
     }
 
     /**
-     * Obtener educaciÃƒÆ’Ã‚Â³n por nivel especÃƒÆ’Ã‚Â­fico
+     * Obtener educación por nivel especí­fico
      *
      * @param string|int $candidateId ID del candidato
      * @param string $level Nivel educativo (bachelor, master, phd, etc.)
-     * @return array EducaciÃƒÆ’Ã‚Â³n del nivel especificado
+     * @return array Educación del nivel especificado
      */
     public function getEducationByLevel(int $candidateId, string $level): array
     {
@@ -190,11 +190,11 @@ class CandidateEducation extends BaseModel
     }
 
     /**
-     * Validar rango de fechas de educaciÃƒÆ’Ã‚Â³n
+     * Validar rango de fechas de educación
      *
      * @param string|null $startDate Fecha de inicio
      * @param string|null $endDate Fecha de fin
-     * @param bool $isCurrent Es educaciÃƒÆ’Ã‚Â³n actual
+     * @param bool $isCurrent Es educación actual
      * @return array Array con 'valid' (bool) y 'errors' (array)
      */
     public function validateDateRange(?string $startDate, ?string $endDate, bool $isCurrent = false): array
@@ -213,7 +213,7 @@ class CandidateEducation extends BaseModel
             $valid = false;
         }
 
-        // Si ambas fechas son vÃƒÆ’Ã‚Â¡lidas, validar lÃƒÆ’Ã‚Â³gica
+        // Si ambas fechas son ví¡lidas, validar lógica
         if ($startDate && $endDate && $this->isValidDate($startDate) && $this->isValidDate($endDate)) {
             $start = new \DateTime($startDate);
             $end = new \DateTime($endDate);
@@ -232,15 +232,15 @@ class CandidateEducation extends BaseModel
             }
         }
 
-        // Si es educaciÃƒÆ’Ã‚Â³n actual, no debe tener fecha de fin
+        // Si es educación actual, no debe tener fecha de fin
         if ($isCurrent && $endDate) {
             $errors[] = 'Current education cannot have an end date';
             $valid = false;
         }
 
-        // Si no es actual, deberÃƒÆ’Ã‚Â­a tener fecha de fin
+        // Si no es actual, deberí­a tener fecha de fin
         if (!$isCurrent && !$endDate && $startDate) {
-            // Solo advertencia, no error crÃƒÆ’Ã‚Â­tico
+            // Solo advertencia, no error crí­tico
             Logger::info('Education without end date but not marked as current', [
                 'start_date' => $startDate
             ]);
@@ -272,8 +272,8 @@ class CandidateEducation extends BaseModel
     /**
      * Limpiar cache de historial educativo
      *
-     * @param string|int|null $candidateId ID especÃƒÆ’Ã‚Â­fico o null para limpiar todo
-     * @return int NÃƒÆ’Ã‚Âºmero de entradas eliminadas del cache
+     * @param string|int|null $candidateId ID especí­fico o null para limpiar todo
+     * @return int Número de entradas eliminadas del cache
      */
     public function clearEducationHistoryCache(?int $candidateId = null): int
     {
@@ -291,7 +291,7 @@ class CandidateEducation extends BaseModel
                 $cleared++;
             }
 
-            // Limpiar cache externo si estÃƒÆ’Ã‚Â¡ disponible
+            // Limpiar cache externo si estí¡ disponible
             if (class_exists('\Utils\Cache')) {
                 try {
                     \Utils\Cache::delete($cacheKey);
@@ -307,7 +307,7 @@ class CandidateEducation extends BaseModel
             $cleared = count($this->educationHistoryCache);
             $this->educationHistoryCache = [];
 
-            // Limpiar cache externo por tags si estÃƒÆ’Ã‚Â¡ disponible
+            // Limpiar cache externo por tags si estí¡ disponible
             if (class_exists('\Utils\Cache')) {
                 try {
                     \Utils\Cache::deleteByTags(['candidate_education', 'education_history']);
@@ -328,7 +328,7 @@ class CandidateEducation extends BaseModel
     }
 
     /**
-     * Obtener estadÃƒÆ’Ã‚Â­sticas educativas por instituciÃƒÆ’Ã‚Â³n
+     * Obtener estadí­sticas educativas por institución
      */
     public function getEducationStatsByInstitution(): array
     {
@@ -347,7 +347,7 @@ class CandidateEducation extends BaseModel
     }
 
     /**
-     * Obtener candidatos con educaciÃƒÆ’Ã‚Â³n en progreso
+     * Obtener candidatos con educación en progreso
      */
     public function getCandidatesWithCurrentEducation(): array
     {
@@ -360,19 +360,19 @@ class CandidateEducation extends BaseModel
     }
 
     /**
-     * Validar datos especÃƒÆ’Ã‚Â­ficos de candidate_educations
+     * Validar datos especí­ficos de candidate_educations
      * @param array $data Datos a validar
-     * @param mixed $id ID para validaciones de actualizaciÃƒÆ’Ã‚Â³n (opcional)
-     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son ví¡lidos
      */
     private function validateCandidateEducationData(array $data, $id = null): void
     {
-        // Validaciones especÃƒÆ’Ã‚Â­ficas del modelo se mantienen aquÃƒÆ’Ã‚Â­
+        // Validaciones especí­ficas del modelo se mantienen aquí­
         // si son diferentes de las ya implementadas en BaseModel
     }
 
     /**
-     * Invalidar cache especÃƒÆ’Ã‚Â­fico de candidate_educations
+     * Invalidar cache especí­fico de candidate_educations
      */
     public function invalidateCandidateEducationCache(): int
     {

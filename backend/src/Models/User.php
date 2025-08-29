@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Models;
 
 use PDO;
@@ -9,16 +12,16 @@ use Utils\Logger;
  * User model providing user-specific database operations and authentication
  *
  * MIGRADO: Este modelo ha sido migrado para extender correctamente BaseModel 
- * siguiendo los nuevos patrones de la aplicaciÃƒÆ’Ã‚Â³n. Mantiene toda la funcionalidad
- * especÃƒÆ’Ã‚Â­fica existente mientras adopta las mejoras de rendimiento, cache y 
+ * siguiendo los nuevos patrones de la aplicación. Mantiene toda la funcionalidad
+ * especí­fica existente mientras adopta las mejoras de rendimiento, cache y 
  * manejo de errores del BaseModel.
  *
- * Cambios principales en la migraciÃƒÆ’Ã‚Â³n:
- * - ConfiguraciÃƒÆ’Ã‚Â³n correcta de tabla con prefijo automÃƒÆ’Ã‚Â¡tico
- * - ActualizaciÃƒÆ’Ã‚Â³n de fillable y hidden segÃƒÆ’Ã‚Âºn especificaciones BD
- * - ImplementaciÃƒÆ’Ã‚Â³n de cache en mÃƒÆ’Ã‚Â©todos costosos
- * - AdopciÃƒÆ’Ã‚Â³n de patrones de manejo de errores del BaseModel
- * - Mantenimiento completo de funcionalidad de autenticaciÃƒÆ’Ã‚Â³n existente
+ * Cambios principales en la migración:
+ * - Configuración correcta de tabla con prefijo automí¡tico
+ * - Actualización de fillable y hidden según especificaciones BD
+ * - Implementación de cache en métodos costosos
+ * - Adopción de patrones de manejo de errores del BaseModel
+ * - Mantenimiento completo de funcionalidad de autenticación existente
  *
  * Features:
  * - Secure password hashing using PHP's password_hash()
@@ -45,19 +48,19 @@ use Utils\Logger;
 class User extends BaseModel
 {
     /**
-     * MIGRADO: Tabla configurada para usar prefijo automÃƒÆ’Ã‚Â¡tico bt_users
-     * La funciÃƒÆ’Ã‚Â³n T() aÃƒÆ’Ã‚Â±adirÃƒÆ’Ã‚Â¡ automÃƒÆ’Ã‚Â¡ticamente el prefijo 'bt_' para bt_users
+     * MIGRADO: Tabla configurada para usar prefijo automí¡tico bt_users
+     * La función T() aí±adirí¡ automí¡ticamente el prefijo 'bt_' para bt_users
      *
      * @var string
      */
     protected string $table = 'users';
     /*
-     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÃƒÆ’Ã¢â‚¬Å“N AUTOMÃƒÆ’Ã‚ÂTICA APLICADA
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÓN AUTOMÁTICA APLICADA
      * Modelo: User
      * Fecha: 2025-08-23
      * 
      * Cambios realizados:
-     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aÃƒÆ’Ã‚Â±adidos: ninguno
+     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aí±adidos: ninguno
      * ÃƒÂ¢Ã‚ÂÃ…â€™ Campos removidos: ['name', 'email', 'password', 'role', 'status', 'avatar', 'phone', 'bio', 'company', 'position']
      * ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Total campos fillable: 0
      * 
@@ -74,15 +77,15 @@ class User extends BaseModel
     protected string $primaryKey = 'id';
 
     /**
-     * MIGRADO: Campos fillable actualizados segÃƒÆ’Ã‚Âºn especificaciones de BD
-     * Incluye todos los campos requeridos para el modelo User segÃƒÆ’Ã‚Âºn anÃƒÆ’Ã‚Â¡lisis
+     * MIGRADO: Campos fillable actualizados según especificaciones de BD
+     * Incluye todos los campos requeridos para el modelo User según Anáslisis
      *
      * @var array<string>
      */
     protected array $fillable = [];
 
     /**
-     * MIGRADO: Campos hidden actualizados segÃƒÆ’Ã‚Âºn especificaciones de seguridad
+     * MIGRADO: Campos hidden actualizados según especificaciones de seguridad
      * Incluye todos los campos sensibles que deben ocultarse de la salida
      *
      * @var array<string>
@@ -101,8 +104,8 @@ class User extends BaseModel
      * Find a user by their unique identifier
      *
      * MIGRADO: Mantiene funcionalidad original con mejoras de logging
-     * heredadas del BaseModel. Utiliza el mÃƒÆ’Ã‚Â©todo findById del padre con
-     * logging especÃƒÆ’Ã‚Â­fico de seguridad para usuarios.
+     * heredadas del BaseModel. Utiliza el método findById del padre con
+     * logging especí­fico de seguridad para usuarios.
      *
      * @param int|string $id User unique identifier
      * @return array<string, mixed>|null User data or null if not found
@@ -135,7 +138,7 @@ class User extends BaseModel
     /**
      * Find a user by their email address
      *
-     * MIGRADO: Mantiene funcionalidad de autenticaciÃƒÆ’Ã‚Â³n crÃƒÆ’Ã‚Â­tica
+     * MIGRADO: Mantiene funcionalidad de autenticación crí­tica
      * Provides secure email-based user lookup with comprehensive validation
      * and security logging. Email comparison is case-insensitive.
      *
@@ -170,7 +173,7 @@ class User extends BaseModel
     }
 
     /**
-     * MIGRADO: VersiÃƒÆ’Ã‚Â³n optimizada con cache para bÃƒÆ’Ã‚Âºsquedas frecuentes
+     * MIGRADO: Versión optimizada con cache para búsquedas frecuentes
      * Find user by email with optimized query and caching for better performance
      *
      * @param string $email User email address
@@ -209,7 +212,7 @@ class User extends BaseModel
     /**
      * Check if an email address is already registered
      *
-     * MIGRADO: Mantiene funcionalidad de validaciÃƒÆ’Ã‚Â³n de unicidad
+     * MIGRADO: Mantiene funcionalidad de validación de unicidad
      * Validates email uniqueness in the system with secure lookup
      * and comprehensive error handling.
      *
@@ -246,10 +249,10 @@ class User extends BaseModel
     /**
      * Create a new user with secure password handling
      *
-     * MIGRADO: Mantiene funcionalidad de creaciÃƒÆ’Ã‚Â³n segura con mejoras
+     * MIGRADO: Mantiene funcionalidad de creación segura con mejoras
      * Creates a new user account with automatic password hashing, email validation,
-     * and comprehensive security logging. Utiliza el mÃƒÆ’Ã‚Â©todo store del BaseModel
-     * con validaciones adicionales especÃƒÆ’Ã‚Â­ficas de usuarios.
+     * and comprehensive security logging. Utiliza el método store del BaseModel
+     * con validaciones adicionales especí­ficas de usuarios.
      *
      * @param array<string, mixed> $data User data including password
      * @return mixed Newly created user ID or false on failure
@@ -315,7 +318,7 @@ class User extends BaseModel
     /**
      * Update user data with secure password handling
      *
-     * MIGRADO: Mantiene funcionalidad de actualizaciÃƒÆ’Ã‚Â³n con mejoras de cache
+     * MIGRADO: Mantiene funcionalidad de actualización con mejoras de cache
      * Updates user information with automatic password hashing when password
      * is changed, email validation, and comprehensive audit logging.
      *
@@ -379,7 +382,7 @@ class User extends BaseModel
     /**
      * Verify user credentials for authentication
      *
-     * MIGRADO: Mantiene funcionalidad crÃƒÆ’Ã‚Â­tica de autenticaciÃƒÆ’Ã‚Â³n
+     * MIGRADO: Mantiene funcionalidad crí­tica de autenticación
      * Securely verifies user login credentials using constant-time password
      * verification to prevent timing attacks. Includes comprehensive logging
      * for security monitoring.
@@ -447,7 +450,7 @@ class User extends BaseModel
     /**
      * Update password reset token for user account recovery
      *
-     * MIGRADO: Mantiene funcionalidad de recuperaciÃƒÆ’Ã‚Â³n de contraseÃƒÆ’Ã‚Â±a
+     * MIGRADO: Mantiene funcionalidad de recuperación de contraseí±a
      * Sets a secure password reset token with expiration time for account
      * recovery processes. Includes comprehensive logging for security monitoring.
      *
@@ -494,7 +497,7 @@ class User extends BaseModel
     /**
      * Find user by password reset token
      *
-     * MIGRADO: Mantiene funcionalidad de recuperaciÃƒÆ’Ã‚Â³n de contraseÃƒÆ’Ã‚Â±a
+     * MIGRADO: Mantiene funcionalidad de recuperación de contraseí±a
      * Locates a user account using their password reset token with
      * automatic expiration checking and security validation.
      *
@@ -545,7 +548,7 @@ class User extends BaseModel
     /**
      * Update user password and clear reset tokens
      *
-     * MIGRADO: Mantiene funcionalidad de actualizaciÃƒÆ’Ã‚Â³n de contraseÃƒÆ’Ã‚Â±a
+     * MIGRADO: Mantiene funcionalidad de actualización de contraseí±a
      * Securely updates user password with automatic hashing and clears
      * any existing reset tokens for security. Includes comprehensive logging.
      *
@@ -586,7 +589,7 @@ class User extends BaseModel
     /**
      * Get users by role with optional filtering and caching
      *
-     * MIGRADO: VersiÃƒÆ’Ã‚Â³n mejorada con cache para mejor rendimiento
+     * MIGRADO: Versión mejorada con cache para mejor rendimiento
      * Retrieves users filtered by role with additional filtering options,
      * pagination support, and performance optimizations including caching.
      *
@@ -632,7 +635,7 @@ class User extends BaseModel
     /**
      * Get active users with performance optimization
      *
-     * MIGRADO: VersiÃƒÆ’Ã‚Â³n optimizada con cache del BaseModel
+     * MIGRADO: Versión optimizada con cache del BaseModel
      * Retrieves only active users with specific columns for better performance
      * and caching support.
      *
@@ -656,7 +659,7 @@ class User extends BaseModel
     }
 
     /**
-     * MIGRADO: Nuevo mÃƒÆ’Ã‚Â©todo - Get user statistics with caching
+     * MIGRADO: Nuevo método - Get user statistics with caching
      *
      * Returns comprehensive user statistics with caching for performance.
      * Utiliza las capacidades de cache del BaseModel para mejor rendimiento.
@@ -683,7 +686,7 @@ class User extends BaseModel
     }
 
     /**
-     * MIGRADO: Nuevo mÃƒÆ’Ã‚Â©todo - Calculate user statistics from database
+     * MIGRADO: Nuevo método - Calculate user statistics from database
      *
      * @return array<string, mixed> Calculated statistics
      */
@@ -717,7 +720,7 @@ class User extends BaseModel
     }
 
     /**
-     * MIGRADO: Nuevo mÃƒÆ’Ã‚Â©todo - Deactivate a user account
+     * MIGRADO: Nuevo método - Deactivate a user account
      *
      * Safely deactivates a user account by setting status to inactive
      * while preserving all data for potential reactivation.
@@ -751,9 +754,9 @@ class User extends BaseModel
     }
 
     /**
-     * MIGRADO: Nuevo mÃƒÆ’Ã‚Â©todo - Override getLargeColumns to exclude large user data fields
+     * MIGRADO: Nuevo método - Override getLargeColumns to exclude large user data fields
      *
-     * Define campos grandes que deben excluirse de consultas estÃƒÆ’Ã‚Â¡ndar para optimizar rendimiento
+     * Define campos grandes que deben excluirse de consultas estí¡ndar para optimizar rendimiento
      *
      * @return array<string> Array of large column names to exclude from standard queries
      */
@@ -770,16 +773,16 @@ class User extends BaseModel
     }
 
     /**
-     * MIGRADO: Nuevo mÃƒÆ’Ã‚Â©todo - Invalidar cache especÃƒÆ’Ã‚Â­fico de usuarios
+     * MIGRADO: Nuevo método - Invalidar cache especí­fico de usuarios
      *
      * Limpia el cache relacionado con usuarios cuando se realizan cambios
      * importantes que afectan las consultas cacheadas.
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS CRUD ENCAPSULADOS ADICIONALES - Para uso externo
-     * Complementan los mÃƒÆ’Ã‚Â©todos ya existentes (store, update estÃƒÆ’Ã‚Â¡n implementados)
+     * MÉTODOS CRUD ENCAPSULADOS ADICIONALES - Para uso externo
+     * Complementan los métodos ya existentes (store, update estí¡n implementados)
      */
 
     // =====================================================
-    // CRUD METHODS ESTÃƒÆ’Ã‚ÂNDAR - BaseModel Template v2.0.0
+    // CRUD METHODS ESTÁNDAR - BaseModel Template v2.0.0
     // =====================================================
 
     /**
@@ -787,7 +790,7 @@ class User extends BaseModel
      *
      * @param array $data Datos del usuario
      * @return int|false ID del nuevo usuario o false en caso de error
-     * @throws InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @throws InvalidArgumentException Si los datos no son ví¡lidos
      */
     public static function createUser(array $data)
     {
@@ -835,7 +838,7 @@ class User extends BaseModel
      * @param int $id ID del usuario
      * @param array $data Nuevos datos
      * @return bool
-     * @throws InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @throws InvalidArgumentException Si los datos no son ví¡lidos
      */
     public static function updateUser(int $id, array $data): bool
     {
@@ -894,9 +897,9 @@ class User extends BaseModel
     /**
      * Buscar usuarios con filtros
      *
-     * @param array $criteria Criterios de bÃƒÆ’Ã‚Âºsqueda
-     * @param int $limit LÃƒÆ’Ã‚Â­mite de resultados
-     * @param int $offset Offset para paginaciÃƒÆ’Ã‚Â³n
+     * @param array $criteria Criterios de búsqueda
+     * @param int $limit Lí­mite de resultados
+     * @param int $offset Offset para paginación
      * @return array
      */
     public static function searchUsers(array $criteria = [], int $limit = 50, int $offset = 0): array
@@ -937,7 +940,7 @@ class User extends BaseModel
             $user = new self();
             return $user->query($query, $params);
         } catch (\Exception $e) {
-            self::logError('Error en bÃƒÆ’Ã‚Âºsqueda de usuarios', $criteria, $e);
+            self::logError('Error en búsqueda de usuarios', $criteria, $e);
             return [];
         }
     }
@@ -945,7 +948,7 @@ class User extends BaseModel
     /**
      * Contar usuarios con filtros
      *
-     * @param array $criteria Criterios de bÃƒÆ’Ã‚Âºsqueda
+     * @param array $criteria Criterios de búsqueda
      * @return int
      */
     public static function countUsers(array $criteria = []): int
@@ -988,26 +991,26 @@ class User extends BaseModel
      * Validar datos de usuario
      *
      * @param array $data Datos a validar
-     * @param bool $isUpdate Si es una actualizaciÃƒÆ’Ã‚Â³n (permite campos opcionales)
-     * @throws InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @param bool $isUpdate Si es una actualización (permite campos opcionales)
+     * @throws InvalidArgumentException Si los datos no son ví¡lidos
      */
     private static function validateUserData(array $data, bool $isUpdate = false): void
     {
-        // email es requerido en creaciÃƒÆ’Ã‚Â³n
+        // email es requerido en creación
         if (!$isUpdate && empty($data['email'])) {
             throw new \InvalidArgumentException('El email es requerido');
         }
 
         if (isset($data['email'])) {
             if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                throw new \InvalidArgumentException('El email no tiene un formato vÃƒÆ’Ã‚Â¡lido');
+                throw new \InvalidArgumentException('El email no tiene un formato ví¡lido');
             }
             if (strlen($data['email']) > 255) {
                 throw new \InvalidArgumentException('El email no puede exceder los 255 caracteres');
             }
         }
 
-        // name es requerido en creaciÃƒÆ’Ã‚Â³n
+        // name es requerido en creación
         if (!$isUpdate && empty($data['name'])) {
             throw new \InvalidArgumentException('El nombre es requerido');
         }
@@ -1021,17 +1024,17 @@ class User extends BaseModel
             }
         }
 
-        // password es requerido en creaciÃƒÆ’Ã‚Â³n
+        // password es requerido en creación
         if (!$isUpdate && empty($data['password'])) {
-            throw new \InvalidArgumentException('La contraseÃƒÆ’Ã‚Â±a es requerida');
+            throw new \InvalidArgumentException('La contraseí±a es requerida');
         }
 
         if (isset($data['password'])) {
             if (strlen($data['password']) < 8) {
-                throw new \InvalidArgumentException('La contraseÃƒÆ’Ã‚Â±a debe tener al menos 8 caracteres');
+                throw new \InvalidArgumentException('La contraseí±a debe tener al menos 8 caracteres');
             }
             if (strlen($data['password']) > 255) {
-                throw new \InvalidArgumentException('La contraseÃƒÆ’Ã‚Â±a no puede exceder los 255 caracteres');
+                throw new \InvalidArgumentException('La contraseí±a no puede exceder los 255 caracteres');
             }
         }
 
@@ -1039,7 +1042,7 @@ class User extends BaseModel
         if (isset($data['role'])) {
             $validRoles = ['admin', 'user', 'manager', 'recruiter'];
             if (!in_array($data['role'], $validRoles)) {
-                throw new \InvalidArgumentException('Rol no vÃƒÆ’Ã‚Â¡lido: ' . $data['role']);
+                throw new \InvalidArgumentException('Rol no ví¡lido: ' . $data['role']);
             }
         }
 
@@ -1050,20 +1053,20 @@ class User extends BaseModel
     }
 
     /**
-     * Invalidar cachÃƒÆ’Ã‚Â© relacionado con usuarios
+     * Invalidar caché relacionado con usuarios
      */
     private static function invalidateUserCache(): void
     {
         try {
-            // Como los mÃƒÆ’Ã‚Â©todos CRUD son estÃƒÆ’Ã‚Â¡ticos, necesitamos crear una instancia temporal
+            // Como los métodos CRUD son estí¡ticos, necesitamos crear una instancia temporal
             $tempInstance = new self();
 
-            // Limpiar todo el cachÃƒÆ’Ã‚Â© de la instancia
+            // Limpiar todo el caché de la instancia
             $tempInstance->cache = [];
 
-            self::logDebug('CachÃƒÆ’Ã‚Â© de usuarios invalidado');
+            self::logDebug('Caché de usuarios invalidado');
         } catch (\Exception $e) {
-            self::logError('Error al invalidar cachÃƒÆ’Ã‚Â© de usuarios', [], $e);
+            self::logError('Error al invalidar caché de usuarios', [], $e);
         }
     }
 }

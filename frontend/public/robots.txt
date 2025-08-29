@@ -1,2 +1,30 @@
+# Robots.txt - Bubble of Talents
+# Control de acceso para motores de búsqueda
+
+# Bloquear acceso a rutas sensibles
 User-agent: *
-Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /dashboard/
+Disallow: /profile/
+Disallow: /settings/
+Disallow: /uploads/
+Disallow: /private/
+Disallow: /temp/
+Disallow: /logs/
+Disallow: /debug/
+Disallow: /test/
+
+# Permitir acceso limitado a contenido público
+Allow: /public/
+Allow: /blog/
+Allow: /careers/
+Allow: /about/
+Allow: /contact/
+
+# Sitemap
+Sitemap: https://bubble-talents.com/sitemap.xml
+
+# Crawl-delay para evitar sobrecarga
+Crawl-delay: 1

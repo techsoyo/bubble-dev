@@ -1,8 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Services;
 
 /**
- * Servicio para la extracciÃƒÆ’Ã‚Â³n de texto de PDF (adaptado de PDFExtractorModel)
+ * Servicio para la extracción de texto de PDF (adaptado de PDFExtractorModel)
  */
 class PDFExtractorService
 {
@@ -22,24 +25,24 @@ class PDFExtractorService
             }
             return $sanitized;
         } elseif (is_string($data)) {
-            // Forzar a UTF-8 si no lo estÃƒÆ’Ã‚Â¡
+            // Forzar a UTF-8 si no lo estí¡
             if (!mb_check_encoding($data, 'UTF-8')) {
                 $data = mb_convert_encoding($data, 'UTF-8', 'auto');
             }
-            // AdemÃƒÆ’Ã‚Â¡s, eliminar caracteres de control no vÃƒÆ’Ã‚Â¡lidos
+            // Ade más, eliminar caracteres de control no ví¡lidos
             $data = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $data);
             return $data;
         } elseif (is_scalar($data) || is_null($data)) {
             return $data === null ? '' : $data;
         } else {
-            // Si es un objeto, recurso, closure, etc., devolver string vacÃƒÆ’Ã‚Â­o
+            // Si es un objeto, recurso, closure, etc., devolver string vací­o
             return '';
         }
     }
 
     public function __construct(?string $uploadDir = null, int $maxFileSize = 5242880) // 5MB por defecto
     {
-        // Directorio para guardar los archivos de texto extraÃƒÆ’Ã‚Â­dos
+        // Directorio para guardar los archivos de texto extraí­dos
         $this->uploadDir = $uploadDir ? rtrim($uploadDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR : __DIR__ .
             '/../../uploads/textos/';
         // Directorio para guardar los CVs originales
@@ -58,18 +61,18 @@ class PDFExtractorService
     {
         if ($file['error'] !== UPLOAD_ERR_OK) {
             throw new \Exception(
-                'Error en la subida del archivo. CÃƒÆ’Ã‚Â³digo: '
+                'Error en la subida del archivo. Código: '
                     . $file['error']
             );
         }
         if ($file['size'] === 0) {
             throw new \Exception(
-                'El archivo estÃƒÆ’Ã‚Â¡ vacÃƒÆ’Ã‚Â­o.'
+                'El archivo estí¡ vací­o.'
             );
         }
         if ($file['size'] > $this->maxFileSize) {
             throw new \Exception(
-                'El archivo excede el tamaÃƒÆ’Ã‚Â±o mÃƒÆ’Ã‚Â¡ximo permitido.'
+                'El archivo excede el tamaí±o mí¡ximo permitido.'
             );
         }
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -92,7 +95,7 @@ class PDFExtractorService
     }
 
     /**
-     * Copia un PDF ya existente (por ejemplo, el original guardado en /cvs/) a /textos/ para extracciÃƒÆ’Ã‚Â³n temporal
+     * Copia un PDF ya existente (por ejemplo, el original guardado en /cvs/) a /textos/ para extracción temporal
      * @param string $sourcePath Ruta absoluta del PDF original
      * @return string Ruta absoluta del PDF copiado en /textos/
      */
@@ -101,7 +104,7 @@ class PDFExtractorService
         $tempFilename = uniqid('pdf_', true) . '.pdf';
         $tempFilePath = $this->uploadDir . $tempFilename;
         if (!copy($sourcePath, $tempFilePath)) {
-            throw new \Exception('Error al copiar el archivo PDF a /textos/ para extracciÃƒÆ’Ã‚Â³n.');
+            throw new \Exception('Error al copiar el archivo PDF a /textos/ para extracción.');
         }
         return $tempFilePath;
     }
@@ -116,7 +119,7 @@ class PDFExtractorService
         $originalFilename = basename($file['name']);
         $originalFilePath = $this->cvUploadDir . $originalFilename;
 
-        // Habilitar el reporte de errores para depuraciÃƒÆ’Ã‚Â³n
+        // Habilitar el reporte de errores para depuración
         ini_set('display_errors', 1);
         ini_set('display_startup_errors', 1);
         error_reporting(E_ALL);
@@ -167,12 +170,12 @@ class PDFExtractorService
     }
 
     /**
-     * Guarda el texto extraÃƒÆ’Ã‚Â­do en un archivo .txt y en un archivo .json
+     * Guarda el texto extraí­do en un archivo .txt y en un archivo .json
      * @param string $text
      * @return array [txt => nombreArchivoTxt, json => nombreArchivoJson]
      */
     /**
-     * Guarda el texto extraÃƒÆ’Ã‚Â­do en un archivo .txt y en un archivo .json con metadatos
+     * Guarda el texto extraí­do en un archivo .txt y en un archivo .json con metadatos
      * @param string $text
      * @param string|null $originalName
      * @return array [txt => nombreArchivoTxt, json => nombreArchivoJson]
@@ -202,11 +205,11 @@ class PDFExtractorService
         $jsonPath = $jsonDir . $jsonFile;
 
         if (file_put_contents($txtPath, $text) === false) {
-            error_log('[PDFExtractorService] Error al guardar el texto extraÃƒÆ’Ã‚Â­do en: ' . $txtPath);
-            throw new \Exception('Error al guardar el texto extraÃƒÆ’Ã‚Â­do (.txt).');
+            error_log('[PDFExtractorService] Error al guardar el texto extraí­do en: ' . $txtPath);
+            throw new \Exception('Error al guardar el texto extraí­do (.txt).');
         }
 
-        // --- Generar el JSON con la estructura extraÃƒÆ’Ã‚Â­da ---
+        // --- Generar el JSON con la estructura extraí­da ---
         $hardSkills = $this->extractHardSkills($text);
         $experience = $this->extractExperience($text);
         $languages = $this->extractLanguages($text);
@@ -280,9 +283,9 @@ class PDFExtractorService
         $log = function ($msg) use ($logFile) {
             file_put_contents($logFile, '[' . date('Y-m-d H:i:s') . "] $msg\n", FILE_APPEND);
         };
-        $log('Iniciando proceso de serializaciÃƒÆ’Ã‚Â³n JSON para ' . ($originalName ?? 'sin_nombre'));
+        $log('Iniciando proceso de serialización JSON para ' . ($originalName ?? 'sin_nombre'));
 
-        // Sanitizar la estructura para asegurar serializaciÃƒÆ’Ã‚Â³n JSON
+        // Sanitizar la estructura para asegurar serialización JSON
 
         $extractedData = $this->sanitizeForJson($extractedData);
         $log('extractedData sanitizado: ' . substr(var_export($extractedData, true), 0, 1000));
@@ -301,10 +304,10 @@ class PDFExtractorService
             throw new \Exception('Error al guardar el JSON IA (.json).');
         }
         if (!file_exists($jsonPath) || filesize($jsonPath) === 0) {
-            $errorMsg = '[PDFExtractorService] El archivo JSON no se creÃƒÆ’Ã‚Â³ correctamente: ' . $jsonPath;
+            $errorMsg = '[PDFExtractorService] El archivo JSON no se creó correctamente: ' . $jsonPath;
             error_log($errorMsg);
             $log($errorMsg);
-            throw new \Exception('El archivo JSON no se creÃƒÆ’Ã‚Â³ correctamente.');
+            throw new \Exception('El archivo JSON no se creó correctamente.');
         }
         $log('JSON generado y guardado correctamente: ' . $jsonPath);
 
@@ -322,14 +325,14 @@ class PDFExtractorService
     }
 
     /**
-     * Extrae informaciÃƒÆ’Ã‚Â³n estructurada del texto del CV
-     * @param string $text Texto extraÃƒÆ’Ã‚Â­do del CV
+     * Extrae información estructurada del texto del CV
+     * @param string $text Texto extraí­do del CV
      * @param string $cvFileName Nombre del archivo CV
      * @return array Datos estructurados del CV
      */
     public function extractStructuredData(string $text, string $cvFileName): array
     {
-        // ImplementaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica, en un entorno real se usarÃƒÆ’Ã‚Â­a NLP mÃƒÆ’Ã‚Â¡s avanzado
+        // Implementación bí¡sica, en un entorno real se usarí­a NLP  más avanzado
         $data = [
             'personal_info' => [
                 'name' => $this->extractName($text),
@@ -364,24 +367,24 @@ class PDFExtractorService
             'cv_file' => $cvFileName
         ];
 
-        // Generar insights automÃƒÆ’Ã‚Â¡ticos basados en los datos extraÃƒÆ’Ã‚Â­dos
+        // Generar insights automí¡ticos basados en los datos extraí­dos
         $data['insights'] = $this->generateInsights($data);
 
         return $data;
     }
 
-    // MÃƒÆ’Ã‚Â©todos auxiliares para la extracciÃƒÆ’Ã‚Â³n de datos
+    // Métodos auxiliares para la extracción de datos
 
     private function extractName(string $text): string
     {
-        // ImplementaciÃƒÆ’Ã‚Â³n simple, se buscan patrones comunes de nombres
-        preg_match('/(?:nombre|name)[\s:]+([A-ZÃƒÆ’Ã‚ÂÃƒÆ’Ã¢â‚¬Â°ÃƒÆ’Ã‚ÂÃƒÆ’Ã¢â‚¬Å“ÃƒÆ’Ã…Â¡ÃƒÆ’Ã…â€œÃƒÆ’Ã¢â‚¬Ëœa-zÃƒÆ’Ã‚Â¡ÃƒÆ’Ã‚Â©ÃƒÆ’Ã‚Â­ÃƒÆ’Ã‚Â³ÃƒÆ’Ã‚ÂºÃƒÆ’Ã‚Â¼ÃƒÆ’Ã‚Â±\s]{2,30})/i', $text, $matches);
+        // Implementación simple, se buscan patrones comunes de nombres
+        preg_match('/(?:nombre|name)[\s:]+([A-ZÁÉíÓÚÃƒÆ’Ã…â€œÃƒÆ’Ã¢â‚¬Ëœa-zí¡éí­óúí¼í±\s]{2,30})/i', $text, $matches);
         if (!empty($matches[1])) {
             return trim($matches[1]);
         }
 
         // Si no hay etiqueta de "nombre", intentar detectar un nombre al inicio del CV
-        preg_match('/^([A-ZÃƒÆ’Ã‚ÂÃƒÆ’Ã¢â‚¬Â°ÃƒÆ’Ã‚ÂÃƒÆ’Ã¢â‚¬Å“ÃƒÆ’Ã…Â¡ÃƒÆ’Ã…â€œÃƒÆ’Ã¢â‚¬Ëœa-zÃƒÆ’Ã‚Â¡ÃƒÆ’Ã‚Â©ÃƒÆ’Ã‚Â­ÃƒÆ’Ã‚Â³ÃƒÆ’Ã‚ÂºÃƒÆ’Ã‚Â¼ÃƒÆ’Ã‚Â±\s]{2,30})/m', $text, $matches);
+        preg_match('/^([A-ZÁÉíÓÚÃƒÆ’Ã…â€œÃƒÆ’Ã¢â‚¬Ëœa-zí¡éí­óúí¼í±\s]{2,30})/m', $text, $matches);
         return !empty($matches[1]) ? trim($matches[1]) : '';
     }
 
@@ -394,7 +397,7 @@ class PDFExtractorService
 
     private function extractPhone(string $text): string
     {
-        // Buscar patrones de telÃƒÆ’Ã‚Â©fono (internacional y nacional)
+        // Buscar patrones de teléfono (internacional y nacional)
         preg_match('/(?:\+\d{1,3}[\s-]?)?\(?(?:\d{1,4})\)?[\s-]?\d{1,4}[\s-]?\d{1,4}[\s-]?\d{1,9}/', $text, $matches);
         return !empty($matches[0]) ? $matches[0] : '';
     }
@@ -428,14 +431,14 @@ class PDFExtractorService
 
     private function extractLocation(string $text): string
     {
-        // Buscar patrones de ubicaciÃƒÆ’Ã‚Â³n
-        preg_match('/(?:ubicaciÃƒÆ’Ã‚Â³n|location|direcciÃƒÆ’Ã‚Â³n|address)[\s:]+([A-ZÃƒÆ’Ã‚ÂÃƒÆ’Ã¢â‚¬Â°ÃƒÆ’Ã‚ÂÃƒÆ’Ã¢â‚¬Å“ÃƒÆ’Ã…Â¡ÃƒÆ’Ã…â€œÃƒÆ’Ã¢â‚¬Ëœa-zÃƒÆ’Ã‚Â¡ÃƒÆ’Ã‚Â©ÃƒÆ’Ã‚Â­ÃƒÆ’Ã‚Â³ÃƒÆ’Ã‚ÂºÃƒÆ’Ã‚Â¼ÃƒÆ’Ã‚Â±\s,.-]{2,50})/i', $text, $matches);
+        // Buscar patrones de ubicación
+        preg_match('/(?:ubicación|location|dirección|address)[\s:]+([A-ZÁÉíÓÚÃƒÆ’Ã…â€œÃƒÆ’Ã¢â‚¬Ëœa-zí¡éí­óúí¼í±\s,.-]{2,50})/i', $text, $matches);
         return !empty($matches[1]) ? trim($matches[1]) : '';
     }
 
     private function extractHardSkills(string $text): array
     {
-        // Lista de habilidades tÃƒÆ’Ã‚Â©cnicas comunes para buscar
+        // Lista de habilidades técnicas comunes para buscar
         $commonSkills = [
             'HTML',
             'CSS',
@@ -484,7 +487,7 @@ class PDFExtractorService
             'Google Ads',
             'Facebook Ads',
             'Adobe Creative Suite',
-            'DiseÃƒÆ’Ã‚Â±o GrÃƒÆ’Ã‚Â¡fico',
+            'Diseí±o Grí¡fico',
             'Branding',
             'Marketing Digital',
             'UX/UI'
@@ -493,7 +496,7 @@ class PDFExtractorService
         $skills = [];
         foreach ($commonSkills as $skill) {
             if (stripos($text, $skill) !== false) {
-                // Determinar nivel y aÃƒÆ’Ã‚Â±os de experiencia (si es posible)
+                // Determinar nivel y aí±os de experiencia (si es posible)
                 $level = $this->determineSkillLevel($text, $skill);
                 $years = $this->determineSkillYears($text, $skill);
                 $context = $this->extractSkillContext($text, $skill);
@@ -513,7 +516,7 @@ class PDFExtractorService
     private function determineSkillLevel(string $text, string $skill): string
     {
         // Determinar nivel basado en patrones en el texto
-        $levels = ['BÃƒÆ’Ã‚Â¡sico', 'Intermedio', 'Avanzado', 'Experto'];
+        $levels = ['Bí¡sico', 'Intermedio', 'Avanzado', 'Experto'];
         $foundLevel = 'Intermedio'; // Nivel predeterminado
 
         foreach ($levels as $level) {
@@ -531,8 +534,8 @@ class PDFExtractorService
 
     private function determineSkillYears(string $text, string $skill): int
     {
-        // Intentar encontrar aÃƒÆ’Ã‚Â±os de experiencia para la habilidad
-        preg_match('/(?:' . preg_quote($skill, '/') . '.*?(\d+).*?(?:aÃƒÆ’Ã‚Â±os|aÃƒÆ’Ã‚Â±os de experiencia|years|year))|(?:(\d+).*?(?:aÃƒÆ’Ã‚Â±os|aÃƒÆ’Ã‚Â±os de experiencia|years|year).*?' . preg_quote($skill, '/') . ')/is', $text, $matches);
+        // Intentar encontrar aí±os de experiencia para la habilidad
+        preg_match('/(?:' . preg_quote($skill, '/') . '.*?(\d+).*?(?:aí±os|aí±os de experiencia|years|year))|(?:(\d+).*?(?:aí±os|aí±os de experiencia|years|year).*?' . preg_quote($skill, '/') . ')/is', $text, $matches);
 
         if (!empty($matches[1])) {
             return (int)$matches[1];
@@ -545,11 +548,11 @@ class PDFExtractorService
 
     private function extractSkillContext(string $text, string $skill): string
     {
-        // Extraer contexto de la habilidad (50 caracteres antes y despuÃƒÆ’Ã‚Â©s)
+        // Extraer contexto de la habilidad (50 caracteres antes y después)
         $pos = stripos($text, $skill);
         if ($pos !== false) {
             $start = max(0, $pos - 50);
-            $length = strlen($skill) + 100; // 50 antes + longitud skill + 50 despuÃƒÆ’Ã‚Â©s
+            $length = strlen($skill) + 100; // 50 antes + longitud skill + 50 después
             $context = substr($text, $start, $length);
             return trim($context);
         }
@@ -562,27 +565,27 @@ class PDFExtractorService
         $commonSoftSkills = [
             'Liderazgo',
             'Trabajo en equipo',
-            'ComunicaciÃƒÆ’Ã‚Â³n',
-            'ResoluciÃƒÆ’Ã‚Â³n de problemas',
-            'GestiÃƒÆ’Ã‚Â³n del tiempo',
+            'Comunicación',
+            'Resolución de problemas',
+            'Gestión del tiempo',
             'Adaptabilidad',
             'Creatividad',
-            'Pensamiento crÃƒÆ’Ã‚Â­tico',
+            'Pensamiento crí­tico',
             'Inteligencia emocional',
-            'NegociaciÃƒÆ’Ã‚Â³n',
-            'EmpatÃƒÆ’Ã‚Â­a',
-            'Trabajo bajo presiÃƒÆ’Ã‚Â³n',
+            'Negociación',
+            'Empatí­a',
+            'Trabajo bajo presión',
             'Toma de decisiones',
             'Flexibilidad',
             'Proactividad',
-            'OrganizaciÃƒÆ’Ã‚Â³n',
-            'GestiÃƒÆ’Ã‚Â³n de proyectos',
-            'AtenciÃƒÆ’Ã‚Â³n al detalle',
-            'OrientaciÃƒÆ’Ã‚Â³n a resultados',
-            'Capacidad analÃƒÆ’Ã‚Â­tica',
-            'InnovaciÃƒÆ’Ã‚Â³n',
+            'Organización',
+            'Gestión de proyectos',
+            'Atención al detalle',
+            'Orientación a resultados',
+            'Capacidad analí­tica',
+            'Innovación',
             'Trabajo colaborativo',
-            'AutonomÃƒÆ’Ã‚Â­a'
+            'Autonomí­a'
         ];
 
         $softSkills = [];
@@ -607,7 +610,7 @@ class PDFExtractorService
             $company = trim($match[2]);
             $period = trim($match[3]);
 
-            // Intentar extraer fechas del perÃƒÆ’Ã‚Â­odo
+            // Intentar extraer fechas del perí­odo
             $dates = $this->extractDatesFromPeriod($period);
 
             $experiences[] = [
@@ -659,15 +662,15 @@ class PDFExtractorService
     {
         $education = [];
 
-        // Buscar patrones de educaciÃƒÆ’Ã‚Â³n
-        preg_match_all('/(?:educaciÃƒÆ’Ã‚Â³n|education|formaciÃƒÆ’Ã‚Â³n acadÃƒÆ’Ã‚Â©mica).*?(?:tÃƒÆ’Ã‚Â­tulo|degree|grado):?\s*([^\n\r]*?)\n.*?(?:instituciÃƒÆ’Ã‚Â³n|institution|universidad|university):?\s*([^\n\r]*?)\n.*?(?:periodo|fecha|date):?\s*([^\n\r]*?)\n/is', $text, $matches, PREG_SET_ORDER);
+        // Buscar patrones de educación
+        preg_match_all('/(?:educación|education|formación académica).*?(?:tí­tulo|degree|grado):?\s*([^\n\r]*?)\n.*?(?:institución|institution|universidad|university):?\s*([^\n\r]*?)\n.*?(?:periodo|fecha|date):?\s*([^\n\r]*?)\n/is', $text, $matches, PREG_SET_ORDER);
 
         foreach ($matches as $match) {
             $degree = trim($match[1]);
             $institution = trim($match[2]);
             $period = trim($match[3]);
 
-            // Intentar extraer fechas del perÃƒÆ’Ã‚Â­odo
+            // Intentar extraer fechas del perí­odo
             $dates = $this->extractDatesFromPeriod($period);
 
             $education[] = [
@@ -685,18 +688,18 @@ class PDFExtractorService
     {
         $languages = [];
         $commonLanguages = [
-            'EspaÃƒÆ’Ã‚Â±ol',
-            'InglÃƒÆ’Ã‚Â©s',
-            'FrancÃƒÆ’Ã‚Â©s',
-            'AlemÃƒÆ’Ã‚Â¡n',
+            'Espaí±ol',
+            'Inglés',
+            'Francés',
+            'Alemí¡n',
             'Italiano',
-            'PortuguÃƒÆ’Ã‚Â©s',
+            'Portugués',
             'Chino',
-            'JaponÃƒÆ’Ã‚Â©s',
+            'Japonés',
             'Ruso',
-            'ÃƒÆ’Ã‚Ârabe',
-            'HolandÃƒÆ’Ã‚Â©s',
-            'CatalÃƒÆ’Ã‚Â¡n',
+            'Árabe',
+            'Holandés',
+            'Catalí¡n',
             'Gallego'
         ];
 
@@ -717,10 +720,10 @@ class PDFExtractorService
     {
         $levels = [
             'Nativo' => ['nativo', 'native', 'lengua materna', 'mother tongue'],
-            'BilingÃƒÆ’Ã‚Â¼e' => ['bilingÃƒÆ’Ã‚Â¼e', 'bilingual'],
+            'Bilingí¼e' => ['bilingí¼e', 'bilingual'],
             'Avanzado' => ['avanzado', 'advanced', 'c1', 'c2', 'fluido', 'fluent'],
             'Intermedio' => ['intermedio', 'intermediate', 'b1', 'b2'],
-            'BÃƒÆ’Ã‚Â¡sico' => ['bÃƒÆ’Ã‚Â¡sico', 'basic', 'a1', 'a2', 'elemental']
+            'Bí¡sico' => ['bí¡sico', 'basic', 'a1', 'a2', 'elemental']
         ];
 
         foreach ($levels as $levelName => $keywords) {
@@ -740,24 +743,24 @@ class PDFExtractorService
     private function extractAreaOfInterest(string $text): string
     {
         $areas = [
-            'DiseÃƒÆ’Ã‚Â±o GrÃƒÆ’Ã‚Â¡fico',
+            'Diseí±o Grí¡fico',
             'Desarrollo Web',
             'Marketing Digital',
             'Ventas',
             'Recursos Humanos',
             'Finanzas',
             'Contabilidad',
-            'AdministraciÃƒÆ’Ã‚Â³n',
-            'LogÃƒÆ’Ã‚Â­stica',
-            'EducaciÃƒÆ’Ã‚Â³n',
+            'Administración',
+            'Logí­stica',
+            'Educación',
             'Salud',
             'Legal',
-            'ConsultorÃƒÆ’Ã‚Â­a',
+            'Consultorí­a',
             'IT',
-            'TecnologÃƒÆ’Ã‚Â­a',
-            'IngenierÃƒÆ’Ã‚Â­a',
+            'Tecnologí­a',
+            'Ingenierí­a',
             'UX/UI',
-            'ProgramaciÃƒÆ’Ã‚Â³n'
+            'Programación'
         ];
 
         $interests = [];
@@ -772,14 +775,14 @@ class PDFExtractorService
 
     private function extractMotivation(string $text): string
     {
-        // Intentar extraer un pÃƒÆ’Ã‚Â¡rrafo relacionado con motivaciÃƒÆ’Ã‚Â³n o presentaciÃƒÆ’Ã‚Â³n personal
-        preg_match('/(?:acerca de mÃƒÆ’Ã‚Â­|sobre mÃƒÆ’Ã‚Â­|perfil|resumen|objetivo profesional|motivaciÃƒÆ’Ã‚Â³n|about me|profile|summary|professional objective|motivation).*?\n(.*?)(?:\n\n|\n[A-ZÃƒÆ’Ã‚ÂÃƒÆ’Ã¢â‚¬Â°ÃƒÆ’Ã‚ÂÃƒÆ’Ã¢â‚¬Å“ÃƒÆ’Ã…Â¡ÃƒÆ’Ã…â€œÃƒÆ’Ã¢â‚¬Ëœ])/is', $text, $matches);
+        // Intentar extraer un pí¡rrafo relacionado con motivación o presentación personal
+        preg_match('/(?:acerca de mí­|sobre mí­|perfil|resumen|objetivo profesional|motivación|about me|profile|summary|professional objective|motivation).*?\n(.*?)(?:\n\n|\n[A-ZÁÉíÓÚÃƒÆ’Ã…â€œÃƒÆ’Ã¢â‚¬Ëœ])/is', $text, $matches);
 
         if (!empty($matches[1])) {
             return trim($matches[1]);
         }
 
-        // Si no hay secciÃƒÆ’Ã‚Â³n especÃƒÆ’Ã‚Â­fica, intentar obtener el primer pÃƒÆ’Ã‚Â¡rrafo del CV
+        // Si no hay sección especí­fica, intentar obtener el primer pí¡rrafo del CV
         preg_match('/^(?:\s*\n)*(.+?(?:\n.+?){0,5})\n\n/s', $text, $matches);
 
         return !empty($matches[1]) ? trim($matches[1]) : '';
@@ -788,16 +791,16 @@ class PDFExtractorService
     private function determineCategory(string $text): string
     {
         $categories = [
-            'Technology' => ['programaciÃƒÆ’Ã‚Â³n', 'developer', 'software', 'web', 'backend', 'frontend', 'fullstack', 'datos', 'data', 'AI', 'ML', 'DevOps', 'Cloud'],
+            'Technology' => ['programación', 'developer', 'software', 'web', 'backend', 'frontend', 'fullstack', 'datos', 'data', 'AI', 'ML', 'DevOps', 'Cloud'],
             'Marketing' => ['marketing', 'SEO', 'SEM', 'redes sociales', 'publicidad', 'copywriting', 'content', 'digital'],
-            'Design' => ['diseÃƒÆ’Ã‚Â±o', 'UX', 'UI', 'grÃƒÆ’Ã‚Â¡fico', 'ilustraciÃƒÆ’Ã‚Â³n', 'editorial', 'branding'],
+            'Design' => ['diseí±o', 'UX', 'UI', 'grí¡fico', 'ilustración', 'editorial', 'branding'],
             'Sales' => ['ventas', 'comercial', 'account manager', 'business development', 'customer'],
-            'HR' => ['recursos humanos', 'HR', 'selecciÃƒÆ’Ã‚Â³n', 'talento', 'recruitment', 'personas'],
-            'Finance' => ['finanzas', 'contabilidad', 'tesorerÃƒÆ’Ã‚Â­a', 'auditorÃƒÆ’Ã‚Â­a', 'banca', 'inversiones'],
+            'HR' => ['recursos humanos', 'HR', 'selección', 'talento', 'recruitment', 'personas'],
+            'Finance' => ['finanzas', 'contabilidad', 'tesorerí­a', 'auditorí­a', 'banca', 'inversiones'],
             'Legal' => ['legal', 'abogado', 'derecho', 'compliance', 'regulatorio'],
-            'Healthcare' => ['salud', 'mÃƒÆ’Ã‚Â©dico', 'enfermerÃƒÆ’Ã‚Â­a', 'psicologÃƒÆ’Ã‚Â­a', 'farmacia'],
-            'Education' => ['educaciÃƒÆ’Ã‚Â³n', 'profesor', 'maestro', 'formaciÃƒÆ’Ã‚Â³n', 'docente'],
-            'Creativity (Art & Design)' => ['diseÃƒÆ’Ã‚Â±o grÃƒÆ’Ã‚Â¡fico', 'arte', 'creativity', 'ilustraciÃƒÆ’Ã‚Â³n', 'audiovisual']
+            'Healthcare' => ['salud', 'médico', 'enfermerí­a', 'psicologí­a', 'farmacia'],
+            'Education' => ['educación', 'profesor', 'maestro', 'formación', 'docente'],
+            'Creativity (Art & Design)' => ['diseí±o grí¡fico', 'arte', 'creativity', 'ilustración', 'audiovisual']
         ];
 
         $matchScores = [];
@@ -810,10 +813,10 @@ class PDFExtractorService
             $matchScores[$category] = $score;
         }
 
-        // Ordenar categorÃƒÆ’Ã‚Â­as por puntuaciÃƒÆ’Ã‚Â³n
+        // Ordenar categorí­as por puntuación
         arsort($matchScores);
 
-        // Devolver la categorÃƒÆ’Ã‚Â­a con mayor puntuaciÃƒÆ’Ã‚Â³n
+        // Devolver la categorí­a con mayor puntuación
         $topCategory = key($matchScores);
         return $matchScores[$topCategory] > 0 ? $topCategory : 'General';
     }
@@ -857,7 +860,7 @@ class PDFExtractorService
         if (!empty($data['experience'])) {
             $yearsOfExperience = $this->calculateTotalExperience($data['experience']);
             if ($yearsOfExperience > 5) {
-                $strengths[] = 'MÃƒÆ’Ã‚Â¡s de ' . $yearsOfExperience . ' aÃƒÆ’Ã‚Â±os de experiencia profesional';
+                $strengths[] = ' más de ' . $yearsOfExperience . ' aí±os de experiencia profesional';
             }
 
             if (count($data['experience']) > 0) {
@@ -875,7 +878,7 @@ class PDFExtractorService
 
         // Analizar gaps
         if (empty($data['email']) || empty($data['phone'])) {
-            $gaps[] = 'Falta informaciÃƒÆ’Ã‚Â³n de contacto completa';
+            $gaps[] = 'Falta información de contacto completa';
         }
 
         if (empty($data['linkedin_url'])) {
@@ -883,7 +886,7 @@ class PDFExtractorService
         }
 
         if (empty($data['github_url']) && stripos($data['area_of_interest'], 'desarrollo') !== false) {
-            $gaps[] = 'No se especifica perfil de GitHub para un perfil tÃƒÆ’Ã‚Â©cnico';
+            $gaps[] = 'No se especifica perfil de GitHub para un perfil técnico';
         }
 
         if (empty($data['work_modality'])) {
@@ -893,17 +896,17 @@ class PDFExtractorService
         // Recomendaciones
         $category = $data['categoria'];
         if ($category == 'Technology') {
-            $recommendations[] = 'Perfil tÃƒÆ’Ã‚Â©cnico con aptitudes para roles de desarrollo';
+            $recommendations[] = 'Perfil técnico con aptitudes para roles de desarrollo';
         } elseif ($category == 'Design' || $category == 'Creativity (Art & Design)') {
-            $recommendations[] = 'Excelente candidato para posiciones creativas y de diseÃƒÆ’Ã‚Â±o';
+            $recommendations[] = 'Excelente candidato para posiciones creativas y de diseí±o';
         } elseif ($category == 'Marketing') {
-            $recommendations[] = 'Perfil orientado a marketing digital y comunicaciÃƒÆ’Ã‚Â³n';
+            $recommendations[] = 'Perfil orientado a marketing digital y comunicación';
         } elseif ($category == 'Sales') {
-            $recommendations[] = 'Candidato con experiencia comercial y orientaciÃƒÆ’Ã‚Â³n a resultados';
+            $recommendations[] = 'Candidato con experiencia comercial y orientación a resultados';
         }
 
         if (count($strengths) > 2) {
-            $recommendations[] = 'Candidato con perfil sÃƒÆ’Ã‚Â³lido en su ÃƒÆ’Ã‚Â¡rea de especializaciÃƒÆ’Ã‚Â³n';
+            $recommendations[] = 'Candidato con perfil sólido en su í¡rea de especialización';
         }
 
         return [

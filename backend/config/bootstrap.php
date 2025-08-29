@@ -1,176 +1,104 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 /**
- * Archivo de inicializaciÃ³n de la aplicaciÃ³n
- * 
- * Configura el autoloader, carga la configuraciÃ³n y establece parÃ¡metros iniciales
+ * Archivo de inicializaci?n de la aplicaci?n
+ *
+ * Configura el autoloader, carga la configuraci?n y establece par?metros iniciales
  */
 
+// ===== DEFINICI?N DE CONSTANTES =====
+if (!defined('BASE_PATH')) {
+  define('BASE_PATH', dirname(__DIR__));
+}
 
-// Cargar variables de entorno desde archivo .env
-$envFile = realpath(__DIR__ . '/../../.env');
-if (file_exists($envFile)) {
-  $envVars = parse_ini_file($envFile);
-  if ($envVars) {
-    foreach ($envVars as $key => $value) {
+if (!defined('DS')) {
+  define('DS', DIRECTORY_SEPARATOR);
+}
+
+// ===== CARGA DE VARIABLES DE ENTORNO =====
+$envFile = realpath(BASE_PATH . DS . '..' . DS . '.env');
+if ($envFile && file_exists($envFile)) {
+  $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+  foreach ($lines as $line) {
+    // Saltar comentarios
+    if (strpos(trim($line), '#') === 0) {
+      continue;
+    }
+
+    // Separar clave y valor
+    if (strpos($line, '=') !== false) {
+      list($key, $value) = array_map('trim', explode('=', $line, 2));
+      $value = trim($value, " \t\n\r\0\x0B\"'");
+
+      // Establecer en el entorno si no existe
       if (!getenv($key)) {
         putenv("$key=$value");
         $_ENV[$key] = $value;
+        $_SERVER[$key] = $value;
       }
     }
   }
 }
-// Cargar el autoloader de Composer con guard explÃ­cito
+
+// ===== AUTOLOAD DE COMPOSER =====
 $autoloadCandidates = [
-  BASE_PATH . '/vendor/autoload.php',          // backend/vendor/autoload.php
-  dirname(BASE_PATH) . '/vendor/autoload.php', // <repo>/vendor/autoload.php
+  BASE_PATH . DS . 'vendor' . DS . 'autoload.php',          // backend/vendor/autoload.php
+  dirname(BASE_PATH) . DS . 'vendor' . DS . 'autoload.php', // <repo>/vendor/autoload.php
 ];
 
-$__autoload = null;
-foreach ($autoloadCandidates as $cand) {
-  if (is_file($cand)) {
-    $__autoload = $cand;
+$autoloaderPath = null;
+foreach ($autoloadCandidates as $candidate) {
+  if (is_file($candidate)) {
+    $autoloaderPath = $candidate;
     break;
   }
 }
 
-if (!is_file($__autoload ?? '')) {
+if (!$autoloaderPath) {
   http_response_code(500);
-  echo 'Autoloader no encontrado. Probados: ' . implode(', ', $autoloadCandidates);
+  header('Content-Type: text/plain; charset=UTF-8');
+  echo 'Error: No se pudo encontrar el autoloader de Composer.' . PHP_EOL;
+  echo 'Rutas probadas: ' . implode(', ', $autoloadCandidates);
   exit;
 }
-require_once $__autoload;
 
-// Cargar la configuraciÃ³n
-require_once BASE_PATH . '/config/config.php';
-// CORS integrado directamente - no archivo externo
-require_once BASE_PATH . '/config/security-headers.php'; // headers de seguridad centralizados
+require_once $autoloaderPath;
 
-require_once BASE_PATH . '/config/database.php';
-
-// === CONFIGURACIÃ“N CORS ROBUSTA ===
-// Solo se ejecuta para peticiones HTTP (no CLI)
-if (PHP_SAPI !== 'cli' && !defined('CORS_APPLIED')) {
-  define('CORS_APPLIED', true);
-
-  // Obtener configuraciÃ³n CORS desde variables de entorno
-  $corsOrigins = getenv('CORS_ALLOWED_ORIGINS') ?: 'http://localhost:3002';
-  $corsCredentials = getenv('CORS_ALLOW_CREDENTIALS') === 'true';
-  $corsMethods = getenv('CORS_ALLOWED_METHODS') ?: 'GET,POST,PUT,PATCH,DELETE,OPTIONS';
-  $corsHeaders = getenv('CORS_ALLOWED_HEADERS') ?: 'Content-Type,Authorization,X-Requested-With';
-  $corsMaxAge = (int)(getenv('CORS_MAX_AGE') ?: '86400');
-  $appEnv = getenv('APP_ENV') ?: 'production';
-
-  // Convertir orÃ­genes a array y limpiar espacios
-  $allowedOrigins = array_filter(array_map('trim', explode(',', $corsOrigins)));
-
-  // Obtener origen de la peticiÃ³n
-  $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-
-  // Verificar si el origen estÃ¡ permitido
-  $isAllowedOrigin = false;
-  if ($origin && in_array($origin, $allowedOrigins, true)) {
-    $isAllowedOrigin = true;
-  }
-
-  // Logging para development cuando el origen no estÃ¡ permitido
-  if ($appEnv === 'development' && $origin && !$isAllowedOrigin) {
-    error_log("CORS WARNING: Origin '{$origin}' not allowed. Allowed origins: " . implode(', ', $allowedOrigins));
-  }
-
-  // Aplicar headers CORS - siempre incluir Vary: Origin
-  header('Vary: Origin');
-
-  if ($isAllowedOrigin && $origin) {
-    header('Access-Control-Allow-Origin: ' . $origin);
-
-    // Solo agregar credentials si el origen estÃ¡ permitido (nunca con wildcard)
-    if ($corsCredentials) {
-      header('Access-Control-Allow-Credentials: true');
-    }
-  }
-
-  // Headers de mÃ©todos y headers permitidos (siempre presentes para preflight)
-  header('Access-Control-Allow-Methods: ' . $corsMethods);
-  header('Access-Control-Allow-Headers: ' . $corsHeaders);
-
-  if ($corsMaxAge > 0) {
-    header('Access-Control-Max-Age: ' . $corsMaxAge);
-  }
-
-  // Manejar preflight OPTIONS - respuesta 204 sin body
-  if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
-    exit;
-  }
-}
-
-// Autoloader manual para clases (en un proyecto real serÃ­a mejor usar Composer)
-spl_autoload_register(function ($class) {
-  // Convertir namespace separados por \ a rutas de directorio
-  $class = str_replace('\\', DIRECTORY_SEPARATOR, $class);
-
-  // Rutas posibles para buscar la clase (ajustar segÃºn la estructura del proyecto)
-  $possiblePaths = [
-    BASE_PATH . '/src/' . $class . '.php',
-    BASE_PATH . '/' . $class . '.php',
-  ];
-
-  // Buscar el archivo en las rutas posibles
-  foreach ($possiblePaths as $path) {
-    if (file_exists($path)) {
-      require_once $path;
-      return;
-    }
-  }
-});
-
-$envPath = BASE_PATH . '/.env';
-if (is_file($envPath)) {
-  foreach (file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-    if ($line[0] === '#' || strpos($line, '=') === false) continue;
-    [$k, $v] = array_map('trim', explode('=', $line, 2));
-    $v = trim($v, " \t\n\r\0\x0B\"'");
-    putenv("$k=$v");
-    $_ENV[$k] = $v;
-    $_SERVER[$k] = $v;
-  }
-}
-
-
-// (C) X-Request-Id unificado (usar Utils\RequestId si existe)
-if (class_exists('Utils\\RequestId')) {
-  Utils\RequestId::init();
-} else {
-  $reqId = $_SERVER['HTTP_X_REQUEST_ID'] ?? bin2hex(random_bytes(16));
-  header('X-Request-Id: ' . $reqId);
-  $_SERVER['REQ_ID'] = $reqId;
-}
-
-// (D) Helper uniforme para respuestas JSON
-if (!function_exists('jsonResponse')) {
-  function jsonResponse(int $code, array $payload): void
-  {
-    http_response_code($code);
-    header('Content-Type: application/json; charset=UTF-8');
-    echo json_encode($payload, JSON_UNESCAPED_UNICODE);
-    exit;
-  }
-}
-
-// Configurar zonas horarias
+// ===== CONFIGURACI��N DE ZONA HORARIA =====
 date_default_timezone_set('Europe/Madrid');
 
-// REMOVED: header('Content-Type: application/json; charset=UTF-8'); // No Content-Type global
+// ===== FUNCIONES AUXILIARES =====
+/**
+ * Determina si la aplicación está en modo desarrollo
+ * NOTA: Esta funci?n ahora se define en config.php para evitar duplicaci?n
+ */
 
-// FunciÃ³n para manejo de errores crÃ­ticos
-function handleFatalError()
+/**
+ * Función uniforme para respuestas JSON
+ */
+function jsonResponse(int $code, array $payload): void
+{
+  http_response_code($code);
+  header('Content-Type: application/json; charset=UTF-8');
+  echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+  exit;
+}
+
+// ===== MANEJO DE ERRORES =====
+/**
+ * Manejo de errores fatales
+ */
+function handleFatalError(): void
 {
   $error = error_get_last();
-  if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+  if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
     http_response_code(500);
+
     if (!headers_sent()) {
       header('Content-Type: application/json; charset=UTF-8');
     }
+
     $response = [
       'success' => false,
       'message' => isDevelopment() ? $error['message'] : 'Ha ocurrido un error interno del servidor',
@@ -185,19 +113,22 @@ function handleFatalError()
       ];
     }
 
-    echo json_encode($response);
+    echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
   }
 }
 
-// Registrar funciÃ³n para errores fatales
 register_shutdown_function('handleFatalError');
 
-// Registrar controlador de excepciones no capturadas
-set_exception_handler(function ($exception) {
+/**
+ * Manejo de excepciones no capturadas
+ */
+set_exception_handler(function (Throwable $exception): void {
   http_response_code(500);
+
   if (!headers_sent()) {
     header('Content-Type: application/json; charset=UTF-8');
   }
+
   $response = [
     'success' => false,
     'message' => isDevelopment() ? $exception->getMessage() : 'Ha ocurrido un error interno del servidor',
@@ -208,9 +139,32 @@ set_exception_handler(function ($exception) {
     $response['error'] = [
       'file' => $exception->getFile(),
       'line' => $exception->getLine(),
-      'trace' => $exception->getTraceAsString()
+      'trace' => $exception->getTrace()
     ];
   }
 
-  echo json_encode($response);
+  echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 });
+
+// ===== X-Request-Id =====
+if (class_exists('Utils\RequestId')) {
+  Utils\RequestId::init();
+} else {
+  $reqId = $_SERVER['HTTP_X_REQUEST_ID'] ?? bin2hex(random_bytes(16));
+  header('X-Request-Id: ' . $reqId);
+  $_SERVER['REQ_ID'] = $reqId;
+}
+
+// ===== CARGA DE CONFIGURACIONES ADICIONALES =====
+// Cargar la configuración
+require_once BASE_PATH . DS . 'config' . DS . 'config.php';
+
+// Headers de seguridad centralizados
+require_once BASE_PATH . DS . 'config' . DS . 'security-headers.php';
+
+// Configuración de base de datos
+require_once BASE_PATH . DS . 'config' . DS . 'database.php';
+
+// Middleware CORS - Se maneja en public/api/bootstrap.php
+// require_once BASE_PATH . DS . 'config' . DS . 'middlewares' . DS . 'cors.php';
+// Nota: El middleware CORS se ejecutará cuando sea llamado desde el bootstrap de API

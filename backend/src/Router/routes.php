@@ -1,11 +1,14 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Router;
 
 /**
- * Archivo centralizado de rutas para la aplicaciÃƒÆ’Ã‚Â³n Bubble of Talents
+ * Archivo centralizado de rutas para la aplicación Bubble of Talents
  * 
  * Este archivo contiene todas las rutas detectadas en la tabla de endpoints.
- * Al instanciar AppRouter, las rutas se configuran internamente en el mÃƒÆ’Ã‚Â©todo
+ * Al instanciar AppRouter, las rutas se configuran internamente en el método
  * setupRoutes() de la clase AppRouter.
  * 
  * @package Router
@@ -20,11 +23,11 @@ use Router\AppRouter;
 /**
  * NOTA IMPORTANTE:
  * 
- * La implementaciÃƒÆ’Ã‚Â³n actual de AppRouter no permite configurar rutas
+ * La implementación actual de AppRouter no permite configurar rutas
  * externamente como se requiere. Para solucionar esto, se recomienda:
  * 
- * 1. Modificar AppRouter.php para que la configuraciÃƒÆ’Ã‚Â³n de rutas se realice
- *    a travÃƒÆ’Ã‚Â©s de mÃƒÆ’Ã‚Â©todos pÃƒÆ’Ã‚Âºblicos, permitiendo que este archivo las configure.
+ * 1. Modificar AppRouter.php para que la configuración de rutas se realice
+ *    a través de métodos públicos, permitiendo que este archivo las configure.
  * 
  * 2. O modificar setupRoutes() dentro de AppRouter para incluir todas las rutas
  *    de la tabla CSV proporcionada.
@@ -42,7 +45,7 @@ use Router\AppRouter;
  * $this->router->map('PATCH',  '/api/applications',                     'ApplicationController#bulkUpdate',    'applications.bulk_update');
  * $this->router->map('DELETE', '/api/applications',                     'ApplicationController#bulkDelete',    'applications.bulk_delete');
  * 
- * // 2. ENDPOINTS DE AUTENTICACIÃƒÆ’Ã¢â‚¬Å“N
+ * // 2. ENDPOINTS DE AUTENTICACIÓN
  * $this->router->map('POST',   '/api/auth/social-login',                'AuthController#socialLogin',          'auth.social');
  * $this->router->map('POST',   '/api/auth/login',                       'AuthController#login',                'auth.login');
  * $this->router->map('GET',    '/api/auth/me',                          'AuthController#me',                   'auth.me');
@@ -64,7 +67,7 @@ use Router\AppRouter;
  * $this->router->map('POST',   '/api/save-candidate.php',               'CandidateController#saveCandidate',   'candidates.save_legacy');
  * $this->router->map('POST',   '/api/candidates/save_v2.php',           'CandidateController#saveV2',          'candidates.save_v2');
  * 
- * // 4. ENDPOINTS DE ANÃƒÆ’Ã‚ÂLISIS DE CV
+ * // 4. ENDPOINTS DE ANÁLISIS DE CV
  * $this->router->map('POST',   '/api/analyze_cv.php',                   'CvAnalysisController#analyze',        'cv.analyze_legacy');
  * $this->router->map('POST',   '/api/cv/parse.php',                     'CvAnalysisController#parse',          'cv.parse_legacy');
  * $this->router->map('POST',   '/api/parse-cv',                         'CvAnalysisController#parseModern',    'cv.parse');
@@ -88,7 +91,7 @@ use Router\AppRouter;
 return new AppRouter();
 
 // =====================================================
-// 2. ENDPOINTS DE AUTENTICACIÃƒÆ’Ã¢â‚¬Å“N
+// 2. ENDPOINTS DE AUTENTICACIÓN
 // =====================================================
 $router->post('/api/auth/social-login', 'AuthController@socialLogin');
 $router->post('/api/auth/login', 'AuthController@login');
@@ -114,7 +117,7 @@ $router->post('/api/save-candidate.php', 'CandidateController@saveCandidate');
 $router->post('/api/candidates/save_v2.php', 'CandidateController@saveV2');
 
 // =====================================================
-// 4. ENDPOINTS DE ANÃƒÆ’Ã‚ÂLISIS DE CV
+// 4. ENDPOINTS DE ANÁLISIS DE CV
 // =====================================================
 $router->post('/api/analyze_cv.php', 'CvAnalysisController@analyze');
 $router->post('/api/cv/parse.php', 'CvAnalysisController@parse');
@@ -179,7 +182,7 @@ $router->get('/api/departments.php', 'DepartmentController@index');
 $router->get('/api/departments', 'DepartmentController@index');
 
 // =====================================================
-// 11. ENDPOINTS ESPECÃƒÆ’Ã‚ÂFICOS DE DATOS
+// 11. ENDPOINTS ESPECíFICOS DE DATOS
 // =====================================================
 $router->get('/api/candidate_experiences.php', 'CandidateExperienceController@index');
 $router->get('/api/candidate-experiences.php', 'CandidateExperienceController@index');
@@ -210,13 +213,13 @@ $router->get('/api/ping', 'SystemController@ping');
 $router->get('/api/info', 'SystemController@info');
 
 // =====================================================
-// 15. ENDPOINTS DE VALIDACIÃƒÆ’Ã¢â‚¬Å“N
+// 15. ENDPOINTS DE VALIDACIÓN
 // =====================================================
 $router->get('/api/users/check-email', 'ValidationController@checkEmail');
 $router->get('/api/users/check-username', 'ValidationController@checkUsername');
 
 // =====================================================
-// 16. ENDPOINTS DE ASIGNACIÃƒÆ’Ã¢â‚¬Å“N Y GESTIÃƒÆ’Ã¢â‚¬Å“N
+// 16. ENDPOINTS DE ASIGNACIÓN Y GESTIÓN
 // =====================================================
 $router->post('/api/assign-candidate', 'AssignmentController@assignCandidate');
 

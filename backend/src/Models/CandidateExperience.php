@@ -9,9 +9,9 @@ use Utils\Logger;
 /**
  * Modelo para las experiencias profesionales de los candidatos
  * 
- * Este modelo maneja toda la informaciÃƒÆ’Ã‚Â³n relacionada con la experiencia laboral
+ * Este modelo maneja toda la información relacionada con la experiencia laboral
  * de los candidatos, incluyendo posiciones actuales, historial profesional,
- * validaciones de fechas y anÃƒÆ’Ã‚Â¡lisis de experiencia.
+ * validaciones de fechas y Anáslisis de experiencia.
  * 
  * @package Models
  * @version 2.0.0
@@ -51,12 +51,12 @@ class CandidateExperience extends BaseModel
     protected array $hidden = [];
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS PRINCIPALES DEL MODELO
+     * MÉTODOS PRINCIPALES DEL MODELO
      */
 
     /**
      * Obtiene el historial completo de experiencias de un candidato
-     * ordenado por fecha de inicio (mÃƒÆ’Ã‚Â¡s reciente primero)
+     * ordenado por fecha de inicio ( más reciente primero)
      */
     public function getCandidateExperienceHistory(int $candidateId): array
     {
@@ -74,7 +74,7 @@ class CandidateExperience extends BaseModel
     }
 
     /**
-     * Obtiene la posiciÃƒÆ’Ã‚Â³n actual del candidato
+     * Obtiene la posición actual del candidato
      * (experiencia marcada como current = true)
      */
     public function getCurrentPosition(int $candidateId): ?array
@@ -90,7 +90,7 @@ class CandidateExperience extends BaseModel
     }
 
     /**
-     * Obtiene todas las experiencias de un candidato en una empresa especÃƒÆ’Ã‚Â­fica
+     * Obtiene todas las experiencias de un candidato en una empresa especí­fica
      */
     public function getExperienceByCompany(int $candidateId, string $company): array
     {
@@ -111,7 +111,7 @@ class CandidateExperience extends BaseModel
     }
 
     /**
-     * Calcula la experiencia total del candidato en aÃƒÆ’Ã‚Â±os
+     * Calcula la experiencia total del candidato en aí±os
      * considerando posiciones concurrentes y gaps
      */
     public function calculateTotalExperience(int $candidateId): array
@@ -163,7 +163,7 @@ class CandidateExperience extends BaseModel
             }
         }
 
-        // Convertir dÃƒÆ’Ã‚Â­as a aÃƒÆ’Ã‚Â±os, meses y dÃƒÆ’Ã‚Â­as
+        // Convertir dí­as a aí±os, meses y dí­as
         $totalYears = floor($totalDays / 365);
         $remainingDays = $totalDays % 365;
         $totalMonths = floor($remainingDays / 30);
@@ -184,7 +184,7 @@ class CandidateExperience extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS DE VALIDACIÃƒÆ’Ã¢â‚¬Å“N Y ANÃƒÆ’Ã‚ÂLISIS
+     * MÉTODOS DE VALIDACIÓN Y ANÁLISIS
      */
 
     /**
@@ -194,7 +194,7 @@ class CandidateExperience extends BaseModel
     {
         $errors = [];
 
-        // Validar que start_date estÃƒÆ’Ã‚Â© presente
+        // Validar que start_date esté presente
         if (empty($data['start_date'])) {
             $errors[] = 'Start date is required';
         } else {
@@ -207,7 +207,7 @@ class CandidateExperience extends BaseModel
             }
         }
 
-        // Si no es posiciÃƒÆ’Ã‚Â³n actual, validar end_date
+        // Si no es posición actual, validar end_date
         if (!($data['current'] ?? false)) {
             if (empty($data['end_date'])) {
                 $errors[] = 'End date is required for non-current positions';
@@ -232,7 +232,7 @@ class CandidateExperience extends BaseModel
     }
 
     /**
-     * Valida que un candidato no tenga mÃƒÆ’Ã‚Âºltiples posiciones actuales
+     * Valida que un candidato no tenga múltiples posiciones actuales
      */
     public function validateSingleCurrentPosition(int $candidateId, ?int $excludeId = null): bool
     {
@@ -260,7 +260,7 @@ class CandidateExperience extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS DE ANÃƒÆ’Ã‚ÂLISIS AVANZADO
+     * MÉTODOS DE ANÁLISIS AVANZADO
      */
 
     /**
@@ -277,7 +277,7 @@ class CandidateExperience extends BaseModel
 
         if (count($experiences) < 2) {
             return [
-                'stability_score' => 10, // MÃƒÆ’Ã‚Â¡xima estabilidad si tiene 1 o menos trabajos
+                'stability_score' => 10, // Mí¡xima estabilidad si tiene 1 o menos trabajos
                 'average_tenure_months' => 0,
                 'job_changes_per_year' => 0,
                 'gap_analysis' => [],
@@ -303,7 +303,7 @@ class CandidateExperience extends BaseModel
 
                 if ($startDate > $nextEndDate) {
                     $gap = $nextEndDate->diff($startDate)->days;
-                    if ($gap > 30) { // Gap mayor a 30 dÃƒÆ’Ã‚Â­as
+                    if ($gap > 30) { // Gap mayor a 30 dí­as
                         $gaps[] = [
                             'days' => $gap,
                             'months' => round($gap / 30, 1),
@@ -321,7 +321,7 @@ class CandidateExperience extends BaseModel
         // Calcular score de estabilidad (1-10)
         $stabilityScore = min(10, max(1, $averageTenureMonths / 6));
 
-        // Calcular cambios por aÃƒÆ’Ã‚Â±o
+        // Calcular cambios por aí±o
         $totalTimeRange = 0;
         if (!empty($experiences)) {
             $firstStart = new \DateTime($experiences[count($experiences) - 1]['start_date']);
@@ -344,7 +344,7 @@ class CandidateExperience extends BaseModel
     }
 
     /**
-     * Obtiene recomendaciÃƒÆ’Ã‚Â³n basada en el anÃƒÆ’Ã‚Â¡lisis de estabilidad
+     * Obtiene recomendación basada en el Anáslisis de estabilidad
      */
     private function getStabilityRecommendation(float $stabilityScore, float $changesPerYear): string
     {
@@ -360,12 +360,12 @@ class CandidateExperience extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS HEREDADOS Y ESPECÃƒÆ’Ã‚ÂFICOS
+     * MÉTODOS HEREDADOS Y ESPECíFICOS
      */
 
     /**
      * Devuelve todas las experiencias asociadas a un candidato
-     * (Mantiene compatibilidad con versiÃƒÆ’Ã‚Â³n anterior)
+     * (Mantiene compatibilidad con versión anterior)
      */
     public function findByCandidateId(int $candidateId): array
     {
@@ -383,7 +383,7 @@ class CandidateExperience extends BaseModel
             throw new \InvalidArgumentException('Date validation errors: ' . implode(', ', $dateErrors));
         }
 
-        // Validar posiciÃƒÆ’Ã‚Â³n ÃƒÆ’Ã‚Âºnica actual
+        // Validar posición única actual
         if ($data['current'] ?? false) {
             if (!$this->validateSingleCurrentPosition($data['candidate_id'])) {
                 throw new \InvalidArgumentException('Candidate already has a current position');
@@ -411,7 +411,7 @@ class CandidateExperience extends BaseModel
             throw new \InvalidArgumentException('Date validation errors: ' . implode(', ', $dateErrors));
         }
 
-        // Validar posiciÃƒÆ’Ã‚Â³n ÃƒÆ’Ã‚Âºnica actual si se estÃƒÆ’Ã‚Â¡ marcando como actual
+        // Validar posición única actual si se estí¡ marcando como actual
         if (($data['current'] ?? false) && !($current['current'] ?? false)) {
             if (!$this->validateSingleCurrentPosition($current['candidate_id'], $id)) {
                 throw new \InvalidArgumentException('Candidate already has a current position');
@@ -422,7 +422,7 @@ class CandidateExperience extends BaseModel
     }
 
     /**
-     * Obtiene estadÃƒÆ’Ã‚Â­sticas rÃƒÆ’Ã‚Â¡pidas de experiencia para un candidato
+     * Obtiene estadí­sticas rí¡pidas de experiencia para un candidato
      */
     public function getExperienceStats(int $candidateId): array
     {

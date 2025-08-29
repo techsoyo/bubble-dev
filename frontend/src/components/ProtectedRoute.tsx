@@ -53,7 +53,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
     // Si no está autenticado o la sesión es inválida, redirigir al login
     if (!isLoggedIn || !user || !isSessionValid) {
-        return <Navigate to="/auth/login" state={{ from: location }} replace />;
+        return <Navigate to="/auth/register" state={{ from: location }} replace />;
     }
 
     // Si se requiere un rol específico, verificar que el usuario lo tenga

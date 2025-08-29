@@ -1,6 +1,9 @@
-<?php declare(strict_types=1);
+<?php
 
+declare(strict_types=1);
 
+use Middleware\JWTMiddleware;
+use Middleware\CsrfMiddleware;
 
 require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
@@ -27,10 +30,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
     }
 }
 
-// ORIGINAL CODE BELOW
-declare(strict_types=1);
-
-try {
+ try {
   $method = $_SERVER['REQUEST_METHOD'];
 
   switch ($method) {

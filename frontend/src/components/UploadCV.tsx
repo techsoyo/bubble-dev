@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+﻿import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Upload, X, FileText, User, Briefcase, Heart, CheckCircle } from 'lucide-react';
 import { registerCandidate, uploadCV, saveCandidateFromAI } from '../services/ApiService';
 import { useLanguage } from '../lib/i18n/LanguageContext';
@@ -161,7 +161,6 @@ interface ParsedCVDataExpanded {
  * Mapea los datos del backend (de IA Groq) al formato expandido para mostrar TODOS los campos
  */
 function mapBackendDataToFrontend(backendData: Record<string, unknown>): ParsedCVDataExpanded {
-    console.log('[mapBackendDataToFrontend] Datos recibidos:', backendData);
 
     // Mapear educación con todos los campos
     const education: EducationExpanded[] = Array.isArray(backendData.educacion) ?
@@ -267,11 +266,8 @@ const UploadCV: React.FC<UploadCVProps> = ({ onSuccess, jobId, parsedCvData }) =
 
     // Si recibimos datos pre-procesados, mostrar el modal inmediatamente
     useEffect(() => {
-        console.log('[UploadCV] parsedCvData recibido:', parsedCvData);
         if (parsedCvData) {
-            console.log('[UploadCV] Mapeando datos del backend...');
             const mappedData = mapBackendDataToFrontend(parsedCvData);
-            console.log('[UploadCV] Datos mapeados:', mappedData);
             setParsedData(mappedData);
             setIsModalOpen(true);
         }
@@ -304,7 +300,7 @@ const UploadCV: React.FC<UploadCVProps> = ({ onSuccess, jobId, parsedCvData }) =
                 const page = await pdf.getPage(i);
                 const textContent = await page.getTextContent();
                 const pageText = textContent.items
-                    .map((item) => 'str' in item && typeof item.str === 'string' ? item.str : '')
+                    .map((item: any) => 'str' in item && typeof item.str === 'string' ? item.str : '')
                     .join(' ');
                 fullText += pageText + ' ';
             }
@@ -515,12 +511,10 @@ const UploadCV: React.FC<UploadCVProps> = ({ onSuccess, jobId, parsedCvData }) =
                 }
             };
 
-            console.log('[UploadCV] Enviando datos al backend:', candidateData);
 
             // Registrar el candidato usando el endpoint específico para IA
             const result = await saveCandidateFromAI(candidateData) as { success: boolean; data?: { id: string }; message?: string };
 
-            console.log('[UploadCV] Respuesta del backend:', result);
 
             if (result.success) {
                 // Si hay un archivo, subirlo también
@@ -533,17 +527,23 @@ const UploadCV: React.FC<UploadCVProps> = ({ onSuccess, jobId, parsedCvData }) =
                     }
                 }
 
-                // Mostrar mensaje de éxito
+                // Mostrar mensaje de éxito - SEGURIDAD MEJORADA
                 const Toast = () => {
                     const toast = document.createElement('div');
                     toast.className = 'fixed bottom-4 left-4 bg-green-500 text-white p-4 rounded-md shadow-lg transition-opacity duration-500';
                     toast.style.zIndex = 'var(--z-toast)';
+
+                    // ✅ SEGURIDAD: Usar textContent en lugar de innerHTML para prevenir XSS
+                    const safeName = (candidateData.nombre || '').replace(/[<>]/g, '');
+                    const safeEmail = (candidateData.email || '').replace(/[<>]/g, '');
+                    const safeId = (result.data?.id || 'N/A').toString().replace(/[<>]/g, '');
+
                     toast.innerHTML = `
                         <div class="flex flex-col">
                             <div class="font-bold mb-1">¡Candidato guardado correctamente!</div>
-                            <div>Nombre: ${candidateData.nombre}</div>
-                            <div>Email: ${candidateData.email}</div>
-                            <div>ID asignado: ${result.data ? result.data.id : 'N/A'}</div>
+                            <div>Nombre: ${safeName}</div>
+                            <div>Email: ${safeEmail}</div>
+                            <div>ID asignado: ${safeId}</div>
                         </div>
                     `;
                     document.body.appendChild(toast);
@@ -565,8 +565,8 @@ const UploadCV: React.FC<UploadCVProps> = ({ onSuccess, jobId, parsedCvData }) =
                         email: candidateData.email,
                         phone: candidateData.telefono || '',
                         address: confirmedData.personalInfo.address,
-                        linkedinUrl: candidateData.linkedin,
-                        portfolio: candidateData.portfolio,
+                        linkedinUrl: candidateData.linkedin || undefined,
+                        portfolio: candidateData.portfolio || undefined,
                         education: confirmedData.education.map(edu =>
                             `${edu.degree} en ${edu.institution} (${edu.endDate || edu.startDate || 'Sin fecha'})`
                         ).join('; '),
@@ -601,7 +601,6 @@ const UploadCV: React.FC<UploadCVProps> = ({ onSuccess, jobId, parsedCvData }) =
                     onSuccess(newCandidate);
                 }
 
-                console.log('Candidato registrado exitosamente:', result);
             } else {
                 throw new Error(result.message || 'Error al registrar el candidato');
             }
@@ -654,660 +653,660 @@ const UploadCV: React.FC<UploadCVProps> = ({ onSuccess, jobId, parsedCvData }) =
                         {t('dashboard.uploadCvTitle')}
                     </h2>
 
-                {!savedCandidate ? (
-                    <>
-                        {/* Área de subida */}
-                        <div
-                            ref={dropRef}
-                            onClick={handleClick}
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
-                            onDrop={handleDrop}
-                            className={`
+                    {!savedCandidate ? (
+                        <>
+                            {/* Área de subida */}
+                            <div
+                                ref={dropRef}
+                                onClick={handleClick}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                                className={`
                                 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
                                 transition-all duration-300 ease-in-out
                                 ${isDragOver
-                                    ? 'border-blue-500 bg-blue-50'
-                                    : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                                }
+                                        ? 'border-blue-500 bg-blue-50'
+                                        : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                                    }
                                 ${isLoading ? 'pointer-events-none opacity-50' : ''}
                             `}
-                        >
-                            {isLoading ? (
-                                <div className="space-y-4">
-                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                                    <p className="text-gray-600">{t('dashboard.processingCv')}</p>
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
-                                        <div
-                                            className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                                            style={{ width: `${progress}%` }}
-                                        ></div>
+                            >
+                                {isLoading ? (
+                                    <div className="space-y-4">
+                                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                                        <p className="text-gray-600">{t('dashboard.processingCv')}</p>
+                                        <div className="w-full bg-gray-200 rounded-full h-2">
+                                            <div
+                                                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                                                style={{ width: `${progress}%` }}
+                                            ></div>
+                                        </div>
+                                        <p className="text-sm text-gray-500">{progress.toFixed(0)}%</p>
                                     </div>
-                                    <p className="text-sm text-gray-500">{progress.toFixed(0)}%</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    <Upload className="h-12 w-12 text-gray-400 mx-auto" />
-                                    <div>
-                                        <p className="text-lg font-medium text-gray-900">
-                                            {t('dashboard.dragAndDropCv')}
-                                        </p>
-                                        <p className="text-gray-500">
-                                            {t('dashboard.clickToSelectFile')}
-                                        </p>
-                                    </div>
-                                    <p className="text-sm text-gray-400">
-                                        {t('dashboard.onlyPdfFiles')}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept=".pdf"
-                            onChange={handleFileSelect}
-                            className="hidden"
-                        />
-
-                        {file && !isLoading && (
-                            <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
-                                <div className="flex items-center space-x-3">
-                                    <FileText className="h-6 w-6 text-blue-500" />
-                                    <div className="flex-1">
-                                        <p className="font-medium text-gray-900">{file.name}</p>
-                                        <p className="text-sm text-gray-500">
-                                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                                ) : (
+                                    <div className="space-y-4">
+                                        <Upload className="h-12 w-12 text-gray-400 mx-auto" />
+                                        <div>
+                                            <p className="text-lg font-medium text-gray-900">
+                                                {t('dashboard.dragAndDropCv')}
+                                            </p>
+                                            <p className="text-gray-500">
+                                                {t('dashboard.clickToSelectFile')}
+                                            </p>
+                                        </div>
+                                        <p className="text-sm text-gray-400">
+                                            {t('dashboard.onlyPdfFiles')}
                                         </p>
                                     </div>
-                                    <button
-                                        onClick={() => setFile(null)}
-                                        className="text-gray-400 hover:text-gray-600"
-                                    >
-                                        <X className="h-5 w-5" />
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </>
-                ) : (
-                    /* Mensaje de éxito */
-                    <div className="text-center space-y-4">
-                        <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
-                        <h3 className="text-xl font-semibold text-gray-900">
-                            ¡CV procesado exitosamente!
-                        </h3>
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                            <p className="text-green-800">
-                                <span className="font-medium">Candidato:</span> {savedCandidate.name}
-                            </p>
-                            <p className="text-green-800">
-                                <span className="font-medium">Email:</span> {savedCandidate.email}
-                            </p>
-                            <p className="text-green-800">
-                                <span className="font-medium">ID:</span> {savedCandidate.id}
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => {
-                                setFile(null);
-                                setParsedData(null);
-                                setSavedCandidate(null);
-                                setConfirmedData(null);
-                            }}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
-                        >
-                            Subir otro CV
-                        </button>
-                    </div>
-                )}
-            </div>
-
-            {/* Modal de confirmación EXPANDIDO - Todos los campos del backend */}
-            {isModalOpen && parsedData && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
-                    style={{ zIndex: 'var(--z-modal-backdrop)' }}
-                >
-                    <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xl font-semibold text-gray-900">
-                                    Confirma TODOS los datos extraídos del CV
-                                </h3>
-                                <button
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="text-gray-400 hover:text-gray-600"
-                                >
-                                    <X className="h-6 w-6" />
-                                </button>
+                                )}
                             </div>
 
-                            <div className="space-y-6">
-                                {/* Información Personal EXPANDIDA */}
-                                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                                    <div className="flex items-center space-x-2 mb-3">
-                                        <User className="h-5 w-5 text-blue-600" />
-                                        <h4 className="font-medium text-gray-900">Información Personal</h4>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
-                                            <input
-                                                type="text"
-                                                value={parsedData.personalInfo.name}
-                                                onChange={(e) => setParsedData({
-                                                    ...parsedData,
-                                                    personalInfo: { ...parsedData.personalInfo, name: e.target.value }
-                                                })}
-                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                            <input
-                                                type="email"
-                                                value={parsedData.personalInfo.email}
-                                                onChange={(e) => setParsedData({
-                                                    ...parsedData,
-                                                    personalInfo: { ...parsedData.personalInfo, email: e.target.value }
-                                                })}
-                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                                            <input
-                                                type="tel"
-                                                value={parsedData.personalInfo.phone}
-                                                onChange={(e) => setParsedData({
-                                                    ...parsedData,
-                                                    personalInfo: { ...parsedData.personalInfo, phone: e.target.value }
-                                                })}
-                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Ubicación Actual</label>
-                                            <input
-                                                type="text"
-                                                value={parsedData.personalInfo.address}
-                                                onChange={(e) => setParsedData({
-                                                    ...parsedData,
-                                                    personalInfo: { ...parsedData.personalInfo, address: e.target.value }
-                                                })}
-                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Fecha Nacimiento</label>
-                                            <input
-                                                type="date"
-                                                value={parsedData.personalInfo.dateOfBirth || ''}
-                                                onChange={(e) => setParsedData({
-                                                    ...parsedData,
-                                                    personalInfo: { ...parsedData.personalInfo, dateOfBirth: e.target.value }
-                                                })}
-                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
-                                            <input
-                                                type="url"
-                                                value={parsedData.personalInfo.linkedinUrl || ''}
-                                                onChange={(e) => setParsedData({
-                                                    ...parsedData,
-                                                    personalInfo: { ...parsedData.personalInfo, linkedinUrl: e.target.value }
-                                                })}
-                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                        <div className="col-span-full">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Portfolio/Website</label>
-                                            <input
-                                                type="url"
-                                                value={parsedData.personalInfo.portfolio || ''}
-                                                onChange={(e) => setParsedData({
-                                                    ...parsedData,
-                                                    personalInfo: { ...parsedData.personalInfo, portfolio: e.target.value }
-                                                })}
-                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                        <div className="col-span-full">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Otras Redes Sociales</label>
-                                            <input
-                                                type="text"
-                                                value={parsedData.personalInfo.otherNetworks?.join(', ') || ''}
-                                                onChange={(e) => setParsedData({
-                                                    ...parsedData,
-                                                    personalInfo: {
-                                                        ...parsedData.personalInfo,
-                                                        otherNetworks: e.target.value.split(', ').filter(s => s.trim())
-                                                    }
-                                                })}
-                                                placeholder="Twitter, GitHub, otros (separados por coma)"
-                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".pdf"
+                                onChange={handleFileSelect}
+                                className="hidden"
+                            />
 
-                                {/* Resumen Profesional */}
-                                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                                    <div className="flex items-center space-x-2 mb-3">
-                                        <FileText className="h-5 w-5 text-green-600" />
-                                        <h4 className="font-medium text-gray-900">Resumen Profesional</h4>
-                                    </div>
-                                    <textarea
-                                        value={parsedData.professionalSummary}
-                                        onChange={(e) => setParsedData({
-                                            ...parsedData,
-                                            professionalSummary: e.target.value
-                                        })}
-                                        rows={4}
-                                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 resize-none"
-                                        placeholder="Resumen profesional extraído del CV"
-                                    />
-                                </div>
-
-                                {/* Habilidades EXPANDIDAS */}
-                                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                                    <div className="flex items-center space-x-2 mb-3">
-                                        <Briefcase className="h-5 w-5 text-yellow-600" />
-                                        <h4 className="font-medium text-gray-900">Habilidades y Competencias</h4>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Hard Skills (Técnicas)</label>
-                                            <textarea
-                                                value={parsedData.skills.join(', ')}
-                                                onChange={(e) => setParsedData({
-                                                    ...parsedData,
-                                                    skills: e.target.value.split(', ').filter(s => s.trim())
-                                                })}
-                                                rows={3}
-                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 resize-none"
-                                                placeholder="React, JavaScript, Python, etc."
-                                            />
+                            {file && !isLoading && (
+                                <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+                                    <div className="flex items-center space-x-3">
+                                        <FileText className="h-6 w-6 text-blue-500" />
+                                        <div className="flex-1">
+                                            <p className="font-medium text-gray-900">{file.name}</p>
+                                            <p className="text-sm text-gray-500">
+                                                {(file.size / 1024 / 1024).toFixed(2)} MB
+                                            </p>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Soft Skills</label>
-                                            <textarea
-                                                value={parsedData.softSkills.join(', ')}
-                                                onChange={(e) => setParsedData({
-                                                    ...parsedData,
-                                                    softSkills: e.target.value.split(', ').filter(s => s.trim())
-                                                })}
-                                                rows={3}
-                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 resize-none"
-                                                placeholder="Liderazgo, Comunicación, Trabajo en equipo, etc."
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Habilidades Adicionales</label>
-                                            <textarea
-                                                value={parsedData.additionalSkills.join(', ')}
-                                                onChange={(e) => setParsedData({
-                                                    ...parsedData,
-                                                    additionalSkills: e.target.value.split(', ').filter(s => s.trim())
-                                                })}
-                                                rows={2}
-                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 resize-none"
-                                                placeholder="Otras habilidades relevantes"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Categoría Profesional</label>
-                                            <select
-                                                value={parsedData.categoria}
-                                                onChange={(e) => setParsedData({
-                                                    ...parsedData,
-                                                    categoria: e.target.value
-                                                })}
-                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500"
-                                            >
-                                                <option value="Frontend Developer">Frontend Developer</option>
-                                                <option value="Backend Developer">Backend Developer</option>
-                                                <option value="Full Stack Developer">Full Stack Developer</option>
-                                                <option value="DevOps">DevOps</option>
-                                                <option value="Data Scientist">Data Scientist</option>
-                                                <option value="Mobile Developer">Mobile Developer</option>
-                                                <option value="QA Engineer">QA Engineer</option>
-                                                <option value="UX/UI Designer">UX/UI Designer</option>
-                                                <option value="Marketing">Marketing</option>
-                                                <option value="Administración">Administración</option>
-                                                <option value="Tecnología">Tecnología</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Idiomas */}
-                                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                                    <div className="flex items-center space-x-2 mb-3">
-                                        <User className="h-5 w-5 text-purple-600" />
-                                        <h4 className="font-medium text-gray-900">Idiomas</h4>
-                                    </div>
-                                    <div className="space-y-3">
-                                        {parsedData.languages.map((lang, index) => (
-                                            <div key={index} className="grid grid-cols-2 gap-3">
-                                                <input
-                                                    type="text"
-                                                    value={lang.language}
-                                                    onChange={(e) => {
-                                                        const newLanguages = [...parsedData.languages];
-                                                        newLanguages[index] = { ...lang, language: e.target.value };
-                                                        setParsedData({
-                                                            ...parsedData,
-                                                            languages: newLanguages
-                                                        });
-                                                    }}
-                                                    placeholder="Idioma"
-                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
-                                                />
-                                                <select
-                                                    value={lang.level}
-                                                    onChange={(e) => {
-                                                        const newLanguages = [...parsedData.languages];
-                                                        newLanguages[index] = { ...lang, level: e.target.value };
-                                                        setParsedData({
-                                                            ...parsedData,
-                                                            languages: newLanguages
-                                                        });
-                                                    }}
-                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
-                                                >
-                                                    <option value="Básico">Básico</option>
-                                                    <option value="Intermedio">Intermedio</option>
-                                                    <option value="Avanzado">Avanzado</option>
-                                                    <option value="Nativo">Nativo</option>
-                                                </select>
-                                            </div>
-                                        ))}
                                         <button
-                                            type="button"
-                                            onClick={() => setParsedData({
-                                                ...parsedData,
-                                                languages: [...parsedData.languages, { language: '', level: 'Intermedio' }]
-                                            })}
-                                            className="text-purple-600 hover:text-purple-800 text-sm font-medium"
+                                            onClick={() => setFile(null)}
+                                            className="text-gray-400 hover:text-gray-600"
                                         >
-                                            + Agregar idioma
+                                            <X className="h-5 w-5" />
                                         </button>
                                     </div>
                                 </div>
+                            )}
+                        </>
+                    ) : (
+                        /* Mensaje de éxito */
+                        <div className="text-center space-y-4">
+                            <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
+                            <h3 className="text-xl font-semibold text-gray-900">
+                                ¡CV procesado exitosamente!
+                            </h3>
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <p className="text-green-800">
+                                    <span className="font-medium">Candidato:</span> {savedCandidate.name}
+                                </p>
+                                <p className="text-green-800">
+                                    <span className="font-medium">Email:</span> {savedCandidate.email}
+                                </p>
+                                <p className="text-green-800">
+                                    <span className="font-medium">ID:</span> {savedCandidate.id}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setFile(null);
+                                    setParsedData(null);
+                                    setSavedCandidate(null);
+                                    setConfirmedData(null);
+                                }}
+                                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+                            >
+                                Subir otro CV
+                            </button>
+                        </div>
+                    )}
+                </div>
 
-                                {/* Experiencia Laboral */}
-                                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                                    <div className="flex items-center space-x-2 mb-3">
-                                        <Briefcase className="h-5 w-5 text-orange-600" />
-                                        <h4 className="font-medium text-gray-900">Experiencia Laboral</h4>
-                                    </div>
-                                    <div className="space-y-4">
-                                        {parsedData.experience.map((exp, index) => (
-                                            <div key={index} className="p-3 bg-white rounded border">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                                                    <input
-                                                        type="text"
-                                                        value={exp.position}
-                                                        onChange={(e) => {
-                                                            const newExp = [...parsedData.experience];
-                                                            newExp[index] = { ...exp, position: e.target.value };
-                                                            setParsedData({
-                                                                ...parsedData,
-                                                                experience: newExp
-                                                            });
-                                                        }}
-                                                        placeholder="Puesto"
-                                                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500"
-                                                    />
-                                                    <input
-                                                        type="text"
-                                                        value={exp.company}
-                                                        onChange={(e) => {
-                                                            const newExp = [...parsedData.experience];
-                                                            newExp[index] = { ...exp, company: e.target.value };
-                                                            setParsedData({
-                                                                ...parsedData,
-                                                                experience: newExp
-                                                            });
-                                                        }}
-                                                        placeholder="Empresa"
-                                                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500"
-                                                    />
-                                                    <input
-                                                        type="text"
-                                                        value={exp.startDate}
-                                                        onChange={(e) => {
-                                                            const newExp = [...parsedData.experience];
-                                                            newExp[index] = { ...exp, startDate: e.target.value };
-                                                            setParsedData({
-                                                                ...parsedData,
-                                                                experience: newExp
-                                                            });
-                                                        }}
-                                                        placeholder="Fecha inicio"
-                                                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500"
-                                                    />
-                                                    <input
-                                                        type="text"
-                                                        value={exp.endDate}
-                                                        onChange={(e) => {
-                                                            const newExp = [...parsedData.experience];
-                                                            newExp[index] = { ...exp, endDate: e.target.value };
-                                                            setParsedData({
-                                                                ...parsedData,
-                                                                experience: newExp
-                                                            });
-                                                        }}
-                                                        placeholder="Fecha fin"
-                                                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500"
-                                                    />
-                                                </div>
-                                                <textarea
-                                                    value={exp.description}
-                                                    onChange={(e) => {
-                                                        const newExp = [...parsedData.experience];
-                                                        newExp[index] = { ...exp, description: e.target.value };
-                                                        setParsedData({
-                                                            ...parsedData,
-                                                            experience: newExp
-                                                        });
-                                                    }}
-                                                    placeholder="Descripción del puesto"
-                                                    rows={2}
-                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 resize-none"
+                {/* Modal de confirmación EXPANDIDO - Todos los campos del backend */}
+                {isModalOpen && parsedData && (
+                    <div
+                        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+                        style={{ zIndex: 'var(--z-modal-backdrop)' }}
+                    >
+                        <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+                            <div className="p-6">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-xl font-semibold text-gray-900">
+                                        Confirma TODOS los datos extraídos del CV
+                                    </h3>
+                                    <button
+                                        onClick={() => setIsModalOpen(false)}
+                                        className="text-gray-400 hover:text-gray-600"
+                                    >
+                                        <X className="h-6 w-6" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-6">
+                                    {/* Información Personal EXPANDIDA */}
+                                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                        <div className="flex items-center space-x-2 mb-3">
+                                            <User className="h-5 w-5 text-blue-600" />
+                                            <h4 className="font-medium text-gray-900">Información Personal</h4>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
+                                                <input
+                                                    type="text"
+                                                    value={parsedData.personalInfo.name}
+                                                    onChange={(e) => setParsedData({
+                                                        ...parsedData,
+                                                        personalInfo: { ...parsedData.personalInfo, name: e.target.value }
+                                                    })}
+                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                                                 />
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Educación */}
-                                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                                    <div className="flex items-center space-x-2 mb-3">
-                                        <FileText className="h-5 w-5 text-indigo-600" />
-                                        <h4 className="font-medium text-gray-900">Educación</h4>
-                                    </div>
-                                    <div className="space-y-4">
-                                        {parsedData.education.map((edu, index) => (
-                                            <div key={index} className="p-3 bg-white rounded border">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                    <input
-                                                        type="text"
-                                                        value={edu.degree}
-                                                        onChange={(e) => {
-                                                            const newEdu = [...parsedData.education];
-                                                            newEdu[index] = { ...edu, degree: e.target.value };
-                                                            setParsedData({
-                                                                ...parsedData,
-                                                                education: newEdu
-                                                            });
-                                                        }}
-                                                        placeholder="Título/Grado"
-                                                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
-                                                    />
-                                                    <input
-                                                        type="text"
-                                                        value={edu.institution}
-                                                        onChange={(e) => {
-                                                            const newEdu = [...parsedData.education];
-                                                            newEdu[index] = { ...edu, institution: e.target.value };
-                                                            setParsedData({
-                                                                ...parsedData,
-                                                                education: newEdu
-                                                            });
-                                                        }}
-                                                        placeholder="Institución"
-                                                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
-                                                    />
-                                                    <input
-                                                        type="text"
-                                                        value={edu.fieldOfStudy || ''}
-                                                        onChange={(e) => {
-                                                            const newEdu = [...parsedData.education];
-                                                            newEdu[index] = { ...edu, fieldOfStudy: e.target.value };
-                                                            setParsedData({
-                                                                ...parsedData,
-                                                                education: newEdu
-                                                            });
-                                                        }}
-                                                        placeholder="Campo de estudio"
-                                                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
-                                                    />
-                                                    <input
-                                                        type="text"
-                                                        value={edu.endDate || edu.startDate || ''}
-                                                        onChange={(e) => {
-                                                            const newEdu = [...parsedData.education];
-                                                            newEdu[index] = { ...edu, endDate: e.target.value };
-                                                            setParsedData({
-                                                                ...parsedData,
-                                                                education: newEdu
-                                                            });
-                                                        }}
-                                                        placeholder="Año de finalización"
-                                                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
-                                                    />
-                                                </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                                <input
+                                                    type="email"
+                                                    value={parsedData.personalInfo.email}
+                                                    onChange={(e) => setParsedData({
+                                                        ...parsedData,
+                                                        personalInfo: { ...parsedData.personalInfo, email: e.target.value }
+                                                    })}
+                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                                                />
                                             </div>
-                                        ))}
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                                                <input
+                                                    type="tel"
+                                                    value={parsedData.personalInfo.phone}
+                                                    onChange={(e) => setParsedData({
+                                                        ...parsedData,
+                                                        personalInfo: { ...parsedData.personalInfo, phone: e.target.value }
+                                                    })}
+                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Ubicación Actual</label>
+                                                <input
+                                                    type="text"
+                                                    value={parsedData.personalInfo.address}
+                                                    onChange={(e) => setParsedData({
+                                                        ...parsedData,
+                                                        personalInfo: { ...parsedData.personalInfo, address: e.target.value }
+                                                    })}
+                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha Nacimiento</label>
+                                                <input
+                                                    type="date"
+                                                    value={parsedData.personalInfo.dateOfBirth || ''}
+                                                    onChange={(e) => setParsedData({
+                                                        ...parsedData,
+                                                        personalInfo: { ...parsedData.personalInfo, dateOfBirth: e.target.value }
+                                                    })}
+                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
+                                                <input
+                                                    type="url"
+                                                    value={parsedData.personalInfo.linkedinUrl || ''}
+                                                    onChange={(e) => setParsedData({
+                                                        ...parsedData,
+                                                        personalInfo: { ...parsedData.personalInfo, linkedinUrl: e.target.value }
+                                                    })}
+                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            </div>
+                                            <div className="col-span-full">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Portfolio/Website</label>
+                                                <input
+                                                    type="url"
+                                                    value={parsedData.personalInfo.portfolio || ''}
+                                                    onChange={(e) => setParsedData({
+                                                        ...parsedData,
+                                                        personalInfo: { ...parsedData.personalInfo, portfolio: e.target.value }
+                                                    })}
+                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            </div>
+                                            <div className="col-span-full">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Otras Redes Sociales</label>
+                                                <input
+                                                    type="text"
+                                                    value={parsedData.personalInfo.otherNetworks?.join(', ') || ''}
+                                                    onChange={(e) => setParsedData({
+                                                        ...parsedData,
+                                                        personalInfo: {
+                                                            ...parsedData.personalInfo,
+                                                            otherNetworks: e.target.value.split(', ').filter(s => s.trim())
+                                                        }
+                                                    })}
+                                                    placeholder="Twitter, GitHub, otros (separados por coma)"
+                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
 
-
-                                {/* Certificaciones */}
-                                {parsedData.certifications.length > 0 && (
-                                    <div className="bg-pink-50 p-4 rounded-lg border border-pink-200">
+                                    {/* Resumen Profesional */}
+                                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                                         <div className="flex items-center space-x-2 mb-3">
-                                            <CheckCircle className="h-5 w-5 text-pink-600" />
-                                            <h4 className="font-medium text-gray-900">Certificaciones</h4>
+                                            <FileText className="h-5 w-5 text-green-600" />
+                                            <h4 className="font-medium text-gray-900">Resumen Profesional</h4>
+                                        </div>
+                                        <textarea
+                                            value={parsedData.professionalSummary}
+                                            onChange={(e) => setParsedData({
+                                                ...parsedData,
+                                                professionalSummary: e.target.value
+                                            })}
+                                            rows={4}
+                                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 resize-none"
+                                            placeholder="Resumen profesional extraído del CV"
+                                        />
+                                    </div>
+
+                                    {/* Habilidades EXPANDIDAS */}
+                                    <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                                        <div className="flex items-center space-x-2 mb-3">
+                                            <Briefcase className="h-5 w-5 text-yellow-600" />
+                                            <h4 className="font-medium text-gray-900">Habilidades y Competencias</h4>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Hard Skills (Técnicas)</label>
+                                                <textarea
+                                                    value={parsedData.skills.join(', ')}
+                                                    onChange={(e) => setParsedData({
+                                                        ...parsedData,
+                                                        skills: e.target.value.split(', ').filter(s => s.trim())
+                                                    })}
+                                                    rows={3}
+                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 resize-none"
+                                                    placeholder="React, JavaScript, Python, etc."
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Soft Skills</label>
+                                                <textarea
+                                                    value={parsedData.softSkills.join(', ')}
+                                                    onChange={(e) => setParsedData({
+                                                        ...parsedData,
+                                                        softSkills: e.target.value.split(', ').filter(s => s.trim())
+                                                    })}
+                                                    rows={3}
+                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 resize-none"
+                                                    placeholder="Liderazgo, Comunicación, Trabajo en equipo, etc."
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Habilidades Adicionales</label>
+                                                <textarea
+                                                    value={parsedData.additionalSkills.join(', ')}
+                                                    onChange={(e) => setParsedData({
+                                                        ...parsedData,
+                                                        additionalSkills: e.target.value.split(', ').filter(s => s.trim())
+                                                    })}
+                                                    rows={2}
+                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 resize-none"
+                                                    placeholder="Otras habilidades relevantes"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría Profesional</label>
+                                                <select
+                                                    value={parsedData.categoria}
+                                                    onChange={(e) => setParsedData({
+                                                        ...parsedData,
+                                                        categoria: e.target.value
+                                                    })}
+                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500"
+                                                >
+                                                    <option value="Frontend Developer">Frontend Developer</option>
+                                                    <option value="Backend Developer">Backend Developer</option>
+                                                    <option value="Full Stack Developer">Full Stack Developer</option>
+                                                    <option value="DevOps">DevOps</option>
+                                                    <option value="Data Scientist">Data Scientist</option>
+                                                    <option value="Mobile Developer">Mobile Developer</option>
+                                                    <option value="QA Engineer">QA Engineer</option>
+                                                    <option value="UX/UI Designer">UX/UI Designer</option>
+                                                    <option value="Marketing">Marketing</option>
+                                                    <option value="Administración">Administración</option>
+                                                    <option value="Tecnología">Tecnología</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Idiomas */}
+                                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                        <div className="flex items-center space-x-2 mb-3">
+                                            <User className="h-5 w-5 text-purple-600" />
+                                            <h4 className="font-medium text-gray-900">Idiomas</h4>
                                         </div>
                                         <div className="space-y-3">
-                                            {parsedData.certifications.map((cert, index) => (
+                                            {parsedData.languages.map((lang, index) => (
+                                                <div key={index} className="grid grid-cols-2 gap-3">
+                                                    <input
+                                                        type="text"
+                                                        value={lang.language}
+                                                        onChange={(e) => {
+                                                            const newLanguages = [...parsedData.languages];
+                                                            newLanguages[index] = { ...lang, language: e.target.value };
+                                                            setParsedData({
+                                                                ...parsedData,
+                                                                languages: newLanguages
+                                                            });
+                                                        }}
+                                                        placeholder="Idioma"
+                                                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
+                                                    />
+                                                    <select
+                                                        value={lang.level}
+                                                        onChange={(e) => {
+                                                            const newLanguages = [...parsedData.languages];
+                                                            newLanguages[index] = { ...lang, level: e.target.value };
+                                                            setParsedData({
+                                                                ...parsedData,
+                                                                languages: newLanguages
+                                                            });
+                                                        }}
+                                                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
+                                                    >
+                                                        <option value="Básico">Básico</option>
+                                                        <option value="Intermedio">Intermedio</option>
+                                                        <option value="Avanzado">Avanzado</option>
+                                                        <option value="Nativo">Nativo</option>
+                                                    </select>
+                                                </div>
+                                            ))}
+                                            <button
+                                                type="button"
+                                                onClick={() => setParsedData({
+                                                    ...parsedData,
+                                                    languages: [...parsedData.languages, { language: '', level: 'Intermedio' }]
+                                                })}
+                                                className="text-purple-600 hover:text-purple-800 text-sm font-medium"
+                                            >
+                                                + Agregar idioma
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Experiencia Laboral */}
+                                    <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                                        <div className="flex items-center space-x-2 mb-3">
+                                            <Briefcase className="h-5 w-5 text-orange-600" />
+                                            <h4 className="font-medium text-gray-900">Experiencia Laboral</h4>
+                                        </div>
+                                        <div className="space-y-4">
+                                            {parsedData.experience.map((exp, index) => (
+                                                <div key={index} className="p-3 bg-white rounded border">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                                        <input
+                                                            type="text"
+                                                            value={exp.position}
+                                                            onChange={(e) => {
+                                                                const newExp = [...parsedData.experience];
+                                                                newExp[index] = { ...exp, position: e.target.value };
+                                                                setParsedData({
+                                                                    ...parsedData,
+                                                                    experience: newExp
+                                                                });
+                                                            }}
+                                                            placeholder="Puesto"
+                                                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={exp.company}
+                                                            onChange={(e) => {
+                                                                const newExp = [...parsedData.experience];
+                                                                newExp[index] = { ...exp, company: e.target.value };
+                                                                setParsedData({
+                                                                    ...parsedData,
+                                                                    experience: newExp
+                                                                });
+                                                            }}
+                                                            placeholder="Empresa"
+                                                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={exp.startDate}
+                                                            onChange={(e) => {
+                                                                const newExp = [...parsedData.experience];
+                                                                newExp[index] = { ...exp, startDate: e.target.value };
+                                                                setParsedData({
+                                                                    ...parsedData,
+                                                                    experience: newExp
+                                                                });
+                                                            }}
+                                                            placeholder="Fecha inicio"
+                                                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={exp.endDate}
+                                                            onChange={(e) => {
+                                                                const newExp = [...parsedData.experience];
+                                                                newExp[index] = { ...exp, endDate: e.target.value };
+                                                                setParsedData({
+                                                                    ...parsedData,
+                                                                    experience: newExp
+                                                                });
+                                                            }}
+                                                            placeholder="Fecha fin"
+                                                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500"
+                                                        />
+                                                    </div>
+                                                    <textarea
+                                                        value={exp.description}
+                                                        onChange={(e) => {
+                                                            const newExp = [...parsedData.experience];
+                                                            newExp[index] = { ...exp, description: e.target.value };
+                                                            setParsedData({
+                                                                ...parsedData,
+                                                                experience: newExp
+                                                            });
+                                                        }}
+                                                        placeholder="Descripción del puesto"
+                                                        rows={2}
+                                                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 resize-none"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Educación */}
+                                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                                        <div className="flex items-center space-x-2 mb-3">
+                                            <FileText className="h-5 w-5 text-indigo-600" />
+                                            <h4 className="font-medium text-gray-900">Educación</h4>
+                                        </div>
+                                        <div className="space-y-4">
+                                            {parsedData.education.map((edu, index) => (
                                                 <div key={index} className="p-3 bg-white rounded border">
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                         <input
                                                             type="text"
-                                                            value={cert.name}
-                                                            placeholder="Nombre de la certificación"
-                                                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500"
-                                                            readOnly
+                                                            value={edu.degree}
+                                                            onChange={(e) => {
+                                                                const newEdu = [...parsedData.education];
+                                                                newEdu[index] = { ...edu, degree: e.target.value };
+                                                                setParsedData({
+                                                                    ...parsedData,
+                                                                    education: newEdu
+                                                                });
+                                                            }}
+                                                            placeholder="Título/Grado"
+                                                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
                                                         />
                                                         <input
                                                             type="text"
-                                                            value={cert.issuer}
-                                                            placeholder="Emisor"
-                                                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500"
-                                                            readOnly
+                                                            value={edu.institution}
+                                                            onChange={(e) => {
+                                                                const newEdu = [...parsedData.education];
+                                                                newEdu[index] = { ...edu, institution: e.target.value };
+                                                                setParsedData({
+                                                                    ...parsedData,
+                                                                    education: newEdu
+                                                                });
+                                                            }}
+                                                            placeholder="Institución"
+                                                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={edu.fieldOfStudy || ''}
+                                                            onChange={(e) => {
+                                                                const newEdu = [...parsedData.education];
+                                                                newEdu[index] = { ...edu, fieldOfStudy: e.target.value };
+                                                                setParsedData({
+                                                                    ...parsedData,
+                                                                    education: newEdu
+                                                                });
+                                                            }}
+                                                            placeholder="Campo de estudio"
+                                                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={edu.endDate || edu.startDate || ''}
+                                                            onChange={(e) => {
+                                                                const newEdu = [...parsedData.education];
+                                                                newEdu[index] = { ...edu, endDate: e.target.value };
+                                                                setParsedData({
+                                                                    ...parsedData,
+                                                                    education: newEdu
+                                                                });
+                                                            }}
+                                                            placeholder="Año de finalización"
+                                                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
                                                         />
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
-                                )}
 
-                                {/* Intereses y Disponibilidad */}
-                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                    <div className="flex items-center space-x-2 mb-3">
-                                        <Heart className="h-5 w-5 text-gray-600" />
-                                        <h4 className="font-medium text-gray-900">Información Adicional</h4>
+
+                                    {/* Certificaciones */}
+                                    {parsedData.certifications.length > 0 && (
+                                        <div className="bg-pink-50 p-4 rounded-lg border border-pink-200">
+                                            <div className="flex items-center space-x-2 mb-3">
+                                                <CheckCircle className="h-5 w-5 text-pink-600" />
+                                                <h4 className="font-medium text-gray-900">Certificaciones</h4>
+                                            </div>
+                                            <div className="space-y-3">
+                                                {parsedData.certifications.map((cert, index) => (
+                                                    <div key={index} className="p-3 bg-white rounded border">
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                            <input
+                                                                type="text"
+                                                                value={cert.name}
+                                                                placeholder="Nombre de la certificación"
+                                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500"
+                                                                readOnly
+                                                            />
+                                                            <input
+                                                                type="text"
+                                                                value={cert.issuer}
+                                                                placeholder="Emisor"
+                                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500"
+                                                                readOnly
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Intereses y Disponibilidad */}
+                                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                        <div className="flex items-center space-x-2 mb-3">
+                                            <Heart className="h-5 w-5 text-gray-600" />
+                                            <h4 className="font-medium text-gray-900">Información Adicional</h4>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Intereses</label>
+                                                <textarea
+                                                    value={parsedData.interests.join(', ')}
+                                                    onChange={(e) => setParsedData({
+                                                        ...parsedData,
+                                                        interests: e.target.value.split(', ').filter(s => s.trim())
+                                                    })}
+                                                    rows={2}
+                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 resize-none"
+                                                    placeholder="Intereses profesionales y personales"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Disponibilidad</label>
+                                                <input
+                                                    type="text"
+                                                    value={parsedData.availability || ''}
+                                                    onChange={(e) => setParsedData({
+                                                        ...parsedData,
+                                                        availability: e.target.value
+                                                    })}
+                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500"
+                                                    placeholder="Inmediata, 2 semanas, etc."
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Intereses</label>
-                                            <textarea
-                                                value={parsedData.interests.join(', ')}
-                                                onChange={(e) => setParsedData({
-                                                    ...parsedData,
-                                                    interests: e.target.value.split(', ').filter(s => s.trim())
-                                                })}
-                                                rows={2}
-                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 resize-none"
-                                                placeholder="Intereses profesionales y personales"
-                                            />
+
+                                    {/* Motivación/Carta de Presentación */}
+                                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                                        <div className="flex items-center space-x-2 mb-3">
+                                            <Heart className="h-5 w-5 text-green-600" />
+                                            <h4 className="font-medium text-gray-900">Motivación (Opcional)</h4>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Disponibilidad</label>
-                                            <input
-                                                type="text"
-                                                value={parsedData.availability || ''}
-                                                onChange={(e) => setParsedData({
-                                                    ...parsedData,
-                                                    availability: e.target.value
-                                                })}
-                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500"
-                                                placeholder="Inmediata, 2 semanas, etc."
-                                            />
-                                        </div>
+                                        <textarea
+                                            value={parsedData.motivation || ''}
+                                            onChange={(e) => setParsedData({
+                                                ...parsedData,
+                                                motivation: e.target.value
+                                            })}
+                                            placeholder="¿Qué te motiva a aplicar a esta posición? ¿Por qué deberíamos considerarte?"
+                                            rows={4}
+                                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 resize-none"
+                                        />
                                     </div>
                                 </div>
 
-                                {/* Motivación/Carta de Presentación */}
-                                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                                    <div className="flex items-center space-x-2 mb-3">
-                                        <Heart className="h-5 w-5 text-green-600" />
-                                        <h4 className="font-medium text-gray-900">Motivación (Opcional)</h4>
-                                    </div>
-                                    <textarea
-                                        value={parsedData.motivation || ''}
-                                        onChange={(e) => setParsedData({
-                                            ...parsedData,
-                                            motivation: e.target.value
-                                        })}
-                                        placeholder="¿Qué te motiva a aplicar a esta posición? ¿Por qué deberíamos considerarte?"
-                                        rows={4}
-                                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 resize-none"
-                                    />
+                                <div className="flex justify-end space-x-4 mt-8 pt-6 border-t">
+                                    <button
+                                        onClick={() => setIsModalOpen(false)}
+                                        className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setConfirmedData(parsedData);
+                                            handleConfirmData();
+                                        }}
+                                        disabled={isLoading}
+                                        className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isLoading ? 'Guardando...' : 'Confirmar y Guardar Todos los Datos'}
+                                    </button>
                                 </div>
-                            </div>
-
-                            <div className="flex justify-end space-x-4 mt-8 pt-6 border-t">
-                                <button
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setConfirmedData(parsedData);
-                                        handleConfirmData();
-                                    }}
-                                    disabled={isLoading}
-                                    className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {isLoading ? 'Guardando...' : 'Confirmar y Guardar Todos los Datos'}
-                                </button>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
             </div>
         </div>
     );

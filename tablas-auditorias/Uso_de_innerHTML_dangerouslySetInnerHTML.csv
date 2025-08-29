@@ -1,0 +1,2 @@
+file,line,code
+/audit/frontend/cypress/support/e2e.ts,17,style.innerHTML = `

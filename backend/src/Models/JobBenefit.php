@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Models;
 
 use Utils\Logger;
@@ -22,12 +25,12 @@ class JobBenefit extends BaseModel
      */
     protected string $table = 'job_benefits';
     /*
-     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÃƒÆ’Ã¢â‚¬Å“N AUTOMÃƒÆ’Ã‚ÂTICA APLICADA
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÓN AUTOMÁTICA APLICADA
      * Modelo: JobBenefit
      * Fecha: 2025-08-23
      * 
      * Cambios realizados:
-     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aÃƒÆ’Ã‚Â±adidos: ninguno
+     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aí±adidos: ninguno
      * ÃƒÂ¢Ã‚ÂÃ…â€™ Campos removidos: ['description', 'value', 'currency', 'is_required']
      * ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Total campos fillable: 2
      * 
@@ -46,15 +49,15 @@ class JobBenefit extends BaseModel
 
     /**
      * Campos que deben ocultarse en las respuestas JSON/arrays
-     * Incluye informaciÃƒÆ’Ã‚Â³n sensible monetaria e interna
+     * Incluye información sensible monetaria e interna
      */
     protected array $hidden = [
-        'value',        // InformaciÃƒÆ’Ã‚Â³n monetaria sensible
+        'value',        // Información monetaria sensible
         'internal_cost' // Costos internos de la empresa
     ];
 
     /**
-     * Tipos de beneficios vÃƒÆ’Ã‚Â¡lidos
+     * Tipos de beneficios ví¡lidos
      */
     private const VALID_BENEFIT_TYPES = [
         'salary',
@@ -80,7 +83,7 @@ class JobBenefit extends BaseModel
     ];
 
     /**
-     * Monedas vÃƒÆ’Ã‚Â¡lidas
+     * Monedas ví¡lidas
      */
     private const VALID_CURRENCIES = [
         'USD',
@@ -100,14 +103,14 @@ class JobBenefit extends BaseModel
     ];
 
     /**
-     * Obtener todos los beneficios asociados a un trabajo especÃƒÆ’Ã‚Â­fico
+     * Obtener todos los beneficios asociados a un trabajo especí­fico
      * 
      * @param string|int $jobId ID del trabajo
      * @param bool $includeOptional Si incluir beneficios opcionales
      * @param int $cacheTtl Tiempo de vida del cache en segundos (0 = sin cache)
      * @return array Lista de beneficios del trabajo
      * 
-     * @throws \InvalidArgumentException Si el jobId es invÃƒÆ’Ã‚Â¡lido
+     * @throws \InvalidArgumentException Si el jobId es inví¡lido
      * @throws \RuntimeException Si ocurre un error en la consulta
      */
     public function getBenefitsByJob($jobId, bool $includeOptional = true, int $cacheTtl = 300): array
@@ -122,7 +125,7 @@ class JobBenefit extends BaseModel
         ]);
 
         try {
-            // Intentar obtener desde cache si estÃƒÆ’Ã‚Â¡ habilitado
+            // Intentar obtener desde cache si estí¡ habilitado
             if ($cacheTtl > 0 && isset($this->cache[$cacheKey])) {
                 $this->logDebug('Benefits retrieved from cache', ['job_id' => $jobId]);
                 return $this->cache[$cacheKey];
@@ -136,7 +139,7 @@ class JobBenefit extends BaseModel
 
             $results = $this->findAll($filters, 1, self::MAX_LIMIT, ['benefit_type' => 'ASC']);
 
-            // Guardar en cache si estÃƒÆ’Ã‚Â¡ habilitado
+            // Guardar en cache si estí¡ habilitado
             if ($cacheTtl > 0) {
                 $this->cache[$cacheKey] = $results;
             }
@@ -158,15 +161,15 @@ class JobBenefit extends BaseModel
     }
 
     /**
-     * Obtener beneficios filtrados por tipo especÃƒÆ’Ã‚Â­fico
+     * Obtener beneficios filtrados por tipo especí­fico
      * 
      * @param string $benefitType Tipo de beneficio a filtrar
      * @param array $additionalFilters Filtros adicionales opcionales
-     * @param int $limit LÃƒÆ’Ã‚Â­mite de resultados
+     * @param int $limit Lí­mite de resultados
      * @param int $cacheTtl Tiempo de vida del cache en segundos
      * @return array Lista de beneficios del tipo especificado
      * 
-     * @throws \InvalidArgumentException Si el tipo de beneficio es invÃƒÆ’Ã‚Â¡lido
+     * @throws \InvalidArgumentException Si el tipo de beneficio es inví¡lido
      * @throws \RuntimeException Si ocurre un error en la consulta
      */
     public function getBenefitsByType(string $benefitType, array $additionalFilters = [], int $limit = 100, int $cacheTtl = 300): array
@@ -184,7 +187,7 @@ class JobBenefit extends BaseModel
         $cacheKey = $this->generateCacheKey('benefits_by_type', $filters);
 
         try {
-            // Intentar obtener desde cache si estÃƒÆ’Ã‚Â¡ habilitado
+            // Intentar obtener desde cache si estí¡ habilitado
             if ($cacheTtl > 0 && isset($this->cache[$cacheKey])) {
                 $this->logDebug('Benefits by type retrieved from cache', ['type' => $benefitType]);
                 return $this->cache[$cacheKey];
@@ -192,7 +195,7 @@ class JobBenefit extends BaseModel
 
             $results = $this->findAll($filters, 1, min($limit, self::MAX_LIMIT), ['job_id' => 'ASC']);
 
-            // Guardar en cache si estÃƒÆ’Ã‚Â¡ habilitado
+            // Guardar en cache si estí¡ habilitado
             if ($cacheTtl > 0) {
                 $this->cache[$cacheKey] = $results;
             }
@@ -216,8 +219,8 @@ class JobBenefit extends BaseModel
     /**
      * Obtener solo los beneficios obligatorios/requeridos
      * 
-     * @param string|int|null $jobId ID especÃƒÆ’Ã‚Â­fico del trabajo (opcional)
-     * @param int $limit LÃƒÆ’Ã‚Â­mite de resultados
+     * @param string|int|null $jobId ID especí­fico del trabajo (opcional)
+     * @param int $limit Lí­mite de resultados
      * @param int $cacheTtl Tiempo de vida del cache en segundos
      * @return array Lista de beneficios obligatorios
      * 
@@ -237,7 +240,7 @@ class JobBenefit extends BaseModel
         $cacheKey = $this->generateCacheKey('required_benefits', $filters);
 
         try {
-            // Intentar obtener desde cache si estÃƒÆ’Ã‚Â¡ habilitado
+            // Intentar obtener desde cache si estí¡ habilitado
             if ($cacheTtl > 0 && isset($this->cache[$cacheKey])) {
                 $this->logDebug('Required benefits retrieved from cache', ['job_id' => $jobId]);
                 return $this->cache[$cacheKey];
@@ -248,7 +251,7 @@ class JobBenefit extends BaseModel
                 'value' => 'DESC'
             ]);
 
-            // Guardar en cache si estÃƒÆ’Ã‚Â¡ habilitado
+            // Guardar en cache si estí¡ habilitado
             if ($cacheTtl > 0) {
                 $this->cache[$cacheKey] = $results;
             }
@@ -269,12 +272,12 @@ class JobBenefit extends BaseModel
      * Calcular el valor total monetario de los beneficios de un trabajo
      * 
      * @param string|int $jobId ID del trabajo
-     * @param string $targetCurrency Moneda objetivo para la conversiÃƒÆ’Ã‚Â³n (opcional)
+     * @param string $targetCurrency Moneda objetivo para la conversión (opcional)
      * @param bool $requiredOnly Si calcular solo beneficios obligatorios
      * @param int $cacheTtl Tiempo de vida del cache en segundos
-     * @return array InformaciÃƒÆ’Ã‚Â³n del valor total con desglose por moneda
+     * @return array Información del valor total con desglose por moneda
      * 
-     * @throws \InvalidArgumentException Si los parÃƒÆ’Ã‚Â¡metros son invÃƒÆ’Ã‚Â¡lidos
+     * @throws \InvalidArgumentException Si los parí¡metros son inví¡lidos
      * @throws \RuntimeException Si ocurre un error en la consulta
      */
     public function calculateBenefitsValue($jobId, string $targetCurrency = 'USD', bool $requiredOnly = false, int $cacheTtl = 300): array
@@ -294,7 +297,7 @@ class JobBenefit extends BaseModel
         ]);
 
         try {
-            // Intentar obtener desde cache si estÃƒÆ’Ã‚Â¡ habilitado
+            // Intentar obtener desde cache si estí¡ habilitado
             if ($cacheTtl > 0 && isset($this->cache[$cacheKey])) {
                 $this->logDebug('Benefits value retrieved from cache', ['job_id' => $jobId]);
                 return $this->cache[$cacheKey];
@@ -330,7 +333,7 @@ class JobBenefit extends BaseModel
                     }
                     $currencyBreakdown[$currency] += $value;
 
-                    // Sumar al total (en la prÃƒÆ’Ã‚Â¡ctica aquÃƒÆ’Ã‚Â­ se harÃƒÆ’Ã‚Â­a conversiÃƒÆ’Ã‚Â³n de moneda)
+                    // Sumar al total (en la prí¡ctica aquí­ se harí­a conversión de moneda)
                     $totalValue += $value;
                 }
             }
@@ -344,7 +347,7 @@ class JobBenefit extends BaseModel
                 'monetary_benefits_count' => count(array_filter($benefits, fn($b) => ($b['value'] ?? 0) > 0))
             ];
 
-            // Guardar en cache si estÃƒÆ’Ã‚Â¡ habilitado
+            // Guardar en cache si estí¡ habilitado
             if ($cacheTtl > 0) {
                 $this->cache[$cacheKey] = $result;
             }
@@ -367,10 +370,10 @@ class JobBenefit extends BaseModel
     }
 
     /**
-     * Validar si un tipo de beneficio es vÃƒÆ’Ã‚Â¡lido
+     * Validar si un tipo de beneficio es ví¡lido
      * 
      * @param string $benefitType Tipo de beneficio a validar
-     * @return bool True si es vÃƒÆ’Ã‚Â¡lido, false en caso contrario
+     * @return bool True si es ví¡lido, false en caso contrario
      */
     private function isValidBenefitType(string $benefitType): bool
     {
@@ -378,10 +381,10 @@ class JobBenefit extends BaseModel
     }
 
     /**
-     * Validar si una moneda es vÃƒÆ’Ã‚Â¡lida
+     * Validar si una moneda es ví¡lida
      * 
-     * @param string $currency CÃƒÆ’Ã‚Â³digo de moneda a validar
-     * @return bool True si es vÃƒÆ’Ã‚Â¡lida, false en caso contrario
+     * @param string $currency Código de moneda a validar
+     * @return bool True si es ví¡lida, false en caso contrario
      */
     private function isValidCurrency(string $currency): bool
     {
@@ -394,8 +397,8 @@ class JobBenefit extends BaseModel
      * @param array $data Datos del beneficio
      * @return mixed ID del beneficio creado
      * 
-     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
-     * @throws \RuntimeException Si ocurre un error en la creaciÃƒÆ’Ã‚Â³n
+     * @throws \InvalidArgumentException Si los datos no son ví¡lidos
+     * @throws \RuntimeException Si ocurre un error en la creación
      */
     public function createBenefit(array $data)
     {
@@ -425,10 +428,10 @@ class JobBenefit extends BaseModel
      * 
      * @param mixed $id ID del beneficio
      * @param array $data Datos a actualizar
-     * @return bool True si se actualizÃƒÆ’Ã‚Â³ correctamente
+     * @return bool True si se actualizó correctamente
      * 
-     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
-     * @throws \RuntimeException Si ocurre un error en la actualizaciÃƒÆ’Ã‚Â³n
+     * @throws \InvalidArgumentException Si los datos no son ví¡lidos
+     * @throws \RuntimeException Si ocurre un error en la actualización
      */
     public function updateBenefit($id, array $data): bool
     {
@@ -444,7 +447,7 @@ class JobBenefit extends BaseModel
             $this->clearBenefitCache($currentBenefit['job_id'] ?? null);
         }
 
-        // Limpiar cache para el nuevo job_id si cambiÃƒÆ’Ã‚Â³
+        // Limpiar cache para el nuevo job_id si cambió
         if (isset($data['job_id']) && $currentBenefit && $data['job_id'] !== $currentBenefit['job_id']) {
             $this->clearBenefitCache($data['job_id']);
         }
@@ -471,10 +474,10 @@ class JobBenefit extends BaseModel
      * Eliminar un beneficio
      * 
      * @param mixed $id ID del beneficio
-     * @return bool True si se eliminÃƒÆ’Ã‚Â³ correctamente
+     * @return bool True si se eliminó correctamente
      * 
-     * @throws \InvalidArgumentException Si el ID es invÃƒÆ’Ã‚Â¡lido
-     * @throws \RuntimeException Si ocurre un error en la eliminaciÃƒÆ’Ã‚Â³n
+     * @throws \InvalidArgumentException Si el ID es inví¡lido
+     * @throws \RuntimeException Si ocurre un error en la eliminación
      */
     public function deleteBenefit($id): bool
     {
@@ -507,14 +510,14 @@ class JobBenefit extends BaseModel
      * Validar datos de beneficio
      * 
      * @param array $data Datos a validar
-     * @param bool $isUpdate Si es una actualizaciÃƒÆ’Ã‚Â³n (permite campos opcionales)
+     * @param bool $isUpdate Si es una actualización (permite campos opcionales)
      * @return void
      * 
-     * @throws \InvalidArgumentException Si algÃƒÆ’Ã‚Âºn dato es invÃƒÆ’Ã‚Â¡lido
+     * @throws \InvalidArgumentException Si algún dato es inví¡lido
      */
     private function validateBenefitData(array $data, bool $isUpdate = false): void
     {
-        // Validar campos requeridos para creaciÃƒÆ’Ã‚Â³n
+        // Validar campos requeridos para creación
         if (!$isUpdate) {
             $requiredFields = ['job_id', 'benefit_type', 'description'];
             foreach ($requiredFields as $field) {
@@ -524,24 +527,24 @@ class JobBenefit extends BaseModel
             }
         }
 
-        // Validar tipo de beneficio si estÃƒÆ’Ã‚Â¡ presente
+        // Validar tipo de beneficio si estí¡ presente
         if (isset($data['benefit_type']) && !$this->isValidBenefitType($data['benefit_type'])) {
             throw new \InvalidArgumentException("Invalid benefit type: {$data['benefit_type']}");
         }
 
-        // Validar moneda si estÃƒÆ’Ã‚Â¡ presente
+        // Validar moneda si estí¡ presente
         if (isset($data['currency']) && !empty($data['currency']) && !$this->isValidCurrency($data['currency'])) {
             throw new \InvalidArgumentException("Invalid currency: {$data['currency']}");
         }
 
-        // Validar valor monetario si estÃƒÆ’Ã‚Â¡ presente
+        // Validar valor monetario si estí¡ presente
         if (isset($data['value']) && $data['value'] !== null) {
             if (!is_numeric($data['value']) || $data['value'] < 0) {
                 throw new \InvalidArgumentException("Benefit value must be a non-negative number");
             }
         }
 
-        // Validar is_required si estÃƒÆ’Ã‚Â¡ presente
+        // Validar is_required si estí¡ presente
         if (isset($data['is_required']) && !in_array($data['is_required'], [0, 1, true, false], true)) {
             throw new \InvalidArgumentException("Field 'is_required' must be boolean or 0/1");
         }
@@ -590,7 +593,7 @@ class JobBenefit extends BaseModel
 
     /**
      * Devuelve todos los beneficios asociados a un puesto de trabajo.
-     * (MÃƒÆ’Ã‚Â©todo original mantenido por compatibilidad)
+     * (Método original mantenido por compatibilidad)
      *
      * @param string $jobId ID del puesto
      * @return array Lista de beneficios
@@ -603,7 +606,7 @@ class JobBenefit extends BaseModel
     /**
      * Obtener tipos de beneficios disponibles
      * 
-     * @return array Lista de tipos vÃƒÆ’Ã‚Â¡lidos de beneficios
+     * @return array Lista de tipos ví¡lidos de beneficios
      */
     public static function getValidBenefitTypes(): array
     {
@@ -613,7 +616,7 @@ class JobBenefit extends BaseModel
     /**
      * Obtener monedas soportadas
      * 
-     * @return array Lista de cÃƒÆ’Ã‚Â³digos de moneda vÃƒÆ’Ã‚Â¡lidos
+     * @return array Lista de códigos de moneda ví¡lidos
      */
     public static function getValidCurrencies(): array
     {
@@ -621,7 +624,7 @@ class JobBenefit extends BaseModel
     }
 
     // ==========================================
-    // MÃƒÆ’Ã¢â‚¬Â°TODOS CRUD ENCAPSULADOS ESTÃƒÆ’Ã‚ÂNDAR
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
     // ==========================================
 
     /**
@@ -675,7 +678,7 @@ class JobBenefit extends BaseModel
      * Actualizar job_benefit con validaciones
      * @param mixed $id ID del job_benefit a actualizar
      * @param array $data Nuevos datos
-     * @return bool True si la actualizaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @return bool True si la actualización fue exitosa
      */
     public function updateJobBenefit($id, array $data): bool
     {
@@ -707,7 +710,7 @@ class JobBenefit extends BaseModel
     /**
      * Eliminar job_benefit con validaciones
      * @param mixed $id ID del job_benefit a eliminar
-     * @return bool True si la eliminaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @return bool True si la eliminación fue exitosa
      */
     public function deleteJobBenefit($id): bool
     {
@@ -735,9 +738,9 @@ class JobBenefit extends BaseModel
 
     /**
      * Buscar job_benefits con filtros
-     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
-     * @param int $page PÃƒÆ’Ã‚Â¡gina actual
-     * @param int $limit Registros por pÃƒÆ’Ã‚Â¡gina
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Pí¡gina actual
+     * @param int $limit Registros por pí¡gina
      * @param array $orderBy Criterios de ordenamiento
      * @return array Array de job_benefits
      */
@@ -757,8 +760,8 @@ class JobBenefit extends BaseModel
 
     /**
      * Contar total de job_benefits con filtros
-     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
-     * @return int NÃƒÆ’Ã‚Âºmero total de job_benefits
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de job_benefits
      */
     public function countJobBenefits(array $filters = []): int
     {
@@ -775,14 +778,14 @@ class JobBenefit extends BaseModel
     }
 
     // ==========================================
-    // MÃƒÆ’Ã¢â‚¬Â°TODOS DE VALIDACIÃƒÆ’Ã¢â‚¬Å“N ESPECÃƒÆ’Ã‚ÂFICOS
+    // MÉTODOS DE VALIDACIÓN ESPECíFICOS
     // ==========================================
 
     /**
-     * Validar datos especÃƒÆ’Ã‚Â­ficos de job_benefits
+     * Validar datos especí­ficos de job_benefits
      * @param array $data Datos a validar
-     * @param mixed $id ID para validaciones de actualizaciÃƒÆ’Ã‚Â³n (opcional)
-     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son ví¡lidos
      */
     private function validateJobBenefitData(array $data, $id = null): void
     {
@@ -803,7 +806,7 @@ class JobBenefit extends BaseModel
             throw new \InvalidArgumentException('Benefit type is required and cannot be empty');
         }
 
-        // Validar que benefit_type estÃƒÆ’Ã‚Â© en la lista de tipos vÃƒÆ’Ã‚Â¡lidos si se proporciona
+        // Validar que benefit_type esté en la lista de tipos ví¡lidos si se proporciona
         if (isset($data['benefit_type']) && !in_array($data['benefit_type'], self::VALID_BENEFIT_TYPES)) {
             throw new \InvalidArgumentException('Invalid benefit type. Valid types: ' . implode(', ', self::VALID_BENEFIT_TYPES));
         }
@@ -814,7 +817,7 @@ class JobBenefit extends BaseModel
             if (!empty($existing)) {
                 foreach ($existing as $benefit) {
                     if ($benefit['benefit_type'] === $data['benefit_type']) {
-                        // Si es actualizaciÃƒÆ’Ã‚Â³n, verificar que no sea el mismo registro
+                        // Si es actualización, verificar que no sea el mismo registro
                         if ($id === null || $benefit['id'] != $id) {
                             throw new \InvalidArgumentException('This benefit type already exists for this job');
                         }
@@ -842,7 +845,7 @@ class JobBenefit extends BaseModel
     }
 
     /**
-     * Invalidar cache especÃƒÆ’Ã‚Â­fico de job_benefits
+     * Invalidar cache especí­fico de job_benefits
      */
     public function invalidateJobBenefitCache(): int
     {

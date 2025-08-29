@@ -1,0 +1,50 @@
+,file,line,context
+0,/audit/backend/src/Middleware/JWTMiddleware.php,41,"    if ($padLen !== 4) {
+      $data .= str_repeat('=', $padLen);
+    }
+    return base64_decode(strtr($data, '-_', '+/'));
+  }
+
+  /**"
+1,/audit/backend/src/Models/SocialLogin.php,474,"    protected function decryptValue(string $encryptedValue): string
+    {
+        $key = $this->getEncryptionKey();
+        $data = base64_decode($encryptedValue);
+        $iv = substr($data, 0, 16);
+        $encrypted = substr($data, 16);
+        return openssl_decrypt($encrypted, 'AES-256-CBC', $key, 0, $iv);"
+2,/audit/backend/src/Utils/JWT.php,460,"     */
+    private static function base64UrlDecode($data)
+    {
+        return base64_decode(strtr($data, '-_', '+/'));
+    }
+
+    public static function requireAuth(array $options = []): array"
+3,/audit/backend/src/Utils/JWTHelper.php,21,"
+  private static function base64UrlDecode($data): string
+  {
+    return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
+  }
+
+  public static function generateToken(array $payload): string"
+4,/audit/backend/public/auth-simple.php,49,"        $token = $matches[1];
+
+        try {
+            $decoded = base64_decode($token);
+            $parts = explode(':', $decoded);
+
+            if (count($parts) !== 3) {"
+5,/audit/backend/public/auth.php,53,"    $token = $matches[1];
+
+    try {
+        $decoded = base64_decode($token);
+        $parts = explode(':', $decoded);
+
+        if (count($parts) !== 3) {"
+6,/audit/backend/public/api/auth/sso/callback.php,47,"}
+
+// Decodifica el ID Token
+$payload = json_decode(base64_decode(explode('.', $id_token)[1]), true);
+
+// Verificar dominio corporativo
+if (!str_ends_with($payload['email'], '@xxagencia.agency')) {"

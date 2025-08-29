@@ -1,4 +1,4 @@
-// src/components/auth/RegisterFormComplete.tsx
+﻿// src/components/auth/RegisterForm.tsx
 import React, { useState } from 'react';
 import SocialLoginButtons from './SocialLoginButtons';
 import { registerCandidate } from '../../services/ApiService';
@@ -57,14 +57,14 @@ interface APIResponse {
   message?: string;
 }
 
-interface RegisterFormCompleteProps {
+interface RegisterFormProps {
   onRegisterSuccess?: (data: AuthSuccessData) => void;
   onSocialLoginSuccess?: (data: AuthSuccessData) => void;
   className?: string;
 }
 
 // Componente de formulario multi-paso optimizado para móviles
-const RegisterFormComplete: React.FC<RegisterFormCompleteProps> = ({
+const RegisterForm: React.FC<RegisterFormProps> = ({
   onRegisterSuccess,
   onSocialLoginSuccess,
   className = '',
@@ -964,7 +964,6 @@ const RegisterFormComplete: React.FC<RegisterFormCompleteProps> = ({
 
       {step === 1 && (
         <SocialLoginButtons
-          onLoginSuccess={onSocialLoginSuccess || ((data) => console.log('Social login success:', data))}
           onLoginError={(error) => setErrors({ form: error })}
           className="mb-6"
         />
@@ -1015,7 +1014,7 @@ const RegisterFormComplete: React.FC<RegisterFormCompleteProps> = ({
           <div className="text-center mt-6">
             <p className="text-sm text-gray-600">
               ¿Ya tienes cuenta?{' '}
-              <a href="/auth/login" className="text-[#F24495] hover:underline">
+              <a href="/auth/register" className="text-[#F24495] hover:underline">
                 Inicia sesión
               </a>
             </p>
@@ -1026,4 +1025,4 @@ const RegisterFormComplete: React.FC<RegisterFormCompleteProps> = ({
   );
 };
 
-export default RegisterFormComplete;
+export default RegisterForm;

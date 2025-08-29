@@ -1,13 +1,13 @@
-<?php declare(strict_types=1);
+<?php
 
-
+declare(strict_types=1);
 
 require_once __DIR__ . '/./bootstrap.php';
-JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+\Middleware\JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
-    CsrfMiddleware::protect(); // double-submit cookie
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+    \Middleware\CsrfMiddleware::protect(); // double-submit cookie
 }
 
 if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
@@ -16,45 +16,55 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
     exit;
 }
 
-// cookie HttpOnly obligatoria
-
-// En producciÃ³n NO aceptar Authorization header (solo cookie)
-if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
-    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
-        http_response_code(401);
-        echo json_encode(['error' => 'Unauthorized (cookie required)']);
-        exit;
-    }
-}
-
-// ORIGINAL CODE BELOW
-// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÆ’Ã‚Â¡ticamente en bootstrap.php
+// Configurar headers seguros
 header('Content-Type: application/json; charset=UTF-8');
-
-use Utils\ResponseHelper as Res;
 
 try {
     if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
         http_response_code(405);
-        Res::error('MÃƒÆ’Ã‚Â©todo no permitido', 405);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Método no permitido',
+            'error_code' => 'METHOD_NOT_ALLOWED'
+        ]);
+        exit;
     }
-    $pdo = $GLOBALS['pdo'] ?? null;
+
+    $pdo = getDbConnection();
     if (!$pdo) {
-        throw new Exception('No hay conexiÃƒÆ’Ã‚Â³n PDO');
+        throw new Exception('No hay conexión PDO');
     }
-    $totalUsers = $pdo->query('SELECT COUNT(*) FROM bt_users')->fetchColumn();
-    $totalJobs = $pdo->query('SELECT COUNT(*) FROM bt_jobs')->fetchColumn();
-    $totalApplications = $pdo->query('SELECT COUNT(*) FROM bt_applications')->fetchColumn();
+
+    // ✅ FIXED: Usar prepared statements seguros
+    $stmtUsers = $pdo->prepare('SELECT COUNT(*) as total FROM bt_users');
+    $stmtUsers->execute();
+    $totalUsers = $stmtUsers->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+
+    $stmtJobs = $pdo->prepare('SELECT COUNT(*) as total FROM bt_jobs');
+    $stmtJobs->execute();
+    $totalJobs = $stmtJobs->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+
+    $stmtApplications = $pdo->prepare('SELECT COUNT(*) as total FROM bt_applications');
+    $stmtApplications->execute();
+    $totalApplications = $stmtApplications->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+
     $stats = [
-    'total_users' => (int)$totalUsers,
-    'total_jobs' => (int)$totalJobs,
-    'total_applications' => (int)$totalApplications
+        'total_users' => (int)$totalUsers,
+        'total_jobs' => (int)$totalJobs,
+        'total_applications' => (int)$totalApplications
     ];
-    Res::success('OK', $stats);
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'OK',
+        'data' => $stats
+    ]);
 } catch (Throwable $e) {
+    error_log("Statistics error: " . $e->getMessage());
     http_response_code(500);
-    Res::error('Error', 500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Error interno del servidor',
+        'error_code' => 'INTERNAL_ERROR'
+    ]);
 }
-
-

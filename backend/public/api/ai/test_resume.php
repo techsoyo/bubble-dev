@@ -33,14 +33,14 @@ $response = json_decode($output, true);
 
 if ($response && isset($response['status'])) {
     if ($response['status'] === 'ok') {
-        echo "ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Â°XITO! Resumen generado correctamente\n\n";
+        echo "ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° Ãƒâ€šÃ‚Â¡ÉXITO! Resumen generado correctamente\n\n";
 
-        echo "ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  ESTADÃƒÆ’Ã‚ÂSTICAS:\n";
+        echo "ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  ESTADíSTICAS:\n";
         echo "================\n";
         echo 'ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Archivo resumen: ' . $response['resumen_file'] . "\n";
-        echo 'ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â TamaÃƒÆ’Ã‚Â±o original: ' . $response['original_size'] . " caracteres\n";
-        echo 'ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â TamaÃƒÆ’Ã‚Â±o resumen: ' . $response['resumen_size'] . " caracteres\n";
-        echo 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã…â€œÃƒÂ¯Ã‚Â¸Ã‚Â  CompresiÃƒÆ’Ã‚Â³n: ' . $response['compression_ratio'] . "\n";
+        echo 'ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Tamaí±o original: ' . $response['original_size'] . " caracteres\n";
+        echo 'ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Tamaí±o resumen: ' . $response['resumen_size'] . " caracteres\n";
+        echo 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã…â€œÃƒÂ¯Ã‚Â¸Ã‚Â  Compresión: ' . $response['compression_ratio'] . "\n";
         echo 'ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â  Tiempo procesamiento: ' . round($total_time, 2) . "s\n\n";
 
         // Leer y mostrar el contenido del resumen
@@ -54,8 +54,8 @@ if ($response && isset($response['status'])) {
             echo "ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ VERIFICACIONES:\n";
             echo "==================\n";
             echo "ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“ Archivo de resumen creado\n";
-            echo "ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“ Contenido no vacÃƒÆ’Ã‚Â­o\n";
-            echo "ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“ ReducciÃƒÆ’Ã‚Â³n significativa de tamaÃƒÆ’Ã‚Â±o\n";
+            echo "ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“ Contenido no vací­o\n";
+            echo "ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“ Reducción significativa de tamaí±o\n";
             echo "ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“ Tiempo de procesamiento aceptable\n\n";
 
             echo "ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ READY PARA SIGUIENTE ETAPA\n";
@@ -70,7 +70,7 @@ if ($response && isset($response['status'])) {
         }
     }
 } else {
-    echo "ÃƒÂ¢Ã‚ÂÃ…â€™ Respuesta invÃƒÆ’Ã‚Â¡lida del endpoint:\n";
+    echo "ÃƒÂ¢Ã‚ÂÃ…â€™ Respuesta inví¡lida del endpoint:\n";
     echo $output . "\n";
 }
 

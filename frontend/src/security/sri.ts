@@ -135,7 +135,7 @@ export class SRIManager {
       link.href = resource.fallback!;
 
       link.onload = () => {
-        // ...eliminado console.log para producción...
+
         resolve(true);
       };
 
@@ -189,7 +189,7 @@ export class SRIManager {
    * Initialize SRI for all registered resources
    */
   static async initializeAll(): Promise<void> {
-    // ...eliminado console.log para producción...
+
 
     const loadPromises = Object.keys(SRI_REGISTRY).map(key =>
       this.loadResource(key).catch(error => {
@@ -201,7 +201,7 @@ export class SRIManager {
     await Promise.all(loadPromises);
     // Eliminada la variable successCount ya que no se utilizaba
 
-    // ...eliminado console.log para producción...
+
   }
 
   /**

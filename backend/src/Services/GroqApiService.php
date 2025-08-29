@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Services;
 
 use GuzzleHttp\Client;
@@ -9,9 +12,9 @@ use Services\Exceptions\AiUnavailableException;
 /**
  * Servicio de IA usando Groq API
  * 
- * Servicio de producciÃƒÆ’Ã‚Â³n que utiliza la API de Groq con modelos Llama3
- * como alternativa rÃƒÆ’Ã‚Â¡pida y gratuita para anÃƒÆ’Ã‚Â¡lisis de CV.
- * Groq ofrece velocidades ultra rÃƒÆ’Ã‚Â¡pidas gracias a sus chips LPU especializados.
+ * Servicio de producción que utiliza la API de Groq con modelos Llama3
+ * como alternativa rí¡pida y gratuita para Anáslisis de CV.
+ * Groq ofrece velocidades ultra rí¡pidas gracias a sus chips LPU especializados.
  *
  * @package Backend\Services
  * @version 1.0.0
@@ -28,7 +31,7 @@ class GroqApiService
 
   public function __construct()
   {
-    // ConfiguraciÃƒÆ’Ã‚Â³n desde variables de entorno
+    // Configuración desde variables de entorno
     $this->apiKey = $_ENV['GROQ_API_KEY'] ?? getenv('GROQ_API_KEY');
     $this->baseUrl = $_ENV['GROQ_BASE_URL'] ?? getenv('GROQ_BASE_URL') ?: 'https://api.groq.com';
     $this->model = $_ENV['GROQ_MODEL'] ?? getenv('GROQ_MODEL') ?: 'llama3-8b-8192';
@@ -39,7 +42,7 @@ class GroqApiService
       throw new \InvalidArgumentException('GROQ_API_KEY requerido. Obtenerla GRATIS en: https://console.groq.com/keys');
     }
 
-    // Inicializar cliente HTTP con configuraciÃƒÆ’Ã‚Â³n optimizada
+    // Inicializar cliente HTTP con configuración optimizada
     $this->httpClient = new Client([
       'base_uri' => $this->baseUrl,
       'timeout' => $this->timeoutSeconds,
@@ -48,8 +51,8 @@ class GroqApiService
         'Content-Type' => 'application/json',
         'User-Agent' => 'BubbleOfTalents/1.0 GroqApiService'
       ],
-      // ConfiguraciÃƒÆ’Ã‚Â³n SSL para desarrollo en Windows/Laragon
-      'verify' => false, // Solo para desarrollo - deshabilita verificaciÃƒÆ’Ã‚Â³n SSL
+      // Configuración SSL para desarrollo en Windows/Laragon
+      'verify' => false, // Solo para desarrollo - deshabilita verificación SSL
       'curl' => [
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_SSL_VERIFYHOST => false
@@ -58,11 +61,11 @@ class GroqApiService
   }
 
   /**
-   * Analiza PDF de CV usando Groq API con extracciÃƒÆ’Ã‚Â³n de texto
+   * Analiza PDF de CV usando Groq API con extracción de texto
    *
    * @param string $pdfPath Ruta al archivo PDF del CV
-   * @return array Datos estructurados del CV segÃƒÆ’Ã‚Âºn CvFormData del frontend
-   * @throws AiUnavailableException Si la API no estÃƒÆ’Ã‚Â¡ disponible o devuelve JSON invÃƒÆ’Ã‚Â¡lido
+   * @return array Datos estructurados del CV según CvFormData del frontend
+   * @throws AiUnavailableException Si la API no estí¡ disponible o devuelve JSON inví¡lido
    */
   public function analyzeCvFromPdf(string $pdfPath): array
   {
@@ -82,9 +85,9 @@ class GroqApiService
         throw new AiUnavailableException('PDF_TEXT_EXTRACTION_FAILED');
       }
 
-      error_log("[GroqApiService] Texto extraÃƒÆ’Ã‚Â­do del PDF: " . strlen($extractedText) . " caracteres");
+      error_log("[GroqApiService] Texto extraí­do del PDF: " . strlen($extractedText) . " caracteres");
 
-      // Analizar el texto extraÃƒÆ’Ã‚Â­do
+      // Analizar el texto extraí­do
       $cvData = $this->analyzeCvFromText($extractedText);
     } catch (\Exception $e) {
       error_log("[GroqApiService] Error extrayendo texto del PDF: " . $e->getMessage());
@@ -92,7 +95,7 @@ class GroqApiService
     }
 
     $duration = round((microtime(true) - $startTime) * 1000);
-    error_log("[GroqApiService] CV PDF anÃƒÆ’Ã‚Â¡lisis completado en {$duration}ms");
+    error_log("[GroqApiService] CV PDF Anáslisis completado en {$duration}ms");
 
     return $cvData;
   }
@@ -102,7 +105,7 @@ class GroqApiService
    *
    * @param string $rawText Texto del CV a analizar
    * @return array Datos estructurados del CV
-   * @throws AiUnavailableException Si la API falla o devuelve respuesta invÃƒÆ’Ã‚Â¡lida
+   * @throws AiUnavailableException Si la API falla o devuelve respuesta inví¡lida
    */
   public function analyzeCvFromText(string $rawText): array
   {
@@ -126,13 +129,13 @@ class GroqApiService
     }
 
     $duration = round((microtime(true) - $startTime) * 1000);
-    error_log("[GroqApiService] CV anÃƒÆ’Ã‚Â¡lisis de texto completado en {$duration}ms");
+    error_log("[GroqApiService] CV Anáslisis de texto completado en {$duration}ms");
 
     return $cvData;
   }
 
   /**
-   * MÃƒÆ’Ã‚Â©todo de compatibilidad con OllamaService
+   * Método de compatibilidad con OllamaService
    */
   public function analyzeCV($rawText): array
   {
@@ -140,17 +143,17 @@ class GroqApiService
   }
 
   /**
-   * Construye prompt optimizado para anÃƒÆ’Ã‚Â¡lisis de CV con Groq/Llama3
+   * Construye prompt optimizado para Anáslisis de CV con Groq/Llama3
    */
   private function buildCvAnalysisPrompt(string $cvText): string
   {
-    return "Eres un experto analizador de currÃƒÆ’Ã‚Â­culos vitae. Analiza el siguiente CV y extrae la informaciÃƒÆ’Ã‚Â³n en formato JSON estrictamente vÃƒÆ’Ã‚Â¡lido.
+    return "Eres un experto analizador de currí­culos vitae. Analiza el siguiente CV y extrae la información en formato JSON estrictamente ví¡lido.
 
-**INSTRUCCIONES CRÃƒÆ’Ã‚ÂTICAS:**
-1. Responde ÃƒÆ’Ã…Â¡NICAMENTE con JSON vÃƒÆ’Ã‚Â¡lido, sin texto adicional, explicaciones o markdown
-2. NO uses bloques de cÃƒÆ’Ã‚Â³digo como ```json
-3. Extrae SOLO la informaciÃƒÆ’Ã‚Â³n que estÃƒÆ’Ã‚Â¡ presente en el CV
-4. Si un campo no tiene informaciÃƒÆ’Ã‚Â³n, usa null o array vacÃƒÆ’Ã‚Â­o segÃƒÆ’Ã‚Âºn corresponda
+**INSTRUCCIONES CRíTICAS:**
+1. Responde ÚNICAMENTE con JSON ví¡lido, sin texto adicional, explicaciones o markdown
+2. NO uses bloques de código como ```json
+3. Extrae SOLO la información que estí¡ presente en el CV
+4. Si un campo no tiene información, usa null o array vací­o según corresponda
 5. Usa el esquema exacto que se proporciona abajo
 
 **ESQUEMA JSON REQUERIDO (TODOS LOS CAMPOS):**
@@ -236,28 +239,28 @@ class GroqApiService
   \"data_source\": \"ai_processing\",
   \"routing\": {
     \"fuente\": \"ai\",
-    \"razon\": \"Procesado automÃƒÆ’Ã‚Â¡ticamente por Groq/Llama3\",
+    \"razon\": \"Procesado automí¡ticamente por Groq/Llama3\",
     \"fecha_asignacion\": \"" . date('c') . "\"
   }
 }
 
-**REGLAS ESPECÃƒÆ’Ã‚ÂFICAS:**
+**REGLAS ESPECíFICAS:**
 - nombre: Solo el nombre completo de la persona
-- email: Solo direcciones de email vÃƒÆ’Ã‚Â¡lidas  
-- telefono: Solo nÃƒÆ’Ã‚Âºmeros de telÃƒÆ’Ã‚Â©fono (con formato internacional si es posible)
-- ubicacion_actual: Ciudad, paÃƒÆ’Ã‚Â­s donde vive actualmente
+- email: Solo direcciones de email ví¡lidas  
+- telefono: Solo números de teléfono (con formato internacional si es posible)
+- ubicacion_actual: Ciudad, paí­s donde vive actualmente
 - fecha_nacimiento: En formato YYYY-MM-DD si aparece en el CV
 - resumen_profesional: Un resumen conciso de 2-3 oraciones sobre el perfil profesional
-- hard_skills: Array de habilidades tÃƒÆ’Ã‚Â©cnicas especÃƒÆ’Ã‚Â­ficas (tecnologÃƒÆ’Ã‚Â­as, herramientas, software)
+- hard_skills: Array de habilidades técnicas especí­ficas (tecnologí­as, herramientas, software)
 - soft_skills: Array de habilidades interpersonales y competencias blandas
 - puestos_anteriores: Array con trabajos previos - marca actual=true si es el trabajo actual
 - educacion: Array con estudios completos (titulo, institucion, fechas, nivel)
-- idiomas: Array bÃƒÆ’Ã‚Â¡sico con idiomas y niveles
-- idiomas_detalle: Array detallado con informaciÃƒÆ’Ã‚Â³n mÃƒÆ’Ã‚Â¡s especÃƒÆ’Ã‚Â­fica de idiomas
+- idiomas: Array bí¡sico con idiomas y niveles
+- idiomas_detalle: Array detallado con información  más especí­fica de idiomas
 - certificaciones: Array simple con nombres de certificaciones
-- certificaciones_detalle: Array con informaciÃƒÆ’Ã‚Â³n completa de certificaciones
-- proyectos: Array con proyectos profesionales o acadÃƒÆ’Ã‚Â©micos relevantes
-- referencias_detalle: Array con informaciÃƒÆ’Ã‚Â³n de contacto de referencias
+- certificaciones_detalle: Array con información completa de certificaciones
+- proyectos: Array con proyectos profesionales o académicos relevantes
+- referencias_detalle: Array con información de contacto de referencias
 - habilidades_adicionales: Habilidades que no encajan en hard/soft skills
 - Fechas siempre en formato YYYY-MM-DD cuando sea posible
 - data_source siempre debe ser \"ai_processing\"
@@ -265,7 +268,7 @@ class GroqApiService
 **TEXTO DEL CV A ANALIZAR:**
 {$cvText}
 
-Responde SOLO con el JSON vÃƒÆ’Ã‚Â¡lido:";
+Responde SOLO con el JSON ví¡lido:";
   }
 
   /**
@@ -309,9 +312,9 @@ Responde SOLO con el JSON vÃƒÆ’Ã‚Â¡lido:";
 
           if ($data && isset($data['choices'][0]['message']['content'])) {
             $content = $data['choices'][0]['message']['content'];
-            error_log("[GroqApiService] ÃƒÆ’Ã¢â‚¬Â°xito en intento {$attempt}");
+            error_log("[GroqApiService] Éxito en intento {$attempt}");
 
-            // Log de estadÃƒÆ’Ã‚Â­sticas de uso
+            // Log de estadí­sticas de uso
             if (isset($data['usage'])) {
               $usage = $data['usage'];
               error_log("[GroqApiService] Tokens usados: " . json_encode($usage));
@@ -319,7 +322,7 @@ Responde SOLO con el JSON vÃƒÆ’Ã‚Â¡lido:";
 
             return $content;
           } else {
-            error_log("[GroqApiService] Respuesta sin contenido vÃƒÆ’Ã‚Â¡lido: " . substr($body, 0, 500));
+            error_log("[GroqApiService] Respuesta sin contenido ví¡lido: " . substr($body, 0, 500));
           }
         } else {
           error_log("[GroqApiService] Error HTTP {$statusCode}: " . substr($body, 0, 500));
@@ -338,7 +341,7 @@ Responde SOLO con el JSON vÃƒÆ’Ã‚Â¡lido:";
 
     error_log("[GroqApiService] Todos los intentos fallaron");
     if ($lastException) {
-      error_log("[GroqApiService] ÃƒÆ’Ã…Â¡ltima excepciÃƒÆ’Ã‚Â³n: " . $lastException->getMessage());
+      error_log("[GroqApiService] Última excepción: " . $lastException->getMessage());
     }
 
     return null;
@@ -350,7 +353,7 @@ Responde SOLO con el JSON vÃƒÆ’Ã‚Â¡lido:";
   private function parseJsonResponse(string $response): ?array
   {
     if (empty($response)) {
-      error_log("[GroqApiService] Respuesta vacÃƒÆ’Ã‚Â­a");
+      error_log("[GroqApiService] Respuesta vací­a");
       return null;
     }
 
@@ -361,13 +364,13 @@ Responde SOLO con el JSON vÃƒÆ’Ã‚Â¡lido:";
 
     if (json_last_error() !== JSON_ERROR_NONE) {
       error_log("[GroqApiService] Error JSON: " . json_last_error_msg());
-      error_log("[GroqApiService] Respuesta problemÃƒÆ’Ã‚Â¡tica: " . substr($response, 0, 1000));
+      error_log("[GroqApiService] Respuesta problemí¡tica: " . substr($response, 0, 1000));
       return null;
     }
 
-    // Validar estructura bÃƒÆ’Ã‚Â¡sica
+    // Validar estructura bí¡sica
     if (!is_array($cvData) || empty($cvData)) {
-      error_log("[GroqApiService] JSON vÃƒÆ’Ã‚Â¡lido pero estructura invÃƒÆ’Ã‚Â¡lida");
+      error_log("[GroqApiService] JSON ví¡lido pero estructura inví¡lida");
       return null;
     }
 
@@ -383,12 +386,12 @@ Responde SOLO con el JSON vÃƒÆ’Ã‚Â¡lido:";
    */
   private function cleanJsonResponse(string $response): string
   {
-    // Remover bloques de cÃƒÆ’Ã‚Â³digo markdown
+    // Remover bloques de código markdown
     $response = preg_replace('/```json\s*/', '', $response);
     $response = preg_replace('/```\s*$/', '', $response);
     $response = preg_replace('/^```/', '', $response);
 
-    // Buscar JSON vÃƒÆ’Ã‚Â¡lido en la respuesta
+    // Buscar JSON ví¡lido en la respuesta
     $start = strpos($response, '{');
     $end = strrpos($response, '}');
 
@@ -400,7 +403,7 @@ Responde SOLO con el JSON vÃƒÆ’Ã‚Â¡lido:";
   }
 
   /**
-   * Verifica si la API estÃƒÆ’Ã‚Â¡ disponible
+   * Verifica si la API estí¡ disponible
    */
   public function isAvailable(): bool
   {
@@ -411,13 +414,13 @@ Responde SOLO con el JSON vÃƒÆ’Ã‚Â¡lido:";
 
       return $response->getStatusCode() === 200;
     } catch (\Exception $e) {
-      error_log("[GroqApiService] Check disponibilidad fallÃƒÆ’Ã‚Â³: " . $e->getMessage());
+      error_log("[GroqApiService] Check disponibilidad falló: " . $e->getMessage());
       return false;
     }
   }
 
   /**
-   * Obtiene informaciÃƒÆ’Ã‚Â³n de uso/estadÃƒÆ’Ã‚Â­sticas
+   * Obtiene información de uso/estadí­sticas
    */
   public function getUsageInfo(): array
   {
@@ -453,7 +456,7 @@ Responde SOLO con el JSON vÃƒÆ’Ã‚Â¡lido:";
   }
 
   /**
-   * Obtiene informaciÃƒÆ’Ã‚Â³n del servicio para compatibilidad
+   * Obtiene información del servicio para compatibilidad
    */
   public function getServiceInfo(): array
   {
@@ -475,7 +478,7 @@ Responde SOLO con el JSON vÃƒÆ’Ã‚Â¡lido:";
   }
 
   /**
-   * MÃƒÆ’Ã‚Â©todo chat para compatibilidad con AIController
+   * Método chat para compatibilidad con AIController
    */
   public function chat(array $messages): array
   {
@@ -515,7 +518,7 @@ Responde SOLO con el JSON vÃƒÆ’Ã‚Â¡lido:";
     } catch (\Exception $e) {
       return [
         'success' => false,
-        'message' => 'Error de conexiÃƒÆ’Ã‚Â³n con Groq',
+        'message' => 'Error de conexión con Groq',
         'error' => $e->getMessage()
       ];
     }

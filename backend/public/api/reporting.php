@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 
 
@@ -7,7 +9,7 @@ require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
     CsrfMiddleware::protect(); // double-submit cookie
 }
 
@@ -18,7 +20,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 }
 
 /**
- * Reporting para dashboard con 4 mÃƒÆ’Ã‚Â©tricas.
+ * Reporting para dashboard con 4 métricas.
  * Rutas:
  *  - GET /api/reporting/candidates-by-department
  *  - GET /api/reporting/applications-by-job
@@ -61,7 +63,7 @@ function dates(): array
     // Permite ?from=YYYY-MM-DD&to=YYYY-MM-DD o ?created_at[from]=...&created_at[to]=...
     $from = $_GET['from'] ?? ($_GET['created_at']['from'] ?? null);
     $to   = $_GET['to']   ?? ($_GET['created_at']['to']   ?? null);
-    // Normaliza a lÃƒÆ’Ã‚Â­mites del dÃƒÆ’Ã‚Â­a si vienen
+    // Normaliza a lí­mites del dí­a si vienen
     if ($from && preg_match('/^\d{4}-\d{2}-\d{2}$/', $from)) {
         $from .= ' 00:00:00';
     }
@@ -89,12 +91,12 @@ function whereCreated(string $alias, ?string $from, ?string $to): array
 /* ========= KPI queries ========= */
 
 /**
- * KPI 1: Total candidatos por departamento (usa el routing mÃƒÆ’Ã‚Â¡s reciente por candidato)
+ * KPI 1: Total candidatos por departamento (usa el routing  más reciente por candidato)
  * Devuelve: { labels: [depName...], series: [count...] }
  */
 function kpi_candidates_by_department(PDO $db, ?string $from, ?string $to): array
 {
-    // Subconsulta para ÃƒÆ’Ã‚Âºltimo routing por candidato
+    // Subconsulta para último routing por candidato
     $sub = 'SELECT candidate_id, MAX(assigned_at) AS max_assigned
           FROM ' . T('candidate_routing') . '
           GROUP BY candidate_id';
@@ -245,13 +247,13 @@ function kpi_cv_validated_percentage(PDO $db, ?string $from, ?string $to): array
 
 try {
     if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-        jsend(false, 'MÃƒÆ’Ã‚Â©todo no permitido', null, 405);
+        jsend(false, 'Método no permitido', null, 405);
     }
 
     $db = pdo();
     [$from, $to] = dates();
 
-    // Determina acciÃƒÆ’Ã‚Â³n por path
+    // Determina acción por path
     $uri = $_SERVER['REQUEST_URI'] ?? '/';
     $path = parse_url($uri, PHP_URL_PATH) ?: '/';
     $segments = array_values(array_filter(explode('/', $path)));
@@ -274,14 +276,12 @@ try {
         default:
             jsend(false, 'Ruta no encontrada', ['path' => $path], 404);
     }
-    // ValidaciÃƒÆ’Ã‚Â³n de formato de salida
+    // Validación de formato de salida
     if (!is_array($result) || !isset($result['labels'], $result['series'])) {
-        jsend(false, 'Formato de salida invÃƒÆ’Ã‚Â¡lido', $result, 500);
+        jsend(false, 'Formato de salida inví¡lido', $result, 500);
     }
     jsend(true, 'OK', $result, 200);
 } catch (Throwable $e) {
     $code = ($e instanceof PDOException) ? 400 : 500;
     jsend(false, 'Error', ['error' => $e->getMessage()], $code);
 }
-
-

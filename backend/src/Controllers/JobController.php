@@ -1,10 +1,16 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Controllers;
 
 use Models\Job;
 use Utils\Request;
 use Utils\ResponseHelper;
 use Utils\Logger;
+use Services\RateLimitService;
+use Services\SecurityLoggerService;
+use Services\ValidationService;
 
 class JobController
 {
@@ -22,13 +28,84 @@ class JobController
     public function index(Request $request, array $params = [])
     {
         try {
-            $filters = $_GET ?? [];
-            $page    = max(1, (int)($filters['page'] ?? 1));
-            $limit   = (int)($filters['limit'] ?? 20);
-            $orderBy = [];
+            $clientIP = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
-            $rows  = $this->model->searchJobs($filters, $page, $limit, $orderBy);
+            // RATE LIMITING para consultas de trabajos
+            if (!RateLimitService::canPerform('job_list', $clientIP)) {
+                $retryAfter = RateLimitService::getRetryAfter('job_list', $clientIP);
+                SecurityLoggerService::logRateLimitViolation('job_list', $clientIP, 100, 100);
+
+                return ResponseHelper::fail('Demasiadas consultas. Intente nuevamente más tarde.', 429, [
+                    'retry_after' => $retryAfter
+                ]);
+            }
+
+            // VALIDACIÓN Y SANITIZACIÓN DE PARÁMETROS
+            $rawFilters = $_GET ?? [];
+
+            // Validar y sanitizar parámetros de paginación
+            $page = isset($rawFilters['page']) ? max(1, (int)$rawFilters['page']) : 1;
+            $limit = isset($rawFilters['limit']) ? max(1, min(50, (int)$rawFilters['limit'])) : 20;
+
+            // Validar filtros de búsqueda
+            $filters = [];
+            if (isset($rawFilters['search'])) {
+                $searchValidation = ValidationService::validateInput($rawFilters['search'], 'search', [
+                    'max_length' => 100,
+                    'required' => false
+                ]);
+                if ($searchValidation['valid']) {
+                    $filters['search'] = $searchValidation['sanitized'];
+                }
+            }
+
+            if (isset($rawFilters['status'])) {
+                $allowedStatuses = ['active', 'inactive', 'draft', 'closed'];
+                if (in_array($rawFilters['status'], $allowedStatuses)) {
+                    $filters['status'] = $rawFilters['status'];
+                }
+            }
+
+            if (isset($rawFilters['department_id'])) {
+                $deptIdValidation = ValidationService::validateInput($rawFilters['department_id'], 'id', [
+                    'required' => false,
+                    'type' => 'integer',
+                    'min' => 1
+                ]);
+                if ($deptIdValidation['valid']) {
+                    $filters['department_id'] = $deptIdValidation['sanitized'];
+                }
+            }
+
+            if (isset($rawFilters['location'])) {
+                $locationValidation = ValidationService::validateInput($rawFilters['location'], 'text', [
+                    'required' => false,
+                    'max_length' => 100
+                ]);
+                if ($locationValidation['valid']) {
+                    $filters['location'] = $locationValidation['sanitized'];
+                }
+            }
+
+            // REGISTRAR ACCESO AUTORIZADO
+            RateLimitService::recordAttempt('job_list', $clientIP);
+            SecurityLoggerService::logSecurityEvent('job_list_accessed', [
+                'ip_address' => $clientIP,
+                'filters' => $filters,
+                'page' => $page,
+                'limit' => $limit
+            ], 'INFO');
+
+            // EJECUTAR CONSULTA
+            $rows = $this->model->searchJobs($filters, $page, $limit, []);
             $total = $this->model->countJobs($filters);
+
+            Logger::info('Jobs listed successfully', [
+                'total_results' => $total,
+                'page' => $page,
+                'limit' => $limit,
+                'ip_address' => $clientIP
+            ]);
 
             return ResponseHelper::success("Listado de trabajos obtenido", [
                 'data' => $rows,
@@ -37,8 +114,13 @@ class JobController
                 'limit' => $limit
             ], 200);
         } catch (\Throwable $e) {
+            SecurityLoggerService::logSecurityEvent('job_list_error', [
+                'error' => $e->getMessage(),
+                'ip_address' => $clientIP ?? 'unknown'
+            ], 'ERROR');
+
             Logger::error('Error listing jobs', ['error' => $e->getMessage()]);
-            return ResponseHelper::error("Error al listar trabajos", $e, 500);
+            return ResponseHelper::error("Error al listar trabajos", null, 500);
         }
     }
 
@@ -49,22 +131,181 @@ class JobController
     public function store(Request $request, array $params = [])
     {
         try {
-            $data = $request->getBody();
+            $clientIP = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
-            $id = $this->model->createJob($data);
+            // RATE LIMITING para creación de trabajos
+            if (!RateLimitService::canPerform('job_create', $clientIP)) {
+                $retryAfter = RateLimitService::getRetryAfter('job_create', $clientIP);
+                SecurityLoggerService::logRateLimitViolation('job_create', $clientIP, 10, 10);
 
-            if ($id === false) {
-                return ResponseHelper::fail('Unable to create job', 400);
+                return ResponseHelper::fail('Demasiadas creaciones de trabajo. Intente nuevamente más tarde.', 429, [
+                    'retry_after' => $retryAfter
+                ]);
             }
 
-            Logger::info('Job created from controller', ['id' => $id]);
+            // OBTENER Y VALIDAR DATOS DE ENTRADA
+            $data = $request->getBody();
+            if (!is_array($data) || empty($data)) {
+                SecurityLoggerService::logSecurityEvent('job_create_invalid_data', [
+                    'ip_address' => $clientIP,
+                    'data_type' => gettype($data)
+                ], 'WARNING');
+
+                return ResponseHelper::fail('Datos inválidos proporcionados', 400);
+            }
+
+            // VALIDACIÓN DE CAMPOS REQUERIDOS
+            $requiredFields = ['title', 'description', 'department_id'];
+            $missingFields = [];
+            foreach ($requiredFields as $field) {
+                if (!isset($data[$field]) || empty(trim((string)$data[$field]))) {
+                    $missingFields[] = $field;
+                }
+            }
+
+            if (!empty($missingFields)) {
+                SecurityLoggerService::logSecurityEvent('job_create_missing_fields', [
+                    'ip_address' => $clientIP,
+                    'missing_fields' => $missingFields
+                ], 'WARNING');
+
+                return ResponseHelper::fail('Campos requeridos faltantes: ' . implode(', ', $missingFields), 400);
+            }
+
+            // VALIDACIÓN Y SANITIZACIÓN DE CAMPOS
+            $validatedData = [];
+
+            // Validar título
+            $titleValidation = ValidationService::validateInput($data['title'], 'text', [
+                'required' => true,
+                'max_length' => 200,
+                'min_length' => 5
+            ]);
+            if (!$titleValidation['valid']) {
+                return ResponseHelper::fail('Título inválido: ' . implode(', ', $titleValidation['errors']), 400);
+            }
+            $validatedData['title'] = $titleValidation['sanitized'];
+
+            // Validar descripción
+            $descValidation = ValidationService::validateInput($data['description'], 'text', [
+                'required' => true,
+                'max_length' => 5000,
+                'min_length' => 50
+            ]);
+            if (!$descValidation['valid']) {
+                return ResponseHelper::fail('Descripción inválida: ' . implode(', ', $descValidation['errors']), 400);
+            }
+            $validatedData['description'] = $descValidation['sanitized'];
+
+            // Validar department_id
+            $deptIdValidation = ValidationService::validateInput($data['department_id'], 'id', [
+                'required' => true,
+                'type' => 'integer',
+                'min' => 1
+            ]);
+            if (!$deptIdValidation['valid']) {
+                return ResponseHelper::fail('ID de departamento inválido: ' . implode(', ', $deptIdValidation['errors']), 400);
+            }
+            $validatedData['department_id'] = $deptIdValidation['sanitized'];
+
+            // Validar campos opcionales
+            if (isset($data['location'])) {
+                $locationValidation = ValidationService::validateInput($data['location'], 'text', [
+                    'required' => false,
+                    'max_length' => 100
+                ]);
+                if ($locationValidation['valid']) {
+                    $validatedData['location'] = $locationValidation['sanitized'];
+                }
+            }
+
+            if (isset($data['salary_min'])) {
+                $salaryMinValidation = ValidationService::validateInput($data['salary_min'], 'salary', [
+                    'required' => false,
+                    'type' => 'numeric',
+                    'min' => 0
+                ]);
+                if ($salaryMinValidation['valid']) {
+                    $validatedData['salary_min'] = $salaryMinValidation['sanitized'];
+                }
+            }
+
+            if (isset($data['salary_max'])) {
+                $salaryMaxValidation = ValidationService::validateInput($data['salary_max'], 'salary', [
+                    'required' => false,
+                    'type' => 'numeric',
+                    'min' => 0
+                ]);
+                if ($salaryMaxValidation['valid']) {
+                    $validatedData['salary_max'] = $salaryMaxValidation['sanitized'];
+                }
+            }
+
+            if (isset($data['requirements'])) {
+                $reqValidation = ValidationService::validateInput($data['requirements'], 'text', [
+                    'required' => false,
+                    'max_length' => 2000
+                ]);
+                if ($reqValidation['valid']) {
+                    $validatedData['requirements'] = $reqValidation['sanitized'];
+                }
+            }
+
+            // Asignar valores por defecto
+            $validatedData['status'] = $data['status'] ?? 'active';
+            $validatedData['created_at'] = date('Y-m-d H:i:s');
+            $validatedData['updated_at'] = date('Y-m-d H:i:s');
+
+            // REGISTRAR ACCESO AUTORIZADO
+            RateLimitService::recordAttempt('job_create', $clientIP);
+            SecurityLoggerService::logSecurityEvent('job_create_attempt', [
+                'ip_address' => $clientIP,
+                'title' => $validatedData['title'],
+                'department_id' => $validatedData['department_id']
+            ], 'INFO');
+
+            // CREAR TRABAJO
+            $id = $this->model->createJob($validatedData);
+
+            if ($id === false) {
+                SecurityLoggerService::logSecurityEvent('job_create_failed', [
+                    'ip_address' => $clientIP,
+                    'title' => $validatedData['title'],
+                    'reason' => 'Database insertion failed'
+                ], 'WARNING');
+
+                return ResponseHelper::fail('No se pudo crear el trabajo', 400);
+            }
+
+            Logger::info('Job created successfully', [
+                'id' => $id,
+                'title' => $validatedData['title'],
+                'ip_address' => $clientIP
+            ]);
+
+            SecurityLoggerService::logSecurityEvent('job_create_success', [
+                'ip_address' => $clientIP,
+                'job_id' => $id,
+                'title' => $validatedData['title']
+            ], 'INFO');
+
             return ResponseHelper::success("Trabajo creado correctamente", ['id' => $id], 201);
         } catch (\InvalidArgumentException $e) {
+            SecurityLoggerService::logSecurityEvent('job_create_validation_error', [
+                'ip_address' => $clientIP,
+                'error' => $e->getMessage()
+            ], 'WARNING');
+
             Logger::error('Validation failed creating job', ['error' => $e->getMessage()]);
             return ResponseHelper::fail($e->getMessage(), 422);
         } catch (\Throwable $e) {
+            SecurityLoggerService::logSecurityEvent('job_create_unexpected_error', [
+                'ip_address' => $clientIP,
+                'error' => $e->getMessage()
+            ], 'ERROR');
+
             Logger::error('Unexpected error creating job', ['error' => $e->getMessage()]);
-            return ResponseHelper::error("Error al crear trabajo", $e, 500);
+            return ResponseHelper::error("Error al crear trabajo", null, 500);
         }
     }
 

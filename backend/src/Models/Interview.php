@@ -1,13 +1,16 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Models;
 
 use Utils\Logger;
 
 /**
- * Modelo Interview - GestiÃƒÆ’Ã‚Â³n de entrevistas programadas
+ * Modelo Interview - Gestión de entrevistas programadas
  *
  * Modelo para gestionar las entrevistas del sistema de reclutamiento, 
- * incluyendo programaciÃƒÆ’Ã‚Â³n, seguimiento y mÃƒÆ’Ã‚Â©tricas de carga.
+ * incluyendo programación, seguimiento y métricas de carga.
  * Utiliza la vista vw_interviews_schedule para optimizar consultas complejas.
  *
  * @package Models
@@ -19,12 +22,12 @@ class Interview extends BaseModel
 {
     protected string $table = 'interviews';
     /*
-     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÃƒÆ’Ã¢â‚¬Å“N AUTOMÃƒÆ’Ã‚ÂTICA APLICADA
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÓN AUTOMÁTICA APLICADA
      * Modelo: Interview
      * Fecha: 2025-08-23
      * 
      * Cambios realizados:
-     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aÃƒÆ’Ã‚Â±adidos: ['scheduled_datetime']
+     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aí±adidos: ['scheduled_datetime']
      * ÃƒÂ¢Ã‚ÂÃ…â€™ Campos removidos: ['scheduled_at', 'meeting_link', 'interview_type', 'interviewer_notes', 'candidate_feedback', 'technical_score', 'soft_skills_score', 'overall_rating', 'recommendation', 'follow_up_required', 'salary_discussion', 'internal_feedback']
      * ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Total campos fillable: 10
      * 
@@ -50,7 +53,7 @@ class Interview extends BaseModel
     ];
 
     /**
-     * Campos que deben ocultarse en serializaciÃƒÆ’Ã‚Â³n
+     * Campos que deben ocultarse en serialización
      */
     protected array $hidden = [
         'internal_feedback',
@@ -59,11 +62,11 @@ class Interview extends BaseModel
     ];
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS DE VISTAS - Funcionalidad especÃƒÆ’Ã‚Â­fica de entrevistas
+     * MÉTODOS DE VISTAS - Funcionalidad especí­fica de entrevistas
      */
 
     /**
-     * Obtener la programaciÃƒÆ’Ã‚Â³n completa de entrevistas con informaciÃƒÆ’Ã‚Â³n extendida
+     * Obtener la programación completa de entrevistas con información extendida
      */
     public function getInterviewSchedule(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT): array
     {
@@ -91,10 +94,10 @@ class Interview extends BaseModel
             }
         }
 
-        // AÃƒÆ’Ã‚Â±adir ordenamiento por fecha de entrevista
+        // Aí±adir ordenamiento por fecha de entrevista
         $sql .= ' ORDER BY scheduled_at ASC';
 
-        // AÃƒÆ’Ã‚Â±adir paginaciÃƒÆ’Ã‚Â³n
+        // Aí±adir paginación
         $offset = ($page - 1) * $limit;
         $sql .= ' LIMIT :limit OFFSET :offset';
         $params[':limit'] = $limit;
@@ -134,7 +137,7 @@ class Interview extends BaseModel
             ':end_date' => $endDate
         ];
 
-        // AÃƒÆ’Ã‚Â±adir filtros adicionales
+        // Aí±adir filtros adicionales
         if (!empty($filters)) {
             $whereConditions = [];
             foreach ($filters as $field => $value) {
@@ -200,14 +203,14 @@ class Interview extends BaseModel
     }
 
     /**
-     * Obtener prÃƒÆ’Ã‚Â³ximas entrevistas con cache
+     * Obtener próximas entrevistas con cache
      */
     public function getUpcomingInterviews(int $days = 7, array $filters = [], int $cacheTtl = 300): array
     {
         $cacheKey = $this->generateCacheKey('upcoming_interviews', array_merge($filters, ['days' => $days]));
 
         try {
-            // Intentar obtener desde cache si estÃƒÆ’Ã‚Â¡ habilitado
+            // Intentar obtener desde cache si estí¡ habilitado
             if ($cacheTtl > 0 && class_exists('\Utils\Cache')) {
                 return \Utils\Cache::get($cacheKey, $cacheTtl, function () use ($days, $filters) {
                     return $this->executeUpcomingInterviewsQuery($days, $filters);
@@ -227,7 +230,7 @@ class Interview extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã‚Â©todo auxiliar para ejecutar la query de prÃƒÆ’Ã‚Â³ximas entrevistas
+     * Método auxiliar para ejecutar la query de próximas entrevistas
      */
     private function executeUpcomingInterviewsQuery(int $days, array $filters): array
     {
@@ -237,7 +240,7 @@ class Interview extends BaseModel
 
         $params = [':days' => $days];
 
-        // AÃƒÆ’Ã‚Â±adir filtros adicionales
+        // Aí±adir filtros adicionales
         if (!empty($filters)) {
             $whereConditions = [];
             foreach ($filters as $field => $value) {
@@ -257,7 +260,7 @@ class Interview extends BaseModel
     }
 
     /**
-     * Obtener estadÃƒÆ’Ã‚Â­sticas de entrevistas por estatus
+     * Obtener estadí­sticas de entrevistas por estatus
      */
     public function getInterviewStats(array $filters = [], int $cacheTtl = 600): array
     {
@@ -278,7 +281,7 @@ class Interview extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã‚Â©todo auxiliar para ejecutar estadÃƒÆ’Ã‚Â­sticas de entrevistas
+     * Método auxiliar para ejecutar estadí­sticas de entrevistas
      */
     private function executeInterviewStatsQuery(array $filters): array
     {
@@ -312,12 +315,12 @@ class Interview extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS HEREDADOS CON FUNCIONALIDAD ESPECÃƒÆ’Ã‚ÂFICA
+     * MÉTODOS HEREDADOS CON FUNCIONALIDAD ESPECíFICA
      */
 
     /**
      * Devuelve todas las entrevistas para una solicitud concreta
-     * (MÃƒÆ’Ã‚Â©todo original mantenido)
+     * (Método original mantenido)
      */
     public function findByApplicationId(string $applicationId): array
     {
@@ -439,7 +442,7 @@ class Interview extends BaseModel
      */
     public function scheduleInterview(array $data): mixed
     {
-        // Validaciones especÃƒÆ’Ã‚Â­ficas para entrevistas
+        // Validaciones especí­ficas para entrevistas
         $requiredFields = ['application_id', 'interviewer_id', 'scheduled_datetime', 'duration_minutes'];
         foreach ($requiredFields as $field) {
             if (empty($data[$field])) {
@@ -476,7 +479,7 @@ class Interview extends BaseModel
     }
 
     /**
-     * Invalidar cache especÃƒÆ’Ã‚Â­fico de entrevistas
+     * Invalidar cache especí­fico de entrevistas
      */
     public function invalidateInterviewCache(): int
     {
@@ -497,11 +500,11 @@ class Interview extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS AUXILIARES
+     * MÉTODOS AUXILIARES
      */
 
     // ==========================================
-    // MÃƒÆ’Ã¢â‚¬Â°TODOS CRUD ENCAPSULADOS ESTÃƒÆ’Ã‚ÂNDAR
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
     // ==========================================
 
     /**
@@ -555,7 +558,7 @@ class Interview extends BaseModel
      * Actualizar culture con validaciones
      * @param mixed $id ID del culture a actualizar
      * @param array $data Nuevos datos
-     * @return bool True si la actualizaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @return bool True si la actualización fue exitosa
      */
     public function updateCulture($id, array $data): bool
     {
@@ -587,7 +590,7 @@ class Interview extends BaseModel
     /**
      * Eliminar culture con validaciones
      * @param mixed $id ID del culture a eliminar
-     * @return bool True si la eliminaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @return bool True si la eliminación fue exitosa
      */
     public function deleteCulture($id): bool
     {
@@ -615,9 +618,9 @@ class Interview extends BaseModel
 
     /**
      * Buscar cultures con filtros
-     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
-     * @param int $page PÃƒÆ’Ã‚Â¡gina actual
-     * @param int $limit Registros por pÃƒÆ’Ã‚Â¡gina
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Pí¡gina actual
+     * @param int $limit Registros por pí¡gina
      * @param array $orderBy Criterios de ordenamiento
      * @return array Array de cultures
      */
@@ -637,8 +640,8 @@ class Interview extends BaseModel
 
     /**
      * Contar total de cultures con filtros
-     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
-     * @return int NÃƒÆ’Ã‚Âºmero total de cultures
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de cultures
      */
     public function countCultures(array $filters = []): int
     {
@@ -655,22 +658,22 @@ class Interview extends BaseModel
     }
 
     // ==========================================
-    // MÃƒÆ’Ã¢â‚¬Â°TODOS DE VALIDACIÃƒÆ’Ã¢â‚¬Å“N ESPECÃƒÆ’Ã‚ÂFICOS
+    // MÉTODOS DE VALIDACIÓN ESPECíFICOS
     // ==========================================
 
     /**
-     * Validar datos especÃƒÆ’Ã‚Â­ficos de cultures
+     * Validar datos especí­ficos de cultures
      * @param array $data Datos a validar
-     * @param mixed $id ID para validaciones de actualizaciÃƒÆ’Ã‚Â³n (opcional)
-     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son ví¡lidos
      */
     private function validateCultureData(array $data, $id = null): void
     {
-        // TODO: Implementar validaciones especÃƒÆ’Ã‚Â­ficas del modelo
+        // TODO: Implementar validaciones especí­ficas del modelo
     }
 
     /**
-     * Invalidar cache especÃƒÆ’Ã‚Â­fico de cultures
+     * Invalidar cache especí­fico de cultures
      */
     public function invalidateCultureCache(): int
     {

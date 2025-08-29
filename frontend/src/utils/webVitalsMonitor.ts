@@ -53,7 +53,7 @@ class WebVitalsMonitor {
 
     // Log en desarrollo
     if (import.meta.env.MODE === 'development') {
-      // ...eliminado console.log para producción...
+
     }
   }
 
@@ -163,6 +163,6 @@ export { webVitalsMonitor, WebVitalsMonitor };
 
 // Debug helper
 export const logWebVitals = () => {
-  // ...eliminado console.log para producción...
+
   return webVitalsMonitor.getMetrics();
 };

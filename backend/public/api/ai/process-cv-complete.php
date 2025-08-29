@@ -1,54 +1,56 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
-    CsrfMiddleware::protect(); // double-submit cookie
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+  CsrfMiddleware::protect(); // double-submit cookie
 }
 
 if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized (cookie required)']);
-    exit;
+  http_response_code(401);
+  echo json_encode(['error' => 'Unauthorized (cookie required)']);
+  exit;
 }
 
 // cookie HttpOnly obligatoria
 
 // Proteger solo mÃƒÂ©todos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
-    // double-submit cookie
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+  // double-submit cookie
 }
 
 // En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
-    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
-        http_response_code(401);
-        echo json_encode(['error' => 'Unauthorized (cookie required)']);
-        exit;
-    }
+  if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+  }
 }
 
 // ORIGINAL CODE BELOW
-// CONTROLADOR COMPLETO: Procesa CV en 2 etapas automÃƒÆ’Ã‚Â¡ticamente
+// CONTROLADOR COMPLETO: Procesa CV en 2 etapas automí¡ticamente
 header('Content-Type: application/json');
 
 // 1. Recoger el nombre del archivo del POST
 $filename = $_POST['filename'] ?? '';
 
 if (!$filename) {
-    echo json_encode(['error' => 'Falta el nombre del archivo']);
-    exit;
+  echo json_encode(['error' => 'Falta el nombre del archivo']);
+  exit;
 }
 
 $startTime = microtime(true);
 
 // ================================
-// ETAPA 1: EXTRACCIÃƒÆ’Ã¢â‚¬Å“N CON LLAMA3
+// ETAPA 1: EXTRACCIÓN CON LLAMA3
 // ================================
 
-$_POST['filename'] = $filename; // Asegurar que estÃƒÆ’Ã‚Â© disponible
+$_POST['filename'] = $filename; // Asegurar que esté disponible
 
 ob_start();
 include 'extract-cv-stage1.php';
@@ -57,18 +59,18 @@ $stage1Output = ob_get_clean();
 $stage1Response = json_decode($stage1Output, true);
 
 if (!$stage1Response || $stage1Response['status'] !== 'ok') {
-    echo json_encode([
-      'error' => 'Error en Etapa 1 (ExtracciÃƒÆ’Ã‚Â³n)',
-      'stage1_error' => $stage1Response['error'] ?? 'Error desconocido',
-      'details' => $stage1Response
-    ]);
-    exit;
+  echo json_encode([
+    'error' => 'Error en Etapa 1 (Extracción)',
+    'stage1_error' => $stage1Response['error'] ?? 'Error desconocido',
+    'details' => $stage1Response
+  ]);
+  exit;
 }
 
 $cleanFilename = $stage1Response['clean_file'];
 
 // ================================
-// ETAPA 2: ESTRUCTURACIÃƒÆ’Ã¢â‚¬Å“N JSON CON RECRUITMENT-AI
+// ETAPA 2: ESTRUCTURACIÓN JSON CON RECRUITMENT-AI
 // ================================
 
 $_POST['clean_filename'] = $cleanFilename; // Preparar para etapa 2
@@ -80,13 +82,13 @@ $stage2Output = ob_get_clean();
 $stage2Response = json_decode($stage2Output, true);
 
 if (!$stage2Response || $stage2Response['status'] !== 'ok') {
-    echo json_encode([
-      'error' => 'Error en Etapa 2 (EstructuraciÃƒÆ’Ã‚Â³n JSON)',
-      'stage1_success' => true,
-      'stage2_error' => $stage2Response['error'] ?? 'Error desconocido',
-      'details' => $stage2Response
-    ]);
-    exit;
+  echo json_encode([
+    'error' => 'Error en Etapa 2 (Estructuración JSON)',
+    'stage1_success' => true,
+    'stage2_error' => $stage2Response['error'] ?? 'Error desconocido',
+    'details' => $stage2Response
+  ]);
+  exit;
 }
 
 $totalTime = microtime(true) - $startTime;
@@ -126,4 +128,3 @@ echo json_encode([
   'process_complete' => true
 ]);
 exit;
-

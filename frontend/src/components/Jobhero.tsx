@@ -1,4 +1,4 @@
-// src/components/JobHero.tsx - Minimalist con Color
+// src/components/JobHero.tsx - Minimalist con Color y Parallax
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -58,10 +58,27 @@ const useTypewriter = (text: string, speed = 50) => {
   return { displayText, isComplete };
 };
 
+// Hook para parallax effect
+const useParallax = (speed = 0.5) => {
+  const [offsetY, setOffsetY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setOffsetY(window.pageYOffset * speed);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [speed]);
+
+  return offsetY;
+};
+
 export default function JobHeroLite() {
   const { t } = useLanguage();
   const [currentSection, setCurrentSection] = useState(0);
   const { displayText: typedTitle } = useTypewriter(t('hero.title'), 60);
+  const parallaxOffset = useParallax(0.3);
 
   // Helper function to get array items from translations
   const getTranslationArray = (key: string): string[] => {
@@ -106,7 +123,18 @@ export default function JobHeroLite() {
 
   return (
     <section className="min-h-screen flex items-center justify-center relative overflow-hidden font-['Poppins'] py-8">
-      {/* Fondo minimalista con formas geométricas */}
+      {/* Parallax Background Image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat parallax-bg"
+        style={{
+          backgroundImage: 'url(/images/team-collaboration.jpg)',
+          // Invertir el offset para que el fondo se desplace más lento en sentido contrario
+          // al scroll y así crear el efecto parallax esperado.
+          transform: `translateY(${-parallaxOffset}px)`,
+        }}
+      />
+     
+      {/* Elementos decorativos existentes */}
       <div className="absolute inset-0">
         {/* Círculos con gradientes corporativos */}
         <div className="absolute top-16 right-16 w-80 h-80 border border-white/10 rounded-full opacity-40" />
@@ -123,7 +151,8 @@ export default function JobHeroLite() {
         style={{
           borderRadius: '5%',
           backgroundColor: 'rgba(47, 47, 47, 0.85)',
-          border: '1px solid rgba(255, 255, 255, 0.1)'
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(10px)'
         }}
       >
         <div className="max-w-5xl mx-auto py-8 sm:py-12">
@@ -209,7 +238,7 @@ export default function JobHeroLite() {
           {/* Botones con gradientes coloridos */}
           <div className="text-center">
             <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8">
-              <Link to="/candidates/login" className="group">
+              <Link to="/auth/register" className="group">
                 <Button
                   variant="ghost"
                   className="w-56 h-12 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-medium text-sm uppercase tracking-wider transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25 relative overflow-hidden border-0"

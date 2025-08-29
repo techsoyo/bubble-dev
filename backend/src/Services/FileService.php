@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Services;
 
 use Utils\Logger;
@@ -6,10 +9,10 @@ use Utils\Logger;
 /**
  * Servicio seguro para manejo de archivos y uploads
  *
- * Implementa mÃƒÆ’Ã‚Âºltiples capas de seguridad para prevenir:
+ * Implementa múltiples capas de seguridad para prevenir:
  * - Upload de archivos maliciosos
  * - Path traversal attacks
- * - EjecuciÃƒÆ’Ã‚Â³n de cÃƒÆ’Ã‚Â³digo
+ * - Ejecución de código
  * - Ataques de tipo MIME sniffing
  *
  * @version 2.0.0
@@ -18,7 +21,7 @@ use Utils\Logger;
 class FileService
 {
     /**
-     * Tipos MIME permitidos por categorÃƒÆ’Ã‚Â­a
+     * Tipos MIME permitidos por categorí­a
      */
     private static $allowedMimeTypes = [
         'images' => [
@@ -41,7 +44,7 @@ class FileService
     ];
 
     /**
-     * Extensiones permitidas por categorÃƒÆ’Ã‚Â­a
+     * Extensiones permitidas por categorí­a
      */
     private static $allowedExtensions = [
         'images' => ['jpg', 'jpeg', 'png', 'gif', 'webp'],
@@ -50,7 +53,7 @@ class FileService
     ];
 
     /**
-     * TamaÃƒÆ’Ã‚Â±os mÃƒÆ’Ã‚Â¡ximos por categorÃƒÆ’Ã‚Â­a (en bytes)
+     * Tamaí±os mí¡ximos por categorí­a (en bytes)
      */
     private static $maxSizes = [
         'images' => 5242880,    // 5MB
@@ -84,7 +87,7 @@ class FileService
      * Sube un archivo de manera segura
      *
      * @param array $file Array $_FILES del archivo
-     * @param string $category CategorÃƒÆ’Ã‚Â­a del archivo
+     * @param string $category Categorí­a del archivo
      * @param string|null $customName Nombre personalizado (opcional)
      * @return array Resultado del upload
      */
@@ -93,14 +96,14 @@ class FileService
         try {
             self::init();
 
-            // Validaciones bÃƒÆ’Ã‚Â¡sicas
+            // Validaciones bí¡sicas
             if (!self::validateBasicFile($file)) {
-                return ['success' => false, 'error' => 'Archivo invÃƒÆ’Ã‚Â¡lido'];
+                return ['success' => false, 'error' => 'Archivo inví¡lido'];
             }
 
-            // Validar categorÃƒÆ’Ã‚Â­a
+            // Validar categorí­a
             if (!isset(self::$allowedMimeTypes[$category])) {
-                return ['success' => false, 'error' => 'CategorÃƒÆ’Ã‚Â­a de archivo no vÃƒÆ’Ã‚Â¡lida'];
+                return ['success' => false, 'error' => 'Categorí­a de archivo no ví¡lida'];
             }
 
             // Validaciones de seguridad
@@ -115,7 +118,7 @@ class FileService
             // Determinar ruta de destino
             $destinationPath = self::$uploadBasePath . DIRECTORY_SEPARATOR . $category . 's' . DIRECTORY_SEPARATOR . $safeFileName;
 
-            // Mover archivo con validaciÃƒÆ’Ã‚Â³n adicional
+            // Mover archivo con validación adicional
             if (!move_uploaded_file($file['tmp_name'], $destinationPath)) {
                 Logger::error('Error al mover archivo uploaded', [
                     'file' => $file['name'],
@@ -127,13 +130,13 @@ class FileService
             // Establecer permisos seguros
             chmod($destinationPath, 0644);
 
-            // ValidaciÃƒÆ’Ã‚Â³n post-upload
+            // Validación post-upload
             if (!self::validateUploadedFile($destinationPath, $category)) {
                 unlink($destinationPath);
-                return ['success' => false, 'error' => 'Archivo fallÃƒÆ’Ã‚Â³ validaciÃƒÆ’Ã‚Â³n post-upload'];
+                return ['success' => false, 'error' => 'Archivo falló validación post-upload'];
             }
 
-            // Generar informaciÃƒÆ’Ã‚Â³n del archivo
+            // Generar información del archivo
             $fileInfo = [
                 'original_name' => $file['name'],
                 'safe_name' => $safeFileName,
@@ -162,7 +165,7 @@ class FileService
      * Descarga un archivo de manera segura
      *
      * @param string $fileName Nombre del archivo
-     * @param string $category CategorÃƒÆ’Ã‚Â­a del archivo
+     * @param string $category Categorí­a del archivo
      * @return bool True si la descarga fue exitosa
      */
     public static function downloadFile($fileName, $category)
@@ -172,7 +175,7 @@ class FileService
 
             // Validar entrada
             if (!self::isValidFileName($fileName) || !isset(self::$allowedMimeTypes[$category])) {
-                Logger::security('Intento de descarga con parÃƒÆ’Ã‚Â¡metros invÃƒÆ’Ã‚Â¡lidos', [
+                Logger::security('Intento de descarga con parí¡metros inví¡lidos', [
                     'file' => $fileName,
                     'category' => $category
                 ]);
@@ -181,16 +184,16 @@ class FileService
 
             $filePath = self::$uploadBasePath . DIRECTORY_SEPARATOR . $category . 's' . DIRECTORY_SEPARATOR . $fileName;
 
-            // Verificar que el archivo existe y estÃƒÆ’Ã‚Â¡ en el directorio correcto
+            // Verificar que el archivo existe y estí¡ en el directorio correcto
             if (!file_exists($filePath) || !self::isPathSafe($filePath, $category)) {
-                Logger::security('Intento de acceso a archivo no vÃƒÆ’Ã‚Â¡lido', [
+                Logger::security('Intento de acceso a archivo no ví¡lido', [
                     'file' => $fileName,
                     'path' => $filePath
                 ]);
                 return false;
             }
 
-            // Obtener informaciÃƒÆ’Ã‚Â³n del archivo
+            // Obtener información del archivo
             $mimeType = mime_content_type($filePath);
             $fileSize = filesize($filePath);
 
@@ -222,8 +225,8 @@ class FileService
      * Elimina un archivo de manera segura
      *
      * @param string $fileName Nombre del archivo
-     * @param string $category CategorÃƒÆ’Ã‚Â­a del archivo
-     * @return bool True si se eliminÃƒÆ’Ã‚Â³ correctamente
+     * @param string $category Categorí­a del archivo
+     * @return bool True si se eliminó correctamente
      */
     public static function deleteFile($fileName, $category)
     {
@@ -256,10 +259,10 @@ class FileService
     }
 
     /**
-     * Valida un archivo bÃƒÆ’Ã‚Â¡sicamente
+     * Valida un archivo bí¡sicamente
      *
      * @param array $file Array del archivo
-     * @return bool True si es vÃƒÆ’Ã‚Â¡lido
+     * @return bool True si es ví¡lido
      */
     private static function validateBasicFile($file)
     {
@@ -280,7 +283,7 @@ class FileService
                 return false;
         }
 
-        // Verificar que el archivo fue subido vÃƒÆ’Ã‚Â­a HTTP POST
+        // Verificar que el archivo fue subido ví­a HTTP POST
         if (!is_uploaded_file($file['tmp_name'])) {
             return false;
         }
@@ -292,18 +295,18 @@ class FileService
      * Valida un archivo de manera segura
      *
      * @param array $file Array del archivo
-     * @param string $category CategorÃƒÆ’Ã‚Â­a
-     * @return array Resultado de validaciÃƒÆ’Ã‚Â³n
+     * @param string $category Categorí­a
+     * @return array Resultado de validación
      */
     private static function validateFileSecurely($file, $category)
     {
-        // Validar tamaÃƒÆ’Ã‚Â±o
+        // Validar tamaí±o
         if ($file['size'] > self::$maxSizes[$category]) {
             $maxSizeMB = round(self::$maxSizes[$category] / 1024 / 1024, 2);
-            return ['success' => false, 'error' => "Archivo excede el tamaÃƒÆ’Ã‚Â±o mÃƒÆ’Ã‚Â¡ximo de {$maxSizeMB}MB"];
+            return ['success' => false, 'error' => "Archivo excede el tamaí±o mí¡ximo de {$maxSizeMB}MB"];
         }
 
-        // Validar extensiÃƒÆ’Ã‚Â³n
+        // Validar extensión
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if (!in_array($extension, self::$allowedExtensions[$category])) {
             return ['success' => false, 'error' => 'Tipo de archivo no permitido'];
@@ -315,7 +318,7 @@ class FileService
         finfo_close($finfo);
 
         if (!in_array($mimeType, self::$allowedMimeTypes[$category])) {
-            Logger::security('Intento de upload con MIME type no vÃƒÆ’Ã‚Â¡lido', [
+            Logger::security('Intento de upload con MIME type no ví¡lido', [
                 'file' => $file['name'],
                 'detected_mime' => $mimeType,
                 'category' => $category
@@ -323,9 +326,9 @@ class FileService
             return ['success' => false, 'error' => 'Tipo de archivo no permitido'];
         }
 
-        // ValidaciÃƒÆ’Ã‚Â³n adicional de contenido
+        // Validación adicional de contenido
         if (!self::validateFileContent($file['tmp_name'], $mimeType)) {
-            return ['success' => false, 'error' => 'Contenido del archivo no vÃƒÆ’Ã‚Â¡lido'];
+            return ['success' => false, 'error' => 'Contenido del archivo no ví¡lido'];
         }
 
         return ['success' => true];
@@ -336,7 +339,7 @@ class FileService
      *
      * @param string $filePath Ruta del archivo
      * @param string $mimeType Tipo MIME
-     * @return bool True si es vÃƒÆ’Ã‚Â¡lido
+     * @return bool True si es ví¡lido
      */
     private static function validateFileContent($filePath, $mimeType)
     {
@@ -365,7 +368,7 @@ class FileService
             return false;
         }
 
-        // Para tipos no especÃƒÆ’Ã‚Â­ficos, verificar que no contenga cÃƒÆ’Ã‚Â³digo ejecutable
+        // Para tipos no especí­ficos, verificar que no contenga código ejecutable
         $content = file_get_contents($filePath, false, null, 0, 1024);
 
         // Buscar patrones sospechosos
@@ -392,15 +395,15 @@ class FileService
     }
 
     /**
-     * Valida un archivo despuÃƒÆ’Ã‚Â©s del upload
+     * Valida un archivo después del upload
      *
      * @param string $filePath Ruta del archivo
-     * @param string $category CategorÃƒÆ’Ã‚Â­a
-     * @return bool True si es vÃƒÆ’Ã‚Â¡lido
+     * @param string $category Categorí­a
+     * @return bool True si es ví¡lido
      */
     private static function validateUploadedFile($filePath, $category)
     {
-        // Verificar que el archivo se subiÃƒÆ’Ã‚Â³ correctamente
+        // Verificar que el archivo se subió correctamente
         if (!file_exists($filePath) || filesize($filePath) === 0) {
             return false;
         }
@@ -431,7 +434,7 @@ class FileService
             $safeName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $customName);
             $safeName = substr($safeName, 0, 100); // Limitar longitud
         } else {
-            // Generar nombre ÃƒÆ’Ã‚Âºnico
+            // Generar nombre único
             $safeName = bin2hex(random_bytes(16));
         }
 
@@ -439,10 +442,10 @@ class FileService
     }
 
     /**
-     * Verifica si un nombre de archivo es vÃƒÆ’Ã‚Â¡lido
+     * Verifica si un nombre de archivo es ví¡lido
      *
      * @param string $fileName Nombre del archivo
-     * @return bool True si es vÃƒÆ’Ã‚Â¡lido
+     * @return bool True si es ví¡lido
      */
     private static function isValidFileName($fileName)
     {
@@ -463,7 +466,7 @@ class FileService
      * Verifica si un path es seguro
      *
      * @param string $filePath Ruta del archivo
-     * @param string $category CategorÃƒÆ’Ã‚Â­a
+     * @param string $category Categorí­a
      * @return bool True si es seguro
      */
     private static function isPathSafe($filePath, $category)
@@ -477,7 +480,7 @@ class FileService
     /**
      * Obtiene la URL de un archivo
      *
-     * @param string $category CategorÃƒÆ’Ã‚Â­a
+     * @param string $category Categorí­a
      * @param string $fileName Nombre del archivo
      * @return string URL del archivo
      */
@@ -488,20 +491,20 @@ class FileService
     }
 
     /**
-     * LEGACY METHOD: Mantener compatibilidad con cÃƒÆ’Ã‚Â³digo existente
-     * Sube un archivo al servidor (mÃƒÆ’Ã‚Â©todo legacy)
+     * LEGACY METHOD: Mantener compatibilidad con código existente
+     * Sube un archivo al servidor (método legacy)
      *
-     * @param array $file InformaciÃƒÆ’Ã‚Â³n del archivo ($_FILES)
+     * @param array $file Información del archivo ($_FILES)
      * @param string $destinationPath Ruta de destino
      * @param array $allowedTypes Tipos MIME permitidos
-     * @param int $maxSize TamaÃƒÆ’Ã‚Â±o mÃƒÆ’Ã‚Â¡ximo en bytes
-     * @return array InformaciÃƒÆ’Ã‚Â³n del archivo subido
+     * @param int $maxSize Tamaí±o mí¡ximo en bytes
+     * @return array Información del archivo subido
      * @throws \Exception Si hay un error en la subida
      */
     public function uploadFile_legacy($file, $destinationPath, $allowedTypes = [], $maxSize = 5242880)
     {
-        // Redirigir al mÃƒÆ’Ã‚Â©todo seguro
-        $category = 'documents'; // CategorÃƒÆ’Ã‚Â­a por defecto
+        // Redirigir al método seguro
+        $category = 'documents'; // Categorí­a por defecto
         $result = self::uploadFile($file, $category);
 
         if (!$result['success']) {
@@ -515,7 +518,7 @@ class FileService
      * LEGACY METHOD: Elimina un archivo
      *
      * @param string $filePath Ruta del archivo
-     * @return bool True si se eliminÃƒÆ’Ã‚Â³ correctamente, false en caso contrario
+     * @return bool True si se eliminó correctamente, false en caso contrario
      */
     public function deleteFile_legacy($filePath)
     {

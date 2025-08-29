@@ -54,7 +54,7 @@ export function useOptimizedData<T>({
     if (!cacheKey) return null;
 
     try {
-      const cachedItem = safeGet<{ value: T, timestamp: number }>(`data_cache_${cacheKey}`, null);
+      const cachedItem = safeGet<{ value: T, timestamp: number } | null>(`data_cache_${cacheKey}`, null);
       if (!cachedItem) return null;
 
       const { value, timestamp } = cachedItem;

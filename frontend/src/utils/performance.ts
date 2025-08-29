@@ -331,7 +331,7 @@ export class PerformanceMonitor {
                 console.warn('Failed to send performance metrics:', error);
             });
         } else {
-            // ...eliminado console.log para producción...
+
         }
     }
 }
@@ -345,7 +345,7 @@ export class MemoryOptimization {
      */
     static cleanup(): void {
         // Clear any lingering timers - Note: This is a simplified cleanup
-        // ...eliminado console.log para producción...
+
     }
 
     /**
@@ -380,7 +380,7 @@ export class ServiceWorkerManager {
         if ('serviceWorker' in navigator && import.meta.env.MODE === 'production') {
             try {
                 const registration = await navigator.serviceWorker.register(swPath);
-                // ...eliminado console.log para producción...
+
 
                 // Listen for updates
                 registration.addEventListener('updatefound', () => {
@@ -459,6 +459,8 @@ export const ComponentOptimization = {
  * Initialize performance monitoring
  */
 export function initializePerformanceMonitoring(): void {
+    console.log('🎯 Inicializando monitoreo de rendimiento...');
+
     // Collect Core Web Vitals
     PerformanceMonitor.collectCoreWebVitals();
 
@@ -479,13 +481,64 @@ export function initializePerformanceMonitoring(): void {
         }, 120000); // Every 2 minutes instead of 30 seconds
     }
 
+    // Configurar monitoreo de memoria inicial
+    if ('memory' in performance) {
+        const memoryInfo = (performance as any).memory;
+        console.log('📊 Información de memoria inicial:', {
+            used: `${(memoryInfo.usedJSHeapSize / 1024 / 1024).toFixed(2)}MB`,
+            total: `${(memoryInfo.totalJSHeapSize / 1024 / 1024).toFixed(2)}MB`,
+            limit: `${(memoryInfo.jsHeapSizeLimit / 1024 / 1024).toFixed(2)}MB`
+        });
+    }
+
+    // Monitoreo de navegación
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+            if (navigation) {
+                console.log('📈 Métricas de navegación:', {
+                    domContentLoaded: `${navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart}ms`,
+                    loadComplete: `${navigation.loadEventEnd - navigation.loadEventStart}ms`,
+                    totalTime: `${navigation.loadEventEnd - navigation.fetchStart}ms`
+                });
+            }
+        }, 1000);
+    });
+
+    // Monitoreo de recursos críticos
+    const criticalResources = [
+        '/assets/css/critical.css',
+        '/assets/images/logo.svg',
+        '/favicon.ico'
+    ];
+
+    criticalResources.forEach(resource => {
+        const observer = new PerformanceObserver((list) => {
+            list.getEntries().forEach((entry) => {
+                if (entry.name.includes(resource)) {
+                    const resourceEntry = entry as PerformanceResourceTiming;
+                    console.log(`⚡ Recurso crítico cargado: ${resource}`, {
+                        duration: `${entry.duration.toFixed(2)}ms`,
+                        size: resourceEntry.transferSize ? `${(resourceEntry.transferSize / 1024).toFixed(2)}KB` : 'N/A'
+                    });
+                }
+            });
+        });
+
+        observer.observe({ entryTypes: ['resource'] });
+    });
+
     // Send metrics after page load
     window.addEventListener('load', () => {
         setTimeout(() => {
             PerformanceMonitor.sendMetrics();
         }, 5000); // Send metrics 5 seconds after load
     });
+
+    console.log('✅ Monitoreo de rendimiento inicializado correctamente');
 }
+
+
 
 export default {
     CodeSplitting,

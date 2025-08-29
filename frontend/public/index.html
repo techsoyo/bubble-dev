@@ -4,12 +4,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mi App</title>
+
+  <!-- Security Headers -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta http-equiv="X-Frame-Options" content="DENY" />
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+
+  <!-- Preload critical resources -->
+  <link rel="preload" href="/assets/css/critical.css" as="style" />
+  <link rel="preload" href="/src/main.tsx" as="script" crossorigin />
+
+  <!-- CSP Nonce for inline scripts (if needed) -->
+  <meta property="csp-nonce" content="" />
+
+  <title>Bubble of Talents - Plataforma de Reclutamiento</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+  <!-- Manifest for PWA -->
+  <link rel="manifest" href="/manifest.json" />
+
+  <!-- Preconnect to external domains -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- DNS prefetch for performance -->
+  <link rel="dns-prefetch" href="//api.bubble-talents.com" />
 </head>
 
 <body>
   <div id="app"></div>
-  <!-- O <div id="root"></div> según tu framework -->
+
+  <!-- Loading fallback -->
+  <noscript>
+    <div style="text-align: center; padding: 2rem;">
+      <h2>JavaScript es requerido</h2>
+      <p>Por favor, habilita JavaScript para usar esta aplicación.</p>
+    </div>
+  </noscript>
+
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

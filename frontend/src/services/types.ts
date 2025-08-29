@@ -22,6 +22,9 @@ export interface Candidate {
   created_at: string;
   updated_at: string;
   status: 'active' | 'inactive' | 'pending';
+  // Alias para compatibilidad con camelCase
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Job {
@@ -43,6 +46,9 @@ export interface Job {
   status: 'open' | 'closed' | 'draft';
   created_at: string;
   updated_at: string;
+  // Alias para compatibilidad con camelCase
+  companyId?: string;
+  postedDate?: string;
 }
 
 export interface Company {
@@ -56,6 +62,15 @@ export interface Company {
   logo_url?: string;
   created_at: string;
   updated_at: string;
+  // Propiedades adicionales para servicios AI
+  culture?: {
+    innovation?: number;
+    collaboration?: number;
+    workLifeBalance?: number;
+    growth?: number;
+    diversity?: number;
+    flexibility?: number;
+  };
 }
 
 export interface Education {

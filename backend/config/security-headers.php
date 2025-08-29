@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 /**
  * Headers de Seguridad Mejorados para Bubble of Talents
  * 
@@ -26,14 +28,14 @@ function configureCors(): void
 {
   // Obtener configuraciÃ³n desde variables de entorno con valores por defecto
   $allowedMethods = getenv('CORS_ALLOWED_METHODS') ?: 'GET,POST,PUT,DELETE,OPTIONS';
-  $allowedOrigins = getenv('CORS_ALLOWED_ORIGINS') ?: '*';
+  $allowedOrigins = getenv('CORS_ALLOWED_ORIGINS') ?: 'http://localhost:3002';
   $allowedHeaders = getenv('CORS_ALLOWED_HEADERS') ?: 'Content-Type,Authorization,X-Requested-With';
 
   // Configurar headers CORS
   header('Access-Control-Allow-Origin: ' . $allowedOrigins);
   header('Access-Control-Allow-Methods: ' . $allowedMethods);
   header('Access-Control-Allow-Headers: ' . $allowedHeaders);
-  header('Access-Control-Allow-Credentials: true');
+  header('Access-Control-Allow-Credentials: false'); // ✅ FIXED: Deshabilitado por seguridad
   header('Access-Control-Max-Age: 3600');
 
   // Manejar preflight requests

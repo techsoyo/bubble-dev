@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -27,13 +27,11 @@ const CVConfirmationModal: React.FC<CVConfirmationModalProps> = ({
 }) => {
   // Estado para almacenar los datos editables
   const [editedData, setEditedData] = useState(() => {
-    console.log('Inicializando estado del modal con datos:', extractedData);
     return extractedData || {};
   });
 
   // Efecto para actualizar el estado cuando cambian los datos externos
   React.useEffect(() => {
-    console.log('Datos del modal actualizados:', extractedData);
     if (extractedData) {
       setEditedData(extractedData);
     }
@@ -41,7 +39,6 @@ const CVConfirmationModal: React.FC<CVConfirmationModalProps> = ({
 
   // Log cuando el modal se abre o cierra
   React.useEffect(() => {
-    console.log('Estado de apertura del modal cambiado:', isOpen);
 
     // Forzar una actualización del DOM cuando se cambia isOpen
     if (isOpen) {
@@ -133,11 +130,9 @@ const CVConfirmationModal: React.FC<CVConfirmationModalProps> = ({
 
   // Manejar la aceptación de los datos
   const handleAccept = () => {
-    console.log('Datos aceptados para guardar:', editedData);
 
     // Asignar categoría y departamento automáticamente basado en las habilidades y experiencia
     const processedData = assignCategoryAndDepartment(editedData);
-    console.log('Datos procesados con categoría y departamento asignados:', processedData);
 
     // Mostrar toast de confirmación
     const showSuccessToast = () => {
@@ -201,6 +196,10 @@ const CVConfirmationModal: React.FC<CVConfirmationModalProps> = ({
       }
 
       // Asignar categoría basada en el departamento
+      if (!departmentAssignment) {
+        throw new Error('No department assignment found');
+      }
+
       const assignedCategory = getCategoryForDepartment(departmentAssignment.departmentId);
 
       // Añadir los campos necesarios al objeto de datos
@@ -284,18 +283,14 @@ const CVConfirmationModal: React.FC<CVConfirmationModalProps> = ({
   }
 
   if (!extractedData) {
-    console.log('No hay datos para mostrar en el modal');
     return null;
   }
-
-  console.log('Renderizando modal con isOpen:', isOpen);
-
-  // Asegurarnos de que el modal esté correctamente enlazado con los datos
-  console.log('Renderizando modal con los siguientes parámetros:', {
+  // Información auxiliar para debugging / render decisions
+  const debugInfo = React.useMemo(() => ({
     isOpen,
     extractedDataExists: !!extractedData,
     dataKeys: extractedData ? Object.keys(extractedData) : []
-  });
+  }), [isOpen, extractedData]);
 
   return (
     <>
@@ -310,18 +305,15 @@ const CVConfirmationModal: React.FC<CVConfirmationModalProps> = ({
         open={isOpen}
         modal={true}
         onOpenChange={(open) => {
-          console.log('Dialog onOpenChange:', open);
           if (!open) onClose();
         }}
         defaultOpen={isOpen}
       >
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto"
           onEscapeKeyDown={() => {
-            console.log('Escape key pressed');
             onClose();
           }}
           onPointerDownOutside={() => {
-            console.log('Click outside dialog');
             onClose();
           }}
         >

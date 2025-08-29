@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Service Worker for Bubble of Talents Frontend
  * 
  * Production-ready service worker with caching strategies, offline support,
@@ -248,7 +248,6 @@ async function handleHTMLPage(request) {
         }
         return networkResponse;
     } catch (error) {
-        console.log('Service Worker: Network failed, checking cache');
 
         const cachedResponse = await caches.match(request);
         if (cachedResponse) {
@@ -429,7 +428,6 @@ function getOfflinePage() {
  * Handle background sync for offline actions
  */
 self.addEventListener('sync', (event) => {
-    console.log('Service Worker: Background sync triggered:', event.tag);
 
     if (event.tag === 'background-sync-jobs') {
         event.waitUntil(syncJobApplications());

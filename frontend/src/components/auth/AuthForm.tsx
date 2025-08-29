@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Login/Register Form - UPDATED WITH NEW ENDPOINTS
  * ✅ ACTUALIZADO: Soporte para nuevos endpoints
  * - Candidatos: Login y Registro con /auth/register
@@ -10,6 +10,52 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { formSubmissionLimiter, generateClientFingerprint } from '../../security/xss';
 import { InputSanitizer } from '../../lib/auth/secureInputValidator';
+
+// Rate limiting mejorado para AuthForm
+const useEnhancedRateLimiter = (userType: 'candidate' | 'staff') => {
+  const [attempts, setAttempts] = useState<{ count: number; resetTime: number }>({
+    count: 0,
+    resetTime: 0
+  });
+
+  const isAllowed = (): boolean => {
+    const now = Date.now();
+    const windowMs = userType === 'staff' ? 15 * 60 * 1000 : 5 * 60 * 1000; // 15 min para staff, 5 min para candidatos
+    const maxAttempts = userType === 'staff' ? 3 : 5; // Más restrictivo para staff
+
+    if (now > attempts.resetTime) {
+      setAttempts({ count: 1, resetTime: now + windowMs });
+      return true;
+    }
+
+    if (attempts.count >= maxAttempts) {
+      return false;
+    }
+
+    setAttempts(prev => ({ ...prev, count: prev.count + 1 }));
+    return true;
+  };
+
+  const getRemainingTime = (): number => {
+    const now = Date.now();
+    return Math.max(0, attempts.resetTime - now);
+  };
+
+  return { isAllowed, getRemainingTime };
+};
+
+// Hook para protección CSRF
+const useCSRFProtection = () => {
+  const generateCSRFToken = (): string => {
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+  };
+
+  const [csrfToken] = useState(() => generateCSRFToken());
+
+  return { csrfToken };
+};
 
 interface AuthFormProps {
   className?: string;
@@ -34,9 +80,15 @@ const AuthForm: React.FC<AuthFormProps> = ({
   const [localError, setLocalError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string; confirmPassword?: string }>({});
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Inicializar hooks de seguridad
+  const rateLimiter = useEnhancedRateLimiter(userType);
+  const { csrfToken } = useCSRFProtection();
+
   const {
     candidateLogin,
     staffLogin,
@@ -52,61 +104,119 @@ const AuthForm: React.FC<AuthFormProps> = ({
     if (authError) clearError();
   }, [email, password, confirmPassword, firstName, lastName]);
 
-  // ✅ VALIDACIÓN MEJORADA
-  const validateInput = () => {
-    if (!email.trim()) {
-      setLocalError('El email es requerido');
+  // Función para limpiar errores de campo específico
+  const clearFieldError = (field: string) => {
+    setFieldErrors(prev => ({ ...prev, [field]: undefined }));
+  };
+
+  // Función para validar campo individual
+  const validateField = (field: string, value: string): boolean => {
+    switch (field) {
+      case 'email':
+        return validateEmail(value);
+      case 'password':
+        return validatePassword(value);
+      case 'confirmPassword':
+        return validateConfirmPassword(value);
+      default:
+        return true;
+    }
+  };
+
+  // ✅ VALIDACIÓN MEJORADA DE EMAIL
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const corporateDomain = userType === 'staff' ? email.toLowerCase().includes('@bubblegum.agency') : true;
+
+    if (!emailRegex.test(email)) {
+      setFieldErrors({ email: 'Formato de email inválido' });
       return false;
     }
 
-    if (!InputSanitizer.sanitizeEmail(email)) {
-      setLocalError('Formato de email inválido');
+    if (userType === 'staff' && !corporateDomain) {
+      setFieldErrors({ email: 'Solo se permiten emails corporativos de @bubblegum.agency' });
       return false;
     }
 
-    if (!password.trim()) {
-      setLocalError('La contraseña es requerida');
-      return false;
-    }
-
-    if (password.length < 6) {
-      setLocalError('La contraseña debe tener al menos 6 caracteres');
-      return false;
-    }
-
-    // Validaciones específicas para registro
-    if (mode === 'register' && userType === 'candidate') {
-      if (password !== confirmPassword) {
-        setLocalError('Las contraseñas no coinciden');
-        return false;
-      }
-
-      if (!firstName.trim()) {
-        setLocalError('El nombre es requerido');
-        return false;
-      }
-
-      if (!lastName.trim()) {
-        setLocalError('El apellido es requerido');
-        return false;
-      }
-    }
-
+    clearFieldError('email');
     return true;
   };
 
-  // ✅ MANEJO DE SUBMIT UNIFICADO
+  // ✅ VALIDACIÓN MEJORADA DE CONTRASEÑA
+  const validatePassword = (password: string): boolean => {
+    if (password.length < 8) {
+      setFieldErrors({ password: 'La contraseña debe tener al menos 8 caracteres' });
+      return false;
+    }
+
+    if (userType === 'staff') {
+      const hasUpperCase = /[A-Z]/.test(password);
+      const hasLowerCase = /[a-z]/.test(password);
+      const hasNumbers = /\d/.test(password);
+      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+      if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
+        setFieldErrors({
+          password: 'La contraseña debe contener mayúsculas, minúsculas, números y caracteres especiales'
+        });
+        return false;
+      }
+    }
+
+    clearFieldError('password');
+    return true;
+  };
+
+  // ✅ VALIDACIÓN DE CONFIRMACIÓN DE CONTRASEÑA
+  const validateConfirmPassword = (confirmPassword: string): boolean => {
+    if (password !== confirmPassword) {
+      setFieldErrors({ confirmPassword: 'Las contraseñas no coinciden' });
+      return false;
+    }
+
+    clearFieldError('confirmPassword');
+    return true;
+  };
+
+  // ✅ MANEJO DE SUBMIT UNIFICADO CON SEGURIDAD MEJORADA
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setLocalError('');
+    setFieldErrors({});
     clearError();
 
-    if (!validateInput()) {
+    // Validar campos
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password);
+    let isConfirmPasswordValid = true;
+
+    if (mode === 'register' && userType === 'candidate') {
+      isConfirmPasswordValid = validateConfirmPassword(confirmPassword);
+
+      if (!firstName.trim()) {
+        setFieldErrors(prev => ({ ...prev, firstName: 'El nombre es requerido' }));
+        return;
+      }
+
+      if (!lastName.trim()) {
+        setFieldErrors(prev => ({ ...prev, lastName: 'El apellido es requerido' }));
+        return;
+      }
+    }
+
+    if (!isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
       return;
     }
 
-    // ✅ RATE LIMITING
+    // ✅ RATE LIMITING MEJORADO
+    if (!rateLimiter.isAllowed()) {
+      const remainingTime = Math.ceil(rateLimiter.getRemainingTime() / 1000 / 60);
+      setLocalError(`Demasiados intentos fallidos. Intenta de nuevo en ${remainingTime} minutos.`);
+      return;
+    }
+
+    // ✅ RATE LIMITING ADICIONAL (LEGACY)
     const fingerprint = generateClientFingerprint();
     if (!formSubmissionLimiter.isAllowed(fingerprint)) {
       setLocalError('Demasiados intentos. Espera 1 minuto antes de intentarlo de nuevo.');
@@ -116,12 +226,16 @@ const AuthForm: React.FC<AuthFormProps> = ({
     try {
       let authResponse;
 
+      // Sanitizar inputs
+      const sanitizedEmail = email.trim().toLowerCase();
+      const sanitizedPassword = password.trim();
+
       if (mode === 'login') {
         // ✅ LOGIN SEGÚN TIPO DE USUARIO
         if (userType === 'candidate') {
-          authResponse = await candidateLogin(email, password);
+          authResponse = await candidateLogin(sanitizedEmail, sanitizedPassword);
         } else {
-          authResponse = await staffLogin(email, password);
+          authResponse = await staffLogin(sanitizedEmail, sanitizedPassword);
         }
       } else {
         // ✅ REGISTRO (SOLO CANDIDATOS)
@@ -131,18 +245,18 @@ const AuthForm: React.FC<AuthFormProps> = ({
         }
 
         authResponse = await registerCandidate({
-          email,
-          password,
-          first_name: firstName,
-          last_name: lastName,
-          name: `${firstName} ${lastName}`.trim()
+          email: sanitizedEmail,
+          password: sanitizedPassword,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          name: `${firstName.trim()} ${lastName.trim()}`
         });
       }
 
       if (authResponse.success) {
         // ✅ CALLBACK SUCCESS
         onSuccess && onSuccess({
-          email,
+          email: sanitizedEmail,
           user: authResponse.user,
           userType,
           mode
@@ -152,13 +266,13 @@ const AuthForm: React.FC<AuthFormProps> = ({
         const from = (location.state as any)?.from?.pathname || '/';
         navigate(from, { replace: true });
 
-        console.log(`✅ ${mode} exitoso para ${userType}, redirigiendo a:`, from);
       } else {
         setLocalError(authResponse.message || `Error en ${mode}`);
       }
     } catch (err: any) {
       console.error(`❌ Error en ${mode}:`, err);
-      setLocalError(err.message || 'Error inesperado');
+      // Error genérico para evitar información sensible
+      setLocalError('Error de conexión. Intenta de nuevo.');
     }
   };
 
@@ -169,13 +283,21 @@ const AuthForm: React.FC<AuthFormProps> = ({
     return `${action} - ${type}`;
   };
 
-  // ✅ CREDENCIALES DE PRUEBA
+  // ✅ CREDENCIALES DE PRUEBA ACTUALIZADAS
   const getTestCredentials = () => {
     if (userType === 'candidate') {
       return 'candidate@bubble.com / candidate123';
     } else {
-      return 'recruiter@bubble.com / recruiter123 (o admin@bubble.com / admin123)';
+      return 'recruiter@bubblegum.agency / Recruiter123! (debe incluir mayúsculas, minúsculas, números y caracteres especiales)';
     }
+  };
+
+  // ✅ REQUISITOS DE CONTRASEÑA
+  const getPasswordRequirements = () => {
+    if (userType === 'staff') {
+      return 'La contraseña debe tener al menos 8 caracteres e incluir mayúsculas, minúsculas, números y caracteres especiales.';
+    }
+    return 'La contraseña debe tener al menos 8 caracteres.';
   };
 
   // ✅ MOSTRAR ERROR
@@ -244,23 +366,32 @@ const AuthForm: React.FC<AuthFormProps> = ({
           </>
         )}
 
-        {/* ✅ EMAIL INPUT */}
+        {/* ✅ EMAIL INPUT CON VALIDACIÓN MEJORADA */}
         <div className="form-group">
           <label htmlFor="email">Email:</label>
           <input
             id="email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value.trim())}
-            placeholder="tu@email.com"
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (fieldErrors.email) {
+                validateField('email', e.target.value);
+              }
+            }}
+            onBlur={(e) => validateField('email', e.target.value)}
+            placeholder={userType === 'staff' ? "tu.email@bubblegum.agency" : "tu@email.com"}
             required
             autoComplete="email"
             disabled={isLoading}
-            className={displayError && !InputSanitizer.sanitizeEmail(email) ? 'error' : ''}
+            className={fieldErrors.email ? 'error' : ''}
           />
+          {fieldErrors.email && (
+            <p className="field-error" role="alert">{fieldErrors.email}</p>
+          )}
         </div>
 
-        {/* ✅ PASSWORD INPUT */}
+        {/* ✅ PASSWORD INPUT CON VALIDACIÓN MEJORADA */}
         <div className="form-group">
           <label htmlFor="password">Contraseña:</label>
           <div className="password-input-container">
@@ -268,12 +399,18 @@ const AuthForm: React.FC<AuthFormProps> = ({
               id="password"
               type={showPassword ? 'text' : 'password'}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (fieldErrors.password) {
+                  validateField('password', e.target.value);
+                }
+              }}
+              onBlur={(e) => validateField('password', e.target.value)}
               placeholder="Tu contraseña"
               required
               autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
               disabled={isLoading}
-              className={displayError && password.length < 6 ? 'error' : ''}
+              className={fieldErrors.password ? 'error' : ''}
             />
             <button
               type="button"
@@ -285,9 +422,12 @@ const AuthForm: React.FC<AuthFormProps> = ({
               {showPassword ? '👁️‍🗨️' : '👁️'}
             </button>
           </div>
+          {fieldErrors.password && (
+            <p className="field-error" role="alert">{fieldErrors.password}</p>
+          )}
         </div>
 
-        {/* ✅ CONFIRMAR PASSWORD (SOLO REGISTRO) */}
+        {/* ✅ CONFIRMAR PASSWORD CON VALIDACIÓN MEJORADA */}
         {mode === 'register' && userType === 'candidate' && (
           <div className="form-group">
             <label htmlFor="confirmPassword">Confirmar Contraseña:</label>
@@ -295,13 +435,22 @@ const AuthForm: React.FC<AuthFormProps> = ({
               id="confirmPassword"
               type="password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value);
+                if (fieldErrors.confirmPassword) {
+                  validateField('confirmPassword', e.target.value);
+                }
+              }}
+              onBlur={(e) => validateField('confirmPassword', e.target.value)}
               placeholder="Confirma tu contraseña"
               required
               autoComplete="new-password"
               disabled={isLoading}
-              className={displayError && password !== confirmPassword ? 'error' : ''}
+              className={fieldErrors.confirmPassword ? 'error' : ''}
             />
+            {fieldErrors.confirmPassword && (
+              <p className="field-error" role="alert">{fieldErrors.confirmPassword}</p>
+            )}
           </div>
         )}
 
@@ -320,11 +469,20 @@ const AuthForm: React.FC<AuthFormProps> = ({
           </div>
         )}
 
-        {/* ✅ CREDENCIALES DE PRUEBA (SOLO LOGIN) */}
+        {/* ✅ CREDENCIALES DE PRUEBA Y REQUISITOS */}
         {mode === 'login' && (
           <div className="test-credentials">
             <small>
               <strong>Prueba con:</strong> {getTestCredentials()}
+            </small>
+          </div>
+        )}
+
+        {/* ✅ REQUISITOS DE CONTRASEÑA PARA STAFF */}
+        {userType === 'staff' && (
+          <div className="password-requirements">
+            <small className="requirements-text">
+              <strong>Requisitos de contraseña:</strong> {getPasswordRequirements()}
             </small>
           </div>
         )}

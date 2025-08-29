@@ -566,6 +566,8 @@ export function initializeImageOptimization(): void {
     document.head.appendChild(style);
 }
 
+
+
 export default {
     OptimizedImage,
     OptimizedBackgroundImage,

@@ -1,9 +1,13 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
-use Security\CsrfMiddleware;
+use Middleware\CsrfMiddleware;
+use Middleware\JWTMiddleware;
+
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
     CsrfMiddleware::protect(); // double-submit cookie
 }
 
@@ -74,13 +78,13 @@ try {
 
 
     $data = $row + [
-      'puestos_anteriores' => $exp->fetchAll(PDO::FETCH_ASSOC),
-      'educacion' => $edu->fetchAll(PDO::FETCH_ASSOC),
-      'proyectos' => array_map(function ($p) {
-          $p['tecnologias'] = $p['tecnologias'] ? json_decode($p['tecnologias'], true) : [];
-          return $p;
-      }, $proj->fetchAll(PDO::FETCH_ASSOC)),
-      'exported_at' => gmdate('c')
+        'puestos_anteriores' => $exp->fetchAll(PDO::FETCH_ASSOC),
+        'educacion' => $edu->fetchAll(PDO::FETCH_ASSOC),
+        'proyectos' => array_map(function ($p) {
+            $p['tecnologias'] = $p['tecnologias'] ? json_decode($p['tecnologias'], true) : [];
+            return $p;
+        }, $proj->fetchAll(PDO::FETCH_ASSOC)),
+        'exported_at' => gmdate('c')
     ];
 
     if (class_exists('Utils\\Log')) {
@@ -93,4 +97,3 @@ try {
     }
     jsonResponse(500, ['success' => false, 'error' => ['code' => 'EXPORT_ERROR', 'message' => 'Error exportando']]);
 }
-

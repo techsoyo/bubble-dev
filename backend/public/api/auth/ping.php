@@ -1,5 +1,9 @@
-<?php declare(strict_types=1);
-use Security\CsrfMiddleware;
+<?php
+
+declare(strict_types=1);
+
+use Middleware\CsrfMiddleware;
+use Middleware\JWTMiddleware;
 
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria

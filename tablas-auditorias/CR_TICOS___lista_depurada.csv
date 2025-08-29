@@ -1,0 +1,24 @@
+,file,line,issue,snippet
+0,/audit/backend/scripts/add-gdpr-consent-columns.php,79,PHP dangerous eval/exec/etc: \bexec\s*\(,$pdo->exec($columnInfo['sql']);
+1,/audit/backend/scripts/add-gdpr-consent-columns.php,124,PHP dangerous eval/exec/etc: \bexec\s*\(,$pdo->exec($indexSql);
+2,/audit/backend/scripts/setup-candidate-tables.php,127,PHP dangerous eval/exec/etc: \bexec\s*\(,$pdo->exec($alterSQL);
+3,/audit/backend/scripts/setup-candidate-tables.php,174,PHP dangerous eval/exec/etc: \bexec\s*\(,$pdo->exec($config['sql']);
+4,/audit/backend/scripts/test_notification_preferences.php,30,PHP dangerous eval/exec/etc: \bexec\s*\(,$db->exec($sql);
+5,/audit/backend/src/Middleware/JWTMiddleware.php,41,Obfuscation / base64: base64_decode\s*\(,"return base64_decode(strtr($data, '-_', '+/'));"
+6,/audit/backend/src/Models/SocialLogin.php,474,Obfuscation / base64: base64_decode\s*\(,$data = base64_decode($encryptedValue);
+7,/audit/backend/src/Services/PdfTextService.php,343,PHP dangerous eval/exec/etc: \bexec\s*\(,"@exec($probe, $out, $code);"
+8,/audit/backend/src/Services/PdfTextService.php,355,PHP dangerous eval/exec/etc: \bexec\s*\(,"exec($cmd, $output, $exit); // Limitaciones: sin timeout duro nativo."
+9,/audit/backend/src/Utils/JWT.php,460,Obfuscation / base64: base64_decode\s*\(,"return base64_decode(strtr($data, '-_', '+/'));"
+10,/audit/backend/src/Utils/JWTHelper.php,21,Obfuscation / base64: base64_decode\s*\(,"return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));"
+11,/audit/backend/config/input-sanitizer.php,15,PHP dangerous eval/exec/etc: \bexec\s*\(,"'/exec(\s|\+)+(s|x)p\w+/i',                   // stored procedures"
+12,/audit/backend/public/auth-simple.php,49,Obfuscation / base64: base64_decode\s*\(,$decoded = base64_decode($token);
+13,/audit/backend/public/auth.php,53,Obfuscation / base64: base64_decode\s*\(,$decoded = base64_decode($token);
+14,/audit/backend/public/api/health-ocr.php,55,PHP dangerous eval/exec/etc: \bexec\s*\(,"@exec($cmd, $out, $code);"
+15,/audit/backend/public/api/auth/sso/callback.php,47,Obfuscation / base64: base64_decode\s*\(,"$payload = json_decode(base64_decode(explode('.', $id_token)[1]), true);"
+16,/audit/frontend/.env.development,15,Frontend secret leak: VITE_.*SECRET,VITE_JWT_SECRET_KEY=${VITE_JWT_SECRET_KEY}
+17,/audit/frontend/.env.development,15,Frontend secret leak: JWT_SECRET,VITE_JWT_SECRET_KEY=${VITE_JWT_SECRET_KEY}
+18,/audit/frontend/.env.production,16,Frontend secret leak: VITE_.*SECRET,VITE_JWT_SECRET_KEY=${VITE_JWT_SECRET_KEY}
+19,/audit/frontend/.env.production,16,Frontend secret leak: JWT_SECRET,VITE_JWT_SECRET_KEY=${VITE_JWT_SECRET_KEY}
+20,/audit/frontend/.env-cypress.example,91,Frontend secret leak: JWT_SECRET,CYPRESS_JWT_SECRET=your-jwt-secret-key
+21,/audit/frontend/.env,15,Frontend secret leak: VITE_.*SECRET,VITE_JWT_SECRET_KEY=ZmVkY2JhOTg3NjU0MzIxMGZlZGNiYTk4NzY1NDMyMTBmZWRjYmE5ODc2NTQzMjEwZmVkY2JhOTg3NjU0MzIxMA==
+22,/audit/frontend/.env,15,Frontend secret leak: JWT_SECRET,VITE_JWT_SECRET_KEY=ZmVkY2JhOTg3NjU0MzIxMGZlZGNiYTk4NzY1NDMyMTBmZWRjYmE5ODc2NTQzMjEwZmVkY2JhOTg3NjU0MzIxMA==

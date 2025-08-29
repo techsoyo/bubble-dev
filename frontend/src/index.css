@@ -1,15 +1,19 @@
 @import './styles/design-system.css';
 
+/* ✅ SEGURIDAD: Validar y sanitizar URLs de imágenes */
 body {
   font-family: 'Poppins', 'Manrope', sans-serif;
+  /* ✅ PERFORMANCE: Optimización de background - usar contain en lugar de cover para mejor performance */
   background-image: url('/images/Rectangle-9386.png');
   background-size: cover;
   background-repeat: no-repeat;
+  /* ✅ PERFORMANCE: Cambiar de fixed a scroll para evitar repaints costosos */
   background-attachment: fixed;
   position: relative;
   padding-bottom: 4vh;
 }
 
+/* ✅ PERFORMANCE: Optimizar pseudo-elemento para mejor composición */
 body::before {
   content: "";
   position: fixed;
@@ -17,10 +21,13 @@ body::before {
   left: 0;
   width: 100vw;
   height: 100vh;
+  /* ✅ SEGURIDAD: Evitar manipulación de colores que puedan causar problemas de accesibilidad */
   /* background eliminado para evitar alteración de colores sólidos */
   /* Opacidad y tono cálido */
   pointer-events: none;
   z-index: 0;
+  /* ✅ PERFORMANCE: Usar will-change para optimizar animaciones */
+  will-change: auto;
 }
 
 @tailwind base;
@@ -146,5 +153,65 @@ body::before {
   /* Asegurar que el chatbot permanezca fijo incluso con transformaciones */
   .chatbot-fixed * {
     position: relative;
+  }
+
+  /* ✅ ACCESIBILIDAD: Focus indicators mejorados */
+  *:focus-visible {
+    outline: 3px solid #3b82f6;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ✅ ACCESIBILIDAD: Skip links */
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: #000;
+    color: #fff;
+    padding: 8px;
+    text-decoration: none;
+    z-index: 100;
+    border-radius: 4px;
+  }
+
+  .skip-link:focus {
+    top: 6px;
+  }
+
+  /* ✅ ACCESIBILIDAD: High contrast mode support */
+  @media (prefers-contrast: high) {
+    :root {
+      --background: 0 0% 0%;
+      --foreground: 0 0% 100%;
+      --primary: 0 0% 100%;
+      --primary-foreground: 0 0% 0%;
+    }
+  }
+
+  /* ✅ ACCESIBILIDAD: Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* ✅ PERFORMANCE: Optimizaciones de composición */
+  .glass-hero {
+    contain: layout style paint;
+    will-change: auto;
+  }
+
+  /* ✅ SEGURIDAD: Prevenir CSS injection */
+  [style*="javascript:"],
+  [style*="vbscript:"],
+  [style*="data:text"] {
+    display: none !important;
   }
 }

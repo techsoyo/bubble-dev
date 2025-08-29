@@ -69,7 +69,7 @@ export default function TotJobs() {
     };
 
     const handleApply = () => {
-        navigate('/candidates/login');
+        navigate('/auth/register');
     };
 
     if (loading) {

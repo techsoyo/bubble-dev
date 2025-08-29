@@ -155,7 +155,7 @@ export function useOfflineOperations(options: UseOfflineOperationsOptions = {}) 
             body: request.body ? JSON.stringify(request.body) : null
           });
 
-          if (response.ok) {
+          if (response.ok && request.id) {
             // Si la operación se completó con éxito, eliminarla de pendientes
             await offlineDataManager.removePendingRequest(request.id);
             successCount++;

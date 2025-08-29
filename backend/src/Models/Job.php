@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Models;
 
 use Utils\Logger;
@@ -9,17 +12,17 @@ use Utils\Logger;
 class Job extends BaseModel
 {
     /**
-     * Nombre de la tabla (BaseModel aplicarÃƒÆ’Ã‚Â¡ prefijo bt_ automÃƒÆ’Ã‚Â¡ticamente)
+     * Nombre de la tabla (BaseModel aplicarí¡ prefijo bt_ automí¡ticamente)
      * @var string
      */
     protected string $table = 'jobs';
     /*
-     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÃƒÆ’Ã¢â‚¬Å“N AUTOMÃƒÆ’Ã‚ÂTICA APLICADA
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÓN AUTOMÁTICA APLICADA
      * Modelo: Job
      * Fecha: 2025-08-23
      * 
      * Cambios realizados:
-     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aÃƒÆ’Ã‚Â±adidos: ['employment_type', 'currency', 'posted_date', 'closing_date', 'benefits', 'remote_eligible', 'visa_sponsorship', 'created_by']
+     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aí±adidos: ['employment_type', 'currency', 'posted_date', 'closing_date', 'benefits', 'remote_eligible', 'visa_sponsorship', 'created_by']
      * ÃƒÂ¢Ã‚ÂÃ…â€™ Campos removidos: ['company_name', 'required_skills', 'preferred_skills', 'salary_range', 'salary_currency', 'salary_period', 'contract_type', 'type', 'level', 'category', 'posted_by', 'posted_at', 'expires_at', 'is_featured']
      * ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Total campos fillable: 16
      * 
@@ -30,7 +33,7 @@ class Job extends BaseModel
 
     /**
      * Campos que pueden ser asignados masivamente
-     * Basado en anÃƒÆ’Ã‚Â¡lisis de BD tabla bt_jobs
+     * Basado en Anáslisis de BD tabla bt_jobs
      * @var array
      */
     protected array $fillable = [
@@ -53,7 +56,7 @@ class Job extends BaseModel
     ];
 
     /**
-     * Campos ocultos para proteger informaciÃƒÆ’Ã‚Â³n sensible
+     * Campos ocultos para proteger información sensible
      * @var array
      */
     protected array $hidden = [
@@ -63,7 +66,7 @@ class Job extends BaseModel
     ];
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS DE VISTAS - Funcionalidad especÃƒÆ’Ã‚Â­fica de trabajos
+     * MÉTODOS DE VISTAS - Funcionalidad especí­fica de trabajos
      */
 
     /**
@@ -95,10 +98,10 @@ class Job extends BaseModel
             }
         }
 
-        // AÃƒÆ’Ã‚Â±adir ordenaciÃƒÆ’Ã‚Â³n por defecto (posted_date reemplaza a posted_at)
+        // Aí±adir ordenación por defecto (posted_date reemplaza a posted_at)
         $sql .= ' ORDER BY posted_date DESC';
 
-        // AÃƒÆ’Ã‚Â±adir paginaciÃƒÆ’Ã‚Â³n
+        // Aí±adir paginación
         $offset = ($page - 1) * $limit;
         $sql .= ' LIMIT :limit OFFSET :offset';
         $params[':limit'] = $limit;
@@ -148,7 +151,7 @@ class Job extends BaseModel
     }
 
     /**
-     * Obtiene candidatos que coinciden con un trabajo especÃƒÆ’Ã‚Â­fico
+     * Obtiene candidatos que coinciden con un trabajo especí­fico
      */
     public function getJobCandidateMatches(string $jobId, int $limit = 20): array
     {
@@ -180,7 +183,7 @@ class Job extends BaseModel
     }
 
     /**
-     * Override del mÃƒÆ’Ã‚Â©todo findAll para usar vistas de BD en lugar de datos dummy
+     * Override del método findAll para usar vistas de BD en lugar de datos dummy
      */
     public function findAll(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, array $orderBy = []): array
     {
@@ -192,21 +195,21 @@ class Job extends BaseModel
             throw new \InvalidArgumentException('Limit must be between 1 and ' . self::MAX_LIMIT);
         }
 
-        // Usar la vista con metadatos para obtener informaciÃƒÆ’Ã‚Â³n completa
+        // Usar la vista con metadatos para obtener información completa
         $sql = "SELECT * FROM vw_jobs_with_meta";
-        // Inicializar parÃƒÆ’Ã‚Â¡metros para binds (evita "undefined variable" si no hay filtros)
+        // Inicializar parí¡metros para binds (evita "undefined variable" si no hay filtros)
         $params = [];
         // Si no se especifica $orderBy, caer a posted_date (nuevo campo)
         if (empty($orderBy)) {
             $orderBy = ['posted_date' => 'DESC'];
         }
 
-        // Construir clÃƒÆ’Ã‚Â¡usula WHERE
+        // Construir clí¡usula WHERE
         if (!empty($filters)) {
             $whereConditions = [];
             foreach ($filters as $field => $value) {
                 if ($value !== null && $this->isValidFieldName($field)) {
-                    // Filtro especial para bÃƒÆ’Ã‚Âºsqueda en habilidades
+                    // Filtro especial para búsqueda en habilidades
                     if ($field === 'skills') {
                         $whereConditions[] = "skills_text LIKE :filter_skills";
                         $params[":filter_skills"] = '%' . $value . '%';
@@ -221,7 +224,7 @@ class Job extends BaseModel
             }
         }
 
-        // Construir clÃƒÆ’Ã‚Â¡usula ORDER BY
+        // Construir clí¡usula ORDER BY
         if (!empty($orderBy)) {
             $orderClauses = [];
             foreach ($orderBy as $field => $direction) {
@@ -236,7 +239,7 @@ class Job extends BaseModel
             $sql .= ' ORDER BY posted_at DESC';
         }
 
-        // AÃƒÆ’Ã‚Â±adir paginaciÃƒÆ’Ã‚Â³n
+        // Aí±adir paginación
         $offset = ($page - 1) * $limit;
         $sql .= ' LIMIT :limit OFFSET :offset';
         $params[':limit'] = $limit;
@@ -298,13 +301,13 @@ class Job extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS ESPECÃƒÆ’Ã‚ÂFICOS MANTENIDOS - Con mejoras para usar BD real
+     * MÉTODOS ESPECíFICOS MANTENIDOS - Con mejoras para usar BD real
      */
 
     /**
-     * Encuentra trabajos por tÃƒÆ’Ã‚Â­tulo
+     * Encuentra trabajos por tí­tulo
      *
-     * @param string $title TÃƒÆ’Ã‚Â­tulo a buscar
+     * @param string $title Tí­tulo a buscar
      * @return array Lista de trabajos
      */
     public function findByTitle($title): array
@@ -325,9 +328,9 @@ class Job extends BaseModel
     }
 
     /**
-     * Encuentra trabajos por ubicaciÃƒÆ’Ã‚Â³n
+     * Encuentra trabajos por ubicación
      *
-     * @param string $location UbicaciÃƒÆ’Ã‚Â³n a buscar
+     * @param string $location Ubicación a buscar
      * @return array Lista de trabajos
      */
     public function findByLocation($location): array
@@ -348,8 +351,8 @@ class Job extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS CRUD ENCAPSULADOS - Para uso externo
-     * Estos mÃƒÆ’Ã‚Â©todos encapsulan todas las operaciones CRUD y lÃƒÆ’Ã‚Â³gica de negocio
+     * MÉTODOS CRUD ENCAPSULADOS - Para uso externo
+     * Estos métodos encapsulan todas las operaciones CRUD y lógica de negocio
      */
 
     /**
@@ -357,7 +360,7 @@ class Job extends BaseModel
      */
     public function createJob(array $data): mixed
     {
-        // Validaciones especÃƒÆ’Ã‚Â­ficas del dominio
+        // Validaciones especí­ficas del dominio
         if (empty($data['title'])) {
             throw new \InvalidArgumentException('Title is required');
         }
@@ -469,7 +472,7 @@ class Job extends BaseModel
     }
 
     /**
-     * Buscar trabajo por tÃƒÆ’Ã‚Â­tulo exacto
+     * Buscar trabajo por tí­tulo exacto
      */
     public function getJobByTitle(string $title): ?array
     {
@@ -509,7 +512,7 @@ class Job extends BaseModel
         }
 
         try {
-            // Usar la vista que incluye skills_text para bÃƒÆ’Ã‚Âºsqueda mÃƒÆ’Ã‚Â¡s eficiente
+            // Usar la vista que incluye skills_text para búsqueda  más eficiente
             $skillConditions = [];
             $params = [];
 
@@ -546,18 +549,18 @@ class Job extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS CON CACHE Y OPTIMIZACIÃƒÆ’Ã¢â‚¬Å“N
+     * MÉTODOS CON CACHE Y OPTIMIZACIÓN
      */
 
     /**
-     * Obtener trabajos paginados con informaciÃƒÆ’Ã‚Â³n de aplicaciones (con cache)
+     * Obtener trabajos paginados con información de aplicaciones (con cache)
      */
     public function getJobsPaginatedWithCache(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT, int $cacheTtl = 300): array
     {
         $cacheKey = $this->generateCacheKey('jobs_paginated', array_merge($filters, ['page' => $page, 'limit' => $limit]));
 
         try {
-            // Intentar obtener desde cache si estÃƒÆ’Ã‚Â¡ habilitado
+            // Intentar obtener desde cache si estí¡ habilitado
             if ($cacheTtl > 0 && class_exists('\Utils\Cache')) {
                 return \Utils\Cache::get($cacheKey, $cacheTtl, function () use ($filters, $page, $limit) {
                     return $this->executeJobsPaginatedQuery($filters, $page, $limit);
@@ -578,14 +581,14 @@ class Job extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã‚Â©todo auxiliar para ejecutar la query paginada de trabajos
+     * Método auxiliar para ejecutar la query paginada de trabajos
      */
     private function executeJobsPaginatedQuery(array $filters, int $page, int $limit): array
     {
         // Usar vista con metadatos para los datos
         $data = $this->getJobsWithMeta($filters, $page, $limit);
 
-        // Obtener conteo total para paginaciÃƒÆ’Ã‚Â³n
+        // Obtener conteo total para paginación
         $total = $this->countAll($filters);
 
         $totalPages = (int) ceil($total / $limit);
@@ -632,11 +635,11 @@ class Job extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS DE UTILIDAD Y CACHE
+     * MÉTODOS DE UTILIDAD Y CACHE
      */
 
     /**
-     * Invalidar cache especÃƒÆ’Ã‚Â­fico de trabajos
+     * Invalidar cache especí­fico de trabajos
      */
     public function invalidateJobCache(): int
     {
@@ -652,7 +655,7 @@ class Job extends BaseModel
     }
 
     /**
-     * Generar clave de cache ÃƒÆ’Ã‚Âºnica
+     * Generar clave de cache única
      */
     protected function generateCacheKey(string $method, ...$params): string
     {
@@ -666,7 +669,7 @@ class Job extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã‚Â©todo de logging de errores usando la herencia de BaseModel
+     * Método de logging de errores usando la herencia de BaseModel
      */
     protected function logError(string $message, array $context = [], ?\Throwable $exception = null): void
     {
@@ -678,7 +681,7 @@ class Job extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã‚Â©todo de logging de debug usando la herencia de BaseModel
+     * Método de logging de debug usando la herencia de BaseModel
      */
     protected function logDebug(string $message, array $context = []): void
     {

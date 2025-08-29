@@ -1,26 +1,29 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Middleware;
 
 /**
- * SecurityMiddleware - Middleware de seguridad bÃƒÆ’Ã‚Â¡sico
+ * SecurityMiddleware - Middleware de seguridad bí¡sico
  * Proporciona validaciones de seguridad y headers CORS
  */
 class SecurityMiddleware
 {
 
   /**
-   * Validar request bÃƒÆ’Ã‚Â¡sico
+   * Validar request bí¡sico
    */
   public static function validateRequest()
   {
-    // Verificar mÃƒÆ’Ã‚Â©todo HTTP
+    // Verificar método HTTP
     $allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'];
     if (!in_array($_SERVER['REQUEST_METHOD'], $allowedMethods)) {
       http_response_code(405);
       return false;
     }
 
-    // ValidaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica de headers
+    // Validación bí¡sica de headers
     return true;
   }
 

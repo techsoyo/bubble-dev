@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 // @public
 declare(strict_types=1);
 
@@ -12,7 +14,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 // auth/sso/callback.php
 if (!isset($_GET['state']) || $_GET['state'] !== $_SESSION['oidc_state']) {
   http_response_code(400);
-  exit('Estado invÃƒÆ’Ã‚Â¡lido');
+  exit('Estado inví¡lido');
 }
 
 $client_id = 'TU_CLIENT_ID';
@@ -38,7 +40,7 @@ $data = json_decode($response, true);
 $id_token = $data['id_token'] ?? null;
 if (!$id_token) {
   http_response_code(400);
-  exit('No se recibiÃƒÆ’Ã‚Â³ ID token');
+  exit('No se recibió ID token');
 }
 
 // Decodifica el ID Token
@@ -50,8 +52,8 @@ if (!str_ends_with($payload['email'], '@xxagencia.agency')) {
   exit('No autorizado');
 }
 
-// Consultar en la BD si existe y tiene rol vÃƒÆ’Ã‚Â¡lido
-require_once __DIR__ . '/../../config/db.php'; // tu conexiÃƒÆ’Ã‚Â³n
+// Consultar en la BD si existe y tiene rol ví¡lido
+require_once __DIR__ . '/../../config/db.php'; // tu conexión
 $stmt = $pdo->prepare("SELECT id, role FROM bt_staff_profiles WHERE email = ? AND active = 1");
 $stmt->execute([$payload['email']]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -62,7 +64,7 @@ if (!$user) {
 }
 
 
-// Crear token de sesiÃƒÆ’Ã‚Â³n para API
+// Crear token de sesión para API
 $session_token = bin2hex(random_bytes(32));
 $stmt = $pdo->prepare("INSERT INTO bt_staff_sessions ( staff_user_id, refresh_jti, expires_at, created_at) VALUES ( ?, ?, DATE_ADD(NOW(), INTERVAL 8 HOUR), NOW())");
 $stmt->execute([$user['id'], $session_token]);
@@ -76,7 +78,7 @@ setcookie('__Host-admin.sid', $session_token, [
   'samesite' => 'Lax'
 ]);
 
-// Redirigir segÃƒÆ’Ã‚Âºn el rol
+// Redirigir según el rol
 if ($user['role'] === 'hr') {
   header('Location: https://bubblegum.agency/dashboard/hrdashboard');
 } elseif ($user['role'] === 'recruiter') {

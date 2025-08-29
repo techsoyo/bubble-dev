@@ -120,6 +120,10 @@ const useAIRecommendations = ({
         limit: maxRecommendations
       };
 
+      if (!candidateId) {
+        throw new Error('Candidate ID is required for recommendations');
+      }
+
       const result = await recommendationEngine.getJobRecommendations(candidateId, request);
 
       setState(prev => ({

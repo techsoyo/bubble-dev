@@ -1,10 +1,13 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Utils;
 
 /**
- * AutenticaciÃƒÆ’Ã‚Â³n bÃƒÆ’Ã‚Â¡sica Bearer configurable.
+ * Autenticación bí¡sica Bearer configurable.
  * REQUIRE_AUTH_FOR_CONFIRM=true obliga a Authorization: Bearer <token>.
- * Si AUTH_BEARER_TOKEN estÃƒÆ’Ã‚Â¡ definido, debe coincidir; si no, cualquier token no vacÃƒÆ’Ã‚Â­o se acepta (stub).
+ * Si AUTH_BEARER_TOKEN estí¡ definido, debe coincidir; si no, cualquier token no vací­o se acepta (stub).
  */
 final class Auth
 {
@@ -33,12 +36,12 @@ final class Auth
         http_response_code(401);
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode([
-          'success' => false,
-          'error' => [
-            'code' => 'AUTH_REQUIRED',
-            'message' => 'AutenticaciÃƒÆ’Ã‚Â³n requerida',
-            'details' => (object)[]
-          ]
+            'success' => false,
+            'error' => [
+                'code' => 'AUTH_REQUIRED',
+                'message' => 'Autenticación requerida',
+                'details' => (object)[]
+            ]
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if (class_exists(Log::class)) {
             Log::json('warn', ['event' => 'auth', 'tag' => 'DENY']);

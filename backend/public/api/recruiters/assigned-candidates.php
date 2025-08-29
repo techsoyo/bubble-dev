@@ -1,16 +1,18 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
-    CsrfMiddleware::protect(); // double-submit cookie
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+  CsrfMiddleware::protect(); // double-submit cookie
 }
 
 if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized (cookie required)']);
-    exit;
+  http_response_code(401);
+  echo json_encode(['error' => 'Unauthorized (cookie required)']);
+  exit;
 }
 
 // assigned-candidates.php - Obtener candidatos asignados a un reclutador
@@ -103,17 +105,17 @@ try {
             c.created_at,
             c.status,
             
-            -- InformaciÃƒÆ’Ã‚Â³n de departamento del candidato
+            -- Información de departamento del candidato
             cd.id as department_id,
             cd.name as candidateDepartment,
             cdc.name as department_category,
             
-            -- InformaciÃƒÆ’Ã‚Â³n de asignaciÃƒÆ’Ã‚Â³n
+            -- Información de asignación
             ca.assigned_at,
             ca.status as assignment_status,
             ca.notes as assignment_notes,
             
-            -- InformaciÃƒÆ’Ã‚Â³n del reclutador
+            -- Información del reclutador
             sp.name as recruiterName,
             sp.email as recruiterEmail,
             sp.department as recruiterDepartment
@@ -212,4 +214,3 @@ try {
     'error' => $e->getMessage()
   ]);
 }
-

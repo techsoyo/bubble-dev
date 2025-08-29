@@ -17,7 +17,7 @@ class CandidateController
     {
         $this->candidateModel = new Candidate();
     }
-    // MÃƒÆ’Ã‚Â©todos CRUD - llamadas directas al modelo
+    // Métodos CRUD - llamadas directas al modelo
     public function searchCandidates($filters = [], $page = 1, $limit = 20)
     {
         return $this->candidateModel->getCandidatesList($filters, $page, $limit);
@@ -36,7 +36,7 @@ class CandidateController
         return $this->candidateModel->store($data);
     }
 
-    // MÃƒÆ’Ã‚Â©todos especÃƒÆ’Ã‚Â­ficos que mantienen lÃƒÆ’Ã‚Â³gica de negocio del controller
+    // Métodos especí­ficos que mantienen lógica de negocio del controller
     public function register(Request $request, array $params = [])
     {
         try {
@@ -59,7 +59,7 @@ class CandidateController
             $id = $this->candidateModel->store($data);
 
             if ($id === false) {
-                return ResponseHelper::fail("Error en el registro - datos invÃƒÆ’Ã‚Â¡lidos", 422);
+                return ResponseHelper::fail("Error en el registro - datos inví¡lidos", 422);
             }
 
             return ResponseHelper::success("Registro de candidato exitoso", [
@@ -110,7 +110,7 @@ class CandidateController
                 return ResponseHelper::fail("Se requiere 'cv' (archivo) o 'cv_base64'", 422);
             }
 
-            // TODO: Validaciones de tipo/tamaÃƒÆ’Ã‚Â±o y almacenamiento
+            // TODO: Validaciones de tipo/tamaí±o y almacenamiento
             // $storedPath = storeCv($fileInfo || $body['cv_base64'])
 
             return ResponseHelper::success("CV subido correctamente", [
@@ -198,7 +198,7 @@ class CandidateController
     public function assignedCandidates(Request $request, array $params = [])
     {
         try {
-            // Ejemplo: recruiter_id desde token/sesiÃƒÆ’Ã‚Â³n o query param
+            // Ejemplo: recruiter_id desde token/sesión o query param
             $recruiterId = $request->getQuery('recruiter_id') ?? null;
             $recruiterId = $recruiterId !== null ? (int)$recruiterId : null;
 

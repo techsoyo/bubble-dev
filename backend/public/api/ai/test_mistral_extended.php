@@ -27,7 +27,7 @@ curl_setopt_array($curl, [
     CURLOPT_TIMEOUT => 120 // 2 minutos
 ]);
 
-echo "ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¤ Enviando peticiÃƒÆ’Ã‚Â³n a Mistral...\n";
+echo "ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¤ Enviando petición a Mistral...\n";
 
 $response = curl_exec($curl);
 $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -46,7 +46,7 @@ if (curl_errno($curl)) {
         echo "ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ MISTRAL FUNCIONA CORRECTAMENTE\n\n";
         echo "ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ READY PARA PROBAR EL SISTEMA DE RESUMEN\n";
     } else {
-        echo 'ÃƒÂ¢Ã‚ÂÃ…â€™ Respuesta invÃƒÆ’Ã‚Â¡lida: ' . substr($response, 0, 200) . "\n";
+        echo 'ÃƒÂ¢Ã‚ÂÃ…â€™ Respuesta inví¡lida: ' . substr($response, 0, 200) . "\n";
     }
 }
 

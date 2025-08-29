@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Environment Configuration and Validation
  * 
  * Centralized environment variable management with validation
@@ -234,11 +234,7 @@ export const environment = {
         if (environment.isDevelopment()) {
             const config = getEnvironmentConfig();
             console.group('🌍 Environment Configuration');
-            console.log('Environment:', config.appEnv);
-            console.log('API Base URL:', config.apiBaseUrl);
-            console.log('Build Version:', config.buildVersion);
-            console.log('Build Date:', config.buildDate);
-            console.log('Feature Flags:', {
+            console.log({
                 analytics: config.enableAnalytics,
                 errorReporting: config.enableErrorReporting,
                 performanceMonitoring: config.enablePerformanceMonitoring,

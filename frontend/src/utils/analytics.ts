@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Módulo para cargar scripts de análisis de manera optimizada
  * 
  * Carga scripts de análisis de rendimiento como Google Analytics,
@@ -19,7 +19,6 @@ const ANALYTICS_IDS = {
  */
 export const loadAnalytics = () => {
   if (!isProduction) {
-    console.log('Scripts de análisis no cargados en entorno de desarrollo');
     return;
   }
 

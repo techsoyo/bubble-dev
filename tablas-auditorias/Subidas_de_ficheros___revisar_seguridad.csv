@@ -1,0 +1,57 @@
+file,line,context
+/audit/backend/src/Controller-bak/UploadController.php,18,"      }
+
+      // TODO: mover a storage/uploads
+      // move_uploaded_file($file['tmp_name'], BACKEND_ROOT . '/storage/uploads/' . basename($file['name']));
+
+      return ResponseHelper::success('Archivo subido', [
+        'name' => $file['name'] ?? null,"
+/audit/backend/src/Controllers/UploadController.php,18,"      }
+
+      // TODO: mover a storage/uploads
+      // move_uploaded_file($file['tmp_name'], BACKEND_ROOT . '/storage/uploads/' . basename($file['name']));
+
+      return ResponseHelper::success('Archivo subido', [
+        'name' => $file['name'] ?? null,"
+/audit/backend/src/Services/FileService.php,122,"            $destinationPath = self::$uploadBasePath . DIRECTORY_SEPARATOR . $category . 's' . DIRECTORY_SEPARATOR . $safeFileName;
+
+            // Mover archivo con validación adicional
+            if (!move_uploaded_file($file['tmp_name'], $destinationPath)) {
+                Logger::error('Error al mover archivo uploaded', [
+                    'file' => $file['name'],
+                    'destination' => $destinationPath"
+/audit/backend/src/Services/PDFExtractorService.php,127,"        ini_set('display_startup_errors', 1);
+        error_reporting(E_ALL);
+
+        if (!move_uploaded_file($file['tmp_name'], $originalFilePath)) {
+            $lastError = error_get_last();
+            $errorMessage = $lastError ? $lastError['message'] : 'Error desconocido al copiar el archivo.';
+            error_log('ERROR: Fallo al copiar el PDF original: ' . $errorMessage);"
+/audit/backend/public/api/analyze_cv.php,227,"$safeFilename = 'cv_' . date('Y-m-d_H-i-s') . '_' . md5(uniqid()) . '.' . $extension;
+$destination = $uploadDir . $safeFilename;
+
+if (!move_uploaded_file($fileData['tmp_name'], $destination)) {
+  return ['status' => false, 'message' => 'Error al guardar el archivo.'];
+}
+"
+/audit/backend/public/api/analyze_cv_secure.php,320,"  $destination = $uploadDir . $safeFilename;
+
+  // Mover archivo de forma segura
+  if (!move_uploaded_file($fileData['tmp_name'], $destination)) {
+    return [
+      'success' => false,
+      'message' => 'Error al guardar el archivo'"
+/audit/backend/public/api/ai/parse-cv-openai.php,126,"
+    // Guardar archivo subido
+    $cvPath = $cvsDir . '/' . $filename;
+    if (!move_uploaded_file($file['tmp_name'], $cvPath)) {
+        http_response_code(500);
+        echo json_encode(['error' => 'No se pudo guardar el archivo']);
+        exit;"
+/audit/backend/public/api/cv/parse.php,141,"if (!is_dir($storageDir)) {
+    mkdir($storageDir, 0750, true);
+}
+if (!move_uploaded_file($file['tmp_name'], $safePath)) {
+    respondError(422, 'STORAGE_FAILED', 'No se pudo almacenar el archivo');
+}
+register_shutdown_function(static function () use ($safePath) {"

@@ -1,0 +1,34 @@
+# Cypress - Archivos a ignorar por seguridad
+# ======================================
+
+# Videos de tests (pueden contener datos sensibles)
+videos/
+
+# Screenshots (pueden contener datos sensibles)
+screenshots/
+
+# Archivos de configuración local con credenciales
+.env-cypress.local
+
+# Archivos temporales de testing
+temp/
+*.tmp
+
+# Logs de Cypress
+cypress/logs/
+
+# Archivos de datos sensibles que no deberían estar aquí
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+
+# Credenciales o datos personales
+*credentials*
+*password*
+*secret*
+
+# ⚠️  NOTA DE SEGURIDAD ⚠️
+# Nunca incluir credenciales reales en archivos versionados
+# Usar variables de entorno o archivos .local para datos sensibles

@@ -1,4 +1,4 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -27,6 +27,18 @@ import {
 } from '../../components/ui/card';
 import UploadCV from '../../components/UploadCV';
 import ChangePassword from '../../components/profile/ChangePassword';
+
+// Configuración centralizada de API endpoints
+const API_CONFIG = {
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+  ENDPOINTS: {
+    NOTIFICATION_PREFERENCES: '/api/get-notification-preferences.php',
+    SAVE_NOTIFICATION_PREFERENCES: '/api/save-notification-preferences.php',
+    CANDIDATE_EXPERIENCES: '/api/candidate-experiences.php',
+    CANDIDATE_NOTIFICATIONS: '/api/candidate-notifications.php'
+  },
+  TIMEOUT: parseInt(import.meta.env.VITE_API_TIMEOUT || '10000', 10)
+};
 
 // Types
 interface NotificationPreferences {
@@ -110,7 +122,6 @@ export default function CDDashboard(): JSX.Element {
   const loadApplications = useCallback(async (userId: string) => {
     try {
       const applications = await getCandidateApplications(userId);
-      console.log('Applications loaded:', applications);
       setApplicationsWithDetails(applications || []);
     } catch (err) {
       console.error('Error loading candidate applications:', err);
@@ -120,7 +131,7 @@ export default function CDDashboard(): JSX.Element {
 
   const loadNotificationPreferences = useCallback(async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/get-notification-preferences.php`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.NOTIFICATION_PREFERENCES}`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -137,15 +148,19 @@ export default function CDDashboard(): JSX.Element {
             reminders: result.data.reminders || false
           });
         }
+      } else {
+        console.error('Failed to load notification preferences:', response.status);
+        setSuccessMsg('Error al cargar preferencias de notificación');
       }
     } catch (error) {
       console.error('Error loading notification preferences:', error);
+      setSuccessMsg('Error de conexión al cargar preferencias');
     }
   }, []);
 
   const loadExperiences = useCallback(async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/candidate-experiences.php`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CANDIDATE_EXPERIENCES}`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -156,21 +171,22 @@ export default function CDDashboard(): JSX.Element {
       if (response.ok) {
         const result = await response.json();
         if (result.success && result.data) {
-          console.log('Experiences loaded:', result.data);
           setExperiences(result.data);
         }
       } else {
         console.error('Failed to load experiences:', response.status);
+        setSuccessMsg('Error al cargar experiencias');
       }
     } catch (err) {
       console.error('Error loading candidate experiences:', err);
       setExperiences([]);
+      setSuccessMsg('Error de conexión al cargar experiencias');
     }
   }, []);
 
   const loadNotifications = useCallback(async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/candidate-notifications.php`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CANDIDATE_NOTIFICATIONS}`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -181,15 +197,16 @@ export default function CDDashboard(): JSX.Element {
       if (response.ok) {
         const result = await response.json();
         if (result.success && result.data) {
-          console.log('Notifications loaded:', result.data);
           setNotificationsList(result.data);
         }
       } else {
         console.error('Failed to load notifications:', response.status);
+        setSuccessMsg('Error al cargar notificaciones');
       }
     } catch (err) {
       console.error('Error loading candidate notifications:', err);
       setNotificationsList([]);
+      setSuccessMsg('Error de conexión al cargar notificaciones');
     }
   }, []);
 
@@ -204,7 +221,7 @@ export default function CDDashboard(): JSX.Element {
 
       // Si no hay usuario autenticado después de la inicialización, redirigir al login
       if (!isLoggedIn || !user) {
-        navigate('/candidates/login');
+        navigate('/auth/register');
         return;
       }
 
@@ -234,21 +251,46 @@ export default function CDDashboard(): JSX.Element {
   }, [user, isLoggedIn, isLoading, isInitialized, navigate, loadApplications, loadExperiences, loadNotifications]);
 
   const handleProfileUpdate = useCallback(async () => {
+    // Validación de entrada mejorada
     if (!coverLetter.trim() && !salary.trim()) {
       setSuccessMsg('Por favor, completa al menos un campo para actualizar');
       return;
     }
 
+    // Validación de cover letter
+    if (coverLetter.trim() && coverLetter.trim().length < 10) {
+      setSuccessMsg('La carta de presentación debe tener al menos 10 caracteres');
+      return;
+    }
+
+    if (coverLetter.trim() && coverLetter.trim().length > 2000) {
+      setSuccessMsg('La carta de presentación no puede exceder 2000 caracteres');
+      return;
+    }
+
+    // Validación de salario
+    if (salary.trim()) {
+      const salaryNum = parseFloat(salary.trim());
+      if (isNaN(salaryNum) || salaryNum <= 0 || salaryNum > 1000000) {
+        setSuccessMsg('Por favor, ingresa un salario válido (máximo €1,000,000)');
+        return;
+      }
+    }
+
+    // Sanitización de datos
+    const sanitizedCoverLetter = coverLetter.trim().replace(/[<>]/g, '');
+    const sanitizedSalary = salary.trim();
+
     setLoading(true);
     try {
       const updateData: any = {};
 
-      if (coverLetter.trim()) {
-        updateData.professional_summary = coverLetter;
+      if (sanitizedCoverLetter) {
+        updateData.professional_summary = sanitizedCoverLetter;
       }
 
-      if (salary.trim()) {
-        updateData.availability = `Salario esperado: €${salary}`;
+      if (sanitizedSalary) {
+        updateData.availability = `Salario esperado: €${sanitizedSalary}`;
       }
 
       const result = await updateCandidateProfile(updateData);
@@ -270,7 +312,7 @@ export default function CDDashboard(): JSX.Element {
 
   const handleSaveNotificationPreferences = useCallback(async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/save-notification-preferences.php`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SAVE_NOTIFICATION_PREFERENCES}`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -291,7 +333,7 @@ export default function CDDashboard(): JSX.Element {
       }
     } catch (error) {
       console.error('Error saving preferences:', error);
-      setSuccessMsg('Error al guardar las preferencias');
+      setSuccessMsg('Error de conexión al guardar preferencias');
     }
   }, [notificationPreferences]);
 
@@ -428,7 +470,6 @@ export default function CDDashboard(): JSX.Element {
                     </CardHeader>
                     <CardContent>
                       <UploadCV onSuccess={(candidate) => {
-                        console.log('Candidato actualizado:', candidate);
                         setSuccessMsg('¡Tu CV fue actualizado exitosamente!');
                       }} />
                       <div className="mt-8 space-y-4">

@@ -96,12 +96,12 @@ abstract class BaseModel
 
         // Asignar tabla si se proporciona
         if ($table !== null) {
-            $this->table = T($table); // Usar la funciÃƒÆ’Ã‚Â³n T() para prefijos
+            $this->table = T($table); // Usar la función T() para prefijos
         } elseif (empty($this->table)) {
-            // Si no se proporciona tabla y no estÃƒÆ’Ã‚Â¡ definida, inferir del nombre de la clase
+            // Si no se proporciona tabla y no estí¡ definida, inferir del nombre de la clase
             $className = basename(str_replace('\\', '/', static::class));
 
-            // Manejar clases anÃƒÆ’Ã‚Â³nimas
+            // Manejar clases anónimas
             if (str_contains($className, 'class@anonymous')) {
                 $this->table = T('base_model_table');
             } else {
@@ -410,7 +410,7 @@ abstract class BaseModel
 
             $stmt->execute();
 
-            $this->invalidateCache(); // Invalidar cachÃƒÆ’Ã‚Â© despuÃƒÆ’Ã‚Â©s de crear
+            $this->invalidateCache(); // Invalidar caché después de crear
             $newId = $this->db->lastInsertId();
 
             Logger::info('Record created successfully', [
@@ -580,7 +580,7 @@ abstract class BaseModel
 
             $result = $stmt->execute();
 
-            $this->invalidateCache(); // Invalidar cachÃƒÆ’Ã‚Â© despuÃƒÆ’Ã‚Â©s de actualizar
+            $this->invalidateCache(); // Invalidar caché después de actualizar
 
             Logger::info('Record updated successfully', [
                 'model' => static::class,
@@ -687,7 +687,7 @@ abstract class BaseModel
 
             $stmt->execute();
 
-            // Invalidar cachÃƒÆ’Ã‚Â© si es una operaciÃƒÆ’Ã‚Â³n de escritura
+            // Invalidar caché si es una operación de escritura
             if (preg_match('/^(INSERT|UPDATE|DELETE)/i', $sql)) {
                 $this->invalidateCache();
             }
@@ -751,16 +751,16 @@ abstract class BaseModel
      */
     protected function isValidFieldName(string $fieldName): bool
     {
-        // Permite solo caracteres alfanumÃƒÆ’Ã‚Â©ricos y guiones bajos.
+        // Permite solo caracteres alfanuméricos y guiones bajos.
         if (preg_match('/^[a-zA-Z0-9_]+$/', $fieldName) !== 1) {
             return false;
         }
 
-        // En un entorno de desarrollo, comprueba si el campo estÃƒÆ’Ã‚Â¡ en la lista de fillable o es la clave primaria.
-        // Esto ayuda a detectar errores tipogrÃƒÆ’Ã‚Â¡ficos o intentos de usar campos no permitidos.
+        // En un entorno de desarrollo, comprueba si el campo estí¡ en la lista de fillable o es la clave primaria.
+        // Esto ayuda a detectar errores tipogrí¡ficos o intentos de usar campos no permitidos.
         if ($this->isDevelopment()) {
             if (!in_array($fieldName, $this->fillable) && $fieldName !== $this->primaryKey) {
-                // PodrÃƒÆ’Ã‚Â­amos registrar una advertencia aquÃƒÆ’Ã‚Â­ si quisiÃƒÆ’Ã‚Â©ramos ser mÃƒÆ’Ã‚Â¡s estrictos.
+                // Podrí­amos registrar una advertencia aquí­ si quisiéramos ser  más estrictos.
                 // Logger::warning("Attempted to use a non-fillable or non-primary-key field: {$fieldName}");
             }
         }

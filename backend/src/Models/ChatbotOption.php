@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Models;
 
 use Utils\Logger;
@@ -8,7 +11,7 @@ use PDOException;
  * Modelo ChatbotOption migrado para extender BaseModel
  * 
  * Representa las opciones de cada nodo del chatbot que los usuarios pueden seleccionar.
- * Incluye funcionalidades avanzadas de cache, validaciÃƒÆ’Ã‚Â³n de flujo y estadÃƒÆ’Ã‚Â­sticas.
+ * Incluye funcionalidades avanzadas de cache, validación de flujo y estadí­sticas.
  * 
  * @package Models
  * @author Bubble of Talents Development Team
@@ -22,12 +25,12 @@ class ChatbotOption extends BaseModel
      */
     protected string $table = 'bt_chatbot_options';
     /*
-     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÃƒÆ’Ã¢â‚¬Å“N AUTOMÃƒÆ’Ã‚ÂTICA APLICADA
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÓN AUTOMÁTICA APLICADA
      * Modelo: ChatbotOption
      * Fecha: 2025-08-23
      * 
      * Cambios realizados:
-     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aÃƒÆ’Ã‚Â±adidos: ['option_text', 'value', 'sort_order', 'metadata']
+     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aí±adidos: ['option_text', 'value', 'sort_order', 'metadata']
      * ÃƒÂ¢Ã‚ÂÃ…â€™ Campos removidos: ['text', 'action_type', 'action_data', 'order_position']
      * ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Total campos fillable: 7
      * 
@@ -69,13 +72,13 @@ class ChatbotOption extends BaseModel
     private const CACHE_TTL = 300;
 
     /**
-     * Obtener opciones de un nodo especÃƒÆ’Ã‚Â­fico con cache
+     * Obtener opciones de un nodo especí­fico con cache
      * 
      * @param string $nodeId ID del nodo
      * @param bool $activeOnly Solo opciones activas
      * @return array Lista de opciones del nodo
      * 
-     * @throws \InvalidArgumentException Si nodeId estÃƒÆ’Ã‚Â¡ vacÃƒÆ’Ã‚Â­o
+     * @throws \InvalidArgumentException Si nodeId estí¡ vací­o
      * @throws \RuntimeException Si hay error en la base de datos
      */
     public function getOptionsByNode(string $nodeId, bool $activeOnly = true): array
@@ -197,14 +200,14 @@ class ChatbotOption extends BaseModel
     }
 
     /**
-     * Procesar selecciÃƒÆ’Ã‚Â³n de usuario y retornar siguiente acciÃƒÆ’Ã‚Â³n
+     * Procesar selección de usuario y retornar siguiente acción
      * 
-     * @param string $optionId ID de la opciÃƒÆ’Ã‚Â³n seleccionada
+     * @param string $optionId ID de la opción seleccionada
      * @param array $userData Datos del usuario para contexto
-     * @return array InformaciÃƒÆ’Ã‚Â³n de la siguiente acciÃƒÆ’Ã‚Â³n
+     * @return array Información de la siguiente acción
      * 
-     * @throws \InvalidArgumentException Si optionId estÃƒÆ’Ã‚Â¡ vacÃƒÆ’Ã‚Â­o
-     * @throws \RuntimeException Si la opciÃƒÆ’Ã‚Â³n no existe o hay error
+     * @throws \InvalidArgumentException Si optionId estí¡ vací­o
+     * @throws \RuntimeException Si la opción no existe o hay error
      */
     public function processOptionSelection(string $optionId, array $userData = []): array
     {
@@ -264,12 +267,12 @@ class ChatbotOption extends BaseModel
     /**
      * Validar flujo de opciones verificando la existencia del nodo siguiente
      * 
-     * @param string $optionId ID de la opciÃƒÆ’Ã‚Â³n
+     * @param string $optionId ID de la opción
      * @param string $nextNodeId ID del siguiente nodo
-     * @return bool True si el flujo es vÃƒÆ’Ã‚Â¡lido
+     * @return bool True si el flujo es ví¡lido
      * 
-     * @throws \InvalidArgumentException Si los IDs estÃƒÆ’Ã‚Â¡n vacÃƒÆ’Ã‚Â­os
-     * @throws \RuntimeException Si hay error en la validaciÃƒÆ’Ã‚Â³n
+     * @throws \InvalidArgumentException Si los IDs estí¡n vací­os
+     * @throws \RuntimeException Si hay error en la validación
      */
     public function validateOptionFlow(string $optionId, string $nextNodeId): bool
     {
@@ -278,7 +281,7 @@ class ChatbotOption extends BaseModel
         }
 
         try {
-            // Verificar que la opciÃƒÆ’Ã‚Â³n existe y estÃƒÆ’Ã‚Â¡ activa
+            // Verificar que la opción existe y estí¡ activa
             $option = $this->findById($optionId);
             if (!$option || !$option['is_active']) {
                 Logger::warning('Option flow validation failed: option not found or inactive', [
@@ -310,17 +313,17 @@ class ChatbotOption extends BaseModel
     }
 
     /**
-     * Obtener estadÃƒÆ’Ã‚Â­sticas de uso de opciones
+     * Obtener estadí­sticas de uso de opciones
      * 
-     * @param int $days DÃƒÆ’Ã‚Â­as atrÃƒÆ’Ã‚Â¡s para calcular estadÃƒÆ’Ã‚Â­sticas
-     * @return array EstadÃƒÆ’Ã‚Â­sticas detalladas
+     * @param int $days Dí­as atrí¡s para calcular estadí­sticas
+     * @return array Estadí­sticas detalladas
      * 
      * @throws \RuntimeException Si hay error en la consulta
      */
     public function getOptionStats(int $days = 30): array
     {
         try {
-            // EstadÃƒÆ’Ã‚Â­sticas bÃƒÆ’Ã‚Â¡sicas de opciones
+            // Estadí­sticas bí¡sicas de opciones
             $basicStatsSql = "SELECT 
                 COUNT(*) as total_options,
                 SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_options,
@@ -330,7 +333,7 @@ class ChatbotOption extends BaseModel
 
             $basicStats = $this->query($basicStatsSql)[0] ?? [];
 
-            // EstadÃƒÆ’Ã‚Â­sticas por tipo de acciÃƒÆ’Ã‚Â³n
+            // Estadí­sticas por tipo de acción
             $actionStatsSql = "SELECT 
                 action_type,
                 COUNT(*) as count,
@@ -342,7 +345,7 @@ class ChatbotOption extends BaseModel
 
             $actionStats = $this->query($actionStatsSql);
 
-            // EstadÃƒÆ’Ã‚Â­sticas de uso desde analytics (si existe la tabla)
+            // Estadí­sticas de uso desde analytics (si existe la tabla)
             $usageStats = [];
             try {
                 $usageStatsSql = "SELECT 
@@ -385,13 +388,13 @@ class ChatbotOption extends BaseModel
     }
 
     /**
-     * Reordenar opciones de un nodo especÃƒÆ’Ã‚Â­fico
+     * Reordenar opciones de un nodo especí­fico
      * 
      * @param string $nodeId ID del nodo
      * @param array $optionIds Array de IDs en el orden deseado
      * @return bool True si fue exitoso
      * 
-     * @throws \InvalidArgumentException Si los parÃƒÆ’Ã‚Â¡metros son invÃƒÆ’Ã‚Â¡lidos
+     * @throws \InvalidArgumentException Si los parí¡metros son inví¡lidos
      * @throws \RuntimeException Si hay error en la base de datos
      */
     public function reorderNodeOptions(string $nodeId, array $optionIds): bool
@@ -441,13 +444,13 @@ class ChatbotOption extends BaseModel
     }
 
     /**
-     * Crear nueva opciÃƒÆ’Ã‚Â³n con validaciones
+     * Crear nueva opción con validaciones
      * 
-     * @param array $data Datos de la nueva opciÃƒÆ’Ã‚Â³n
-     * @return mixed ID de la nueva opciÃƒÆ’Ã‚Â³n
+     * @param array $data Datos de la nueva opción
+     * @return mixed ID de la nueva opción
      * 
-     * @throws \InvalidArgumentException Si los datos son invÃƒÆ’Ã‚Â¡lidos
-     * @throws \RuntimeException Si hay error en la creaciÃƒÆ’Ã‚Â³n
+     * @throws \InvalidArgumentException Si los datos son inví¡lidos
+     * @throws \RuntimeException Si hay error en la creación
      */
     public function store(array $data)
     {
@@ -472,9 +475,9 @@ class ChatbotOption extends BaseModel
     }
 
     /**
-     * Actualizar opciÃƒÆ’Ã‚Â³n con validaciones
+     * Actualizar opción con validaciones
      * 
-     * @param mixed $id ID de la opciÃƒÆ’Ã‚Â³n
+     * @param mixed $id ID de la opción
      * @param array $data Datos a actualizar
      * @return bool True si fue exitoso
      */
@@ -494,9 +497,9 @@ class ChatbotOption extends BaseModel
     }
 
     /**
-     * EliminaciÃƒÆ’Ã‚Â³n lÃƒÆ’Ã‚Â³gica (soft delete)
+     * Eliminación lógica (soft delete)
      * 
-     * @param mixed $id ID de la opciÃƒÆ’Ã‚Â³n
+     * @param mixed $id ID de la opción
      * @return bool True si fue exitoso
      */
     public function softDelete($id): bool
@@ -512,10 +515,10 @@ class ChatbotOption extends BaseModel
     }
 
     /**
-     * Obtener siguiente posiciÃƒÆ’Ã‚Â³n de orden para un nodo
+     * Obtener siguiente posición de orden para un nodo
      * 
      * @param string $nodeId ID del nodo
-     * @return int Siguiente posiciÃƒÆ’Ã‚Â³n disponible
+     * @return int Siguiente posición disponible
      */
     private function getNextOrderPosition(string $nodeId): int
     {
@@ -536,10 +539,10 @@ class ChatbotOption extends BaseModel
     }
 
     /**
-     * Verificar si el cache es vÃƒÆ’Ã‚Â¡lido
+     * Verificar si el cache es ví¡lido
      * 
      * @param string $key Clave del cache
-     * @return bool True si es vÃƒÆ’Ã‚Â¡lido
+     * @return bool True si es ví¡lido
      */
     private function isCacheValid(string $key): bool
     {
@@ -576,10 +579,10 @@ class ChatbotOption extends BaseModel
     }
 
     /**
-     * Obtener opciÃƒÆ’Ã‚Â³n por ID con cache
+     * Obtener opción por ID con cache
      * 
-     * @param mixed $id ID de la opciÃƒÆ’Ã‚Â³n
-     * @return array|null Datos de la opciÃƒÆ’Ã‚Â³n o null si no existe
+     * @param mixed $id ID de la opción
+     * @return array|null Datos de la opción o null si no existe
      */
     public function findById($id): ?array
     {
@@ -608,7 +611,7 @@ class ChatbotOption extends BaseModel
         return $option;
     }
     // ==========================================
-    // MÃƒÆ’Ã¢â‚¬Â°TODOS CRUD ENCAPSULADOS ESTÃƒÆ’Ã‚ÂNDAR
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
     // ==========================================
 
     /**
@@ -662,7 +665,7 @@ class ChatbotOption extends BaseModel
      * Actualizar chatbot_option con validaciones
      * @param mixed $id ID del chatbot_option a actualizar
      * @param array $data Nuevos datos
-     * @return bool True si la actualizaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @return bool True si la actualización fue exitosa
      */
     public function updateChatbotOption($id, array $data): bool
     {
@@ -694,7 +697,7 @@ class ChatbotOption extends BaseModel
     /**
      * Eliminar chatbot_option con validaciones
      * @param mixed $id ID del chatbot_option a eliminar
-     * @return bool True si la eliminaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @return bool True si la eliminación fue exitosa
      */
     public function deleteChatbotOption($id): bool
     {
@@ -722,9 +725,9 @@ class ChatbotOption extends BaseModel
 
     /**
      * Buscar chatbot_options con filtros
-     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
-     * @param int $page PÃƒÆ’Ã‚Â¡gina actual
-     * @param int $limit Registros por pÃƒÆ’Ã‚Â¡gina
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Pí¡gina actual
+     * @param int $limit Registros por pí¡gina
      * @param array $orderBy Criterios de ordenamiento
      * @return array Array de chatbot_options
      */
@@ -744,8 +747,8 @@ class ChatbotOption extends BaseModel
 
     /**
      * Contar total de chatbot_options con filtros
-     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
-     * @return int NÃƒÆ’Ã‚Âºmero total de chatbot_options
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de chatbot_options
      */
     public function countChatbotOptions(array $filters = []): int
     {
@@ -762,22 +765,22 @@ class ChatbotOption extends BaseModel
     }
 
     // ==========================================
-    // MÃƒÆ’Ã¢â‚¬Â°TODOS DE VALIDACIÃƒÆ’Ã¢â‚¬Å“N ESPECÃƒÆ’Ã‚ÂFICOS
+    // MÉTODOS DE VALIDACIÓN ESPECíFICOS
     // ==========================================
 
     /**
-     * Validar datos especÃƒÆ’Ã‚Â­ficos de chatbot_options
+     * Validar datos especí­ficos de chatbot_options
      * @param array $data Datos a validar
-     * @param mixed $id ID para validaciones de actualizaciÃƒÆ’Ã‚Â³n (opcional)
-     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son ví¡lidos
      */
     private function validateChatbotOptionData(array $data, $id = null): void
     {
-        // TODO: Implementar validaciones especÃƒÆ’Ã‚Â­ficas del modelo
+        // TODO: Implementar validaciones especí­ficas del modelo
     }
 
     /**
-     * Invalidar cache especÃƒÆ’Ã‚Â­fico de chatbot_options
+     * Invalidar cache especí­fico de chatbot_options
      */
     public function invalidateChatbotOptionCache(): int
     {

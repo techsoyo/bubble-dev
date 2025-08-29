@@ -46,9 +46,9 @@ export default function HomePage() {
   const { prefetch } = usePerformance();
 
   const {
-    data: jobsData,
+    data: jobsResponse,
     loading: jobsLoading
-  } = useOptimizedData<{ success: boolean; data: BackendJob[] }>({
+  } = useOptimizedData<{ success: boolean; data: { jobs: BackendJob[] } }>({
     fetchFunction: getJobs,
     cacheKey: 'homepage_jobs',
     cacheDuration: 5 * 60 * 1000,
@@ -67,12 +67,12 @@ export default function HomePage() {
   const newsDataRaw = getNewsData();
 
   const jobs = React.useMemo(() => {
-    if (!jobsData?.success || !Array.isArray(jobsData.data)) return [];
-    return jobsData.data.map(job => ({
+    if (!jobsResponse?.success || !Array.isArray(jobsResponse.data?.jobs)) return [];
+    return jobsResponse.data.jobs.map(job => ({
       ...job,
       datePosted: job.created_at ?? job.posted_date ?? '',
     }));
-  }, [jobsData]);
+  }, [jobsResponse]);
 
   const blogPosts: BlogPost[] = newsDataRaw.map((item: any) => ({
     id: item.id,

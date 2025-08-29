@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Bundle Analysis and Optimization Utilities
  * 
  * Advanced bundle analysis tools for production optimization including
@@ -180,17 +180,16 @@ export class AdvancedBundleAnalyzer extends BundleAnalysis {
 
                         if (hasIssues || isLargeBundle) {
                             console.group('🔍 Bundle Analysis Report');
-                            // ...eliminado console.log para producción...
-                            // ...eliminado console.log para producción...
-                            // ...eliminado console.log para producción...
+
+
+
                             const topChunks = report.chunks
                                 .sort((a, b) => b.size - a.size)
                                 .slice(0, 3)
                                 .map(chunk => `${chunk.name}: ${(chunk.size / 1024).toFixed(2)}KB`);
                             // Puedes descomentar la siguiente línea para ver los chunks más grandes en consola:
-                            // console.log('Top 3 chunks:', topChunks);
                             if (report.recommendations.length > 0) {
-                                // ...eliminado console.log para producción...
+
                             }
                             console.groupEnd();
                         }
@@ -310,7 +309,7 @@ export class SourceMapAnalyzer {
             if (!hasSourceMaps) {
                 console.warn('No source maps detected. Enable source maps for better debugging.');
             } else {
-                // ...eliminado console.log para producción...
+
             }
         }
     }
@@ -354,7 +353,7 @@ export class WebpackAnalyzerIntegration {
             };
 
             // Export to console for copy-paste into analysis tools
-            // ...eliminado console.log para producción...
+
         }
     }
 
@@ -390,6 +389,8 @@ export class WebpackAnalyzerIntegration {
  * Initialize bundle analysis
  */
 export function initializeBundleAnalysis(): void {
+    console.log('🎯 Inicializando análisis de bundle...');
+
     // Start real-time monitoring in development
     AdvancedBundleAnalyzer.startRealTimeMonitoring();
 
@@ -405,15 +406,52 @@ export function initializeBundleAnalysis(): void {
     // Export stats for analysis
     WebpackAnalyzerIntegration.exportBundleStats();
 
-    // Generate initial report
+    // Generar reporte inicial después de la carga
     window.addEventListener('load', () => {
-        setTimeout(() => {
-            AdvancedBundleAnalyzer.generateReport().then(report => {
-                // ...eliminado console.log para producción...
-            });
+        setTimeout(async () => {
+            try {
+                const report = await AdvancedBundleAnalyzer.generateReport();
+                console.log('📊 Reporte de bundle generado:', {
+                    tamañoTotal: `${(report.totalSize / 1024 / 1024).toFixed(2)}MB`,
+                    tamañoComprimido: `${(report.gzippedSize / 1024 / 1024).toFixed(2)}MB`,
+                    chunks: report.chunks.length,
+                    recomendaciones: report.recommendations.length
+                });
+
+                // Mostrar recomendaciones importantes
+                if (report.recommendations.length > 0) {
+                    console.log('💡 Recomendaciones de optimización:', report.recommendations.slice(0, 3));
+                }
+
+                // Alertar sobre bundles grandes
+                if (report.totalSize > 5 * 1024 * 1024) { // 5MB
+                    console.warn('⚠️ Bundle grande detectado. Considera optimizaciones adicionales.');
+                }
+            } catch (error) {
+                console.warn('Error generando reporte de bundle:', error);
+            }
         }, 2000);
     });
+
+    // Monitoreo de chunks cargados dinámicamente
+    const observer = new PerformanceObserver((list) => {
+        list.getEntries().forEach((entry) => {
+            if (entry.entryType === 'resource' && entry.name.includes('.js')) {
+                const resourceEntry = entry as PerformanceResourceTiming;
+                console.log(`📦 Chunk cargado: ${entry.name}`, {
+                    tamaño: resourceEntry.transferSize ? `${(resourceEntry.transferSize / 1024).toFixed(2)}KB` : 'N/A',
+                    duración: `${entry.duration.toFixed(2)}ms`
+                });
+            }
+        });
+    });
+
+    observer.observe({ entryTypes: ['resource'] });
+
+    console.log('✅ Análisis de bundle inicializado correctamente');
 }
+
+
 
 export default {
     AdvancedBundleAnalyzer,

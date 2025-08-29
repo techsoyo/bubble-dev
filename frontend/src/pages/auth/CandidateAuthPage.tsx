@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
@@ -18,11 +18,11 @@ import { CvFormWrapper } from '../../components/wrappers/CvFormWrapper';
 import { formSubmissionLimiter, generateClientFingerprint } from '../../security/xss';
 
 const API_CONFIG = {
-  BASE_URL: 'http://localhost:8000',
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
   ENDPOINTS: {
-    login: '/auth/login.php',
-    register: '/api/save-candidate.php',
-    PDF_PARSE: '/api/analyze_cv.php' // Endpoint correcto que funciona con Groq
+    login: import.meta.env.VITE_LOGIN_ENDPOINT || '/auth/register',
+    register: import.meta.env.VITE_REGISTER_ENDPOINT || '/api/save-candidate.php',
+    PDF_PARSE: import.meta.env.VITE_PDF_PARSE_ENDPOINT || '/api/analyze_cv.php'
   }
 };
 
@@ -203,7 +203,6 @@ export default function CandidateAuthPage() {
       });
 
       const apiUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PDF_PARSE}`;
-      console.log('[CV_PARSE] POST =>', apiUrl);
       const response = await fetch(apiUrl, { method: 'POST', body: formData });
       const text = await response.text();
       let json: any = null;
@@ -216,8 +215,6 @@ export default function CandidateAuthPage() {
       }
 
       if (response.ok && json?.success && json?.data?.structured_data) {
-        console.log('[CandidateAuthPage] CV procesado exitosamente. Datos recibidos:', json);
-        console.log('[CandidateAuthPage] structured_data:', json.data.structured_data);
 
         toast({
           title: t('success.cvProcessed'),
@@ -649,7 +646,6 @@ export default function CandidateAuthPage() {
               setShowManualForm(false);
             }}
             onSave={(cvData) => {
-              console.log('CV Data guardado:', cvData);
               // Aquí guardarías los datos en la BD
               setShowValidationModal(false);
               setSuccess(true);

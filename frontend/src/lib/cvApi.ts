@@ -11,7 +11,8 @@ export async function parseCv(file: File) {
   fd.append('cv_file', file); // Cambiar 'file' por 'cv_file' para que coincida con el backend
 
   try {
-    const res = await fetch(new URL('/api/analyze_cv.php', env.API_BASE_URL), {
+    const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost/bubble_of_talents_1.0/backend/public';
+    const res = await fetch(new URL('/api/analyze_cv.php', apiUrl), {
       method: 'POST',
       body: fd
     });

@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Models;
 
 use Utils\Logger;
@@ -75,11 +78,11 @@ class Candidate extends BaseModel
     ];
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS DE VISTAS - Funcionalidad especÃƒÆ’Ã‚Â­fica de candidatos
+     * MÉTODOS DE VISTAS - Funcionalidad especí­fica de candidatos
      */
 
     /**
-     * Vista bÃƒÆ’Ã‚Â¡sica para listados con filtros y paginaciÃƒÆ’Ã‚Â³n
+     * Vista bí¡sica para listados con filtros y paginación
      */
     public function getCandidatesList(array $filters = [], int $page = 1, int $limit = self::DEFAULT_LIMIT): array
     {
@@ -165,7 +168,7 @@ class Candidate extends BaseModel
     }
 
     /**
-     * Contar candidatos con filtros aplicando la misma lÃƒÆ’Ã‚Â³gica que las vistas
+     * Contar candidatos con filtros aplicando la misma lógica que las vistas
      */
     private function countCandidatesWithFilters(array $filters): int
     {
@@ -196,7 +199,7 @@ class Candidate extends BaseModel
         return (int)($result[0]['total'] ?? 0);
     }
 
-    // MÃƒÆ’Ã‚Â©todos especÃƒÆ’Ã‚Â­ficos mantenidos
+    // Métodos especí­ficos mantenidos
     public function findByUserId($userId): ?array
     {
         return $this->findOneBy('user_id', $userId);

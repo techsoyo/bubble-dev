@@ -1,4 +1,4 @@
-// src/components/ChatbotDecisionTree.tsx
+﻿// src/components/ChatbotDecisionTree.tsx
 
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, RotateCcw } from 'lucide-react';
@@ -107,8 +107,7 @@ const ChatbotDecisionTree: React.FC = () => {
         }
 
       } catch (error) {
-        if (error.name === 'AbortError') {
-          console.log('Chatbot data fetch was cancelled');
+        if (error instanceof Error && error.name === 'AbortError') {
           return;
         }
 

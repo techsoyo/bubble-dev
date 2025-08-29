@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Models;
 
 use Utils\Logger;
@@ -6,10 +9,10 @@ use Utils\Logger;
 /**
  * Modelo para las habilidades declaradas por los candidatos.
  *
- * Gestiona las asociaciones entre candidatos y habilidades con informaciÃƒÆ’Ã‚Â³n adicional
- * como nivel de competencia, aÃƒÆ’Ã‚Â±os de experiencia y estado de verificaciÃƒÆ’Ã‚Â³n.
+ * Gestiona las asociaciones entre candidatos y habilidades con información adicional
+ * como nivel de competencia, aí±os de experiencia y estado de verificación.
  * Utiliza la vista vw_candidate_skills_flat para consultas optimizadas que normalizan
- * habilidades desde mÃƒÆ’Ã‚Âºltiples fuentes (catÃƒÆ’Ã‚Â¡logo + JSON fields).
+ * habilidades desde múltiples fuentes (catí¡logo + JSON fields).
  *
  * @package Models
  * @version 2.0.0
@@ -24,12 +27,12 @@ class CandidateSkill extends BaseModel
      */
     protected string $table = 'candidate_skill_map';
     /*
-     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÃƒÆ’Ã¢â‚¬Å“N AUTOMÃƒÆ’Ã‚ÂTICA APLICADA
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÓN AUTOMÁTICA APLICADA
      * Modelo: CandidateSkill
      * Fecha: 2025-08-23
      * 
      * Cambios realizados:
-     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aÃƒÆ’Ã‚Â±adidos: ninguno
+     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aí±adidos: ninguno
      * ÃƒÂ¢Ã‚ÂÃ…â€™ Campos removidos: ['verified']
      * ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Total campos fillable: 4
      * 
@@ -39,15 +42,15 @@ class CandidateSkill extends BaseModel
 
 
     /**
-     * Clave primaria compuesta lÃƒÆ’Ã‚Â³gica: (candidate_id, skill_id)
-     * Para operaciones bÃƒÆ’Ã‚Â¡sicas se utiliza candidate_id como clave primaria
+     * Clave primaria compuesta lógica: (candidate_id, skill_id)
+     * Para operaciones bí¡sicas se utiliza candidate_id como clave primaria
      *
      * @var string
      */
     protected string $primaryKey = 'candidate_id';
 
     /**
-     * Campos permitidos para asignaciÃƒÆ’Ã‚Â³n masiva
+     * Campos permitidos para asignación masiva
      *
      * @var array<string>
      */
@@ -59,14 +62,14 @@ class CandidateSkill extends BaseModel
     ];
 
     /**
-     * Campos que no se ocultan especÃƒÆ’Ã‚Â­ficamente para este modelo
+     * Campos que no se ocultan especí­ficamente para este modelo
      *
      * @var array<string>
      */
     protected array $hidden = [];
 
     /**
-     * Niveles de competencia vÃƒÆ’Ã‚Â¡lidos
+     * Niveles de competencia ví¡lidos
      *
      * @var array<string>
      */
@@ -80,17 +83,17 @@ class CandidateSkill extends BaseModel
     protected const CACHE_TTL = 300; // 5 minutos
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS USANDO VISTA vw_candidate_skills_flat
+     * MÉTODOS USANDO VISTA vw_candidate_skills_flat
      */
 
     /**
-     * Obtiene todas las habilidades normalizadas de un candidato desde mÃƒÆ’Ã‚Âºltiples fuentes
-     * Combina habilidades del catÃƒÆ’Ã‚Â¡logo + hard_skills + soft_skills JSON
+     * Obtiene todas las habilidades normalizadas de un candidato desde múltiples fuentes
+     * Combina habilidades del catí¡logo + hard_skills + soft_skills JSON
      *
      * @param string $candidateId ID del candidato
      * @param bool $useCache Usar cache para la consulta
      * @return array Lista normalizada de habilidades
-     * @throws \InvalidArgumentException Si el candidate_id es invÃƒÆ’Ã‚Â¡lido
+     * @throws \InvalidArgumentException Si el candidate_id es inví¡lido
      * @throws \RuntimeException Si la consulta falla
      */
     public function getCandidateSkillsFlat(string $candidateId, bool $useCache = true): array
@@ -116,7 +119,7 @@ class CandidateSkill extends BaseModel
     }
 
     /**
-     * Obtiene todas las habilidades de un candidato especÃƒÆ’Ã‚Â­fico agrupadas por tipo
+     * Obtiene todas las habilidades de un candidato especí­fico agrupadas por tipo
      *
      * @param string $candidateId ID del candidato
      * @param bool $useCache Usar cache para la consulta
@@ -145,10 +148,10 @@ class CandidateSkill extends BaseModel
     }
 
     /**
-     * Obtiene todos los candidatos que poseen una habilidad especÃƒÆ’Ã‚Â­fica
+     * Obtiene todos los candidatos que poseen una habilidad especí­fica
      *
      * @param string $skillName Nombre de la habilidad
-     * @param int $limit LÃƒÆ’Ã‚Â­mite de resultados
+     * @param int $limit Lí­mite de resultados
      * @param bool $useCache Usar cache para la consulta
      * @return array Lista de candidatos con la habilidad especificada
      */
@@ -185,15 +188,15 @@ class CandidateSkill extends BaseModel
     }
 
     /**
-     * Actualiza el nivel de competencia de una habilidad especÃƒÆ’Ã‚Â­fica del candidato
+     * Actualiza el nivel de competencia de una habilidad especí­fica del candidato
      *
      * @param string $candidateId ID del candidato
      * @param int $skillId ID de la habilidad
      * @param string $proficiencyLevel Nuevo nivel de competencia
-     * @param int|null $yearsExperience AÃƒÆ’Ã‚Â±os de experiencia (opcional)
-     * @return bool True si la actualizaciÃƒÆ’Ã‚Â³n fue exitosa
-     * @throws \InvalidArgumentException Si los parÃƒÆ’Ã‚Â¡metros son invÃƒÆ’Ã‚Â¡lidos
-     * @throws \RuntimeException Si la actualizaciÃƒÆ’Ã‚Â³n falla
+     * @param int|null $yearsExperience Aí±os de experiencia (opcional)
+     * @return bool True si la actualización fue exitosa
+     * @throws \InvalidArgumentException Si los parí¡metros son inví¡lidos
+     * @throws \RuntimeException Si la actualización falla
      */
     public function updateSkillProficiency(
         string $candidateId,
@@ -235,7 +238,7 @@ class CandidateSkill extends BaseModel
 
             $updated = $this->update($data, $whereConditions);
 
-            // Si no se actualizÃƒÆ’Ã‚Â³ ningÃƒÆ’Ã‚Âºn registro, crear uno nuevo
+            // Si no se actualizó ningún registro, crear uno nuevo
             if (!$updated) {
                 $insertData = array_merge($data, [
                     'candidate_id' => $candidateId,
@@ -261,12 +264,12 @@ class CandidateSkill extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS DE FUNCIONALIDAD EXISTENTE MANTENIDOS
+     * MÉTODOS DE FUNCIONALIDAD EXISTENTE MANTENIDOS
      */
 
     /**
      * Devuelve todas las habilidades asociadas a un candidato
-     * Mantiene compatibilidad con el mÃƒÆ’Ã‚Â©todo original
+     * Mantiene compatibilidad con el método original
      *
      * @param string $candidateId ID del candidato
      * @return array Lista de habilidades
@@ -277,7 +280,7 @@ class CandidateSkill extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã¢â‚¬Â°TODOS AUXILIARES PRIVADOS
+     * MÉTODOS AUXILIARES PRIVADOS
      */
 
     /**
@@ -322,7 +325,7 @@ class CandidateSkill extends BaseModel
     }
 
     /**
-     * Ejecuta la consulta para obtener candidatos con una habilidad especÃƒÆ’Ã‚Â­fica
+     * Ejecuta la consulta para obtener candidatos con una habilidad especí­fica
      */
     private function executeCandidatesWithSkillQuery(string $skillName, int $limit): array
     {
@@ -355,7 +358,7 @@ class CandidateSkill extends BaseModel
     }
 
     /**
-     * Valida si un nivel de competencia es vÃƒÆ’Ã‚Â¡lido
+     * Valida si un nivel de competencia es ví¡lido
      */
     private function isValidProficiencyLevel(string $level): bool
     {
@@ -389,7 +392,7 @@ class CandidateSkill extends BaseModel
     }
 
     /**
-     * Verifica si el cache estÃƒÆ’Ã‚Â¡ habilitado
+     * Verifica si el cache estí¡ habilitado
      */
     private function isCacheEnabled(): bool
     {
@@ -422,7 +425,7 @@ class CandidateSkill extends BaseModel
     }
 
     // ==========================================
-    // MÃƒÆ’Ã¢â‚¬Â°TODOS CRUD ENCAPSULADOS ESTÃƒÆ’Ã‚ÂNDAR
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
     // ==========================================
 
     /**
@@ -476,7 +479,7 @@ class CandidateSkill extends BaseModel
      * Actualizar candidate_skill con validaciones
      * @param mixed $id ID del candidate_skill a actualizar
      * @param array $data Nuevos datos
-     * @return bool True si la actualizaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @return bool True si la actualización fue exitosa
      */
     public function updateCandidateSkill($id, array $data): bool
     {
@@ -508,7 +511,7 @@ class CandidateSkill extends BaseModel
     /**
      * Eliminar candidate_skill con validaciones
      * @param mixed $id ID del candidate_skill a eliminar
-     * @return bool True si la eliminaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @return bool True si la eliminación fue exitosa
      */
     public function deleteCandidateSkill($id): bool
     {
@@ -536,9 +539,9 @@ class CandidateSkill extends BaseModel
 
     /**
      * Buscar candidate_skills con filtros
-     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
-     * @param int $page PÃƒÆ’Ã‚Â¡gina actual
-     * @param int $limit Registros por pÃƒÆ’Ã‚Â¡gina
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Pí¡gina actual
+     * @param int $limit Registros por pí¡gina
      * @param array $orderBy Criterios de ordenamiento
      * @return array Array de candidate_skills
      */
@@ -558,8 +561,8 @@ class CandidateSkill extends BaseModel
 
     /**
      * Contar total de candidate_skills con filtros
-     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
-     * @return int NÃƒÆ’Ã‚Âºmero total de candidate_skills
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de candidate_skills
      */
     public function countCandidateSkills(array $filters = []): int
     {
@@ -576,22 +579,22 @@ class CandidateSkill extends BaseModel
     }
 
     // ==========================================
-    // MÃƒÆ’Ã¢â‚¬Â°TODOS DE VALIDACIÃƒÆ’Ã¢â‚¬Å“N ESPECÃƒÆ’Ã‚ÂFICOS
+    // MÉTODOS DE VALIDACIÓN ESPECíFICOS
     // ==========================================
 
     /**
-     * Validar datos especÃƒÆ’Ã‚Â­ficos de candidate_skills
+     * Validar datos especí­ficos de candidate_skills
      * @param array $data Datos a validar
-     * @param mixed $id ID para validaciones de actualizaciÃƒÆ’Ã‚Â³n (opcional)
-     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son ví¡lidos
      */
     private function validateCandidateSkillData(array $data, $id = null): void
     {
-        // TODO: Implementar validaciones especÃƒÆ’Ã‚Â­ficas del modelo
+        // TODO: Implementar validaciones especí­ficas del modelo
     }
 
     /**
-     * Invalidar cache especÃƒÆ’Ã‚Â­fico de candidate_skills
+     * Invalidar cache especí­fico de candidate_skills
      */
     public function invalidateCandidateSkillCache(): int
     {

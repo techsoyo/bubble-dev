@@ -1,4 +1,9 @@
-/* Design System Variables */
+/* ===========================================
+   DESIGN SYSTEM - Bubble of Talents
+   Sistema de diseño unificado con variables CSS
+   =========================================== */
+
+/* === 1. VARIABLES CSS PRINCIPALES === */
 :root {
   /* Colores principales */
   --color-primary: #FF4785;
@@ -149,7 +154,8 @@
   /* Elementos de debug */
 }
 
-/* Clases utilitarias personalizadas */
+/* === 2. CLASES UTILITARIAS PERSONALIZADAS === */
+/* Colores */
 .bg-primary {
   background-color: var(--color-primary);
 }
@@ -174,14 +180,6 @@
   color: var(--color-primary);
 }
 
-.border-primary {
-  border-color: var(--color-primary);
-}
-
-.border-primary:hover {
-  border-color: var(--color-primary-hover);
-}
-
 .text-secondary {
   color: var(--color-secondary);
 }
@@ -190,6 +188,93 @@
   border-color: var(--color-primary);
 }
 
+.border-primary:hover {
+  border-color: var(--color-primary-hover);
+}
+
+/* Utilidades de texto */
+.text-xs {
+  font-size: var(--font-size-xs);
+}
+
+.text-sm {
+  font-size: var(--font-size-sm);
+}
+
+.text-base {
+  font-size: var(--font-size-base);
+}
+
+.text-lg {
+  font-size: var(--font-size-lg);
+}
+
+.text-xl {
+  font-size: var(--font-size-xl);
+}
+
+.text-2xl {
+  font-size: var(--font-size-2xl);
+}
+
+.font-normal {
+  font-weight: var(--font-weight-normal);
+}
+
+.font-medium {
+  font-weight: var(--font-weight-medium);
+}
+
+.font-semibold {
+  font-weight: var(--font-weight-semibold);
+}
+
+.font-bold {
+  font-weight: var(--font-weight-bold);
+}
+
+/* Utilidades de espaciado */
+.m-1 {
+  margin: var(--spacing-xs);
+}
+
+.m-2 {
+  margin: var(--spacing-sm);
+}
+
+.m-3 {
+  margin: var(--spacing-md);
+}
+
+.m-4 {
+  margin: var(--spacing-lg);
+}
+
+.m-5 {
+  margin: var(--spacing-xl);
+}
+
+.p-1 {
+  padding: var(--spacing-xs);
+}
+
+.p-2 {
+  padding: var(--spacing-sm);
+}
+
+.p-3 {
+  padding: var(--spacing-md);
+}
+
+.p-4 {
+  padding: var(--spacing-lg);
+}
+
+.p-5 {
+  padding: var(--spacing-xl);
+}
+
+/* === 3. COMPONENTES BASE === */
 /* Botones consistentes */
 .btn-primary {
   background-color: var(--color-primary);
@@ -227,7 +312,24 @@
   outline-offset: 2px;
 }
 
-/* Animaciones */
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Estados de carga y disabled */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* === 4. ANIMACIONES === */
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -267,6 +369,7 @@
   }
 }
 
+/* === 5. ACCESIBILIDAD === */
 /* Mejoras de accesibilidad */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -285,7 +388,18 @@
   }
 }
 
-/* === Clases de utilidad para sombras === */
+/* Modo oscuro - Soporte básico */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-white: #1a1a1a;
+    --color-gray-50: #2a2a2a;
+    --color-gray-100: #3a3a3a;
+    --color-gray-800: #e0e0e0;
+    --color-gray-900: #f0f0f0;
+  }
+}
+
+/* === 6. UTILIDADES DE SOMBRAS === */
 .shadow-sm {
   box-shadow: var(--shadow-sm);
 }
@@ -339,7 +453,8 @@
   box-shadow: var(--shadow-xl);
 }
 
-/* === Breakpoints responsive estandarizados === */
+/* === 7. SISTEMA RESPONSIVE === */
+/* Nota: Se usan valores hardcodeados en lugar de var(--breakpoint-*) por compatibilidad con CSS puro */
 /* Small devices (640px and up) */
 @media (min-width: 640px) {
   .sm\:block {
@@ -532,3 +647,58 @@
     font-size: var(--font-size-3xl);
   }
 }
+
+/* === 7.5. OPTIMIZACIONES DE PARALLAX === */
+/* Optimizaciones para efectos parallax */
+.parallax-bg {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Reducir movimiento para usuarios con preferencia de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  .parallax-bg {
+    transform: none !important;
+    will-change: auto;
+  }
+}
+
+/* Optimizaciones de rendimiento para parallax */
+.parallax-container {
+  overflow: hidden;
+  position: relative;
+}
+
+.parallax-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* === 8. DOCUMENTACIÓN Y NOTAS === */
+/*
+  DESIGN SYSTEM - Bubble of Talents
+  ================================
+
+  Este archivo contiene el sistema de diseño unificado para la aplicación.
+
+  ESTRUCTURA:
+  1. Variables CSS principales (:root)
+  2. Clases utilitarias personalizadas
+  3. Componentes base (botones, focus states)
+  4. Animaciones
+  5. Accesibilidad (prefers-reduced-motion, prefers-contrast)
+  6. Utilidades de sombras
+  7. Sistema responsive con breakpoints
+
+  USO RECOMENDADO:
+  - Usar variables CSS para colores, espaciado, tipografía y sombras
+  - Aplicar clases utilitarias para estilos comunes
+  - Usar el sistema de breakpoints para responsive design
+  - Considerar accesibilidad en todos los componentes
+
+  ÚLTIMA ACTUALIZACIÓN: Diciembre 2024
+  AUTOR: Bubble of Talents Team
+*/

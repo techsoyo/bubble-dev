@@ -1,22 +1,22 @@
 // src/pages/auth/RegisterCompletePage.tsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import RegisterFormComplete from '../../components/auth/RegisterFormComplete';
+import RegisterForm from '../../components/auth/RegisterForm';
 
 const RegisterCompletePage: React.FC = () => {
   const navigate = useNavigate();
 
   const handleRegisterSuccess = (userData: any) => {
-    // Guardar datos del usuario en localStorage o context
-    localStorage.setItem('user', JSON.stringify(userData));
+    // User data is handled by the authentication context
+    // No need to manually store in localStorage - cookies handle session management
 
     // Redirigir al usuario a la página de inicio o dashboard
     navigate('/dashboard/cddashboard');
   };
 
   const handleSocialLoginSuccess = (userData: any) => {
-    // Similar al registro normal, pero podría tener lógica diferente
-    localStorage.setItem('user', JSON.stringify(userData));
+    // User data is handled by the authentication context
+    // No need to manually store in localStorage - cookies handle session management
 
     // Verificar si el usuario ya tiene perfil completo o necesita completarlo
     if (userData.profileComplete) {
@@ -44,7 +44,7 @@ const RegisterCompletePage: React.FC = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <RegisterFormComplete
+          <RegisterForm
             onRegisterSuccess={handleRegisterSuccess}
             onSocialLoginSuccess={handleSocialLoginSuccess}
           />

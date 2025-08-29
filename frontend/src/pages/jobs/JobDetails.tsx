@@ -282,12 +282,12 @@ export default function JobDetailsPage() {
             {t('jobs.joinPlatform')}
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link to={`/candidates/login?job=${id}`}>
+            <Link to={`/auth/register?job=${id}`}>
               <Button size="lg" className="bg-[#FF4785] hover:bg-[#FF3575] font-bold shadow-md">
                 {t('jobs.registerAndApply')}
               </Button>
             </Link>
-            <Link to={`/candidates/login?job=${id}`}>
+            <Link to={`/auth/register?job=${id}`}>
               <Button size="lg" variant="outline" className="font-bold">
                 {t('jobs.loginAndApply')}
               </Button>
@@ -302,7 +302,7 @@ export default function JobDetailsPage() {
         <p className="mb-6 text-white">
           {t('jobs.spontaneousMessage')}
         </p>
-        <HashLink smooth to="/candidates/login">
+        <HashLink smooth to="/auth/register">
           <Button size="lg" className="bg-[#FF4785] hover:bg-[#FF3575] font-bold shadow-md">
             {t('jobs.submitSpontaneous')}
           </Button>

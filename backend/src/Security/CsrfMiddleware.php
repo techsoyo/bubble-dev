@@ -1,5 +1,5 @@
 <?php declare(strict_types=1);
-namespace Security\CsrfMiddleware.php\Security;
+namespace Security;
 
 /**
  * CSRF Middleware - ProtecciÃƒÂ³n contra Cross-Site Request Forgery

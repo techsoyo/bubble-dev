@@ -1,39 +1,43 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
-use Security\CsrfMiddleware;
+use Middleware\CsrfMiddleware;
+use Middleware\JWTMiddleware;
+
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
-    CsrfMiddleware::protect(); // double-submit cookie
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+  CsrfMiddleware::protect(); // double-submit cookie
 }
 
 if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized (cookie required)']);
-    exit;
+  http_response_code(401);
+  echo json_encode(['error' => 'Unauthorized (cookie required)']);
+  exit;
 }
 
 // cookie HttpOnly obligatoria
 
 // Proteger solo mÃƒÂ©todos que cambian estado
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
-    // double-submit cookie
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+  // double-submit cookie
 }
 
 // En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
-    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
-        http_response_code(401);
-        echo json_encode(['error' => 'Unauthorized (cookie required)']);
-        exit;
-    }
+  if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+    exit;
+  }
 }
 
 // ORIGINAL CODE BELOW
 /**
- * Endpoint para guardar datos de candidato extraÃƒÆ’Ã‚Â­dos por IA
- * VersiÃƒÆ’Ã‚Â³n actualizada con esquema de BD correcto
+ * Endpoint para guardar datos de candidato extraí­dos por IA
+ * Versión actualizada con esquema de BD correcto
  */
 
 use Utils\ResponseHelper;
@@ -64,10 +68,10 @@ try {
   $db = Database::getInstance();
   $pdo = $db->getConnection();
 
-  // Iniciar transacciÃƒÆ’Ã‚Â³n
+  // Iniciar transacción
   $pdo->beginTransaction();
 
-  // Generar ID ÃƒÆ’Ã‚Âºnico para el candidato
+  // Generar ID único para el candidato
   /* ID AUTO_INCREMENT */
 
   // Extraer nombre y apellido del nombre completo
@@ -133,7 +137,7 @@ try {
         ");
 
     foreach ($data['puestos_anteriores'] as $exp) {
-      // Validar y limpiar fechas vacÃƒÆ’Ã‚Â­as
+      // Validar y limpiar fechas vací­as
       $startDate = (!empty($exp['fecha_inicio']) && $exp['fecha_inicio'] !== '') ? $exp['fecha_inicio'] : null;
       $endDate = (!empty($exp['fecha_fin']) && $exp['fecha_fin'] !== '') ? $exp['fecha_fin'] : null;
 
@@ -150,7 +154,7 @@ try {
     }
   }
 
-  // Insertar educaciÃƒÆ’Ã‚Â³n
+  // Insertar educación
   if (!empty($data['educacion']) && is_array($data['educacion'])) {
     $eduStmt = $pdo->prepare("
             INSERT INTO bt_candidate_education ( candidate_id, degree, field_of_study, institution,
@@ -159,7 +163,7 @@ try {
         ");
 
     foreach ($data['educacion'] as $edu) {
-      // Validar y limpiar fechas vacÃƒÆ’Ã‚Â­as
+      // Validar y limpiar fechas vací­as
       $startDate = (!empty($edu['fecha_inicio']) && $edu['fecha_inicio'] !== '') ? $edu['fecha_inicio'] : null;
       $endDate = (!empty($edu['fecha_fin']) && $edu['fecha_fin'] !== '') ? $edu['fecha_fin'] : null;
 
@@ -184,7 +188,7 @@ try {
         ");
 
     foreach ($data['certificaciones_detalle'] as $cert) {
-      // Validar y limpiar fechas vacÃƒÆ’Ã‚Â­as
+      // Validar y limpiar fechas vací­as
       $issueDate = (!empty($cert['fecha_emision']) && $cert['fecha_emision'] !== '') ? $cert['fecha_emision'] : null;
       $expiryDate = (!empty($cert['fecha_expiracion']) && $cert['fecha_expiracion'] !== '') ? $cert['fecha_expiracion'] : null;
 
@@ -234,7 +238,7 @@ try {
     }
   }
 
-  // Confirmar transacciÃƒÆ’Ã‚Â³n
+  // Confirmar transacción
   $pdo->commit();
 
   ResponseHelper::success('Candidato creado exitosamente', [
@@ -242,7 +246,7 @@ try {
     'data_source' => $data['data_source'] ?? 'ai_processing'
   ], 201);
 } catch (Exception $e) {
-  // Revertir transacciÃƒÆ’Ã‚Â³n en caso de error
+  // Revertir transacción en caso de error
   if (isset($pdo) && $pdo->inTransaction()) {
     $pdo->rollBack();
   }
@@ -250,4 +254,3 @@ try {
   error_log("Error guardando candidato: " . $e->getMessage());
   ResponseHelper::error('Error interno del servidor: ' . $e->getMessage());
 }
-

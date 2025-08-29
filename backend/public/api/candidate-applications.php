@@ -1,44 +1,44 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 require_once __DIR__ . '/./bootstrap.php';
-JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+
+// Autenticación requerida - obtener payload del usuario
+$userPayload = \Middleware\JWTMiddleware::requireAuth();
+if (!$userPayload) {
+  exit; // El middleware ya maneja la respuesta de error
+}
+
+$userId = (int)$userPayload['user_id'];
+$userRole = $userPayload['role'] ?? 'candidate';
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
-    CsrfMiddleware::protect(); // double-submit cookie
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+  \Middleware\CsrfMiddleware::protect(); // double-submit cookie
 }
 
 if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized (cookie required)']);
-    exit;
+  http_response_code(401);
+  echo json_encode(['error' => 'Unauthorized (cookie required)']);
+  exit;
 }
 
-// Headers de seguridad
+// Configurar headers CORS seguros - NO USAR HTTP_ORIGIN
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: ' . ($_SERVER['HTTP_ORIGIN'] ?? '*'));
-header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Origin: http://localhost:3002');
+header('Access-Control-Allow-Credentials: false'); // ✅ FIXED: Deshabilitado por seguridad
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 
+// Manejar OPTIONS preflight
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
   http_response_code(200);
   exit();
 }
 
-if (!$requestedCandidateId) {
-  http_response_code(400);
-  echo json_encode([
-    'success' => false,
-    'message' => 'candidate_id es requerido',
-    'error_code' => 'MISSING_CANDIDATE_ID'
-  ]);
-  exit;
-}
-
 try {
-  $db = getDbConnection();
-
-  // Obtener candidate_id del query parameter
+  // Obtener y validar candidate_id del query parameter
   $requestedCandidateId = $_GET['candidate_id'] ?? null;
 
   if (!$requestedCandidateId) {
@@ -51,11 +51,22 @@ try {
     exit;
   }
 
-  // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ CONTROL DE ACCESO: Solo el propio candidato o admin/hr pueden ver aplicaciones
-  $userRole = $userPayload['role'] ?? 'candidate';
-  $currentUserId = $userPayload['user_id'];
+  // Validar que candidate_id sea un número entero
+  $requestedCandidateId = filter_var($requestedCandidateId, FILTER_VALIDATE_INT);
+  if ($requestedCandidateId === false || $requestedCandidateId <= 0) {
+    http_response_code(400);
+    echo json_encode([
+      'success' => false,
+      'message' => 'candidate_id debe ser un número entero válido',
+      'error_code' => 'INVALID_CANDIDATE_ID'
+    ]);
+    exit;
+  }
 
-  if ($userRole === 'candidate' && $currentUserId !== $requestedCandidateId) {
+  // CONTROL DE ACCESO: Solo el propio candidato o admin/hr pueden ver aplicaciones
+  $currentUserId = $userId;
+
+  if ($userRole === 'candidate' && $currentUserId != $requestedCandidateId) {
     http_response_code(403);
     echo json_encode([
       'success' => false,
@@ -63,7 +74,9 @@ try {
       'error_code' => 'INSUFFICIENT_PERMISSIONS'
     ]);
     exit;
-  } elseif (!in_array($userRole, ['candidate', 'admin', 'hr', 'recruiter'])) {
+  }
+
+  if (!in_array($userRole, ['candidate', 'admin', 'hr', 'recruiter'], true)) {
     http_response_code(403);
     echo json_encode([
       'success' => false,
@@ -73,9 +86,11 @@ try {
     exit;
   }
 
-  // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ QUERY SEGURA CON PREPARED STATEMENTS
+  $db = getDbConnection();
+
+  // QUERY SEGURA CON PREPARED STATEMENTS
   $sql = "
-        SELECT 
+        SELECT
             a.id as application_id,
             a.job_id,
             a.candidate_id,
@@ -104,7 +119,7 @@ try {
   $stmt->execute([$requestedCandidateId]);
   $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-  // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ FORMATEAR Y LIMPIAR DATOS
+  // FORMATEAR Y LIMPIAR DATOS
   foreach ($applications as &$app) {
     // Formatear fechas
     if ($app['applied_date']) {
@@ -118,8 +133,8 @@ try {
     $app['score'] = $app['score'] ?? 0;
     $app['cover_letter'] = $app['cover_letter'] ?? '';
 
-    // AÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â±adir informaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n adicional
-    $app['can_withdraw'] = in_array($app['status'], ['pending', 'in_review']);
+    // Agregar información adicional
+    $app['can_withdraw'] = in_array($app['status'], ['pending', 'in_review'], true);
   }
 
   echo json_encode([
@@ -146,5 +161,3 @@ try {
     'error_code' => 'INTERNAL_ERROR'
   ]);
 }
-
-

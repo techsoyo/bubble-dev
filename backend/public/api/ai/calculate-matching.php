@@ -1,90 +1,78 @@
-<?php declare(strict_types=1);
-require_once __DIR__ . '/../bootstrap.php';
-JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+<?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/./bootstrap.php';
+
+use Middleware\CsrfMiddleware;
+use Middleware\JWTMiddleware;
+use Services\JobMatchingService;
+use Utils\ResponseHelper as Res;
+
+// Autenticación obligatoria
+JWTMiddleware::requireAuth();
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
-    CsrfMiddleware::protect(); // double-submit cookie
+
+// Protege solo métodos que cambian estado
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+    CsrfMiddleware::protect();
 }
 
+// En producción NO aceptar Authorization header (solo cookie)
 if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized (cookie required)']);
-    exit;
+    Res::error('Unauthorized (cookie required)', null, 401);
 }
 
-// cookie HttpOnly obligatoria
-
-// Proteger solo mÃƒÂ©todos que cambian estado
-$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
-    // double-submit cookie
+// Este endpoint acepta solo POST
+if ($method !== 'POST') {
+    Res::error('Método no permitido', null, 405);
 }
 
-// En producciÃƒÂ³n NO aceptar Authorization header (solo cookie)
-if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
-    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
-        http_response_code(401);
-        echo json_encode(['error' => 'Unauthorized (cookie required)']);
-        exit;
-    }
+// Leer y validar JSON de entrada
+$input = Res::getJsonInput();
+if (!is_array($input)) {
+    Res::error('JSON inválido o no enviado', null, 400);
 }
 
-// ORIGINAL CODE BELOW
-/**
- * Endpoint para calcular el matching entre candidato y trabajo
- *
- * Reemplaza la funcionalidad del mÃƒÆ’Ã‚Â³dulo IA con implementaciÃƒÆ’Ã‚Â³n en PHP puro
- */
-
-use Services\Matching\JobMatchingService;
-use Utils\ResponseHelper;
-
-// Solo permitir mÃƒÆ’Ã‚Â©todo POST
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    ResponseHelper::error('MÃƒÆ’Ã‚Â©todo no permitido', 405);
-    exit;
+if (!isset($input['candidate']) || !is_array($input['candidate'])) {
+    Res::error('Se requieren datos del candidato', null, 400);
 }
-
-// Obtener input JSON
-$input = file_get_contents('php://input');
-$data = json_decode($input, true);
-
-if (json_last_error() !== JSON_ERROR_NONE) {
-    ResponseHelper::error('JSON invÃƒÆ’Ã‚Â¡lido: ' . json_last_error_msg(), 400);
-    exit;
-}
-
-// Validar datos de entrada
-if (!isset($data['candidate']) || !is_array($data['candidate'])) {
-    ResponseHelper::error('Se requieren datos del candidato', 400);
-    exit;
-}
-
-if (!isset($data['job']) || !is_array($data['job'])) {
-    ResponseHelper::error('Se requieren datos del trabajo', 400);
-    exit;
+if (!isset($input['job']) || !is_array($input['job'])) {
+    Res::error('Se requieren datos del trabajo', null, 400);
 }
 
 try {
-    $startTime = microtime(true);
+    $start = microtime(true);
 
-    // Crear servicio de matching y calcular
-    $matchingService = new JobMatchingService();
-    $matchResult = $matchingService->evaluateMatch($data['candidate'], $data['job']);
+    $service = new JobMatchingService();
+    $result = $service->evaluateMatch($input['candidate'], $input['job']);
 
-    $endTime = microtime(true);
-    $processingTime = round($endTime - $startTime, 2);
+    $elapsedMs = (int)round((microtime(true) - $start) * 1000);
 
-    // AÃƒÆ’Ã‚Â±adir metadatos del proceso
-    $matchResult['processing_info'] = [
-        'method' => 'php-matching',
-        'processing_time' => $processingTime
-    ];
+    if (is_array($result)) {
+        $result['processing_info'] = [
+            'method' => 'php-matching',
+            'time_ms' => $elapsedMs,
+            'endpoint' => basename(__FILE__),
+        ];
+    } else {
+        $result = [
+            'result' => $result,
+            'processing_info' => [
+                'method' => 'php-matching',
+                'time_ms' => $elapsedMs,
+                'endpoint' => basename(__FILE__),
+            ],
+        ];
+    }
 
-    // Responder con el resultado
-    ResponseHelper::success('Matching calculado correctamente', $matchResult);
-} catch (Exception $e) {
-    ResponseHelper::error('Error al calcular matching: ' . $e->getMessage(), 500);
+    Res::success('Matching calculado correctamente', $result);
+} catch (\Throwable $e) {
+    Res::log('error', 'calculate-matching error', [
+        'endpoint' => basename(__FILE__),
+        'message' => $e->getMessage(),
+        'trace' => $e->getTraceAsString(),
+    ]);
+    Res::error('Error al calcular matching', $e, 500);
 }
-

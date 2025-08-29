@@ -36,12 +36,18 @@ if (!file_exists(BACKEND_ROOT . '/config/bootstrap.php')) {
 }
 require_once BACKEND_ROOT . '/config/bootstrap.php';
 
-// ===== HEADERS CORS PARA DESARROLLO =====
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Credentials: true');
+// ===== HEADERS CORS PARA DESARROLLO - CONFIGURACIÓN SEGURA =====
+header('Access-Control-Allow-Origin: http://localhost:3002');
+header('Access-Control-Allow-Credentials: false');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-CSRF-Token');
 header('Content-Type: application/json; charset=utf-8');
+
+// ===== HEADERS DE SEGURIDAD =====
+header('X-Frame-Options: DENY');
+header('X-Content-Type-Options: nosniff');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
 
 // ===== MANEJO DE PREFLIGHT OPTIONS =====
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {

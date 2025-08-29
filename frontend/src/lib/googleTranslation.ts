@@ -1,4 +1,4 @@
-// src/lib/googleTranslation.ts
+﻿// src/lib/googleTranslation.ts
 
 import * as React from 'react';
 import { getApiBaseUrl } from '../hooks/useApiConfig';
@@ -31,7 +31,6 @@ export async function translateWithGoogle(
 
   // Verificar cache primero
   if (translationCache.has(cacheKey)) {
-    console.log(`[Cache Hit] ${text} -> ${translationCache.get(cacheKey)}`);
     return translationCache.get(cacheKey)!;
   }
 
@@ -59,7 +58,6 @@ export async function translateWithGoogle(
     if (result.success && result.translation) {
       // Guardar en cache
       translationCache.set(cacheKey, result.translation);
-      console.log(`[Translated] ${text} -> ${result.translation}`);
       return result.translation;
     } else {
       console.warn('Google translation failed, returning original text:', result.error);
@@ -127,7 +125,6 @@ export function useGoogleTranslation() {
 // Limpiar cache (útil para desarrollo)
 export function clearTranslationCache() {
   translationCache.clear();
-  console.log('Translation cache cleared');
 }
 
 // Obtener estadísticas del cache

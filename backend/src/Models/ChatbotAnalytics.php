@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Models;
 
 use Exception;
@@ -6,8 +9,8 @@ use PDO;
 use Utils\Logger;
 
 /**
- * Modelo para el registro de analÃƒÆ’Ã‚Â­ticas del chatbot.
- * Guarda eventos, interacciones y datos de uso con anÃƒÆ’Ã‚Â¡lisis avanzados.
+ * Modelo para el registro de analí­ticas del chatbot.
+ * Guarda eventos, interacciones y datos de uso con Anáslisis avanzados.
  * 
  * @package Models
  * @author Bubble of Talents Development Team
@@ -18,12 +21,12 @@ class ChatbotAnalytics extends BaseModel
 {
     protected string $table = 'chatbot_analytics';
     /*
-     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÃƒÆ’Ã¢â‚¬Å“N AUTOMÃƒÆ’Ã‚ÂTICA APLICADA
+     * ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ CORRECCIÓN AUTOMÁTICA APLICADA
      * Modelo: ChatbotAnalytics
      * Fecha: 2025-08-23
      * 
      * Cambios realizados:
-     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aÃƒÆ’Ã‚Â±adidos: ['user_id', 'event_type', 'event_data', 'processed']
+     * ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Campos aí±adidos: ['user_id', 'event_type', 'event_data', 'processed']
      * ÃƒÂ¢Ã‚ÂÃ…â€™ Campos removidos: ['candidate_id', 'node_id', 'option_id', 'action_type', 'data']
      * ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Total campos fillable: 8
      * 
@@ -57,13 +60,13 @@ class ChatbotAnalytics extends BaseModel
     ];
 
     /**
-     * Cache para reportes analÃƒÆ’Ã‚Â­ticos pesados (tiempo en minutos)
+     * Cache para reportes analí­ticos pesados (tiempo en minutos)
      */
     private const ANALYTICS_CACHE_TTL = 60;
     private const REPORTS_CACHE_TTL = 180;
 
     /**
-     * Tipos de acciÃƒÆ’Ã‚Â³n vÃƒÆ’Ã‚Â¡lidos para anÃƒÆ’Ã‚Â¡lisis
+     * Tipos de acción ví¡lidos para Anáslisis
      */
     private const VALID_ACTION_TYPES = [
         'node_visit',
@@ -77,11 +80,11 @@ class ChatbotAnalytics extends BaseModel
     ];
 
     /**
-     * Crear nuevo registro de analytics con validaciÃƒÆ’Ã‚Â³n mejorada
+     * Crear nuevo registro de analytics con validación mejorada
      * 
      * @param array $data Datos del evento
      * @return mixed ID del registro creado
-     * @throws InvalidArgumentException Si los datos son invÃƒÆ’Ã‚Â¡lidos
+     * @throws InvalidArgumentException Si los datos son inví¡lidos
      * @throws RuntimeException Si hay error en BD
      */
     public function store($data)
@@ -94,9 +97,9 @@ class ChatbotAnalytics extends BaseModel
             }
         }
 
-        // Validar tipo de acciÃƒÆ’Ã‚Â³n
+        // Validar tipo de acción
         if (!in_array($data['action_type'], self::VALID_ACTION_TYPES)) {
-            throw new \InvalidArgumentException("Tipo de acciÃƒÆ’Ã‚Â³n invÃƒÆ’Ã‚Â¡lido: {$data['action_type']}");
+            throw new \InvalidArgumentException("Tipo de acción inví¡lido: {$data['action_type']}");
         }
 
         // Asegurar timestamp si no se proporciona
@@ -130,16 +133,16 @@ class ChatbotAnalytics extends BaseModel
     }
 
     /**
-     * Obtener flujo completo de conversaciÃƒÆ’Ã‚Â³n por sesiÃƒÆ’Ã‚Â³n
+     * Obtener flujo completo de conversación por sesión
      * 
-     * @param string $sessionId ID de la sesiÃƒÆ’Ã‚Â³n
+     * @param string $sessionId ID de la sesión
      * @return array Secuencia ordenada de eventos
      * @throws RuntimeException Si hay error en BD
      */
     public function getConversationFlow(string $sessionId): array
     {
         if (empty($sessionId)) {
-            throw new \InvalidArgumentException('Session ID no puede estar vacÃƒÆ’Ã‚Â­o');
+            throw new \InvalidArgumentException('Session ID no puede estar vací­o');
         }
 
         $cacheKey = "conversation_flow_$sessionId";
@@ -179,26 +182,26 @@ class ChatbotAnalytics extends BaseModel
             // Cache del resultado
             $this->cache[$cacheKey] = $events;
 
-            Logger::debug('Flujo de conversaciÃƒÆ’Ã‚Â³n obtenido', [
+            Logger::debug('Flujo de conversación obtenido', [
                 'session_id' => $sessionId,
                 'events_count' => count($events)
             ]);
 
             return $events;
         } catch (Exception $e) {
-            Logger::error('Error al obtener flujo de conversaciÃƒÆ’Ã‚Â³n', [
+            Logger::error('Error al obtener flujo de conversación', [
                 'session_id' => $sessionId,
                 'error' => $e->getMessage()
             ]);
-            throw new \RuntimeException('Error al obtener flujo de conversaciÃƒÆ’Ã‚Â³n: ' . $e->getMessage());
+            throw new \RuntimeException('Error al obtener flujo de conversación: ' . $e->getMessage());
         }
     }
 
     /**
-     * Obtener estadÃƒÆ’Ã‚Â­sticas por nodo
+     * Obtener estadí­sticas por nodo
      * 
      * @param array $filters Filtros opcionales (date_from, date_to, node_ids)
-     * @return array EstadÃƒÆ’Ã‚Â­sticas agrupadas por nodo
+     * @return array Estadí­sticas agrupadas por nodo
      * @throws RuntimeException Si hay error en BD
      */
     public function getNodeStatistics(array $filters = []): array
@@ -271,7 +274,7 @@ class ChatbotAnalytics extends BaseModel
             $stmt->execute();
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Enriquecer con mÃƒÆ’Ã‚Â©tricas calculadas
+            // Enriquecer con métricas calculadas
             foreach ($results as &$result) {
                 $result['conversion_rate'] = $this->calculateNodeConversionRate($result['node_id'], $filters);
                 $result['drop_off_rate'] = $this->calculateNodeDropOffRate($result['node_id'], $filters);
@@ -279,26 +282,26 @@ class ChatbotAnalytics extends BaseModel
 
             $this->cache[$cacheKey] = $results;
 
-            Logger::debug('EstadÃƒÆ’Ã‚Â­sticas de nodos obtenidas', [
+            Logger::debug('Estadí­sticas de nodos obtenidas', [
                 'filters' => $filters,
                 'nodes_count' => count($results)
             ]);
 
             return $results;
         } catch (Exception $e) {
-            Logger::error('Error al obtener estadÃƒÆ’Ã‚Â­sticas de nodos', [
+            Logger::error('Error al obtener estadí­sticas de nodos', [
                 'filters' => $filters,
                 'error' => $e->getMessage()
             ]);
-            throw new \RuntimeException('Error al obtener estadÃƒÆ’Ã‚Â­sticas de nodos: ' . $e->getMessage());
+            throw new \RuntimeException('Error al obtener estadí­sticas de nodos: ' . $e->getMessage());
         }
     }
 
     /**
-     * Obtener estadÃƒÆ’Ã‚Â­sticas por opciÃƒÆ’Ã‚Â³n seleccionada
+     * Obtener estadí­sticas por opción seleccionada
      * 
      * @param array $filters Filtros opcionales
-     * @return array EstadÃƒÆ’Ã‚Â­sticas agrupadas por opciÃƒÆ’Ã‚Â³n
+     * @return array Estadí­sticas agrupadas por opción
      * @throws RuntimeException Si hay error en BD
      */
     public function getOptionStatistics(array $filters = []): array
@@ -365,26 +368,26 @@ class ChatbotAnalytics extends BaseModel
 
             $this->cache[$cacheKey] = $results;
 
-            Logger::debug('EstadÃƒÆ’Ã‚Â­sticas de opciones obtenidas', [
+            Logger::debug('Estadí­sticas de opciones obtenidas', [
                 'filters' => $filters,
                 'options_count' => count($results)
             ]);
 
             return $results;
         } catch (Exception $e) {
-            Logger::error('Error al obtener estadÃƒÆ’Ã‚Â­sticas de opciones', [
+            Logger::error('Error al obtener estadí­sticas de opciones', [
                 'filters' => $filters,
                 'error' => $e->getMessage()
             ]);
-            throw new \RuntimeException('Error al obtener estadÃƒÆ’Ã‚Â­sticas de opciones: ' . $e->getMessage());
+            throw new \RuntimeException('Error al obtener estadí­sticas de opciones: ' . $e->getMessage());
         }
     }
 
     /**
-     * Obtener anÃƒÆ’Ã‚Â¡lisis de sesiones con mÃƒÆ’Ã‚Â©tricas avanzadas
+     * Obtener Anáslisis de sesiones con métricas avanzadas
      * 
      * @param array $filters Filtros opcionales
-     * @return array AnÃƒÆ’Ã‚Â¡lisis de sesiones
+     * @return array Anáslisis de sesiones
      * @throws RuntimeException Si hay error en BD
      */
     public function getSessionAnalytics(array $filters = []): array
@@ -445,7 +448,7 @@ class ChatbotAnalytics extends BaseModel
             $stmt->execute();
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Calcular mÃƒÆ’Ã‚Â©tricas agregadas
+            // Calcular métricas agregadas
             $analytics = [
                 'sessions' => $results,
                 'summary' => [
@@ -460,7 +463,7 @@ class ChatbotAnalytics extends BaseModel
 
             $this->cache[$cacheKey] = $analytics;
 
-            Logger::debug('AnÃƒÆ’Ã‚Â¡lisis de sesiones obtenido', [
+            Logger::debug('Anáslisis de sesiones obtenido', [
                 'filters' => $filters,
                 'sessions_count' => count($results),
                 'completion_rate' => $analytics['summary']['completion_rate']
@@ -468,20 +471,20 @@ class ChatbotAnalytics extends BaseModel
 
             return $analytics;
         } catch (Exception $e) {
-            Logger::error('Error al obtener anÃƒÆ’Ã‚Â¡lisis de sesiones', [
+            Logger::error('Error al obtener Anáslisis de sesiones', [
                 'filters' => $filters,
                 'error' => $e->getMessage()
             ]);
-            throw new \RuntimeException('Error al obtener anÃƒÆ’Ã‚Â¡lisis de sesiones: ' . $e->getMessage());
+            throw new \RuntimeException('Error al obtener Anáslisis de sesiones: ' . $e->getMessage());
         }
     }
 
     /**
-     * Obtener las rutas mÃƒÆ’Ã‚Â¡s frecuentes en el chatbot
+     * Obtener las rutas  más frecuentes en el chatbot
      * 
      * @param array $filters Filtros opcionales
-     * @param int $limit LÃƒÆ’Ã‚Â­mite de rutas a retornar
-     * @return array Rutas mÃƒÆ’Ã‚Â¡s populares
+     * @param int $limit Lí­mite de rutas a retornar
+     * @return array Rutas  más populares
      * @throws RuntimeException Si hay error en BD
      */
     public function getMostPopularPaths(array $filters = [], int $limit = 10): array
@@ -507,7 +510,7 @@ class ChatbotAnalytics extends BaseModel
 
             $whereClause = implode(' AND ', $whereConditions);
 
-            // Obtener secuencias de nodos por sesiÃƒÆ’Ã‚Â³n
+            // Obtener secuencias de nodos por sesión
             $query = "
                 WITH session_paths AS (
                     SELECT 
@@ -548,7 +551,7 @@ class ChatbotAnalytics extends BaseModel
             $stmt->execute();
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Enriquecer con anÃƒÆ’Ã‚Â¡lisis adicional
+            // Enriquecer con Anáslisis adicional
             foreach ($results as &$result) {
                 $pathNodes = explode(' -> ', $result['path']);
                 $result['path_nodes'] = $pathNodes;
@@ -578,7 +581,7 @@ class ChatbotAnalytics extends BaseModel
      * Calcular tasa de abandono general y por nodo
      * 
      * @param array $filters Filtros opcionales
-     * @return array MÃƒÆ’Ã‚Â©tricas de abandono
+     * @return array Métricas de abandono
      * @throws RuntimeException Si hay error en BD
      */
     public function getAbandonmentRate(array $filters = []): array
@@ -691,10 +694,10 @@ class ChatbotAnalytics extends BaseModel
     }
 
     /**
-     * Generar reporte completo de analÃƒÆ’Ã‚Â­ticas
+     * Generar reporte completo de analí­ticas
      * 
      * @param array $filters Filtros opcionales
-     * @return array Reporte completo con todas las mÃƒÆ’Ã‚Â©tricas
+     * @return array Reporte completo con todas las métricas
      * @throws RuntimeException Si hay error en BD
      */
     public function generateAnalyticsReport(array $filters = []): array
@@ -741,16 +744,16 @@ class ChatbotAnalytics extends BaseModel
     }
 
     /**
-     * Limpiar datos antiguos de analytics con polÃƒÆ’Ã‚Â­ticas de retenciÃƒÆ’Ã‚Â³n
+     * Limpiar datos antiguos de analytics con polí­ticas de retención
      * 
-     * @param int $daysToKeep DÃƒÆ’Ã‚Â­as a conservar (por defecto 90)
-     * @return int NÃƒÆ’Ã‚Âºmero de registros eliminados
+     * @param int $daysToKeep Dí­as a conservar (por defecto 90)
+     * @return int Número de registros eliminados
      * @throws RuntimeException Si hay error en BD
      */
     public function cleanOldData(int $daysToKeep = 90): int
     {
         if ($daysToKeep < 1) {
-            throw new \InvalidArgumentException('Los dÃƒÆ’Ã‚Â­as a conservar deben ser mayor a 0');
+            throw new \InvalidArgumentException('Los dí­as a conservar deben ser mayor a 0');
         }
 
         try {
@@ -769,7 +772,7 @@ class ChatbotAnalytics extends BaseModel
 
             $deletedRows = $deleteStmt->rowCount();
 
-            // Limpiar cache despuÃƒÆ’Ã‚Â©s de la eliminaciÃƒÆ’Ã‚Â³n
+            // Limpiar cache después de la eliminación
             $this->cache = [];
 
             $this->db->commit();
@@ -794,15 +797,15 @@ class ChatbotAnalytics extends BaseModel
     }
 
     /**
-     * MÃƒÆ’Ã‚Â©todos privados de apoyo
+     * Métodos privados de apoyo
      */
 
     /**
-     * Calcular duraciÃƒÆ’Ã‚Â³n desde el inicio de la sesiÃƒÆ’Ã‚Â³n
+     * Calcular duración desde el inicio de la sesión
      * 
      * @param string $startTime Timestamp de inicio
      * @param string $currentTime Timestamp actual
-     * @return int DuraciÃƒÆ’Ã‚Â³n en segundos
+     * @return int Duración en segundos
      */
     private function calculateDurationFromStart(string $startTime, string $currentTime): int
     {
@@ -810,11 +813,11 @@ class ChatbotAnalytics extends BaseModel
     }
 
     /**
-     * Calcular tasa de conversiÃƒÆ’Ã‚Â³n para un nodo especÃƒÆ’Ã‚Â­fico
+     * Calcular tasa de conversión para un nodo especí­fico
      * 
      * @param string $nodeId ID del nodo
      * @param array $filters Filtros aplicados
-     * @return float Tasa de conversiÃƒÆ’Ã‚Â³n
+     * @return float Tasa de conversión
      */
     private function calculateNodeConversionRate(string $nodeId, array $filters = []): float
     {
@@ -861,7 +864,7 @@ class ChatbotAnalytics extends BaseModel
                 ? round(($result['completed_sessions'] / $result['total_visits']) * 100, 2)
                 : 0.0;
         } catch (Exception $e) {
-            Logger::warning('Error calculando tasa de conversiÃƒÆ’Ã‚Â³n de nodo', [
+            Logger::warning('Error calculando tasa de conversión de nodo', [
                 'node_id' => $nodeId,
                 'error' => $e->getMessage()
             ]);
@@ -870,7 +873,7 @@ class ChatbotAnalytics extends BaseModel
     }
 
     /**
-     * Calcular tasa de abandono para un nodo especÃƒÆ’Ã‚Â­fico
+     * Calcular tasa de abandono para un nodo especí­fico
      * 
      * @param string $nodeId ID del nodo
      * @param array $filters Filtros aplicados
@@ -933,23 +936,23 @@ class ChatbotAnalytics extends BaseModel
     }
 
     /**
-     * Calcular tasa de completaciÃƒÆ’Ã‚Â³n para una ruta especÃƒÆ’Ã‚Â­fica
+     * Calcular tasa de completación para una ruta especí­fica
      * 
      * @param string $path Ruta de nodos
      * @param array $filters Filtros aplicados
-     * @return float Tasa de completaciÃƒÆ’Ã‚Â³n
+     * @return float Tasa de completación
      */
     private function calculatePathCompletionRate(string $path, array $filters = []): float
     {
         try {
-            // Esta es una implementaciÃƒÆ’Ã‚Â³n simplificada
-            // En producciÃƒÆ’Ã‚Â³n podrÃƒÆ’Ã‚Â­a ser mÃƒÆ’Ã‚Â¡s sofisticada
+            // Esta es una implementación simplificada
+            // En producción podrí­a ser  más sofisticada
             $pathNodes = explode(' -> ', $path);
             $lastNode = end($pathNodes);
 
             return $this->calculateNodeConversionRate($lastNode, $filters);
         } catch (Exception $e) {
-            Logger::warning('Error calculando tasa de completaciÃƒÆ’Ã‚Â³n de ruta', [
+            Logger::warning('Error calculando tasa de completación de ruta', [
                 'path' => $path,
                 'error' => $e->getMessage()
             ]);
@@ -958,10 +961,10 @@ class ChatbotAnalytics extends BaseModel
     }
 
     /**
-     * Calcular mÃƒÆ’Ã‚Â©tricas de rendimiento general
+     * Calcular métricas de rendimiento general
      * 
      * @param array $filters Filtros aplicados
-     * @return array MÃƒÆ’Ã‚Â©tricas de rendimiento
+     * @return array Métricas de rendimiento
      */
     private function calculatePerformanceMetrics(array $filters = []): array
     {
@@ -1010,7 +1013,7 @@ class ChatbotAnalytics extends BaseModel
 
             $metrics = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // AÃƒÆ’Ã‚Â±adir mÃƒÆ’Ã‚Â©tricas calculadas
+            // Aí±adir métricas calculadas
             $metrics['events_per_session'] = $metrics['unique_sessions'] > 0
                 ? round($metrics['total_events'] / $metrics['unique_sessions'], 2)
                 : 0;
@@ -1025,7 +1028,7 @@ class ChatbotAnalytics extends BaseModel
 
             return $metrics;
         } catch (Exception $e) {
-            Logger::warning('Error calculando mÃƒÆ’Ã‚Â©tricas de rendimiento', [
+            Logger::warning('Error calculando métricas de rendimiento', [
                 'filters' => $filters,
                 'error' => $e->getMessage()
             ]);
@@ -1042,7 +1045,7 @@ class ChatbotAnalytics extends BaseModel
 
 
     // ==========================================
-    // MÃƒÆ’Ã¢â‚¬Â°TODOS CRUD ENCAPSULADOS ESTÃƒÆ’Ã‚ÂNDAR
+    // MÉTODOS CRUD ENCAPSULADOS ESTÁNDAR
     // ==========================================
 
     /**
@@ -1096,7 +1099,7 @@ class ChatbotAnalytics extends BaseModel
      * Actualizar chatbot_analytics con validaciones
      * @param mixed $id ID del chatbot_analytics a actualizar
      * @param array $data Nuevos datos
-     * @return bool True si la actualizaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @return bool True si la actualización fue exitosa
      */
     public function updateChatbotAnalytics($id, array $data): bool
     {
@@ -1128,7 +1131,7 @@ class ChatbotAnalytics extends BaseModel
     /**
      * Eliminar chatbot_analytics con validaciones
      * @param mixed $id ID del chatbot_analytics a eliminar
-     * @return bool True si la eliminaciÃƒÆ’Ã‚Â³n fue exitosa
+     * @return bool True si la eliminación fue exitosa
      */
     public function deleteChatbotAnalytics($id): bool
     {
@@ -1156,9 +1159,9 @@ class ChatbotAnalytics extends BaseModel
 
     /**
      * Buscar chatbot_analytics con filtros
-     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
-     * @param int $page PÃƒÆ’Ã‚Â¡gina actual
-     * @param int $limit Registros por pÃƒÆ’Ã‚Â¡gina
+     * @param array $filters Filtros de búsqueda
+     * @param int $page Pí¡gina actual
+     * @param int $limit Registros por pí¡gina
      * @param array $orderBy Criterios de ordenamiento
      * @return array Array de chatbot_analytics
      */
@@ -1178,8 +1181,8 @@ class ChatbotAnalytics extends BaseModel
 
     /**
      * Contar total de chatbot_analytics con filtros
-     * @param array $filters Filtros de bÃƒÆ’Ã‚Âºsqueda
-     * @return int NÃƒÆ’Ã‚Âºmero total de chatbot_analytics
+     * @param array $filters Filtros de búsqueda
+     * @return int Número total de chatbot_analytics
      */
     public function countChatbotAnalyticss(array $filters = []): int
     {
@@ -1196,22 +1199,22 @@ class ChatbotAnalytics extends BaseModel
     }
 
     // ==========================================
-    // MÃƒÆ’Ã¢â‚¬Â°TODOS DE VALIDACIÃƒÆ’Ã¢â‚¬Å“N ESPECÃƒÆ’Ã‚ÂFICOS
+    // MÉTODOS DE VALIDACIÓN ESPECíFICOS
     // ==========================================
 
     /**
-     * Validar datos especÃƒÆ’Ã‚Â­ficos de chatbot_analytics
+     * Validar datos especí­ficos de chatbot_analytics
      * @param array $data Datos a validar
-     * @param mixed $id ID para validaciones de actualizaciÃƒÆ’Ã‚Â³n (opcional)
-     * @throws \InvalidArgumentException Si los datos no son vÃƒÆ’Ã‚Â¡lidos
+     * @param mixed $id ID para validaciones de actualización (opcional)
+     * @throws \InvalidArgumentException Si los datos no son ví¡lidos
      */
     private function validateChatbotAnalyticsData(array $data, $id = null): void
     {
-        // TODO: Implementar validaciones especÃƒÆ’Ã‚Â­ficas del modelo
+        // TODO: Implementar validaciones especí­ficas del modelo
     }
 
     /**
-     * Invalidar cache especÃƒÆ’Ã‚Â­fico de chatbot_analytics
+     * Invalidar cache especí­fico de chatbot_analytics
      */
     public function invalidateChatbotAnalyticsCache(): int
     {

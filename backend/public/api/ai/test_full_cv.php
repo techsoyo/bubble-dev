@@ -29,7 +29,7 @@ if (!file_exists($filePath)) {
 $content = file_get_contents($filePath);
 
 // Construir prompt completo (igual que en parse-cv-file.php)
-$prompt = "Analiza el siguiente CV en texto plano y extrae la informaciÃƒÆ’Ã‚Â³n en formato JSON estructurado con los siguientes campos:aunque algunos estÃƒÆ’Ã‚Â©n vacÃƒÆ’Ã‚Â­os):\n\n" .
+$prompt = "Analiza el siguiente CV en texto plano y extrae la información en formato JSON estructurado con los siguientes campos:aunque algunos estén vací­os):\n\n" .
     "{\n" .
     "  \"nombre\": \"\",\n" .
     "  \"email\": \"\",\n" .
@@ -74,7 +74,7 @@ $prompt = "Analiza el siguiente CV en texto plano y extrae la informaciÃƒÆ’
     "  \"subcategoria\": \"\",\n" .
     "  \"otros\": \"\"\n" .
     "}\n\n" .
-    "Asocia el perfil a una de las siguientes categorÃƒÆ’Ã‚Â­as y subcategorÃƒÆ’Ã‚Â­as segÃƒÆ’Ã‚Âºn la experiencia y habilidades detectadas:\n\n" .
+    "Asocia el perfil a una de las siguientes categorí­as y subcategorí­as según la experiencia y habilidades detectadas:\n\n" .
     "[\n" .
     "  { categoria: 'Management', subcategorias: ['Account Manager', 'Account Director', 'Medical Strategist/Planner', 'Scientific Account Executive'] },\n" .
     "  { categoria: 'Creativity (Art & Design)', subcategorias: ['Copywriter (health)', 'Art Director', 'Graphic Designer', 'Content Creator/Content Strategist'] },\n" .
@@ -124,21 +124,21 @@ echo "ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  HTTP Code: $httpCode\n\n";
 
 $data = json_decode($response, true);
 if (!isset($data['response'])) {
-    echo "ÃƒÂ¢Ã‚ÂÃ…â€™ Respuesta invÃƒÆ’Ã‚Â¡lida de Ollama\n";
+    echo "ÃƒÂ¢Ã‚ÂÃ…â€™ Respuesta inví¡lida de Ollama\n";
     echo 'Raw: ' . substr($response, 0, 200) . "...\n";
     exit;
 }
 
-echo "ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Â°XITO! CV procesado correctamente\n";
+echo "ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° Ãƒâ€šÃ‚Â¡ÉXITO! CV procesado correctamente\n";
 echo 'ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Longitud de respuesta: ' . strlen($data['response']) . " caracteres\n\n";
 
 // Intentar parsear como JSON
 $cvJson = json_decode($data['response'], true);
 if ($cvJson) {
-    echo "ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Respuesta es JSON vÃƒÆ’Ã‚Â¡lido\n";
+    echo "ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Respuesta es JSON ví¡lido\n";
     echo 'ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ NOMBRE: ' . ($cvJson['nombre'] ?? 'No detectado') . "\n";
-    echo 'ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ CATEGORÃƒÆ’Ã‚ÂA: ' . ($cvJson['categoria'] ?? 'No detectada') . "\n";
-    echo 'ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ SUBCATEGORÃƒÆ’Ã‚ÂA: ' . ($cvJson['subcategoria'] ?? 'No detectada') . "\n";
+    echo 'ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ CATEGORíA: ' . ($cvJson['categoria'] ?? 'No detectada') . "\n";
+    echo 'ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ SUBCATEGORíA: ' . ($cvJson['subcategoria'] ?? 'No detectada') . "\n";
 } else {
     echo "ÃƒÂ¢Ã…Â¡Ã‚Â ÃƒÂ¯Ã‚Â¸Ã‚Â Respuesta contiene texto adicional, necesita limpieza\n";
     echo "ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Inicio de respuesta:\n";

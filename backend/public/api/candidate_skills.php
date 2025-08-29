@@ -1,92 +1,431 @@
-<?php declare(strict_types=1);
-require_once __DIR__ . '/./bootstrap.php';
-JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
+<?php
 
-$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (in_array($method, ['POST','PUT','PATCH','DELETE'], true)) {
-    CsrfMiddleware::protect(); // double-submit cookie
+declare(strict_types=1);
+
+require_once __DIR__ . '/./bootstrap.php';
+
+/**
+ * Endpoint: /api/candidate-skills
+ * Gestión segura de habilidades de candidatos con validación robusta
+ *
+ * @package API
+ * @author Bubble Talents Development Team
+ * @version 1.0.0
+ */
+
+// Configurar headers de seguridad
+header('Content-Type: application/json; charset=utf-8');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
+
+// Configurar CORS seguro
+$allowedOrigins = [
+    'https://bubble-talents.com',
+    'https://www.bubble-talents.com',
+    'https://app.bubble-talents.com'
+];
+
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if (in_array($origin, $allowedOrigins)) {
+    header("Access-Control-Allow-Origin: $origin");
+    header('Access-Control-Allow-Credentials: true');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-CSRF-Token');
+    header('Access-Control-Max-Age: 86400');
 }
 
-if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized (cookie required)']);
+// Manejar preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
     exit;
 }
 
-// preflightHandle(); // ELIMINADO: Preflight se maneja automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ticamente en bootstrap.php
-// sendCorsHeaders(); // ELIMINADO: CORS se configura automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ticamente en bootstrap.php
-require_once __DIR__ . '/../../src/Middleware/SecurityMiddleware.php';
+// Requerir autenticación JWT
+try {
+    $userPayload = \Middleware\JWTMiddleware::requireAuth();
+} catch (Exception $e) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'message' => 'Autenticación requerida']);
+    exit;
+}
 
-use Middleware\SecurityMiddleware as Sec;
-use Utils\JWT;
-use Utils\Request;
 use Utils\ResponseHelper as Res;
-use Utils\Validator as Val;
+use Utils\Logger;
 
-if (!function_exists('db')) {
-    function db(): PDO
+/**
+ * Clase para rate limiting de operaciones con skills
+ */
+class SkillsRateLimiter
+{
+    private static $operations = [];
+    private static $maxOperationsPerHour = 50;
+    private static $maxOperationsPerDay = 200;
+    private static $windowHour = 3600;
+    private static $windowDay = 86400;
+
+    public static function canOperate(string $userId): bool
     {
-        return $GLOBALS['pdo'];
+        $currentTime = time();
+
+        // Limpiar entradas antiguas por hora
+        self::$operations[$userId]['hour'] = array_filter(
+            self::$operations[$userId]['hour'] ?? [],
+            function ($timestamp) use ($currentTime) {
+                return ($currentTime - $timestamp) < self::$windowHour;
+            }
+        );
+
+        // Limpiar entradas antiguas por día
+        self::$operations[$userId]['day'] = array_filter(
+            self::$operations[$userId]['day'] ?? [],
+            function ($timestamp) use ($currentTime) {
+                return ($currentTime - $timestamp) < self::$windowDay;
+            }
+        );
+
+        $operationsThisHour = count(self::$operations[$userId]['hour'] ?? []);
+        $operationsToday = count(self::$operations[$userId]['day'] ?? []);
+
+        return $operationsThisHour < self::$maxOperationsPerHour && $operationsToday < self::$maxOperationsPerDay;
     }
-}
-if (!function_exists('T')) {
-    function T(string $n): string
+
+    public static function recordOperation(string $userId): void
     {
-        return 'bt_' . $n;
+        $currentTime = time();
+        self::$operations[$userId]['hour'][] = $currentTime;
+        self::$operations[$userId]['day'][] = $currentTime;
     }
 }
 
-$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-$authUser = null;
-try {
-    if (in_array($method, ['POST', 'PUT', 'DELETE'], true)) {
-        $authUser = JWT::requireAuth();
+/**
+ * Configuración de seguridad para skills
+ */
+class SkillsSecurityConfig
+{
+    public const MAX_SKILL_NAME_LENGTH = 255;
+    public const MAX_SKILLS_PER_CANDIDATE = 50;
+    public const ALLOWED_METHODS = ['GET', 'POST', 'PUT', 'DELETE'];
+
+    // Lista de skills comunes para validación básica
+    public const COMMON_SKILLS = [
+        'php',
+        'javascript',
+        'python',
+        'java',
+        'c#',
+        'c++',
+        'ruby',
+        'go',
+        'rust',
+        'html',
+        'css',
+        'sql',
+        'mysql',
+        'postgresql',
+        'mongodb',
+        'redis',
+        'react',
+        'angular',
+        'vue',
+        'node.js',
+        'express',
+        'django',
+        'laravel',
+        'git',
+        'docker',
+        'kubernetes',
+        'aws',
+        'azure',
+        'linux',
+        'windows',
+        'agile',
+        'scrum',
+        'kanban',
+        'testing',
+        'automation',
+        'ci/cd'
+    ];
+}
+
+/**
+ * Validar y sanitizar ID de candidato
+ */
+function validateCandidateId($candidateId): int
+{
+    if (!is_numeric($candidateId)) {
+        throw new InvalidArgumentException('ID de candidato inválido');
     }
-} catch (\Throwable $e) {
-    Res::error('No autorizado', 401, ['detail' => $e->getMessage()]);
+
+    $id = (int)$candidateId;
+    if ($id <= 0) {
+        throw new InvalidArgumentException('ID de candidato debe ser positivo');
+    }
+
+    return $id;
+}
+
+/**
+ * Validar y sanitizar nombre de skill
+ */
+function validateSkill(string $skill): string
+{
+    $skill = trim($skill);
+
+    if (empty($skill)) {
+        throw new InvalidArgumentException('Nombre de skill requerido');
+    }
+
+    if (strlen($skill) > SkillsSecurityConfig::MAX_SKILL_NAME_LENGTH) {
+        throw new InvalidArgumentException('Nombre de skill demasiado largo');
+    }
+
+    // Remover caracteres de control y potencialmente peligrosos
+    $skill = preg_replace('/[\x00-\x1F\x7F]/', '', $skill);
+
+    // Validar que no contenga caracteres peligrosos
+    if (preg_match('/[<>\"\';&]/', $skill)) {
+        throw new InvalidArgumentException('Nombre de skill contiene caracteres no permitidos');
+    }
+
+    // Validar que sea un nombre de skill razonable (solo letras, números, espacios, guiones, puntos)
+    if (!preg_match('/^[a-zA-Z0-9\s\-\.\+\#\/]+$/', $skill)) {
+        throw new InvalidArgumentException('Nombre de skill contiene caracteres no válidos');
+    }
+
+    // Convertir a minúsculas para normalización
+    $skill = strtolower($skill);
+
+    return $skill;
+}
+
+/**
+ * Verificar permisos de acceso al candidato
+ */
+function verifyCandidateAccess(int $candidateId, array $userPayload): void
+{
+    $userId = (int)$userPayload['user_id'];
+    $userRole = $userPayload['role'] ?? 'candidate';
+
+    // Si es el propio candidato, permitir acceso
+    if ($userRole === 'candidate' && $userId === $candidateId) {
+        return;
+    }
+
+    // Si es admin, hr o recruiter, permitir acceso
+    if (in_array($userRole, ['admin', 'hr', 'recruiter'])) {
+        return;
+    }
+
+    throw new Exception('Acceso denegado al candidato');
+}
+
+/**
+ * Verificar límite de skills por candidato
+ */
+function checkSkillsLimit(int $candidateId): void
+{
+    $db = \Utils\Database::getInstance()->getConnection();
+
+    $stmt = $db->prepare('SELECT COUNT(*) FROM bt_candidate_skills WHERE candidate_id = ?');
+    $stmt->execute([$candidateId]);
+    $count = (int)$stmt->fetchColumn();
+
+    if ($count >= SkillsSecurityConfig::MAX_SKILLS_PER_CANDIDATE) {
+        throw new Exception('Límite máximo de skills alcanzado para este candidato');
+    }
+}
+
+/**
+ * Verificar duplicados de skill para un candidato
+ */
+function checkDuplicateSkill(int $candidateId, string $skill): void
+{
+    $db = \Utils\Database::getInstance()->getConnection();
+
+    $stmt = $db->prepare('SELECT COUNT(*) FROM bt_candidate_skills WHERE candidate_id = ? AND skill = ?');
+    $stmt->execute([$candidateId, $skill]);
+    $count = (int)$stmt->fetchColumn();
+
+    if ($count > 0) {
+        throw new Exception('Esta skill ya está registrada para el candidato');
+    }
 }
 
 try {
-    $pdo = db();
+    $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+    // Verificar método permitido
+    if (!in_array($method, SkillsSecurityConfig::ALLOWED_METHODS)) {
+        http_response_code(405);
+        Res::error('Método no permitido', 405);
+        exit;
+    }
+
+    // Verificar rate limiting para operaciones de escritura
+    if (in_array($method, ['POST', 'PUT', 'DELETE'])) {
+        $userId = (string)$userPayload['user_id'];
+
+        if (!SkillsRateLimiter::canOperate($userId)) {
+            // Log intento de rate limit
+            if (class_exists('\Utils\Logger')) {
+                \Utils\Logger::security('skills_rate_limited', [
+                    'user_id' => $userId,
+                    'method' => $method,
+                    'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+                ]);
+            }
+
+            http_response_code(429);
+            Res::error('Demasiadas operaciones. Intenta más tarde.', 429);
+            exit;
+        }
+    }
+
+    $db = \Utils\Database::getInstance()->getConnection();
+
     switch ($method) {
-        case 'GET': {
+        case 'GET':
+            // Obtener skills de un candidato
             $candidateId = $_GET['candidate_id'] ?? null;
-            ['ok' => $ok, 'errors' => $errs] = Val::validate(['candidate_id' => $candidateId], [
-                'candidate_id' => 'required|int'
-            ]);
-            if (!$ok) {
-                Res::error('ValidaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n fallida', 422, ['errors' => $errs]);
+
+            if (!$candidateId) {
+                http_response_code(400);
+                Res::error('ID de candidato requerido', 400);
+                exit;
             }
-            Sec::assertReadAccessForCandidate((int)$candidateId, $authUser);
-            $st = $pdo->prepare('SELECT id, candidate_id, skill, created_at FROM ' . T('candidate_skills') . ' WHERE candidate_id = ? ORDER BY created_at DESC');
-            $st->execute([$candidateId]);
-            $rows = $st->fetchAll(PDO::FETCH_ASSOC);
-            Res::success('OK', ['items' => $rows]);
-            break;
-        }
-        case 'POST': {
-            $payload = Request::json();
-            ['ok' => $ok, 'errors' => $errs] = Val::validate($payload, [
-                'candidate_id' => 'required|int',
-                'skill'        => 'required|string:1,255'
-            ]);
-            if (!$ok) {
-                Res::error('ValidaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n fallida', 422, ['errors' => $errs]);
+
+            $candidateId = validateCandidateId($candidateId);
+            verifyCandidateAccess($candidateId, $userPayload);
+
+            $stmt = $db->prepare('
+                SELECT id, candidate_id, skill, created_at
+                FROM bt_candidate_skills
+                WHERE candidate_id = ?
+                ORDER BY created_at DESC
+            ');
+            $stmt->execute([$candidateId]);
+            $skills = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Log consulta
+            if (class_exists('\Utils\Logger')) {
+                \Utils\Logger::info('Skills retrieved', [
+                    'user_id' => $userPayload['user_id'],
+                    'candidate_id' => $candidateId,
+                    'count' => count($skills),
+                    'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+                ]);
             }
-            Sec::assertWriteAccessForCandidate((string)$payload['candidate_id'], $authUser);
-            $st = $pdo->prepare('INSERT INTO ' . T('candidate_skills') . ' (id, candidate_id, skill, created_at) VALUES ( ?, ?, NOW())');
-            $st->execute([
-                $payload['candidate_id'],
-                trim($payload['skill'])
+
+            Res::success('Skills obtenidas correctamente', [
+                'items' => $skills,
+                'total' => count($skills)
             ]);
-            Res::success('Skill agregado', null, 201);
             break;
-        }
+
+        case 'POST':
+            // Crear nueva skill
+            $input = json_decode(file_get_contents('php://input'), true);
+
+            if (!$input) {
+                http_response_code(400);
+                Res::error('JSON inválido', 400);
+                exit;
+            }
+
+            // Validar campos requeridos
+            $requiredFields = ['candidate_id', 'skill'];
+            foreach ($requiredFields as $field) {
+                if (!isset($input[$field]) || empty(trim($input[$field]))) {
+                    http_response_code(400);
+                    Res::error("Campo requerido faltante: {$field}", 400);
+                    exit;
+                }
+            }
+
+            // Validar y sanitizar datos
+            $candidateId = validateCandidateId($input['candidate_id']);
+            $skill = validateSkill($input['skill']);
+
+            // Verificar permisos y límites
+            verifyCandidateAccess($candidateId, $userPayload);
+            checkSkillsLimit($candidateId);
+            checkDuplicateSkill($candidateId, $skill);
+
+            // Insertar skill
+            $stmt = $db->prepare('
+                INSERT INTO bt_candidate_skills
+                (candidate_id, skill, created_at)
+                VALUES (?, ?, NOW())
+            ');
+            $stmt->execute([$candidateId, $skill]);
+
+            $newId = (int)$db->lastInsertId();
+
+            // Registrar operación
+            SkillsRateLimiter::recordOperation((string)$userPayload['user_id']);
+
+            // Log creación
+            if (class_exists('\Utils\Logger')) {
+                \Utils\Logger::info('Skill created', [
+                    'user_id' => $userPayload['user_id'],
+                    'candidate_id' => $candidateId,
+                    'skill_id' => $newId,
+                    'skill' => $skill,
+                    'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+                ]);
+            }
+
+            Res::success('Skill creada correctamente', [
+                'id' => $newId,
+                'candidate_id' => $candidateId,
+                'skill' => $skill
+            ], 201);
+            break;
+
+        case 'PUT':
+            // Actualizar skill (no implementado en el original, pero agregamos estructura)
+            http_response_code(501);
+            Res::error('Método PUT no implementado', 501);
+            break;
+
+        case 'DELETE':
+            // Eliminar skill (no implementado en el original, pero agregamos estructura)
+            http_response_code(501);
+            Res::error('Método DELETE no implementado', 501);
+            break;
+
         default:
-            Res::error('MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©todo no permitido', 405);
+            http_response_code(405);
+            Res::error('Método no permitido', 405);
     }
-} catch (\Throwable $e) {
-    Res::exception($e);
+} catch (InvalidArgumentException $e) {
+    // Log error de validación
+    if (class_exists('\Utils\Logger')) {
+        \Utils\Logger::warning('Skills validation error', [
+            'user_id' => $userPayload['user_id'] ?? 'unknown',
+            'error' => $e->getMessage(),
+            'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+        ]);
+    }
+
+    http_response_code(400);
+    Res::error('Datos inválidos: ' . $e->getMessage(), 400);
+} catch (Exception $e) {
+    // Log error general
+    if (class_exists('\Utils\Logger')) {
+        \Utils\Logger::error('Skills endpoint error', [
+            'user_id' => $userPayload['user_id'] ?? 'unknown',
+            'method' => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
+            'error' => $e->getMessage(),
+            'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+        ]);
+    }
+
+    http_response_code(500);
+    Res::error('Error interno del servidor', 500);
 }
-
-

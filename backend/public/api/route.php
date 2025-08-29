@@ -1,7 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 require_once __DIR__ . '/./bootstrap.php';
 JWTMiddleware::requireAuth(); // cookie HttpOnly obligatoria
-use Security\CsrfMiddleware;
+use Middleware\CsrfMiddleware;
+use Middleware\JWTMiddleware;
+
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
   CsrfMiddleware::protect(); // double-submit cookie
@@ -17,7 +21,7 @@ if (($_ENV['APP_ENV'] ?? 'production') === 'production' && !empty($_SERVER['HTTP
 
 /**
  * Endpoint: POST /api/route
- * Objetivo: Ruteo automÃƒÆ’Ã‚Â¡tico de candidatos a reclutadores segÃƒÆ’Ã‚Âºn reglas configurables
+ * Objetivo: Ruteo automí¡tico de candidatos a reclutadores según reglas configurables
  *
  * Input: {
  *   "candidate_id": "string",
@@ -184,11 +188,11 @@ try {
     }
   }
 
-  // Estrategia 2: Departamento por defecto basado en categorÃƒÆ’Ã‚Â­a
+  // Estrategia 2: Departamento por defecto basado en categorí­a
   if (!$departmentId && isset($candidateData['categoria'])) {
     $categoria = strtolower($candidateData['categoria']);
 
-    // Mapeo bÃƒÆ’Ã‚Â¡sico categorÃƒÆ’Ã‚Â­a ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ departamento
+    // Mapeo bí¡sico categorí­a ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ departamento
     $categoryMapping = [
       'frontend developer' => 2, // Engineering
       'backend developer' => 2,  // Engineering  
@@ -296,7 +300,7 @@ try {
     try {
       $notificationService = new NotificationService();
       $subject = "Nuevo candidato asignado - " . ($candidateData['name'] ?? $candidateId);
-      $body = "Se ha asignado un nuevo candidato a tu cartera.\n\nCandidato: " . ($candidateData['name'] ?? $candidateId) . "\nDepartamento: $departmentName\nRazÃƒÆ’Ã‚Â³n: $routingReason";
+      $body = "Se ha asignado un nuevo candidato a tu cartera.\n\nCandidato: " . ($candidateData['name'] ?? $candidateId) . "\nDepartamento: $departmentName\nRazón: $routingReason";
 
       $notificationService->sendEmail($recruiterData['email'], $subject, $body);
       $rulesApplied[] = 'notification_sent';
@@ -335,7 +339,7 @@ try {
     ]
   ];
 
-  // Log ÃƒÆ’Ã‚Â©xito
+  // Log éxito
   Log::json('info', [
     'endpoint' => '/api/route',
     'req_id' => RequestId::get(),

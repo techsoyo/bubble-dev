@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Service Worker Management - PRODUCCIÓN READY
  * 
  * Registra o desregistra el Service Worker según el entorno
@@ -13,14 +13,12 @@ export const isProd = import.meta.env?.PROD === true;
  */
 export const registerSW = async (): Promise<void> => {
   if (isProd) {
-    console.log('🔒 Service Worker DESHABILITADO en producción por política de seguridad');
     return;
   }
 
   if ('serviceWorker' in navigator) {
     try {
       const registration = await navigator.serviceWorker.register('/sw.js');
-      console.log('✅ Service Worker registrado (desarrollo):', registration);
     } catch (error) {
       console.warn('⚠️ Error registrando Service Worker:', error);
     }
@@ -38,7 +36,6 @@ export const unregisterSW = async (): Promise<void> => {
       for (const registration of registrations) {
         const success = await registration.unregister();
         if (success) {
-          console.log('✅ Service Worker desregistrado:', registration.scope);
         }
       }
     } catch (error) {
@@ -59,7 +56,6 @@ export const clearSWCaches = async (): Promise<void> => {
         cacheNames.map(cacheName => caches.delete(cacheName))
       );
 
-      console.log('✅ Todos los cachés del Service Worker eliminados');
     } catch (error) {
       console.warn('⚠️ Error limpiando cachés:', error);
     }
@@ -74,10 +70,8 @@ export const initServiceWorker = async (): Promise<void> => {
     // En producción: desregistrar SW y limpiar cachés
     await unregisterSW();
     await clearSWCaches();
-    console.log('🔒 PRODUCCIÓN: Service Worker y cachés eliminados por política de seguridad');
   } else {
     // En desarrollo: registrar normalmente
     await registerSW();
-    console.log('🔧 DESARROLLO: Service Worker habilitado');
   }
 };
